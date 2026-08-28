@@ -65,3 +65,16 @@ the backend is a mock data server, not real infrastructure.
   contracts, KYC), that's a much bigger scope needing its own planning
   session — flagged, not started.
 - No automated tests exist for either the frontend or backend.
+
+---
+
+## 2026-08-28 (update)
+
+- Set up this file itself: `SESSION_LOG.md` now exists as the standing
+  cross-session handoff doc, triggered by saying "save in memory for the
+  next session" (appends a new dated entry here rather than overwriting).
+- Also saved a matching Claude memory note (type: feedback) so a brand
+  new session knows to read this file first, before even opening it —
+  see the assistant's persistent memory for this project if curious.
+- No functional/code changes this update — purely the logging workflow
+  itself, committed and pushed (`60321ff`).
