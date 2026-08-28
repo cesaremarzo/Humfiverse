@@ -4,26 +4,36 @@
    instead of bespoke drafting" cost-reduction approach discussed in
    planning/legal-regulatory-notes.md §4.1/§7.
 
-   This is DRAFT PROTOTYPE TEXT, governed by Italian law / an Italian SPV,
-   NOT reviewed by counsel and NOT a binding legal document. Clauses
-   flagged `vessatoria: true` are the ones that most plausibly fall under
-   art. 1341, comma 2, c.c. (clausole vessatorie) and therefore need
-   separate, specific acceptance in a contract of adhesion — each carries
-   a `vessatoriaCategory` note on which category it plausibly falls under.
-   This flagging is a starting point for counsel to confirm, not a legal
-   determination.
+   This is DRAFT PROTOTYPE TEXT, governed by Luxembourg law (decision
+   28 Aug 2026 — see legal doc §7.7: Luxembourg securitization-vehicle
+   structure chosen over an Italian SPV / Malta), NOT reviewed by counsel
+   and NOT a binding legal document. Clauses flagged `vessatoria: true`
+   are the ones that most plausibly need separate, specific acceptance in
+   a contract of adhesion — the underlying UX principle (flag risky
+   clauses, require individual sign-off, not just a general "I accept")
+   is jurisdiction-agnostic good practice, but the *legal basis* for it
+   is NOT the Italian civil code anymore now that the vehicle is
+   Luxembourg-governed. The most likely Luxembourg/EU basis is Directive
+   93/13/EEC on unfair terms in consumer contracts (transposed into
+   Luxembourg's Code de la consommation) plus general Luxembourg
+   principles on contrats d'adhésion — see `legalBasisNote` below. The
+   EXACT applicable Luxembourg provision has NOT been confirmed by
+   counsel; this flagging reuses the Italian art. 1341 co.2 c.c. category
+   list only as a starting heuristic for which clause types are commonly
+   treated as needing extra scrutiny, not as an applicable legal citation.
 
-   **Italian (`it`) is the authoritative text — this is a document meant
-   to be governed by Italian law.** The en/es/fr/de translations below are
-   PROVISIONAL, machine/AI-assisted, NOT certified/sworn translations, and
-   exist only so non-Italian-speaking artists can understand what they're
-   agreeing to before it's reviewed by counsel. If the project ever uses
-   this for something real, these need replacing with certified legal
-   translations per language, not just editing this file's text.
+   **French (`fr`) is the authoritative text — Luxembourg civil/commercial
+   law is published and practiced primarily in French.** (English is also
+   common in Luxembourg fund/securitization documents in practice — worth
+   confirming with counsel which the platform should actually use.) The
+   it/en/es/de translations below are PROVISIONAL, machine/AI-assisted,
+   NOT certified/sworn translations. If the project ever uses this for
+   something real, these need replacing with certified legal translations
+   per language, not just editing this file's text.
 */
 
 const CONTRACT_TEMPLATE = {
-  version: "v0.2-draft",
+  version: "v0.3-draft",
   title: {
     it: "Accordo di Cessione Royalty e Escrow a Milestone",
     en: "Royalty Assignment & Milestone Escrow Agreement",
@@ -38,7 +48,14 @@ const CONTRACT_TEMPLATE = {
     fr: "Texte provisoire pour le prototype — non validé par un juriste, ce n'est pas un contrat contraignant.",
     de: "Entwurfstext für den Prototyp — nicht anwaltlich geprüft, kein bindender Vertrag."
   },
-  authoritativeLanguage: "it",
+  legalBasisNote: {
+    it: "Le clausole contrassegnate sono quelle che, per analogia con l'elenco dell'art. 1341, comma 2, del Codice Civile italiano (usato qui solo come lista di partenza), richiedono probabilmente un'attenzione specifica anche sotto il diritto lussemburghese — verosimilmente tramite la Direttiva UE 93/13/CEE sulle clausole abusive (recepita nel Code de la consommation lussemburghese) e i principi generali lussemburghesi sui contratti di adesione. Il riferimento normativo lussemburghese esatto non è stato confermato da un legale.",
+    en: "The flagged clauses are the ones that, by analogy with the list in art. 1341, para. 2, of the Italian Civil Code (used here only as a starting checklist), likely also warrant specific attention under Luxembourg law — most plausibly via EU Directive 93/13/EEC on unfair contract terms (transposed into Luxembourg's Code de la consommation) and general Luxembourg principles on adhesion contracts. The exact applicable Luxembourg provision has not been confirmed by counsel.",
+    es: "Las cláusulas marcadas son aquellas que, por analogía con la lista del art. 1341, párrafo 2, del Código Civil italiano (usada aquí solo como punto de partida), probablemente también requieran especial atención conforme al derecho luxemburgués — previsiblemente a través de la Directiva UE 93/13/CEE sobre cláusulas abusivas (transpuesta en el Code de la consommation luxemburgués) y los principios generales luxemburgueses sobre contratos de adhesión. La disposición luxemburguesa exacta aplicable no ha sido confirmada por un abogado.",
+    fr: "Les clauses signalées sont celles qui, par analogie avec la liste de l'art. 1341, alinéa 2, du Code civil italien (utilisée ici uniquement comme liste de départ), méritent probablement aussi une attention particulière en droit luxembourgeois — vraisemblablement via la Directive UE 93/13/CEE sur les clauses abusives (transposée dans le Code de la consommation luxembourgeois) et les principes généraux luxembourgeois sur les contrats d'adhésion. La disposition luxembourgeoise exacte applicable n'a pas été confirmée par un juriste.",
+    de: "Die markierten Klauseln sind diejenigen, die in Analogie zur Liste in Art. 1341, Abs. 2, des italienischen Zivilgesetzbuchs (hier nur als Ausgangs-Checkliste verwendet) wahrscheinlich auch nach luxemburgischem Recht besondere Aufmerksamkeit erfordern — voraussichtlich über die EU-Richtlinie 93/13/EWG über missbräuchliche Vertragsklauseln (umgesetzt im luxemburgischen Code de la consommation) und allgemeine luxemburgische Grundsätze zu Beitrittsverträgen. Die genau anwendbare luxemburgische Bestimmung wurde noch nicht anwaltlich bestätigt."
+  },
+  authoritativeLanguage: "fr",
   clauses: [
     {
       id: "assignment",
@@ -76,11 +93,11 @@ const CONTRACT_TEMPLATE = {
       id: "manager-discretion",
       vessatoria: true,
       vessatoriaCategory: {
-        it: "facoltà di sospendere l'esecuzione del contratto (art. 1341, comma 2, c.c.)",
-        en: "right to suspend performance of the contract (art. 1341, para. 2, Italian Civil Code)",
-        es: "facultad de suspender la ejecución del contrato (art. 1341, párrafo 2, Código Civil italiano)",
-        fr: "faculté de suspendre l'exécution du contrat (art. 1341, alinéa 2, Code civil italien)",
-        de: "Recht zur Aussetzung der Vertragserfüllung (Art. 1341, Abs. 2, ital. Zivilgesetzbuch)"
+        it: "facoltà di sospendere l'esecuzione del contratto",
+        en: "right to suspend performance of the contract",
+        es: "facultad de suspender la ejecución del contrato",
+        fr: "faculté de suspendre l'exécution du contrat",
+        de: "Recht zur Aussetzung der Vertragserfüllung"
       },
       i18n: {
         it: { title: "Potere di conferma e sospensione dell'SPV Manager",
@@ -99,11 +116,11 @@ const CONTRACT_TEMPLATE = {
       id: "refund",
       vessatoria: true,
       vessatoriaCategory: {
-        it: "decadenze a carico dell'Artista (art. 1341, comma 2, c.c.)",
-        en: "forfeiture provisions against the Artist (art. 1341, para. 2, Italian Civil Code)",
-        es: "cláusulas de caducidad a cargo del Artista (art. 1341, párrafo 2, Código Civil italiano)",
-        fr: "clauses de déchéance à la charge de l'Artiste (art. 1341, alinéa 2, Code civil italien)",
-        de: "Verwirkungsklauseln zulasten des Künstlers (Art. 1341, Abs. 2, ital. Zivilgesetzbuch)"
+        it: "decadenze a carico dell'Artista",
+        en: "forfeiture provisions against the Artist",
+        es: "cláusulas de caducidad a cargo del Artista",
+        fr: "clauses de déchéance à la charge de l'Artiste",
+        de: "Verwirkungsklauseln zulasten des Künstlers"
       },
       i18n: {
         it: { title: "Formula di rimborso pro-rata e decadenza sulle tranche non rilasciate",
@@ -122,11 +139,11 @@ const CONTRACT_TEMPLATE = {
       id: "liability",
       vessatoria: true,
       vessatoriaCategory: {
-        it: "limitazione di responsabilità (art. 1341, comma 2, c.c.)",
-        en: "limitation of liability (art. 1341, para. 2, Italian Civil Code)",
-        es: "limitación de responsabilidad (art. 1341, párrafo 2, Código Civil italiano)",
-        fr: "limitation de responsabilité (art. 1341, alinéa 2, Code civil italien)",
-        de: "Haftungsbeschränkung (Art. 1341, Abs. 2, ital. Zivilgesetzbuch)"
+        it: "limitazione di responsabilità",
+        en: "limitation of liability",
+        es: "limitación de responsabilidad",
+        fr: "limitation de responsabilité",
+        de: "Haftungsbeschränkung"
       },
       i18n: {
         it: { title: "Limitazione di responsabilità della piattaforma e della SPV",
@@ -145,11 +162,11 @@ const CONTRACT_TEMPLATE = {
       id: "exclusivity",
       vessatoria: true,
       vessatoriaCategory: {
-        it: "restrizione alla libertà contrattuale dell'Artista nei rapporti con terzi (art. 1341, comma 2, c.c.)",
-        en: "restriction on the Artist's contractual freedom with third parties (art. 1341, para. 2, Italian Civil Code)",
-        es: "restricción a la libertad contractual del Artista frente a terceros (art. 1341, párrafo 2, Código Civil italiano)",
-        fr: "restriction à la liberté contractuelle de l'Artiste envers les tiers (art. 1341, alinéa 2, Code civil italien)",
-        de: "Einschränkung der Vertragsfreiheit des Künstlers gegenüber Dritten (Art. 1341, Abs. 2, ital. Zivilgesetzbuch)"
+        it: "restrizione alla libertà contrattuale dell'Artista nei rapporti con terzi",
+        en: "restriction on the Artist's contractual freedom with third parties",
+        es: "restricción a la libertad contractual del Artista frente a terceros",
+        fr: "restriction à la liberté contractuelle de l'Artiste envers les tiers",
+        de: "Einschränkung der Vertragsfreiheit des Künstlers gegenüber Dritten"
       },
       i18n: {
         it: { title: "Esclusiva sui diritti royalty per la durata della campagna",
@@ -168,23 +185,23 @@ const CONTRACT_TEMPLATE = {
       id: "jurisdiction",
       vessatoria: true,
       vessatoriaCategory: {
-        it: "deroga alla competenza dell'autorità giudiziaria (art. 1341, comma 2, c.c.)",
-        en: "derogation from the ordinary courts' jurisdiction (art. 1341, para. 2, Italian Civil Code)",
-        es: "excepción a la competencia de la autoridad judicial (art. 1341, párrafo 2, Código Civil italiano)",
-        fr: "dérogation à la compétence de l'autorité judiciaire (art. 1341, alinéa 2, Code civil italien)",
-        de: "Abweichung von der Zuständigkeit der ordentlichen Gerichte (Art. 1341, Abs. 2, ital. Zivilgesetzbuch)"
+        it: "deroga alla competenza dell'autorità giudiziaria",
+        en: "derogation from the ordinary courts' jurisdiction",
+        es: "excepción a la competencia de la autoridad judicial",
+        fr: "dérogation à la compétence de l'autorité judiciaire",
+        de: "Abweichung von der Zuständigkeit der ordentlichen Gerichte"
       },
       i18n: {
         it: { title: "Legge applicabile e foro competente",
-          body: "Il presente accordo è regolato dalla legge italiana. Per ogni controversia è competente in via esclusiva il foro della sede legale della SPV, salva la giurisdizione inderogabile del consumatore ove applicabile." },
+          body: "Il presente accordo è regolato dalla legge del Granducato di Lussemburgo. Per ogni controversia sono competenti in via esclusiva i tribunali del Lussemburgo-Città, salva la giurisdizione inderogabile del consumatore ove applicabile." },
         en: { title: "Governing law and competent court",
-          body: "This agreement is governed by Italian law. For any dispute, the courts of the SPV's registered office have exclusive jurisdiction, subject to any non-derogable consumer jurisdiction where applicable." },
+          body: "This agreement is governed by the law of the Grand Duchy of Luxembourg. For any dispute, the courts of Luxembourg City have exclusive jurisdiction, subject to any non-derogable consumer jurisdiction where applicable." },
         es: { title: "Ley aplicable y fuero competente",
-          body: "El presente acuerdo se rige por la ley italiana. Para cualquier controversia será exclusivamente competente el fuero del domicilio social de la SPV, sin perjuicio del fuero imperativo del consumidor cuando sea aplicable." },
+          body: "El presente acuerdo se rige por la ley del Gran Ducado de Luxemburgo. Para cualquier controversia serán exclusivamente competentes los tribunales de la ciudad de Luxemburgo, sin perjuicio del fuero imperativo del consumidor cuando sea aplicable." },
         fr: { title: "Loi applicable et juridiction compétente",
-          body: "Le présent accord est régi par le droit italien. Pour tout litige, les tribunaux du siège social de la SPV sont exclusivement compétents, sous réserve de la juridiction impérative du consommateur lorsqu'elle est applicable." },
+          body: "Le présent accord est régi par le droit du Grand-Duché de Luxembourg. Pour tout litige, les tribunaux de la Ville de Luxembourg sont exclusivement compétents, sous réserve de la juridiction impérative du consommateur lorsqu'elle est applicable." },
         de: { title: "Anwendbares Recht und zuständiges Gericht",
-          body: "Diese Vereinbarung unterliegt italienischem Recht. Für Streitigkeiten ist ausschließlich das Gericht am Sitz der SPV zuständig, vorbehaltlich zwingender Verbrauchergerichtsstände, soweit anwendbar." }
+          body: "Diese Vereinbarung unterliegt dem Recht des Großherzogtums Luxemburg. Für Streitigkeiten sind ausschließlich die Gerichte der Stadt Luxemburg zuständig, vorbehaltlich zwingender Verbrauchergerichtsstände, soweit anwendbar." }
       }
     },
     {

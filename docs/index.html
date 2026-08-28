@@ -766,16 +766,21 @@ const CAMPAIGNS = [
    CONTRACT TEMPLATE — fallback copy, mirrors server/contract-template.js.
    Replaced by the backend's version at hydration time when reachable
    (same pattern as ASSETS/CAMPAIGNS/portfolio). Draft prototype text,
-   not reviewed by counsel — see the file this mirrors for the full note.
-   Clauses flagged vessatoria:true are the ones that most plausibly need
-   separate acceptance under art. 1341, comma 2, c.c.
+   governed by Luxembourg law (decision 28 Aug 2026, see legal doc §7.7).
+   Clauses flagged vessatoria:true reuse the Italian art. 1341 co.2 c.c.
+   category list only as a starting heuristic for which clause types
+   typically need extra scrutiny — NOT as the applicable legal basis now
+   that the vehicle is Luxembourg-governed. See legalBasisNote.
 
-   Italian ('it') is the authoritative text. The en/es/fr/de versions are
+   French ('fr') is the authoritative text — Luxembourg law is published
+   and practiced primarily in French (English is also common in
+   Luxembourg fund/securitization docs — confirm with counsel which the
+   platform should actually use). The it/en/es/de versions are
    PROVISIONAL, machine/AI-assisted translations, not certified/sworn —
    see clauseText()/wizContract.languageNote for how this is surfaced.
 =================================================================== */
 let CONTRACT_TEMPLATE = {
-  version: 'v0.2-draft',
+  version: 'v0.3-draft',
   title: { it:'Accordo di Cessione Royalty e Escrow a Milestone', en:'Royalty Assignment & Milestone Escrow Agreement',
     es:'Acuerdo de Cesión de Regalías y Garantía en Depósito por Hitos', fr:'Accord de Cession de Redevances et Séquestre par Jalons',
     de:'Vereinbarung über Tantiemenabtretung und Meilenstein-Treuhand' },
@@ -784,7 +789,12 @@ let CONTRACT_TEMPLATE = {
     es:'Texto borrador para el prototipo — no revisado por un abogado, no es un contrato vinculante.',
     fr:'Texte provisoire pour le prototype — non validé par un juriste, ce n’est pas un contrat contraignant.',
     de:'Entwurfstext für den Prototyp — nicht anwaltlich geprüft, kein bindender Vertrag.' },
-  authoritativeLanguage: 'it',
+  legalBasisNote: { it:"Le clausole contrassegnate sono quelle che, per analogia con l'elenco dell'art. 1341, comma 2, del Codice Civile italiano (usato qui solo come lista di partenza), richiedono probabilmente un'attenzione specifica anche sotto il diritto lussemburghese — verosimilmente tramite la Direttiva UE 93/13/CEE sulle clausole abusive (recepita nel Code de la consommation lussemburghese) e i principi generali lussemburghesi sui contratti di adesione. Il riferimento normativo lussemburghese esatto non è stato confermato da un legale.",
+    en:"The flagged clauses are the ones that, by analogy with the list in art. 1341, para. 2, of the Italian Civil Code (used here only as a starting checklist), likely also warrant specific attention under Luxembourg law — most plausibly via EU Directive 93/13/EEC on unfair contract terms (transposed into Luxembourg's Code de la consommation) and general Luxembourg principles on adhesion contracts. The exact applicable Luxembourg provision has not been confirmed by counsel.",
+    es:"Las cláusulas marcadas son aquellas que, por analogía con la lista del art. 1341, párrafo 2, del Código Civil italiano (usada aquí solo como punto de partida), probablemente también requieran especial atención conforme al derecho luxemburgués — previsiblemente a través de la Directiva UE 93/13/CEE sobre cláusulas abusivas (transpuesta en el Code de la consommation luxemburgués) y los principios generales luxemburgueses sobre contratos de adhesión. La disposición luxemburguesa exacta aplicable no ha sido confirmada por un abogado.",
+    fr:"Les clauses signalées sont celles qui, par analogie avec la liste de l'art. 1341, alinéa 2, du Code civil italien (utilisée ici uniquement comme liste de départ), méritent probablement aussi une attention particulière en droit luxembourgeois — vraisemblablement via la Directive UE 93/13/CEE sur les clauses abusives (transposée dans le Code de la consommation luxembourgeois) et les principes généraux luxembourgeois sur les contrats d'adhésion. La disposition luxembourgeoise exacte applicable n'a pas été confirmée par un juriste.",
+    de:"Die markierten Klauseln sind diejenigen, die in Analogie zur Liste in Art. 1341, Abs. 2, des italienischen Zivilgesetzbuchs (hier nur als Ausgangs-Checkliste verwendet) wahrscheinlich auch nach luxemburgischem Recht besondere Aufmerksamkeit erfordern — voraussichtlich über die EU-Richtlinie 93/13/EWG über missbräuchliche Vertragsklauseln (umgesetzt im luxemburgischen Code de la consommation) und allgemeine luxemburgische Grundsätze zu Beitrittsverträgen. Die genau anwendbare luxemburgische Bestimmung wurde noch nicht anwaltlich bestätigt." },
+  authoritativeLanguage: 'fr',
   clauses: [
     { id:'assignment', vessatoria:false, i18n:{
       it:{ title:'Cessione dei proventi royalty alla SPV', body:"L'Artista cede alla SPV titolare del catalogo/brano il diritto di incassare i proventi royalty relativi al brano caricato, per la durata e alle condizioni descritte nella documentazione di offerta. La cessione non trasferisce il copyright, che resta in capo all'Artista." },
@@ -799,9 +809,9 @@ let CONTRACT_TEMPLATE = {
       fr:{ title:'Plan de jalons et calendrier de libération des tranches', body:"Les fonds collectés sont conservés sur un compte séquestre par jalons. Chaque tranche n'est versée à l'Artiste qu'une fois le jalon correspondant atteint, selon le calendrier indiqué sur la page de la campagne." },
       de:{ title:'Meilensteinplan und Freigabeplan der Tranchen', body:"Die eingesammelten Mittel werden auf einem Meilenstein-Treuhandkonto verwahrt. Jede Tranche wird dem Künstler erst freigegeben, wenn der entsprechende Meilenstein erreicht ist, gemäß dem auf der Kampagnenseite angegebenen Zeitplan." } } },
     { id:'manager-discretion', vessatoria:true,
-      vessatoriaCategory:{ it:"facoltà di sospendere l'esecuzione del contratto (art. 1341, comma 2, c.c.)", en:'right to suspend performance of the contract (art. 1341, para. 2, Italian Civil Code)',
-        es:'facultad de suspender la ejecución del contrato (art. 1341, párrafo 2, Código Civil italiano)', fr:"faculté de suspendre l'exécution du contrat (art. 1341, alinéa 2, Code civil italien)",
-        de:'Recht zur Aussetzung der Vertragserfüllung (Art. 1341, Abs. 2, ital. Zivilgesetzbuch)' },
+      vessatoriaCategory:{ it:"facoltà di sospendere l'esecuzione del contratto", en:'right to suspend performance of the contract',
+        es:'facultad de suspender la ejecución del contrato', fr:"faculté de suspendre l'exécution du contrat",
+        de:'Recht zur Aussetzung der Vertragserfüllung' },
       i18n:{
       it:{ title:"Potere di conferma e sospensione dell'SPV Manager", body:"L'SPV Manager ha la facoltà discrezionale di confermare o meno il raggiungimento di una milestone e, in caso di dubbio, di sospendere il rilascio della tranche corrispondente fino a chiarimento. Tale sospensione non costituisce inadempimento della SPV." },
       en:{ title:"SPV Manager's confirmation and suspension power", body:"The SPV Manager has sole discretion to confirm or not confirm that a milestone has been reached and, in case of doubt, to suspend release of the corresponding tranche pending clarification. Such a suspension does not constitute a breach by the SPV." },
@@ -809,9 +819,9 @@ let CONTRACT_TEMPLATE = {
       fr:{ title:'Pouvoir de confirmation et de suspension du SPV Manager', body:"Le SPV Manager dispose du pouvoir discrétionnaire de confirmer ou non l'atteinte d'un jalon et, en cas de doute, de suspendre le versement de la tranche correspondante jusqu'à clarification. Cette suspension ne constitue pas un manquement de la SPV." },
       de:{ title:'Bestätigungs- und Aussetzungsbefugnis des SPV Managers', body:"Der SPV Manager hat das alleinige Ermessen, das Erreichen eines Meilensteins zu bestätigen oder nicht, und kann im Zweifelsfall die Freigabe der entsprechenden Tranche bis zur Klärung aussetzen. Eine solche Aussetzung stellt keine Vertragsverletzung der SPV dar." } } },
     { id:'refund', vessatoria:true,
-      vessatoriaCategory:{ it:"decadenze a carico dell'Artista (art. 1341, comma 2, c.c.)", en:'forfeiture provisions against the Artist (art. 1341, para. 2, Italian Civil Code)',
-        es:'cláusulas de caducidad a cargo del Artista (art. 1341, párrafo 2, Código Civil italiano)', fr:"clauses de déchéance à la charge de l'Artiste (art. 1341, alinéa 2, Code civil italien)",
-        de:'Verwirkungsklauseln zulasten des Künstlers (Art. 1341, Abs. 2, ital. Zivilgesetzbuch)' },
+      vessatoriaCategory:{ it:"decadenze a carico dell'Artista", en:'forfeiture provisions against the Artist',
+        es:'cláusulas de caducidad a cargo del Artista', fr:"clauses de déchéance à la charge de l'Artiste",
+        de:'Verwirkungsklauseln zulasten des Künstlers' },
       i18n:{
       it:{ title:'Formula di rimborso pro-rata e decadenza sulle tranche non rilasciate', body:"In caso di mancato raggiungimento dell'obiettivo di raccolta o mancata consegna di una milestone entro i termini, gli importi non ancora rilasciati come tranche sono restituiti pro-rata ai token holder secondo la formula: importo rimborsabile = totale raccolto − Σ(tranche già rilasciate per milestone confermate). L'Artista non ha diritto a percepire le tranche relative a milestone non raggiunte." },
       en:{ title:'Pro-rata refund formula and forfeiture of unreleased tranches', body:"If the funding goal is not reached, or a milestone is not delivered on time, amounts not yet released as tranches are refunded pro-rata to token holders using the formula: refundable amount = total raised − Σ(tranches already released for confirmed milestones). The Artist has no right to the tranches tied to milestones that were not reached." },
@@ -819,9 +829,9 @@ let CONTRACT_TEMPLATE = {
       fr:{ title:'Formule de remboursement au prorata et déchéance des tranches non versées', body:"En cas de non-atteinte de l'objectif de financement ou de non-livraison d'un jalon dans les délais, les montants non encore versés en tranches sont remboursés au prorata aux détenteurs de tokens selon la formule : montant remboursable = total collecté − Σ(tranches déjà versées pour les jalons confirmés). L'Artiste n'a aucun droit sur les tranches liées à des jalons non atteints." },
       de:{ title:'Pro-rata-Rückerstattungsformel und Verfall nicht freigegebener Tranchen', body:"Wird das Finanzierungsziel nicht erreicht oder ein Meilenstein nicht fristgerecht geliefert, werden noch nicht als Tranchen freigegebene Beträge anteilig an die Token-Inhaber zurückerstattet, nach der Formel: erstattungsfähiger Betrag = Gesamtsumme − Σ(bereits für bestätigte Meilensteine freigegebene Tranchen). Der Künstler hat keinen Anspruch auf Tranchen, die an nicht erreichte Meilensteine geknüpft sind." } } },
     { id:'liability', vessatoria:true,
-      vessatoriaCategory:{ it:'limitazione di responsabilità (art. 1341, comma 2, c.c.)', en:'limitation of liability (art. 1341, para. 2, Italian Civil Code)',
-        es:'limitación de responsabilidad (art. 1341, párrafo 2, Código Civil italiano)', fr:'limitation de responsabilité (art. 1341, alinéa 2, Code civil italien)',
-        de:'Haftungsbeschränkung (Art. 1341, Abs. 2, ital. Zivilgesetzbuch)' },
+      vessatoriaCategory:{ it:'limitazione di responsabilità', en:'limitation of liability',
+        es:'limitación de responsabilidad', fr:'limitation de responsabilité',
+        de:'Haftungsbeschränkung' },
       i18n:{
       it:{ title:'Limitazione di responsabilità della piattaforma e della SPV', body:"Salvo dolo o colpa grave, la responsabilità della piattaforma e della SPV per ritardi, sospensioni o mancato rilascio delle tranche è esclusa o limitata all'importo effettivamente trattenuto in escrow relativo alla campagna interessata." },
       en:{ title:'Limitation of liability of the platform and the SPV', body:"Except in cases of willful misconduct or gross negligence, the liability of the platform and the SPV for delays, suspensions or non-release of tranches is excluded or limited to the amount actually held in escrow for the campaign concerned." },
@@ -829,9 +839,9 @@ let CONTRACT_TEMPLATE = {
       fr:{ title:'Limitation de responsabilité de la plateforme et de la SPV', body:"Sauf dol ou faute lourde, la responsabilité de la plateforme et de la SPV pour les retards, suspensions ou non-versement des tranches est exclue ou limitée au montant effectivement conservé en séquestre pour la campagne concernée." },
       de:{ title:'Haftungsbeschränkung der Plattform und der SPV', body:"Außer bei Vorsatz oder grober Fahrlässigkeit ist die Haftung der Plattform und der SPV für Verzögerungen, Aussetzungen oder Nichtfreigabe von Tranchen ausgeschlossen oder auf den Betrag beschränkt, der tatsächlich für die betreffende Kampagne treuhänderisch verwahrt wird." } } },
     { id:'exclusivity', vessatoria:true,
-      vessatoriaCategory:{ it:"restrizione alla libertà contrattuale dell'Artista nei rapporti con terzi (art. 1341, comma 2, c.c.)", en:"restriction on the Artist's contractual freedom with third parties (art. 1341, para. 2, Italian Civil Code)",
-        es:'restricción a la libertad contractual del Artista frente a terceros (art. 1341, párrafo 2, Código Civil italiano)', fr:"restriction à la liberté contractuelle de l'Artiste envers les tiers (art. 1341, alinéa 2, Code civil italien)",
-        de:'Einschränkung der Vertragsfreiheit des Künstlers gegenüber Dritten (Art. 1341, Abs. 2, ital. Zivilgesetzbuch)' },
+      vessatoriaCategory:{ it:"restrizione alla libertà contrattuale dell'Artista nei rapporti con terzi", en:"restriction on the Artist's contractual freedom with third parties",
+        es:'restricción a la libertad contractual del Artista frente a terceros', fr:"restriction à la liberté contractuelle de l'Artiste envers les tiers",
+        de:'Einschränkung der Vertragsfreiheit des Künstlers gegenüber Dritten' },
       i18n:{
       it:{ title:'Esclusiva sui diritti royalty per la durata della campagna', body:"Per la durata della campagna e fino al completamento delle milestone, l'Artista si impegna a non cedere, impegnare o concedere in garanzia a terzi gli stessi proventi royalty oggetto della cessione alla SPV." },
       en:{ title:'Exclusivity over royalty rights for the duration of the campaign', body:"For the duration of the campaign and until the milestones are completed, the Artist agrees not to assign, pledge, or grant as security to any third party the same royalty income that is the subject of the assignment to the SPV." },
@@ -839,15 +849,15 @@ let CONTRACT_TEMPLATE = {
       fr:{ title:'Exclusivité sur les droits de redevances pendant la durée de la campagne', body:"Pendant la durée de la campagne et jusqu'à l'achèvement des jalons, l'Artiste s'engage à ne pas céder, nantir ou donner en garantie à des tiers les mêmes revenus de redevances faisant l'objet de la cession à la SPV." },
       de:{ title:'Exklusivität der Tantiemenrechte für die Dauer der Kampagne', body:"Für die Dauer der Kampagne und bis zum Abschluss der Meilensteine verpflichtet sich der Künstler, dieselben Tantiemeneinnahmen, die Gegenstand der Abtretung an die SPV sind, keinem Dritten abzutreten, zu verpfänden oder als Sicherheit zu gewähren." } } },
     { id:'jurisdiction', vessatoria:true,
-      vessatoriaCategory:{ it:"deroga alla competenza dell'autorità giudiziaria (art. 1341, comma 2, c.c.)", en:"derogation from the ordinary courts' jurisdiction (art. 1341, para. 2, Italian Civil Code)",
-        es:'excepción a la competencia de la autoridad judicial (art. 1341, párrafo 2, Código Civil italiano)', fr:"dérogation à la compétence de l'autorité judiciaire (art. 1341, alinéa 2, Code civil italien)",
-        de:'Abweichung von der Zuständigkeit der ordentlichen Gerichte (Art. 1341, Abs. 2, ital. Zivilgesetzbuch)' },
+      vessatoriaCategory:{ it:"deroga alla competenza dell'autorità giudiziaria", en:"derogation from the ordinary courts' jurisdiction",
+        es:'excepción a la competencia de la autoridad judicial', fr:"dérogation à la compétence de l'autorité judiciaire",
+        de:'Abweichung von der Zuständigkeit der ordentlichen Gerichte' },
       i18n:{
-      it:{ title:'Legge applicabile e foro competente', body:"Il presente accordo è regolato dalla legge italiana. Per ogni controversia è competente in via esclusiva il foro della sede legale della SPV, salva la giurisdizione inderogabile del consumatore ove applicabile." },
-      en:{ title:'Governing law and competent court', body:"This agreement is governed by Italian law. For any dispute, the courts of the SPV's registered office have exclusive jurisdiction, subject to any non-derogable consumer jurisdiction where applicable." },
-      es:{ title:'Ley aplicable y fuero competente', body:"El presente acuerdo se rige por la ley italiana. Para cualquier controversia será exclusivamente competente el fuero del domicilio social de la SPV, sin perjuicio del fuero imperativo del consumidor cuando sea aplicable." },
-      fr:{ title:'Loi applicable et juridiction compétente', body:"Le présent accord est régi par le droit italien. Pour tout litige, les tribunaux du siège social de la SPV sont exclusivement compétents, sous réserve de la juridiction impérative du consommateur lorsqu'elle est applicable." },
-      de:{ title:'Anwendbares Recht und zuständiges Gericht', body:"Diese Vereinbarung unterliegt italienischem Recht. Für Streitigkeiten ist ausschließlich das Gericht am Sitz der SPV zuständig, vorbehaltlich zwingender Verbrauchergerichtsstände, soweit anwendbar." } } },
+      it:{ title:'Legge applicabile e foro competente', body:"Il presente accordo è regolato dalla legge del Granducato di Lussemburgo. Per ogni controversia sono competenti in via esclusiva i tribunali del Lussemburgo-Città, salva la giurisdizione inderogabile del consumatore ove applicabile." },
+      en:{ title:'Governing law and competent court', body:"This agreement is governed by the law of the Grand Duchy of Luxembourg. For any dispute, the courts of Luxembourg City have exclusive jurisdiction, subject to any non-derogable consumer jurisdiction where applicable." },
+      es:{ title:'Ley aplicable y fuero competente', body:"El presente acuerdo se rige por la ley del Gran Ducado de Luxemburgo. Para cualquier controversia serán exclusivamente competentes los tribunales de la ciudad de Luxemburgo, sin perjuicio del fuero imperativo del consumidor cuando sea aplicable." },
+      fr:{ title:'Loi applicable et juridiction compétente', body:"Le présent accord est régi par le droit du Grand-Duché de Luxembourg. Pour tout litige, les tribunaux de la Ville de Luxembourg sont exclusivement compétents, sous réserve de la juridiction impérative du consommateur lorsqu'elle est applicable." },
+      de:{ title:'Anwendbares Recht und zuständiges Gericht', body:"Diese Vereinbarung unterliegt dem Recht des Großherzogtums Luxemburg. Für Streitigkeiten sind ausschließlich die Gerichte der Stadt Luxemburg zuständig, vorbehaltlich zwingender Verbrauchergerichtsstände, soweit anwendbar." } } },
     { id:'ai-disclosure', vessatoria:false, i18n:{
       it:{ title:"Dichiarazioni sull'uso di intelligenza artificiale in produzione", body:"L'Artista dichiara e garantisce l'accuratezza delle informazioni fornite nella sezione di disclosure AI relative al brano caricato, impegnandosi ad aggiornarle in caso di modifiche rilevanti prima del rilascio." },
       en:{ title:'Representations on the use of artificial intelligence in production', body:"The Artist represents and warrants the accuracy of the information provided in the AI disclosure section relating to the uploaded track, and agrees to update it in the event of material changes before release." },
@@ -867,6 +877,13 @@ function clauseCategory(clause){
   const loc = store.state.locale;
   const authLoc = CONTRACT_TEMPLATE.authoritativeLanguage || 'it';
   return clause.vessatoriaCategory[loc] || clause.vessatoriaCategory[authLoc] || '';
+}
+function contractLegalBasisNote(){
+  const note = CONTRACT_TEMPLATE.legalBasisNote;
+  if (!note) return '';
+  const loc = store.state.locale;
+  const authLoc = CONTRACT_TEMPLATE.authoritativeLanguage || 'it';
+  return note[loc] || note[authLoc] || '';
 }
 
 /* ===================================================================
@@ -1013,7 +1030,7 @@ const I18N = {
     'wizContract.subtitle':'A standard template every artist accepts at upload — drafted in Italian, since the agreement is governed by Italian law. Read the summary below (shown in your interface language); the clauses themselves stay in Italian, the language of the actual agreement.',
     'wizContract.languageNote':'This clause text is shown as a provisional, AI-assisted translation for readability — the Italian version is the sole legally authoritative text, and prevails in case of any discrepancy.',
     'wizContract.generalLabel':'I have read and accept this Milestone Escrow & Royalty Assignment Agreement in full.',
-    'wizContract.vessatoriaIntro':'The clauses below are the ones most likely to qualify as "clausole vessatorie" under art. 1341, comma 2, of the Italian Civil Code — they need your separate, specific acceptance, not just the general checkbox above.',
+    'wizContract.vessatoriaIntro':'The clauses below are the ones most likely to need extra scrutiny in a standard-form agreement — they require your separate, specific acceptance, not just the general checkbox above.',
     'wizContract.vessatoriaBadge':'Requires separate acceptance',
     'wizContract.acceptClause':'I specifically accept this clause.',
     'wizContract.draftNote':'Draft prototype text, not reviewed by counsel — not a binding contract.',
@@ -1166,7 +1183,7 @@ const I18N = {
     'wizContract.subtitle':'Un template standard che ogni artista accetta al momento del caricamento — redatto in italiano, poiché l’accordo è regolato dalla legge italiana. Leggi la sintesi qui sotto (mostrata nella lingua della tua interfaccia); il testo delle clausole resta in italiano, la lingua dell’accordo vero e proprio.',
     'wizContract.languageNote':'Questo è il testo in lingua italiana dell’accordo — l’unica versione legalmente autorevole.',
     'wizContract.generalLabel':'Ho letto e accetto integralmente questo Accordo di Cessione Royalty ed Escrow a Milestone.',
-    'wizContract.vessatoriaIntro':'Le clausole seguenti sono quelle più plausibilmente qualificabili come "clausole vessatorie" ai sensi dell’art. 1341, comma 2, del Codice Civile — richiedono una tua accettazione separata e specifica, non solo la casella generale sopra.',
+    'wizContract.vessatoriaIntro':'Le clausole seguenti sono quelle che richiedono probabilmente un’attenzione particolare in un contratto standard — richiedono una tua accettazione separata e specifica, non solo la casella generale sopra.',
     'wizContract.vessatoriaBadge':'Richiede accettazione separata',
     'wizContract.acceptClause':'Accetto specificamente questa clausola.',
     'wizContract.draftNote':'Testo di bozza per il prototipo, non validato da un legale — non è un contratto vincolante.',
@@ -1319,7 +1336,7 @@ const I18N = {
     'wizContract.subtitle':'Una plantilla estándar que cada artista acepta al subir su tema — redactada en italiano, ya que el acuerdo se rige por la ley italiana. Lee el resumen a continuación (mostrado en el idioma de tu interfaz); el texto de las cláusulas permanece en italiano, el idioma del acuerdo real.',
     'wizContract.languageNote':'El texto de estas cláusulas es una traducción provisional asistida por IA, mostrada para facilitar la lectura — la versión en italiano es el único texto legalmente vinculante y prevalece en caso de discrepancia.',
     'wizContract.generalLabel':'He leído y acepto en su totalidad este Acuerdo de Cesión de Regalías y Garantía en Depósito por Hitos.',
-    'wizContract.vessatoriaIntro':'Las siguientes cláusulas son las que más probablemente califiquen como "cláusulas abusivas" bajo el art. 1341, párrafo 2, del Código Civil italiano — requieren tu aceptación separada y específica, no solo la casilla general de arriba.',
+    'wizContract.vessatoriaIntro':'Las siguientes cláusulas son las que probablemente requieran especial atención en un contrato estándar — requieren tu aceptación separada y específica, no solo la casilla general de arriba.',
     'wizContract.vessatoriaBadge':'Requiere aceptación separada',
     'wizContract.acceptClause':'Acepto específicamente esta cláusula.',
     'wizContract.draftNote':'Texto borrador para el prototipo, no revisado por un abogado — no es un contrato vinculante.',
@@ -1472,7 +1489,7 @@ const I18N = {
     'wizContract.subtitle':'Un modèle standard que chaque artiste accepte au moment du dépôt — rédigé en italien, l’accord étant régi par le droit italien. Lisez le résumé ci-dessous (affiché dans la langue de votre interface) ; le texte des clauses reste en italien, la langue de l’accord réel.',
     'wizContract.languageNote':'Le texte de ces clauses est une traduction provisoire assistée par IA, fournie pour la lisibilité — la version italienne est le seul texte juridiquement contraignant et prévaut en cas de divergence.',
     'wizContract.generalLabel':'J’ai lu et j’accepte intégralement cet Accord de cession de redevances et séquestre par jalons.',
-    'wizContract.vessatoriaIntro':'Les clauses ci-dessous sont celles les plus susceptibles d’être qualifiées de « clausole vessatorie » au sens de l’art. 1341, alinéa 2, du Code civil italien — elles nécessitent votre acceptation séparée et spécifique, pas seulement la case générale ci-dessus.',
+    'wizContract.vessatoriaIntro':'Les clauses ci-dessous sont celles nécessitant probablement une attention particulière dans un contrat type — elles nécessitent votre acceptation séparée et spécifique, pas seulement la case générale ci-dessus.',
     'wizContract.vessatoriaBadge':'Nécessite une acceptation séparée',
     'wizContract.acceptClause':'J’accepte spécifiquement cette clause.',
     'wizContract.draftNote':'Texte provisoire pour le prototype, non validé par un juriste — ce n’est pas un contrat contraignant.',
@@ -1625,7 +1642,7 @@ const I18N = {
     'wizContract.subtitle':'Eine Standardvorlage, die jeder Künstler beim Hochladen akzeptiert — auf Italienisch verfasst, da die Vereinbarung italienischem Recht unterliegt. Lesen Sie die Zusammenfassung unten (in Ihrer Interfacesprache angezeigt); der Klauseltext selbst bleibt auf Italienisch, der Sprache der eigentlichen Vereinbarung.',
     'wizContract.languageNote':'Der Text dieser Klauseln ist eine vorläufige, KI-gestützte Übersetzung zur besseren Lesbarkeit — die italienische Fassung ist der einzige rechtsverbindliche Text und hat im Falle von Abweichungen Vorrang.',
     'wizContract.generalLabel':'Ich habe diese Vereinbarung über Tantiemenabtretung und Meilenstein-Treuhand gelesen und akzeptiere sie vollständig.',
-    'wizContract.vessatoriaIntro':'Die folgenden Klauseln könnten am ehesten als „clausole vessatorie" im Sinne von Art. 1341, Abs. 2, des italienischen Zivilgesetzbuchs gelten — sie erfordern Ihre gesonderte, spezifische Zustimmung, nicht nur das allgemeine Kästchen oben.',
+    'wizContract.vessatoriaIntro':'Die folgenden Klauseln erfordern in einem Standardvertrag wahrscheinlich besondere Aufmerksamkeit — sie erfordern Ihre gesonderte, spezifische Zustimmung, nicht nur das allgemeine Kästchen oben.',
     'wizContract.vessatoriaBadge':'Erfordert gesonderte Zustimmung',
     'wizContract.acceptClause':'Ich akzeptiere diese Klausel ausdrücklich.',
     'wizContract.draftNote':'Entwurfstext für den Prototyp, nicht anwaltlich geprüft — kein bindender Vertrag.',
@@ -2764,7 +2781,8 @@ function renderWizardStep(key, w){
             </div>
           </div>`).join('')}
       </div>
-      <p class="prose" style="margin-bottom:14px; font-weight:600; color:var(--text);">${t('wizContract.vessatoriaIntro')}</p>
+      <p class="prose" style="margin-bottom:6px; font-weight:600; color:var(--text);">${t('wizContract.vessatoriaIntro')}</p>
+      <p class="prose" style="margin-bottom:14px; font-size:12px; color:var(--text-muted);">${contractLegalBasisNote()}</p>
       <div class="disclosure-form" style="margin-bottom:18px;">
         ${vClauses.map(cl => `
           <div class="disclosure-row" style="flex-direction:column; align-items:stretch;">
