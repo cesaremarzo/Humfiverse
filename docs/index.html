@@ -1975,7 +1975,7 @@ hydrateFromBackend().then(() => { if (backendAvailable) render(); });
 </script>
 
 <style>
-  #rooster-controls{
+  #robot-controls{
     position: fixed; top: 14px; right: 14px; z-index: 210;
     display:flex; align-items:center; gap:6px;
     background: var(--surface, #fff); border:1px solid var(--border, #ddd);
@@ -1984,149 +1984,193 @@ hydrateFromBackend().then(() => { if (backendAvailable) render(); });
     font-family:"IBM Plex Sans",sans-serif; font-size:12px; font-weight:600;
     color: var(--text, #1E1B16); user-select:none;
   }
-  #rooster-controls .rooster-label{ white-space:nowrap; }
-  #rooster-controls input[type="range"]{ width:84px; accent-color:#B5652C; cursor:pointer; }
-  .rooster-zoom-btn{
+  #robot-controls .robot-label{ white-space:nowrap; }
+  #robot-controls input[type="range"]{ width:84px; accent-color:#B5652C; cursor:pointer; }
+  .robot-zoom-btn{
     width:22px; height:22px; border-radius:50%; border:1px solid var(--border-strong,#ccc);
     background: var(--surface-2,#f1ece1); color:var(--text,#1E1B16); font-size:14px; line-height:1;
     display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0;
   }
-  .rooster-zoom-btn:hover{ border-color:#B5652C; color:#B5652C; }
-  #rooster-zoom-value{ font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--text-secondary,#6B6459); min-width:32px; text-align:right; }
+  .robot-zoom-btn:hover{ border-color:#B5652C; color:#B5652C; }
+  #robot-zoom-value{ font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--text-secondary,#6B6459); min-width:32px; text-align:right; }
 
-  #rooster-mascot{
+  #robot-mascot{
     position: fixed; bottom: 18px; left: 0; z-index: 200;
-    width: 130px; height: 110px; pointer-events: none;
+    width: 190px; height: 130px; pointer-events: none;
     transform-origin: 50% 100%;
     will-change: transform;
   }
-  #rooster-mascot svg{ width:100%; height:100%; display:block; overflow:visible; }
+  #robot-mascot svg{ width:100%; height:100%; display:block; overflow:visible; }
 
-  #rooster-speech{
-    position:absolute; left:50%; bottom:100%; transform:translate(-50%,-6px);
-    background: var(--surface, #fff); border: 1px solid var(--border, #ddd); color: var(--text, #1E1B16);
-    font-family: "IBM Plex Sans", sans-serif; font-size: 13px; font-weight: 600;
+  #robot-speech{
+    position:absolute; left:58%; bottom:100%; transform:translate(-50%,-6px);
+    background: var(--surface, #fff); border: 1px solid var(--border, #ddd); color: var(--good,#0ca30c);
+    font-family: "IBM Plex Mono", monospace; font-size: 13px; font-weight: 700;
     padding: 6px 12px; border-radius: 10px; box-shadow: var(--shadow-md, 0 4px 12px rgba(0,0,0,.2));
     opacity: 0; transition: opacity .25s ease; white-space: nowrap;
   }
-  #rooster-speech::after{
+  #robot-speech::after{
     content:""; position:absolute; left:50%; bottom:-5px; width:10px; height:10px;
     margin-left:-5px; background: inherit; border-right:1px solid var(--border,#ddd); border-bottom:1px solid var(--border,#ddd);
     transform: rotate(45deg);
   }
-  #rooster-speech.show{ opacity: 1; }
+  #robot-speech.show{ opacity: 1; }
 
-  .rooster-leg{ transform-box: fill-box; transform-origin: 50% 0%; }
-  .rooster-leg.l{ animation: rooster-step 0.38s ease-in-out infinite; }
-  .rooster-leg.r{ animation: rooster-step 0.38s ease-in-out infinite reverse; }
-  @keyframes rooster-step{
-    0%,100%{ transform: rotate(24deg); }
-    50%{ transform: rotate(-24deg); }
+  .robot-leg{ transform-box: fill-box; transform-origin: 50% 0%; }
+  .robot-leg.l{ animation: robot-step 0.42s ease-in-out infinite; }
+  .robot-leg.r{ animation: robot-step 0.42s ease-in-out infinite reverse; }
+  @keyframes robot-step{
+    0%,100%{ transform: rotate(14deg); }
+    50%{ transform: rotate(-14deg); }
   }
-  .rooster-wing{ transform-box: fill-box; transform-origin: 70% 30%; animation: rooster-wing-flap 0.38s ease-in-out infinite; }
-  @keyframes rooster-wing-flap{
-    0%,100%{ transform: rotate(-6deg); }
-    50%{ transform: rotate(8deg); }
+  .robot-strum-arm{ transform-box: fill-box; transform-origin: 90% 15%; animation: robot-strum 0.42s ease-in-out infinite; }
+  @keyframes robot-strum{
+    0%,100%{ transform: rotate(-10deg); }
+    50%{ transform: rotate(14deg); }
   }
-  .rooster-comb{ transform-box: fill-box; transform-origin: 50% 100%; animation: rooster-wobble 0.38s ease-in-out infinite; }
-  @keyframes rooster-wobble{
+  .robot-drum-arm{ transform-box: fill-box; transform-origin: 15% 15%; animation: robot-drum-hit 0.6s ease-in-out infinite; }
+  @keyframes robot-drum-hit{
+    0%,100%{ transform: rotate(6deg); }
+    45%{ transform: rotate(-30deg); }
+    55%{ transform: rotate(-30deg); }
+  }
+  .robot-antenna-light{ animation: robot-blink 0.9s ease-in-out infinite; }
+  @keyframes robot-blink{
+    0%,100%{ opacity: 1; }
+    50%{ opacity: 0.35; }
+  }
+  .robot-head{ transform-box: fill-box; transform-origin: 50% 100%; animation: robot-nod 0.42s ease-in-out infinite; }
+  @keyframes robot-nod{
     0%,100%{ transform: rotate(-2deg); }
-    50%{ transform: rotate(5deg); }
+    50%{ transform: rotate(3deg); }
   }
-  .rooster-tail{ transform-box: fill-box; transform-origin: 100% 55%; animation: rooster-tail-sway 0.6s ease-in-out infinite; }
-  @keyframes rooster-tail-sway{
-    0%,100%{ transform: rotate(-3deg); }
-    50%{ transform: rotate(4deg); }
+  .robot-note{ opacity: 0; animation: robot-note-float 2.6s ease-in infinite; }
+  .robot-note.n2{ animation-delay: 0.9s; }
+  .robot-note.n3{ animation-delay: 1.7s; }
+  @keyframes robot-note-float{
+    0%{ opacity: 0; transform: translate(0,0) scale(0.8); }
+    12%{ opacity: 1; }
+    100%{ opacity: 0; transform: translate(6px,-38px) scale(1.15); }
   }
-  #rooster-mascot.crowing .rooster-beak{ transform-box: fill-box; transform-origin: 0% 50%; animation: rooster-crow 0.5s ease-in-out; }
-  @keyframes rooster-crow{
-    0%,100%{ transform: scaleY(1); }
-    50%{ transform: scaleY(1.7); }
+  #robot-mascot.earning .robot-coin{ animation: robot-coin-pop 0.7s ease-out; }
+  @keyframes robot-coin-pop{
+    0%{ opacity: 0; transform: translateY(0) scale(0.6); }
+    30%{ opacity: 1; }
+    100%{ opacity: 0; transform: translateY(-26px) scale(1.1); }
   }
   @media (prefers-reduced-motion: reduce){
-    .rooster-leg, .rooster-wing, .rooster-comb, .rooster-tail{ animation: none; }
+    .robot-leg, .robot-strum-arm, .robot-drum-arm, .robot-antenna-light, .robot-head, .robot-note{ animation: none; }
   }
 </style>
 
-<div id="rooster-controls">
-  <span class="rooster-label">🐓 Zoom</span>
-  <button id="rooster-zoom-out" class="rooster-zoom-btn" type="button" aria-label="Rimpicciolisci gallo">−</button>
-  <input type="range" id="rooster-zoom" min="0.4" max="3" step="0.1" value="1" aria-label="Dimensione gallo">
-  <button id="rooster-zoom-in" class="rooster-zoom-btn" type="button" aria-label="Ingrandisci gallo">+</button>
-  <span id="rooster-zoom-value" class="mono">1.0x</span>
+<div id="robot-controls">
+  <span class="robot-label">🤖 Zoom</span>
+  <button id="robot-zoom-out" class="robot-zoom-btn" type="button" aria-label="Shrink robot">−</button>
+  <input type="range" id="robot-zoom" min="0.4" max="3" step="0.1" value="1" aria-label="Robot size">
+  <button id="robot-zoom-in" class="robot-zoom-btn" type="button" aria-label="Enlarge robot">+</button>
+  <span id="robot-zoom-value" class="mono">1.0x</span>
 </div>
 
-<div id="rooster-mascot" aria-hidden="true">
-  <div id="rooster-speech">Chicchirichì! 🐓</div>
-  <svg viewBox="0 0 160 130">
+<!-- AI busker mascot: a one-robot-band playing guitar + drum kit while it
+     walks left to right, earning simulated royalties as it goes (a playful
+     nod to what the platform actually does). -->
+<div id="robot-mascot" aria-hidden="true">
+  <div id="robot-speech">+$0.04 royalties 🎶</div>
+  <svg viewBox="0 0 220 150">
     <defs>
-      <linearGradient id="roosterBody" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#8a4426"/>
-        <stop offset="55%" stop-color="#6b3018"/>
-        <stop offset="100%" stop-color="#4a2010"/>
+      <linearGradient id="robotBody" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#dfe3e8"/>
+        <stop offset="55%" stop-color="#b9c0ca"/>
+        <stop offset="100%" stop-color="#8d95a1"/>
       </linearGradient>
-      <linearGradient id="roosterHackle" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stop-color="#f2b93d"/>
-        <stop offset="100%" stop-color="#c8811a"/>
+      <linearGradient id="robotHead" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#f2f4f7"/>
+        <stop offset="100%" stop-color="#c3c9d1"/>
       </linearGradient>
-      <linearGradient id="roosterTail" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stop-color="#1c2b22"/>
-        <stop offset="60%" stop-color="#0f1a13"/>
-        <stop offset="100%" stop-color="#0a120d"/>
+      <linearGradient id="robotGuitar" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#D98A4D"/>
+        <stop offset="100%" stop-color="#A6572A"/>
       </linearGradient>
-      <radialGradient id="roosterHead" cx="35%" cy="30%" r="80%">
-        <stop offset="0%" stop-color="#c96a2e"/>
-        <stop offset="100%" stop-color="#8a4020"/>
+      <radialGradient id="robotDrum" cx="35%" cy="30%" r="80%">
+        <stop offset="0%" stop-color="#3987e5"/>
+        <stop offset="100%" stop-color="#1e5aa8"/>
       </radialGradient>
     </defs>
 
-    <ellipse cx="80" cy="122" rx="46" ry="5" fill="#000" opacity="0.12"/>
+    <ellipse cx="112" cy="140" rx="70" ry="5" fill="#000" opacity="0.12"/>
 
-    <g class="rooster-leg l">
-      <path d="M78 90 L74 112 M74 112 L66 116 M74 112 L70 118 M74 112 L78 117" stroke="#d68a2e" stroke-width="3.4" stroke-linecap="round" fill="none"/>
+    <!-- drum kit: bass drum + cymbal, sitting beside the robot -->
+    <circle cx="182" cy="108" r="24" fill="#2a78d6" stroke="#184a86" stroke-width="2"/>
+    <circle cx="182" cy="108" r="15" fill="#e9eef5" stroke="#184a86" stroke-width="1.4"/>
+    <text x="182" y="113" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="10" font-weight="700" fill="#184a86">Hz</text>
+    <line x1="192" y1="76" x2="206" y2="60" stroke="#7a828c" stroke-width="2.4" stroke-linecap="round"/>
+    <ellipse cx="206" cy="58" rx="13" ry="4" fill="#d9b23c" stroke="#8a6f1c" stroke-width="1.2"/>
+
+    <!-- legs -->
+    <g class="robot-leg l">
+      <path d="M100 96 L96 124" stroke="#7a828c" stroke-width="7" stroke-linecap="round" fill="none"/>
+      <rect x="88" y="122" width="18" height="8" rx="3" fill="#5a6270"/>
     </g>
-    <g class="rooster-leg r">
-      <path d="M96 90 L100 112 M100 112 L92 116 M100 112 L96 118 M100 112 L104 117" stroke="#c67623" stroke-width="3.4" stroke-linecap="round" fill="none"/>
-    </g>
-
-    <path class="rooster-tail" d="M96 58 Q130 30 150 8 Q136 42 118 58 Q140 48 156 34 Q146 62 122 72 Q140 68 150 76 Q126 84 104 74 Z" fill="url(#roosterTail)"/>
-    <path d="M100 62 Q124 46 134 24" stroke="#3a8f6e" stroke-width="2.2" fill="none" opacity="0.55" stroke-linecap="round"/>
-    <path d="M100 68 Q118 66 128 76" stroke="#c94b4b" stroke-width="2.2" fill="none" opacity="0.5" stroke-linecap="round"/>
-
-    <path d="M40 60 Q28 74 34 92 Q40 108 62 112 Q88 116 102 100 Q112 88 106 70 Q120 66 118 54 Q106 58 98 66 Q92 50 74 48 Q60 46 52 54 Q44 50 36 54 Q34 58 40 60 Z" fill="url(#roosterBody)"/>
-
-    <path d="M50 58 Q42 66 46 78 Q50 88 62 90" stroke="#3a1c0c" stroke-width="1.4" fill="none" opacity="0.5"/>
-    <path d="M56 66 Q50 74 54 84" stroke="#3a1c0c" stroke-width="1.2" fill="none" opacity="0.4"/>
-
-    <path class="rooster-wing" d="M52 62 Q40 70 42 86 Q44 100 62 102 Q56 90 58 78 Q60 68 52 62 Z" fill="#2b1a10" stroke="#180e08" stroke-width="1"/>
-    <path d="M46 72 Q52 74 56 80 M46 80 Q52 82 57 88 M48 88 Q54 90 58 95" stroke="#5a3a20" stroke-width="1.1" fill="none" opacity="0.7"/>
-
-    <path d="M32 40 Q22 46 22 58 Q22 68 32 72 Q26 60 28 50 Q29 44 32 40 Z" fill="url(#roosterHackle)"/>
-    <path d="M36 36 Q26 40 24 50" stroke="#a5670f" stroke-width="1.4" fill="none" opacity="0.6"/>
-
-    <ellipse cx="34" cy="30" rx="17" ry="16" fill="url(#roosterHead)"/>
-
-    <path class="rooster-comb" d="M24 16 Q25 6 30 12 Q31 3 35 11 Q38 3 40 12 Q44 6 43 15 Q42 22 33 22 Q26 22 24 16 Z" fill="#d1352f"/>
-    <path d="M20 32 Q14 34 15 42 Q16 48 22 46 Q19 40 20 32 Z" fill="#c9302a"/>
-    <path d="M26 34 Q22 38 24 44 Q26 48 30 46 Q27 41 26 34 Z" fill="#c9302a"/>
-
-    <g class="rooster-beak">
-      <path d="M16 28 L2 31 L16 35 Z" fill="#f2a824" stroke="#a86e10" stroke-width="0.6"/>
+    <g class="robot-leg r">
+      <path d="M124 96 L128 124" stroke="#6b7280" stroke-width="7" stroke-linecap="round" fill="none"/>
+      <rect x="118" y="122" width="18" height="8" rx="3" fill="#4d5461"/>
     </g>
 
-    <circle cx="26" cy="26" r="2.6" fill="#160f08"/>
-    <circle cx="25.2" cy="25" r="0.9" fill="#fff" opacity="0.85"/>
+    <!-- torso -->
+    <rect x="82" y="52" width="60" height="50" rx="14" fill="url(#robotBody)" stroke="#7a828c" stroke-width="1.5"/>
+    <circle cx="112" cy="76" r="10" fill="#2a78d6" opacity="0.85"/>
+    <circle cx="112" cy="76" r="4" fill="#e9eef5"/>
+
+    <!-- drumstick arm (robot's left, near the drum kit) -->
+    <g class="robot-drum-arm">
+      <path d="M132 66 L166 88" stroke="#8d95a1" stroke-width="8" stroke-linecap="round"/>
+      <path d="M160 84 L192 100" stroke="#c9812f" stroke-width="4" stroke-linecap="round"/>
+    </g>
+
+    <!-- guitar body slung across torso -->
+    <ellipse cx="96" cy="98" rx="22" ry="15" fill="url(#robotGuitar)" stroke="#6b3018" stroke-width="1.5" transform="rotate(-18 96 98)"/>
+    <rect x="52" y="70" width="34" height="7" rx="3" fill="#6b3018" transform="rotate(-18 96 98)"/>
+    <circle cx="96" cy="98" r="6" fill="#4a2010" transform="rotate(-18 96 98)"/>
+
+    <!-- strumming arm (robot's right, over the guitar strings) -->
+    <g class="robot-strum-arm">
+      <path d="M92 66 L64 86" stroke="#b9c0ca" stroke-width="8" stroke-linecap="round"/>
+      <circle cx="60" cy="88" r="5" fill="#8d95a1"/>
+    </g>
+
+    <!-- head -->
+    <g class="robot-head">
+      <rect x="90" y="18" width="44" height="34" rx="10" fill="url(#robotHead)" stroke="#7a828c" stroke-width="1.5"/>
+      <rect x="98" y="30" width="10" height="10" rx="2" fill="#1e2733"/>
+      <rect x="116" y="30" width="10" height="10" rx="2" fill="#1e2733"/>
+      <rect x="100" y="32" width="4" height="4" fill="#5ec1ff"/>
+      <rect x="118" y="32" width="4" height="4" fill="#5ec1ff"/>
+      <rect x="104" y="42" width="16" height="4" rx="2" fill="#7a828c"/>
+      <line x1="112" y1="18" x2="112" y2="8" stroke="#7a828c" stroke-width="2.4"/>
+      <circle class="robot-antenna-light" cx="112" cy="6" r="4" fill="#3fcb3f"/>
+    </g>
+
+    <!-- floating music notes -->
+    <text class="robot-note n1" x="140" y="30" font-size="16" fill="#A6572A">♪</text>
+    <text class="robot-note n2" x="72" y="34" font-size="14" fill="#2a78d6">♫</text>
+    <text class="robot-note n3" x="150" y="46" font-size="13" fill="#3fcb3f">♪</text>
+
+    <!-- coin pop, animated on "earn" -->
+    <g class="robot-coin" style="opacity:0;">
+      <circle cx="112" cy="18" r="9" fill="#e8b23c" stroke="#8a6f1c" stroke-width="1.4"/>
+      <text x="112" y="22" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" font-weight="700" fill="#5a4310">$</text>
+    </g>
   </svg>
 </div>
 
 <script>
 (function(){
-  var mascot = document.getElementById('rooster-mascot');
-  var speech = document.getElementById('rooster-speech');
-  var zoomInput = document.getElementById('rooster-zoom');
-  var zoomValue = document.getElementById('rooster-zoom-value');
-  var zoomOut = document.getElementById('rooster-zoom-out');
-  var zoomIn = document.getElementById('rooster-zoom-in');
+  var mascot = document.getElementById('robot-mascot');
+  var speech = document.getElementById('robot-speech');
+  var zoomInput = document.getElementById('robot-zoom');
+  var zoomValue = document.getElementById('robot-zoom-value');
+  var zoomOut = document.getElementById('robot-zoom-out');
+  var zoomIn = document.getElementById('robot-zoom-in');
   if(!mascot) return;
 
   var scale = 1;
@@ -2143,10 +2187,12 @@ hydrateFromBackend().then(() => { if (backendAvailable) render(); });
   if(zoomIn){ zoomIn.addEventListener('click', function(){ setScale(scale + 0.2); }); }
   applyZoomLabel();
 
-  var x = -160;
-  var speed = 95; // px/sec, left to right
-  var hopHeight = 16;
-  var hopFreq = 5.2;
+  // Walks strictly left to right: x only ever increases, then wraps back to
+  // the far left off-screen — it never reverses direction or walks backwards.
+  var x = -220;
+  var speed = 85; // px/sec, left to right only
+  var bobHeight = 4;
+  var bobFreq = 4.8;
   var last = null;
 
   function frame(ts){
@@ -2155,22 +2201,25 @@ hydrateFromBackend().then(() => { if (backendAvailable) render(); });
     last = ts;
     var vw = window.innerWidth;
     x += speed * dt;
-    if(x > vw + 160){ x = -160; }
+    if(x > vw + 220){ x = -220; }
     var t = ts / 1000;
-    var hop = Math.abs(Math.sin(t * hopFreq)) * hopHeight;
-    mascot.style.transform = 'translate(' + x + 'px,' + (-hop) + 'px) scale(' + scale + ')';
+    var bob = Math.abs(Math.sin(t * bobFreq)) * bobHeight;
+    mascot.style.transform = 'translate(' + x + 'px,' + (-bob) + 'px) scale(' + scale + ')';
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
 
-  function crow(){
-    mascot.classList.add('crowing');
+  var earnings = 0;
+  function earn(){
+    earnings += Math.round((Math.random() * 8 + 2)) / 100;
+    if(speech) speech.textContent = '+$' + earnings.toFixed(2) + ' royalties 🎶';
+    mascot.classList.add('earning');
     if(speech) speech.classList.add('show');
-    setTimeout(function(){ mascot.classList.remove('crowing'); }, 500);
-    setTimeout(function(){ if(speech) speech.classList.remove('show'); }, 2200);
+    setTimeout(function(){ mascot.classList.remove('earning'); }, 700);
+    setTimeout(function(){ if(speech) speech.classList.remove('show'); }, 2400);
   }
-  setTimeout(crow, 2000);
-  setInterval(crow, 20000);
+  setTimeout(earn, 2000);
+  setInterval(earn, 9000);
 })();
 </script>
 
