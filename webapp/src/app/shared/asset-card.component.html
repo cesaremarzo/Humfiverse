@@ -1,0 +1,33 @@
+<a class="card asset-card" [routerLink]="['/asset', asset.id]">
+  <div class="asset-cover">
+    <app-cover [asset]="asset" [playSize]="48" [motifSize]="80"></app-cover>
+    <app-status-chip [asset]="asset"></app-status-chip>
+    <app-verified-chip [asset]="asset" [short]="true"></app-verified-chip>
+  </div>
+  <div class="asset-body">
+    <div>
+      <div class="asset-title">{{ asset.title }}</div>
+      <div class="asset-artist">{{ asset.artistName }} · {{ asset.genre }}</div>
+    </div>
+    @if (!isPre && asset.royaltyHistory) {
+      <div><app-sparkline [data]="asset.royaltyHistory"></app-sparkline></div>
+    } @else {
+      <div class="prose" style="font-size:12.5px; -webkit-line-clamp:2; display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden;">{{ asset.description }}</div>
+    }
+    <div>
+      <div class="meter"><span [style.width.%]="pct"></span></div>
+      <div class="asset-meta-row" style="margin-top:6px;">
+        <span>{{ 'asset.ofGoal' | translate: { raised: raisedShort, goal: goalShort } }}</span>
+        <span class="value">{{ pct }}%</span>
+      </div>
+    </div>
+    <div class="asset-foot">
+      @if (isPre) {
+        <span class="yield venture">{{ 'asset.financingRound' | translate }}</span>
+      } @else {
+        <span class="yield">{{ 'asset.projYield' | translate: { pct: yieldPct } }}</span>
+      }
+      <span class="mono" style="font-size:12.5px; color:var(--text-secondary);">{{ 'asset.perToken' | translate: { price: priceFmt } }}</span>
+    </div>
+  </div>
+</a>

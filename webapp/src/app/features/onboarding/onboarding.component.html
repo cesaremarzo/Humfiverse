@@ -1,0 +1,174 @@
+<div class="page-head"><div><span class="page-kicker">{{ 'wizard.kicker' | translate }}</span><h1>{{ 'wizard.title' | translate }}</h1></div></div>
+
+<div class="wizard-layout">
+  <div class="wizard-rail">
+    @for (s of steps; track s.key; let i = $index) {
+      <div class="wizard-step" [class.done]="i < stepIndex()" [class.active]="i === stepIndex()">
+        <span class="dot">
+          @if (i < stepIndex()) { <app-icon name="check"></app-icon> } @else { {{ i + 1 }} }
+        </span>
+        <span>{{ s.labelKey | translate }}</span>
+      </div>
+    }
+  </div>
+
+  <div class="card panel" style="padding:28px;">
+
+    @if (stepKey() === 'basics') {
+      <h3 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:4px;">{{ 'wizBasics.title' | translate }}</h3>
+      <p class="prose" style="margin-bottom:18px;">{{ 'wizBasics.subtitle' | translate }}</p>
+      <div class="form-grid">
+        <div class="field"><label>{{ 'wizBasics.titleLabel' | translate }}</label>
+          <input type="text" [value]="data().title" [placeholder]="'wizBasics.titlePlaceholder' | translate" (input)="updateData({ title: $any($event.target).value })"></div>
+        <div class="field"><label>{{ 'wizBasics.artistLabel' | translate }}</label>
+          <input type="text" [value]="data().artistName" [placeholder]="'wizBasics.artistPlaceholder' | translate" (input)="updateData({ artistName: $any($event.target).value })"></div>
+        <div class="field"><label>{{ 'wizBasics.genreLabel' | translate }}</label>
+          <select (change)="updateData({ genre: $any($event.target).value })">
+            @for (g of genres; track g[0]) {
+              <option [value]="g[0]" [selected]="data().genre === g[0]">{{ g[1] | translate }}</option>
+            }
+          </select>
+        </div>
+        <div class="field" style="grid-column:1/-1;"><label>{{ 'wizBasics.descLabel' | translate }}</label>
+          <textarea [placeholder]="'wizBasics.descPlaceholder' | translate" (input)="updateData({ description: $any($event.target).value })">{{ data().description }}</textarea></div>
+      </div>
+    }
+
+    @if (stepKey() === 'model') {
+      <h3 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:4px;">{{ 'wizModel.title' | translate }}</h3>
+      <p class="prose" style="margin-bottom:18px;">{{ 'wizModel.subtitle' | translate }}</p>
+      <div class="choice-cards">
+        <button type="button" class="choice-card" [class.selected]="data().model === 'catalogue'" (click)="updateData({ model: 'catalogue' })">
+          <div class="icon"><app-icon name="coins"></app-icon></div>
+          <h4>{{ 'wizModel.catalogueTitle' | translate }}</h4>
+          <p>{{ 'wizModel.catalogueBody' | translate }}</p>
+        </button>
+        <button type="button" class="choice-card" [class.selected]="data().model === 'preproduction'" (click)="updateData({ model: 'preproduction' })">
+          <div class="icon"><app-icon name="sparkles"></app-icon></div>
+          <h4>{{ 'wizModel.preprodTitle' | translate }}</h4>
+          <p>{{ 'wizModel.preprodBody' | translate }}</p>
+        </button>
+      </div>
+    }
+
+    @if (stepKey() === 'source') {
+      @if (data().model === 'preproduction') {
+        <h3 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:4px;">{{ 'wizSource.preprodTitle' | translate }}</h3>
+        <p class="prose" style="margin-bottom:18px;">{{ 'wizSource.preprodSubtitle' | translate }}</p>
+        <div class="budget-row"><label>{{ 'wizSource.studioLabel' | translate }}</label><input type="number" min="0" step="100" class="mono" [value]="data().preprod.studio" (input)="updatePreprodField('studio', $any($event.target).value)"></div>
+        <div class="budget-row"><label>{{ 'wizSource.sessionLabel' | translate }}</label><input type="number" min="0" step="100" class="mono" [value]="data().preprod.session" (input)="updatePreprodField('session', $any($event.target).value)"></div>
+        <div class="budget-row"><label>{{ 'wizSource.mixLabel' | translate }}</label><input type="number" min="0" step="100" class="mono" [value]="data().preprod.mix" (input)="updatePreprodField('mix', $any($event.target).value)"></div>
+        <div class="budget-row"><label>{{ 'wizSource.extraLabel' | translate }}</label><input type="number" min="0" step="100" class="mono" [value]="data().preprod.extra" (input)="updatePreprodField('extra', $any($event.target).value)"></div>
+        <div class="budget-total"><span>{{ 'wizSource.totalLabel' | translate }}</span><span class="mono">{{ fmt(preprodTotal()) }}</span></div>
+        <p class="prose" style="margin-top:14px; font-size:12.5px;">{{ 'wizSource.tokenNote' | translate: { n: preprodTokenCount() } }}</p>
+      } @else {
+        <h3 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:4px;">{{ 'wizSource.catalogueTitle' | translate }}</h3>
+        <p class="prose" style="margin-bottom:18px;">{{ 'wizSource.catalogueSubtitle' | translate }}</p>
+        <div class="form-grid">
+          <div class="field"><label>{{ 'wizSource.distributorLabel' | translate }}</label>
+            <select (change)="updateData({ catalogue: { ...data().catalogue, dsp: $any($event.target).value } })">
+              @for (x of distributors; track x) {
+                <option [selected]="data().catalogue.dsp === x">{{ x }}</option>
+              }
+            </select>
+          </div>
+          <div class="field"><label>{{ 'wizSource.monthsLabel' | translate }}</label>
+            <input type="number" min="1" class="mono" [value]="data().catalogue.months" (input)="updateData({ catalogue: { ...data().catalogue, months: $any($event.target).value } })"></div>
+        </div>
+        <div class="field" style="margin-top:14px;">
+          <label>{{ 'wizSource.statementLabel' | translate }}</label>
+          <div class="doc-row" style="cursor:pointer;" (click)="attachStatement()"><app-icon name="upload"></app-icon><span class="name">{{ data().catalogue.history || ('wizSource.statementPlaceholder' | translate) }}</span></div>
+          <span class="hint">{{ 'wizSource.statementHint' | translate }}</span>
+        </div>
+      }
+    }
+
+    @if (stepKey() === 'disclosure') {
+      <h3 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:4px;">{{ 'wizDisclosure.title' | translate }}</h3>
+      <p class="prose" style="margin-bottom:18px;">{{ 'wizDisclosure.subtitle' | translate }}</p>
+      <div class="disclosure-form">
+        @for (row of disclosureRows; track row[0]) {
+          <div class="disclosure-row">
+            <span class="name">{{ row[1] | translate }}</span>
+            <div class="seg-3">
+              @for (v of disclosureValues; track v[0]) {
+                <button type="button" [class.active]="data().disclosure[row[0]] === v[0]"
+                        (click)="setDisclosure(row[0], v[0])">{{ v[1] | translate }}</button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    @if (stepKey() === 'contract') {
+      <h3 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:4px;">{{ 'wizContract.title' | translate }}</h3>
+      <p class="prose" style="margin-bottom:8px;">{{ 'wizContract.subtitle' | translate }}</p>
+      <p class="prose" style="margin-bottom:18px; font-size:12.5px;" [style.color]="isTranslated() ? 'var(--warning)' : 'var(--text-muted)'" [style.font-weight]="isTranslated() ? 600 : null">
+        @if (isTranslated()) { <app-icon name="alert"></app-icon> }
+        {{ 'wizContract.languageNote' | translate }}
+      </p>
+      <div class="doc-list" style="margin-bottom:18px;">
+        @for (cl of plainClauses(); track cl.id) {
+          <div class="risk-item" style="align-items:flex-start;">
+            <div>
+              <div style="font-weight:600; margin-bottom:4px;">{{ text(cl.id, 'title') }}</div>
+              <div style="color:var(--text-secondary); font-size:13px;">{{ text(cl.id, 'body') }}</div>
+            </div>
+          </div>
+        }
+      </div>
+      <p class="prose" style="margin-bottom:6px; font-weight:600; color:var(--text);">{{ 'wizContract.vessatoriaIntro' | translate }}</p>
+      <p class="prose" style="margin-bottom:14px; font-size:12px; color:var(--text-muted);">{{ legalBasisNote() }}</p>
+      <div class="disclosure-form" style="margin-bottom:18px;">
+        @for (cl of vClauses(); track cl.id) {
+          <div class="disclosure-row" style="flex-direction:column; align-items:stretch;">
+            <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+              <span class="name">{{ text(cl.id, 'title') }}</span>
+              <span class="chip chip-warning"><app-icon name="alert"></app-icon> {{ 'wizContract.vessatoriaBadge' | translate }}</span>
+            </div>
+            <div class="desc" style="flex-basis:100%; margin:6px 0;">{{ text(cl.id, 'body') }}</div>
+            <div class="desc" style="flex-basis:100%; margin-bottom:8px; font-style:italic;">{{ category(cl.id) }}</div>
+            <label class="check-row">
+              <input type="checkbox" [checked]="data().contract.vessatoriaAccepted[cl.id]" (change)="toggleVessatoria(cl.id, $any($event.target).checked)">
+              <span>{{ 'wizContract.acceptClause' | translate }}</span>
+            </label>
+          </div>
+        }
+      </div>
+      <label class="check-row" style="margin-bottom:8px;">
+        <input type="checkbox" [checked]="data().contract.generalAccepted" (change)="setGeneralAccepted($any($event.target).checked)">
+        <span>{{ 'wizContract.generalLabel' | translate }}</span>
+      </label>
+      <p class="prose" style="font-size:11.5px; color:var(--text-muted);">{{ 'wizContract.draftNote' | translate }}</p>
+    }
+
+    @if (stepKey() === 'review') {
+      <h3 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:4px;">{{ 'wizReview.title' | translate }}</h3>
+      <div class="stat-row" style="margin:18px 0;">
+        <div class="card stat-tile"><div class="label">{{ 'wizReview.titleField' | translate }}</div><div class="value" style="font-size:15px; font-family:'IBM Plex Sans',sans-serif;">{{ data().title || '—' }}</div></div>
+        <div class="card stat-tile"><div class="label">{{ 'wizReview.modelField' | translate }}</div><div class="value" style="font-size:15px; font-family:'IBM Plex Sans',sans-serif;">{{ (data().model === 'preproduction' ? 'wizReview.modelPreprod' : 'wizReview.modelCatalogue') | translate }}</div></div>
+        @if (data().model === 'preproduction') {
+          <div class="card stat-tile"><div class="label">{{ 'wizReview.fundingGoalField' | translate }}</div><div class="value">{{ fmt(preprodTotal()) }}</div></div>
+        } @else {
+          <div class="card stat-tile"><div class="label">{{ 'wizReview.historyField' | translate }}</div><div class="value">{{ 'detail.moSuffix' | translate: { n: data().catalogue.months } }}</div></div>
+        }
+      </div>
+      <div class="prose" style="margin-bottom:16px;">{{ 'wizReview.launchNote' | translate }}</div>
+      <label class="check-row">
+        <input type="checkbox" [checked]="data().ack" (change)="updateData({ ack: $any($event.target).checked })">
+        <span>{{ 'wizReview.ackLabel' | translate }}</span>
+      </label>
+    }
+
+    <div class="wizard-foot">
+      <button class="btn btn-ghost" [disabled]="stepIndex() === 0" (click)="back()"><app-icon name="chevronLeft"></app-icon> {{ 'wizard.back' | translate }}</button>
+      @if (stepIndex() < steps.length - 1) {
+        <button class="btn btn-primary" (click)="next()">{{ 'wizard.continueBtn' | translate }} <app-icon name="arrowRight"></app-icon></button>
+      } @else {
+        <button class="btn btn-primary" [disabled]="!data().ack || !isContractComplete()" (click)="submit()"><app-icon name="sparkles"></app-icon> {{ 'wizard.launchCampaign' | translate }}</button>
+      }
+    </div>
+
+  </div>
+</div>

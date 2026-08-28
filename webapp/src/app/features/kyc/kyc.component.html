@@ -1,0 +1,110 @@
+@if (store.investor().verified) {
+  <div class="page-head"><div><span class="page-kicker">{{ 'kyc.kicker' | translate }}</span><h1>{{ 'kyc.alreadyVerifiedTitle' | translate }}</h1></div></div>
+  <div class="container narrow" style="padding:0;">
+    <div class="card panel" style="padding:28px; display:flex; flex-direction:column; gap:14px;">
+      <div class="risk-item" style="background:var(--good-soft); border-color:transparent;">
+        <app-icon name="checkCircle"></app-icon>
+        <div>{{ 'kyc.alreadyVerifiedBody' | translate: { classification: ('kyc.' + store.investor().classification + 'Title' | translate) } }}</div>
+      </div>
+      <a class="btn btn-primary btn-lg" [routerLink]="continuePath()"><app-icon name="arrowRight"></app-icon> {{ 'kyc.continueBtn' | translate }}</a>
+    </div>
+  </div>
+} @else {
+  <div class="page-head"><div><span class="page-kicker">{{ 'kyc.kicker' | translate }}</span><h1>{{ 'kyc.title' | translate }}</h1><p class="page-sub">{{ 'kyc.subtitle' | translate }}</p></div></div>
+  <div class="container narrow" style="padding:0;">
+    <div class="card panel" style="padding:28px; display:flex; flex-direction:column; gap:22px;">
+
+      <div>
+        <h3 style="font-family:'Fraunces',serif; font-size:17px; margin-bottom:12px;">{{ 'kyc.identityTitle' | translate }}</h3>
+        <div class="form-grid">
+          <div class="field"><label>{{ 'kyc.fullNameLabel' | translate }}</label><input type="text" [value]="fullName()" (input)="fullName.set($any($event.target).value)"></div>
+          <div class="field"><label>{{ 'kyc.dobLabel' | translate }}</label><input type="text" placeholder="YYYY-MM-DD" [value]="dob()" (input)="dob.set($any($event.target).value)"></div>
+          <div class="field" style="grid-column:1/-1;"><label>{{ 'kyc.nationalityLabel' | translate }}</label><input type="text" [value]="nationality()" (input)="nationality.set($any($event.target).value)"></div>
+        </div>
+      </div>
+
+      <div>
+        <h3 style="font-family:'Fraunces',serif; font-size:17px; margin-bottom:12px;">{{ 'kyc.classificationTitle' | translate }}</h3>
+        <div class="choice-cards">
+          <button type="button" class="choice-card" [class.selected]="classification() === 'retail'" (click)="classification.set('retail')">
+            <h4>{{ 'kyc.retailTitle' | translate }}</h4><p>{{ 'kyc.retailBody' | translate }}</p>
+          </button>
+          <button type="button" class="choice-card" [class.selected]="classification() === 'professional'" (click)="classification.set('professional')">
+            <h4>{{ 'kyc.professionalTitle' | translate }}</h4><p>{{ 'kyc.professionalBody' | translate }}</p>
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <h3 style="font-family:'Fraunces',serif; font-size:17px; margin-bottom:4px;">{{ 'kyc.appropriatenessTitle' | translate }}</h3>
+        <p class="prose" style="margin-bottom:14px;">{{ 'kyc.appropriatenessSubtitle' | translate }}</p>
+
+        <div class="field" style="margin-bottom:10px;">
+          <label>{{ 'kyc.q1' | translate }}</label>
+          <div class="seg-3">
+            <button type="button" [class.active]="priorComplexInvestments() === true" (click)="priorComplexInvestments.set(true)">{{ 'kyc.yes' | translate }}</button>
+            <button type="button" [class.active]="priorComplexInvestments() === false" (click)="priorComplexInvestments.set(false)">{{ 'kyc.no' | translate }}</button>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:10px;">
+          <label>{{ 'kyc.q2' | translate }}</label>
+          <div class="seg-3">
+            <button type="button" [class.active]="familiarWithIlliquidInstruments() === true" (click)="familiarWithIlliquidInstruments.set(true)">{{ 'kyc.yes' | translate }}</button>
+            <button type="button" [class.active]="familiarWithIlliquidInstruments() === false" (click)="familiarWithIlliquidInstruments.set(false)">{{ 'kyc.no' | translate }}</button>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:10px;">
+          <label>{{ 'kyc.q3' | translate }}</label>
+          <div class="seg-3">
+            <button type="button" [class.active]="understandsCapitalLossRisk() === true" (click)="understandsCapitalLossRisk.set(true)">{{ 'kyc.yes' | translate }}</button>
+            <button type="button" [class.active]="understandsCapitalLossRisk() === false" (click)="understandsCapitalLossRisk.set(false)">{{ 'kyc.no' | translate }}</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>{{ 'kyc.q4' | translate }}</label>
+          <select (change)="yearsExperience.set($any($event.target).value || null)">
+            <option value="" [selected]="!yearsExperience()">—</option>
+            <option value="0" [selected]="yearsExperience() === '0'">{{ 'kyc.years0' | translate }}</option>
+            <option value="1-3" [selected]="yearsExperience() === '1-3'">{{ 'kyc.years1to3' | translate }}</option>
+            <option value="3+" [selected]="yearsExperience() === '3+'">{{ 'kyc.years3plus' | translate }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <h3 style="font-family:'Fraunces',serif; font-size:17px; margin-bottom:12px;">{{ 'kyc.amlTitle' | translate }}</h3>
+        <div class="field">
+          <label>{{ 'kyc.sourceOfFundsLabel' | translate }}</label>
+          <select (change)="sourceOfFunds.set($any($event.target).value)">
+            <option value="" [selected]="!sourceOfFunds()">—</option>
+            <option value="salary" [selected]="sourceOfFunds() === 'salary'">{{ 'kyc.sourceSalary' | translate }}</option>
+            <option value="savings" [selected]="sourceOfFunds() === 'savings'">{{ 'kyc.sourceSavings' | translate }}</option>
+            <option value="business" [selected]="sourceOfFunds() === 'business'">{{ 'kyc.sourceBusiness' | translate }}</option>
+            <option value="other" [selected]="sourceOfFunds() === 'other'">{{ 'kyc.sourceOther' | translate }}</option>
+          </select>
+        </div>
+        <label class="check-row" style="margin-top:10px;">
+          <input type="checkbox" [checked]="pep()" (change)="pep.set($any($event.target).checked)">
+          <span>{{ 'kyc.pepLabel' | translate }}</span>
+        </label>
+      </div>
+
+      @if (result(); as r) {
+        @if (r.appropriatenessResult === 'appropriate') {
+          <div class="risk-item" style="background:var(--good-soft); border-color:transparent;"><app-icon name="checkCircle"></app-icon><div>{{ 'kyc.appropriateResult' | translate }}</div></div>
+          <button class="btn btn-primary btn-lg" (click)="finish()"><app-icon name="arrowRight"></app-icon> {{ 'kyc.continueBtn' | translate }}</button>
+        } @else {
+          <div class="risk-item"><app-icon name="alert"></app-icon><div>{{ 'kyc.warningResult' | translate }}</div></div>
+          <label class="check-row">
+            <input type="checkbox" [checked]="warningAck()" (change)="warningAck.set($any($event.target).checked)">
+            <span>{{ 'kyc.warningAckLabel' | translate }}</span>
+          </label>
+          <button class="btn btn-primary btn-lg" [disabled]="!warningAck()" (click)="finish()"><app-icon name="arrowRight"></app-icon> {{ 'kyc.continueBtn' | translate }}</button>
+        }
+      } @else {
+        <button class="btn btn-primary btn-lg" [disabled]="!formComplete() || submitting()" (click)="submit()"><app-icon name="shield"></app-icon> {{ 'kyc.submitBtn' | translate }}</button>
+      }
+
+    </div>
+  </div>
+}

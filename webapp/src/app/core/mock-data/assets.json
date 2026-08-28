@@ -1,0 +1,647 @@
+[
+  {
+    "id": "midnight-static",
+    "kind": "catalogue",
+    "title": "Midnight Static",
+    "artistName": "Nova Reyes",
+    "genre": "Indie Pop",
+    "description": "Three-single catalogue with a steady 24-month streaming history across Spotify, Apple Music and SIAE-reported performance royalties. No prior liens; verified chain of title.",
+    "verified": true,
+    "tokenPrice": 25,
+    "tokensTotal": 4000,
+    "tokensSold": 2860,
+    "royaltyHistory": [
+      {
+        "month": "Sep 24",
+        "royaltyUSD": 528
+      },
+      {
+        "month": "Oct 24",
+        "royaltyUSD": 548
+      },
+      {
+        "month": "Nov 24",
+        "royaltyUSD": 490
+      },
+      {
+        "month": "Dec 24",
+        "royaltyUSD": 532
+      },
+      {
+        "month": "Jan 25",
+        "royaltyUSD": 547
+      },
+      {
+        "month": "Feb 25",
+        "royaltyUSD": 560
+      },
+      {
+        "month": "Mar 25",
+        "royaltyUSD": 518
+      },
+      {
+        "month": "Apr 25",
+        "royaltyUSD": 539
+      },
+      {
+        "month": "May 25",
+        "royaltyUSD": 614
+      },
+      {
+        "month": "Jun 25",
+        "royaltyUSD": 615
+      },
+      {
+        "month": "Jul 25",
+        "royaltyUSD": 562
+      },
+      {
+        "month": "Aug 25",
+        "royaltyUSD": 590
+      },
+      {
+        "month": "Sep 25",
+        "royaltyUSD": 586
+      },
+      {
+        "month": "Oct 25",
+        "royaltyUSD": 665
+      },
+      {
+        "month": "Nov 25",
+        "royaltyUSD": 621
+      },
+      {
+        "month": "Dec 25",
+        "royaltyUSD": 663
+      },
+      {
+        "month": "Jan 26",
+        "royaltyUSD": 691
+      },
+      {
+        "month": "Feb 26",
+        "royaltyUSD": 653
+      },
+      {
+        "month": "Mar 26",
+        "royaltyUSD": 687
+      },
+      {
+        "month": "Apr 26",
+        "royaltyUSD": 674
+      },
+      {
+        "month": "May 26",
+        "royaltyUSD": 735
+      },
+      {
+        "month": "Jun 26",
+        "royaltyUSD": 699
+      },
+      {
+        "month": "Jul 26",
+        "royaltyUSD": 774
+      },
+      {
+        "month": "Aug 26",
+        "royaltyUSD": 803
+      }
+    ],
+    "aiDisclosure": {
+      "vocals": "human",
+      "instrumentation": "human",
+      "composition": "human",
+      "postProduction": "human",
+      "lyrics": "human"
+    },
+    "dspPolicy": "Spotify: monetized normally. TIDAL: unaffected (no AI content declared).",
+    "riskFactors": [
+      "Streaming performance can decline if playlist placement or artist popularity fades.",
+      "DSPs can change monetization or AI-content policy unilaterally after tokens are sold.",
+      "This is a pilot structure; token liquidity is limited and no secondary market is guaranteed."
+    ],
+    "documents": [
+      {
+        "name": "SIAE royalty statement — Q2 2026",
+        "type": "PDF",
+        "date": "Jul 2026"
+      },
+      {
+        "name": "Chain-of-title confirmation",
+        "type": "PDF",
+        "date": "Jun 2026"
+      },
+      {
+        "name": "SPV formation deed",
+        "type": "PDF",
+        "date": "May 2026"
+      }
+    ],
+    "status": "funding"
+  },
+  {
+    "id": "glass-horizon",
+    "kind": "preproduction",
+    "title": "Glass Horizon (Draft)",
+    "artistName": "Cerchio Blu",
+    "genre": "Electronic",
+    "description": "An AI-assisted instrumental draft seeking financing to add live strings, vocal takes and professional mix/master before release — converting a policy-exposed draft into a documented, human-produced track.",
+    "verified": true,
+    "tokenPrice": 10,
+    "tokensTotal": 6000,
+    "tokensSold": 2220,
+    "targetRaiseUse": "Studio time, session vocalist, mix & master",
+    "aiDisclosure": {
+      "vocals": "pending",
+      "instrumentation": "ai",
+      "composition": "ai-assisted",
+      "postProduction": "pending",
+      "lyrics": "human"
+    },
+    "dspPolicy": "TIDAL demonetizes fully AI-generated tracks — financing aims to add enough human production to exit that classification before release.",
+    "riskFactors": [
+      "This track is unreleased and has no royalty history — financing carries venture-style risk, not bond-like income.",
+      "Funds are held in milestone-gated escrow; a tranche only releases when the SPV manager confirms that milestone was met.",
+      "If the funding goal is not reached, uncommitted funds are refunded pro-rata."
+    ],
+    "documents": [
+      {
+        "name": "Production budget breakdown",
+        "type": "PDF",
+        "date": "Aug 2026"
+      },
+      {
+        "name": "Draft demo (instrumental)",
+        "type": "MP3",
+        "date": "Aug 2026"
+      }
+    ],
+    "milestones": [
+      {
+        "name": "Funding goal reached",
+        "trancheAmount": 5000,
+        "status": "active"
+      },
+      {
+        "name": "Studio & session vocalist booked",
+        "trancheAmount": 8000,
+        "status": "pending"
+      },
+      {
+        "name": "Mix & master delivered",
+        "trancheAmount": 6000,
+        "status": "pending"
+      },
+      {
+        "name": "Release confirmed on DSPs",
+        "trancheAmount": 3200,
+        "status": "pending"
+      }
+    ],
+    "status": "funding"
+  },
+  {
+    "id": "ember-choir",
+    "kind": "catalogue",
+    "title": "Ember Choir",
+    "artistName": "Sasha Wren",
+    "genre": "Alt R&B",
+    "description": "A four-track EP with 18 months of reported royalties. Independently verified against distributor statements; token proceeds go to the artist as a partial catalogue sale.",
+    "verified": true,
+    "tokenPrice": 40,
+    "tokensTotal": 2500,
+    "tokensSold": 2500,
+    "royaltyHistory": [
+      {
+        "month": "Mar 25",
+        "royaltyUSD": 482
+      },
+      {
+        "month": "Apr 25",
+        "royaltyUSD": 470
+      },
+      {
+        "month": "May 25",
+        "royaltyUSD": 497
+      },
+      {
+        "month": "Jun 25",
+        "royaltyUSD": 481
+      },
+      {
+        "month": "Jul 25",
+        "royaltyUSD": 465
+      },
+      {
+        "month": "Aug 25",
+        "royaltyUSD": 499
+      },
+      {
+        "month": "Sep 25",
+        "royaltyUSD": 492
+      },
+      {
+        "month": "Oct 25",
+        "royaltyUSD": 529
+      },
+      {
+        "month": "Nov 25",
+        "royaltyUSD": 534
+      },
+      {
+        "month": "Dec 25",
+        "royaltyUSD": 548
+      },
+      {
+        "month": "Jan 26",
+        "royaltyUSD": 553
+      },
+      {
+        "month": "Feb 26",
+        "royaltyUSD": 489
+      },
+      {
+        "month": "Mar 26",
+        "royaltyUSD": 534
+      },
+      {
+        "month": "Apr 26",
+        "royaltyUSD": 567
+      },
+      {
+        "month": "May 26",
+        "royaltyUSD": 539
+      },
+      {
+        "month": "Jun 26",
+        "royaltyUSD": 553
+      },
+      {
+        "month": "Jul 26",
+        "royaltyUSD": 522
+      },
+      {
+        "month": "Aug 26",
+        "royaltyUSD": 570
+      }
+    ],
+    "aiDisclosure": {
+      "vocals": "human",
+      "instrumentation": "human",
+      "composition": "human",
+      "postProduction": "human",
+      "lyrics": "human"
+    },
+    "dspPolicy": "Spotify & TIDAL: unaffected (no AI content declared).",
+    "riskFactors": [
+      "Sold out — secondary transfers, if any, are subject to the platform’s compliance restrictions.",
+      "Past royalty performance is not a guarantee of future income."
+    ],
+    "documents": [
+      {
+        "name": "Distributor statement — 18mo trailing",
+        "type": "PDF",
+        "date": "Jul 2026"
+      },
+      {
+        "name": "SPV formation deed",
+        "type": "PDF",
+        "date": "Feb 2026"
+      }
+    ],
+    "status": "sold-out"
+  },
+  {
+    "id": "paper-cranes",
+    "kind": "catalogue",
+    "title": "Paper Cranes",
+    "artistName": "Kobo Lindqvist",
+    "genre": "Lo-fi / Ambient",
+    "description": "A meditative six-track catalogue with a long tail of consistent, low-volatility sync and mechanical royalties rather than viral streaming spikes.",
+    "verified": true,
+    "tokenPrice": 15,
+    "tokensTotal": 5000,
+    "tokensSold": 940,
+    "royaltyHistory": [
+      {
+        "month": "Sep 24",
+        "royaltyUSD": 304
+      },
+      {
+        "month": "Oct 24",
+        "royaltyUSD": 294
+      },
+      {
+        "month": "Nov 24",
+        "royaltyUSD": 298
+      },
+      {
+        "month": "Dec 24",
+        "royaltyUSD": 305
+      },
+      {
+        "month": "Jan 25",
+        "royaltyUSD": 306
+      },
+      {
+        "month": "Feb 25",
+        "royaltyUSD": 292
+      },
+      {
+        "month": "Mar 25",
+        "royaltyUSD": 298
+      },
+      {
+        "month": "Apr 25",
+        "royaltyUSD": 294
+      },
+      {
+        "month": "May 25",
+        "royaltyUSD": 296
+      },
+      {
+        "month": "Jun 25",
+        "royaltyUSD": 297
+      },
+      {
+        "month": "Jul 25",
+        "royaltyUSD": 301
+      },
+      {
+        "month": "Aug 25",
+        "royaltyUSD": 324
+      },
+      {
+        "month": "Sep 25",
+        "royaltyUSD": 313
+      },
+      {
+        "month": "Oct 25",
+        "royaltyUSD": 310
+      },
+      {
+        "month": "Nov 25",
+        "royaltyUSD": 328
+      },
+      {
+        "month": "Dec 25",
+        "royaltyUSD": 330
+      },
+      {
+        "month": "Jan 26",
+        "royaltyUSD": 335
+      },
+      {
+        "month": "Feb 26",
+        "royaltyUSD": 319
+      },
+      {
+        "month": "Mar 26",
+        "royaltyUSD": 328
+      },
+      {
+        "month": "Apr 26",
+        "royaltyUSD": 324
+      },
+      {
+        "month": "May 26",
+        "royaltyUSD": 311
+      },
+      {
+        "month": "Jun 26",
+        "royaltyUSD": 320
+      },
+      {
+        "month": "Jul 26",
+        "royaltyUSD": 322
+      },
+      {
+        "month": "Aug 26",
+        "royaltyUSD": 316
+      }
+    ],
+    "aiDisclosure": {
+      "vocals": "human",
+      "instrumentation": "ai-assisted",
+      "composition": "human",
+      "postProduction": "human",
+      "lyrics": "human"
+    },
+    "dspPolicy": "Spotify: monetized normally, AI-assisted instrumentation disclosed via DDEX metadata. TIDAL: below \"substantially AI-generated\" threshold as currently defined.",
+    "riskFactors": [
+      "DDEX AI-disclosure categories are self-reported pending a platform audit trail.",
+      "TIDAL has not published a quantitative threshold for \"substantially AI-generated\" — policy could tighten.",
+      "This is a pilot structure; token liquidity is limited and no secondary market is guaranteed."
+    ],
+    "documents": [
+      {
+        "name": "PRO royalty statement — 24mo trailing",
+        "type": "PDF",
+        "date": "Aug 2026"
+      },
+      {
+        "name": "AI-tooling disclosure log",
+        "type": "PDF",
+        "date": "Aug 2026"
+      }
+    ],
+    "status": "funding"
+  },
+  {
+    "id": "low-tide-orchestra",
+    "kind": "preproduction",
+    "title": "Low Tide Orchestra",
+    "artistName": "Marea Nera",
+    "genre": "Cinematic / Orchestral",
+    "description": "A raw voice-memo sketch seeking a full string-orchestra recording, mix and a companion short film. Token holders receive a shortlist vote on the recording studio (advisory only).",
+    "verified": false,
+    "tokenPrice": 20,
+    "tokensTotal": 3000,
+    "tokensSold": 180,
+    "targetRaiseUse": "Orchestra recording session, mixing, short-film production",
+    "aiDisclosure": {
+      "vocals": "human",
+      "instrumentation": "pending",
+      "composition": "human",
+      "postProduction": "pending",
+      "lyrics": "n/a"
+    },
+    "dspPolicy": "No AI-generated elements planned; disclosure will be finalized after production.",
+    "riskFactors": [
+      "Onboarding diligence is still in progress — catalogue is not yet fully verified.",
+      "This track is unreleased and has no royalty history — venture-style risk, not bond-like income.",
+      "Funds are held in milestone-gated escrow with a pro-rata refund path if the goal is not met."
+    ],
+    "documents": [
+      {
+        "name": "Voice-memo sketch",
+        "type": "MP3",
+        "date": "Aug 2026"
+      },
+      {
+        "name": "Production budget draft",
+        "type": "PDF",
+        "date": "Aug 2026"
+      }
+    ],
+    "milestones": [
+      {
+        "name": "Funding goal reached",
+        "trancheAmount": 3600,
+        "status": "pending"
+      },
+      {
+        "name": "Orchestra session booked",
+        "trancheAmount": 14000,
+        "status": "pending"
+      },
+      {
+        "name": "Mix & master delivered",
+        "trancheAmount": 9000,
+        "status": "pending"
+      },
+      {
+        "name": "Short film & release confirmed",
+        "trancheAmount": 9400,
+        "status": "pending"
+      }
+    ],
+    "status": "funding"
+  },
+  {
+    "id": "copper-radio",
+    "kind": "catalogue",
+    "title": "Copper Radio",
+    "artistName": "The Aftertaste",
+    "genre": "Rock",
+    "description": "A seven-song back catalogue from a touring band, tokenized to raise partial liquidity while the band retains the majority interest and full creative control.",
+    "verified": true,
+    "tokenPrice": 30,
+    "tokensTotal": 3200,
+    "tokensSold": 3200,
+    "royaltyHistory": [
+      {
+        "month": "Sep 24",
+        "royaltyUSD": 559
+      },
+      {
+        "month": "Oct 24",
+        "royaltyUSD": 523
+      },
+      {
+        "month": "Nov 24",
+        "royaltyUSD": 557
+      },
+      {
+        "month": "Dec 24",
+        "royaltyUSD": 518
+      },
+      {
+        "month": "Jan 25",
+        "royaltyUSD": 536
+      },
+      {
+        "month": "Feb 25",
+        "royaltyUSD": 497
+      },
+      {
+        "month": "Mar 25",
+        "royaltyUSD": 571
+      },
+      {
+        "month": "Apr 25",
+        "royaltyUSD": 513
+      },
+      {
+        "month": "May 25",
+        "royaltyUSD": 560
+      },
+      {
+        "month": "Jun 25",
+        "royaltyUSD": 544
+      },
+      {
+        "month": "Jul 25",
+        "royaltyUSD": 609
+      },
+      {
+        "month": "Aug 25",
+        "royaltyUSD": 575
+      },
+      {
+        "month": "Sep 25",
+        "royaltyUSD": 594
+      },
+      {
+        "month": "Oct 25",
+        "royaltyUSD": 538
+      },
+      {
+        "month": "Nov 25",
+        "royaltyUSD": 587
+      },
+      {
+        "month": "Dec 25",
+        "royaltyUSD": 544
+      },
+      {
+        "month": "Jan 26",
+        "royaltyUSD": 569
+      },
+      {
+        "month": "Feb 26",
+        "royaltyUSD": 529
+      },
+      {
+        "month": "Mar 26",
+        "royaltyUSD": 553
+      },
+      {
+        "month": "Apr 26",
+        "royaltyUSD": 524
+      },
+      {
+        "month": "May 26",
+        "royaltyUSD": 563
+      },
+      {
+        "month": "Jun 26",
+        "royaltyUSD": 556
+      },
+      {
+        "month": "Jul 26",
+        "royaltyUSD": 565
+      },
+      {
+        "month": "Aug 26",
+        "royaltyUSD": 623
+      }
+    ],
+    "aiDisclosure": {
+      "vocals": "human",
+      "instrumentation": "human",
+      "composition": "human",
+      "postProduction": "human",
+      "lyrics": "human"
+    },
+    "dspPolicy": "Spotify & TIDAL: unaffected (no AI content declared).",
+    "riskFactors": [
+      "Sold out — secondary transfers, if any, are subject to the platform’s compliance restrictions.",
+      "Streaming performance can decline if the band’s touring activity or releases slow down."
+    ],
+    "documents": [
+      {
+        "name": "Distributor statement — 24mo trailing",
+        "type": "PDF",
+        "date": "Jun 2026"
+      },
+      {
+        "name": "SPV formation deed",
+        "type": "PDF",
+        "date": "Jan 2026"
+      }
+    ],
+    "status": "sold-out"
+  }
+]

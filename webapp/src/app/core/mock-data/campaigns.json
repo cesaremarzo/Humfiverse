@@ -1,0 +1,31 @@
+[
+  {
+    "id": "glass-horizon",
+    "assetId": "glass-horizon",
+    "title": "Glass Horizon (Draft)",
+    "artistName": "Cerchio Blu",
+    "holders": 184,
+    "milestones": [
+      {
+        "name": "Funding goal reached",
+        "trancheAmount": 5000,
+        "status": "active"
+      },
+      {
+        "name": "Studio & session vocalist booked",
+        "trancheAmount": 8000,
+        "status": "pending"
+      },
+      {
+        "name": "Mix & master delivered",
+        "trancheAmount": 6000,
+        "status": "pending"
+      },
+      {
+        "name": "Release confirmed on DSPs",
+        "trancheAmount": 3200,
+        "status": "pending"
+      }
+    ]
+  }
+]

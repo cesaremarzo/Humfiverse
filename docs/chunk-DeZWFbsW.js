@@ -1,0 +1,3 @@
+var g={"Indie Pop":`note`,Electronic:`pulse`,"Alt R&B":`heart`,"Lo-fi / Ambient":`moon`,"Cinematic / Orchestral":`strings`,Rock:`bolt`,"Hip-Hop":`mic`,Other:`music`};function u(t){return g[t]||`music`}function m(t,e){let r=0;for(let i=0;i<t.length;i++)r=(r*31+t.charCodeAt(i))%360;let s=r,c=(r+(e===`preproduction`?46:28))%360,n=e===`preproduction`?62:48,o=e===`preproduction`?42:38;return`radial-gradient(120% 140% at 15% 15%, hsl(${s} ${n}% ${o+10}%) 0%, transparent 60%),
+    radial-gradient(140% 160% at 90% 95%, hsl(${c} ${n-8}% ${o}%) 0%, transparent 65%),
+    linear-gradient(135deg, hsl(${s} ${n-10}% ${o-6}%), hsl(${c} ${n-6}% ${o-14}%))`}function $(t){return(t.title||`?`).trim().charAt(0).toUpperCase()}export{m as n,u as r,$ as t};

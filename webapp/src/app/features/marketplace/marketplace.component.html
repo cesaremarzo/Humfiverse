@@ -1,0 +1,33 @@
+<div class="page-head">
+  <div>
+    <span class="page-kicker">{{ 'marketplace.kicker' | translate }}</span>
+    <h1>{{ 'marketplace.title' | translate }}</h1>
+    <p class="page-sub">{{ 'marketplace.subtitle' | translate }}</p>
+  </div>
+</div>
+
+<div class="toolbar">
+  <div class="segmented">
+    <button type="button" [class.active]="filter() === 'all'" (click)="filter.set('all')">{{ 'marketplace.filterAll' | translate: { n: totalCount() } }}</button>
+    <button type="button" [class.active]="filter() === 'catalogue'" (click)="filter.set('catalogue')">{{ 'marketplace.filterCatalogues' | translate }}</button>
+    <button type="button" [class.active]="filter() === 'preproduction'" (click)="filter.set('preproduction')">{{ 'marketplace.filterPreproduction' | translate }}</button>
+  </div>
+  <div class="search-box">
+    <app-icon name="search"></app-icon>
+    <input type="text" [placeholder]="'marketplace.searchPlaceholder' | translate" [value]="query()" (input)="onQueryInput($any($event.target).value)">
+  </div>
+</div>
+
+@if (list().length) {
+  <div class="grid">
+    @for (a of list(); track a.id) {
+      <app-asset-card [asset]="a"></app-asset-card>
+    }
+  </div>
+} @else {
+  <div class="empty-state card">
+    <app-icon name="search"></app-icon>
+    <h3>{{ 'marketplace.emptyTitle' | translate }}</h3>
+    <p>{{ 'marketplace.emptyBody' | translate }}</p>
+  </div>
+}

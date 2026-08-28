@@ -1,0 +1,48 @@
+<div class="hero-split">
+  <div>
+    <span class="page-kicker">{{ 'forArtists.kicker' | translate }}</span>
+    <h1>{{ 'forArtists.title' | translate }}</h1>
+    <p class="page-sub" style="margin-top:14px; font-size:15px;">{{ 'forArtists.subtitle' | translate }}</p>
+    <div style="display:flex; gap:12px; margin-top:22px; flex-wrap:wrap;">
+      <a class="btn btn-primary btn-lg" routerLink="/artist/onboarding"><app-icon name="sparkles"></app-icon> {{ 'forArtists.startCampaign' | translate }}</a>
+      <a class="btn btn-secondary btn-lg" routerLink="/artist/dashboard">{{ 'forArtists.viewCampaigns' | translate }}</a>
+    </div>
+  </div>
+  <div class="mock-illustration" [style.background]="heroBg" style="display:flex; align-items:center; justify-content:center; position:relative;">
+    <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;opacity:.5;mix-blend-mode:overlay;">
+      <circle cx="78" cy="24" r="34" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="10"/>
+      <circle cx="78" cy="24" r="20" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="6"/>
+    </svg>
+    <div style="color:rgba(255,255,255,.92); text-align:center;"><app-icon name="disc"></app-icon></div>
+  </div>
+</div>
+
+<div class="feature-grid">
+  <div class="card feature-card">
+    <div class="icon"><app-icon name="shield"></app-icon></div>
+    <h4>{{ 'forArtists.feature1Title' | translate }}</h4>
+    <p>{{ 'forArtists.feature1Body' | translate }}</p>
+  </div>
+  <div class="card feature-card">
+    <div class="icon"><app-icon name="sparkles"></app-icon></div>
+    <h4>{{ 'forArtists.feature2Title' | translate }}</h4>
+    <p>{{ 'forArtists.feature2Body' | translate }}</p>
+  </div>
+  <div class="card feature-card">
+    <div class="icon"><app-icon name="scale"></app-icon></div>
+    <h4>{{ 'forArtists.feature3Title' | translate }}</h4>
+    <p>{{ 'forArtists.feature3Body' | translate }}</p>
+  </div>
+</div>
+
+@if (store.campaigns().length) {
+  <div class="page-head" style="margin-top:40px; margin-bottom:14px;">
+    <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:17px;">{{ 'forArtists.yourCampaigns' | translate }}</h3>
+    <a routerLink="/artist/dashboard" style="font-size:13px;">{{ 'forArtists.viewAll' | translate }} <app-icon name="arrowRight"></app-icon></a>
+  </div>
+  <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));">
+    @for (c of store.campaigns().slice(0, 3); track c.id) {
+      <app-campaign-card [campaign]="c"></app-campaign-card>
+    }
+  </div>
+}

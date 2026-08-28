@@ -1,0 +1,206 @@
+@if (!asset()) {
+  <div class="empty-state card">
+    <app-icon name="alert"></app-icon>
+    <h3>{{ 'detail.notFoundTitle' | translate }}</h3>
+    <p>{{ 'detail.notFoundBody' | translate }} <a routerLink="/marketplace">{{ 'nav.marketplace' | translate }}</a></p>
+  </div>
+}
+
+@if (asset(); as a) {
+  <div class="breadcrumb">
+    <a routerLink="/marketplace">{{ 'nav.marketplace' | translate }}</a>
+    <span><app-icon name="chevronLeft"></app-icon></span>
+    <span>{{ a.title }}</span>
+  </div>
+
+  <div class="detail-layout">
+    <div>
+      <div class="detail-hero">
+        <div class="detail-cover"><app-cover [asset]="a" [playSize]="38" [motifSize]="52"></app-cover></div>
+        <div class="detail-heading">
+          <div class="chips">
+            <app-status-chip [asset]="a"></app-status-chip>
+            @if (a.verified) {
+              <span class="chip chip-good"><app-icon name="shield"></app-icon> {{ 'asset.verified' | translate }}</span>
+            } @else {
+              <span class="chip chip-warning"><app-icon name="alert"></app-icon> {{ 'asset.diligencePending' | translate }}</span>
+            }
+          </div>
+          <h1>{{ a.title }}</h1>
+          <div class="artist">{{ a.artistName }} · {{ a.genre }}</div>
+        </div>
+      </div>
+
+      <div class="tabs">
+        @for (tabDef of tabs(a); track tabDef[0]) {
+          <button type="button" [class.active]="tab() === tabDef[0]" (click)="tab.set(tabDef[0])">{{ tabDef[1] | translate }}</button>
+        }
+      </div>
+
+      <div class="tab-panel">
+        @if (tab() === 'overview') {
+          <div class="prose">{{ a.description }}</div>
+          <div class="stat-row">
+            <div class="card stat-tile"><div class="label">{{ 'detail.tokenPrice' | translate }}</div><div class="value">{{ fmt(a.tokenPrice) }}</div></div>
+            <div class="card stat-tile"><div class="label">{{ 'detail.tokens' | translate }}</div><div class="value">{{ a.tokensSold.toLocaleString() }}/{{ a.tokensTotal.toLocaleString() }}</div></div>
+            @if (isPre(a)) {
+              <div class="card stat-tile"><div class="label">{{ 'detail.useOfFunds' | translate }}</div><div class="value" style="font-size:13px; font-family:'IBM Plex Sans',sans-serif;">{{ a.targetRaiseUse }}</div></div>
+            } @else {
+              @if (yieldBreakdown(a); as b) {
+                <div class="card stat-tile" style="position:relative;">
+                  <div class="label" style="display:flex; align-items:center; gap:5px;">
+                    <span>{{ 'detail.projYield' | translate }}</span>
+                    <button type="button" style="width:16px; height:16px; border:none; background:none; padding:0; margin:0; color:var(--text-muted); cursor:pointer; display:inline-flex;"
+                            [attr.aria-label]="'yieldInfo.ariaLabel' | translate" (click)="yieldInfoOpen.set(!yieldInfoOpen())">
+                      <app-icon name="info"></app-icon>
+                    </button>
+                  </div>
+                  <div class="value" style="color:var(--good);">{{ b.pct.toFixed(1) }}%</div>
+                  @if (yieldInfoOpen()) {
+                    <div class="yield-popover">
+                      <div class="yield-popover-title">{{ 'yieldInfo.title' | translate }}</div>
+                      <div class="yield-popover-formula mono">{{ 'yieldInfo.formula' | translate }}</div>
+                      <div class="yield-popover-calc mono">{{ 'yieldInfo.calculation' | translate: { royalty: fmt(b.trailingRoyalty), raise: fmt(b.raiseValue), pct: b.pct.toFixed(1) } }}</div>
+                      <div class="yield-popover-disclaimer"><app-icon name="alert"></app-icon><span>{{ 'yieldInfo.disclaimer' | translate }}</span></div>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="card stat-tile"><div class="label">{{ 'detail.projYield' | translate }}</div><div class="value">—</div></div>
+              }
+            }
+            <div class="card stat-tile"><div class="label">{{ 'detail.funded' | translate }}</div><div class="value">{{ fundingPct(a) }}%</div></div>
+          </div>
+
+          @if (isPre(a)) {
+            <div class="card panel">
+              <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:15px; margin-bottom:10px;">{{ 'detail.milestoneSnapshot' | translate }}</h3>
+              <app-milestone-track [milestones]="a.milestones!"></app-milestone-track>
+            </div>
+          } @else {
+            <div class="card chart-card">
+              <div class="chart-card-head"><h3>{{ 'detail.reportedRoyaltyIncome' | translate }}</h3><span class="legend"><span class="legend-dot"></span> {{ 'detail.monthlyUsd' | translate }}</span></div>
+              <app-line-chart [royaltyHistory]="a.royaltyHistory!"></app-line-chart>
+            </div>
+          }
+
+          <div class="card panel" style="font-size:13px; color:var(--text-secondary);">
+            <strong style="color:var(--text);">{{ 'detail.dspPolicyNote' | translate }}</strong> {{ a.dspPolicy }}
+          </div>
+        }
+
+        @if (tab() === 'royalty' && !isPre(a)) {
+          <div class="stat-row">
+            <div class="card stat-tile"><div class="label">{{ 'detail.trailingTotal' | translate }}</div><div class="value">{{ fmtShort(royaltyTotal(a)) }}</div></div>
+            <div class="card stat-tile"><div class="label">{{ 'detail.monthlyAvg' | translate }}</div><div class="value">{{ fmt(royaltyAvg(a)) }}</div></div>
+            <div class="card stat-tile"><div class="label">{{ 'detail.history' | translate }}</div><div class="value">{{ 'detail.moSuffix' | translate: { n: a.royaltyHistory!.length } }}</div></div>
+          </div>
+          <div class="card chart-card">
+            <div class="chart-card-head"><h3>{{ 'detail.fullReportedHistory' | translate }}</h3><span class="legend"><span class="legend-dot"></span> {{ 'detail.monthlyUsd' | translate }}</span></div>
+            <app-line-chart [royaltyHistory]="a.royaltyHistory!"></app-line-chart>
+          </div>
+          <div class="prose">{{ 'detail.sourcedFrom' | translate }}</div>
+        }
+
+        @if (tab() === 'milestones' && isPre(a)) {
+          <div class="card panel">
+            <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:15px; margin-bottom:14px;">{{ 'detail.milestoneGatedEscrow' | translate }}</h3>
+            <app-milestone-track [milestones]="a.milestones!"></app-milestone-track>
+            <div class="prose" style="margin-top:16px;">{{ 'detail.escrowProse' | translate }}</div>
+          </div>
+          <div class="card panel">
+            <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:15px; margin-bottom:12px;">{{ 'detail.governance' | translate }}</h3>
+            <div class="prose" [innerHTML]="'detail.governanceProse' | translate"></div>
+          </div>
+        }
+
+        @if (tab() === 'disclosure') {
+          <div class="prose">{{ 'detail.disclosureIntro' | translate }}</div>
+          <div class="disclosure-grid">
+            @for (row of disclosureRows; track row[0]) {
+              <div class="disclosure-item">
+                <div class="k">{{ row[1] | translate }}</div>
+                <div class="v"><app-disclosure-chip [val]="disclosureVal(a, row[0])"></app-disclosure-chip></div>
+              </div>
+            }
+          </div>
+          <div class="card panel" style="font-size:13px; color:var(--text-secondary);"><strong style="color:var(--text);">{{ 'detail.platformPolicyExposure' | translate }}</strong> {{ a.dspPolicy }}</div>
+        }
+
+        @if (tab() === 'documents') {
+          <div class="card panel">
+            <div class="doc-list">
+              @for (d of a.documents; track d.name) {
+                <div class="doc-row"><app-icon name="file"></app-icon><span class="name">{{ d.name }}</span><span class="meta">{{ d.type }} · {{ d.date }}</span></div>
+              }
+            </div>
+          </div>
+        }
+
+        @if (tab() === 'risk') {
+          <div class="risk-list">
+            @for (r of a.riskFactors; track r) {
+              <div class="risk-item"><app-icon name="alert"></app-icon><span>{{ r }}</span></div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="card buy-panel">
+      <div class="buy-price">
+        <div><div class="amount">{{ fmt(a.tokenPrice) }}</div><div class="unit">{{ 'buy.perToken' | translate }}</div></div>
+        <div style="text-align:right;">
+          <div class="mono" style="font-weight:600;">{{ remaining(a).toLocaleString() }}</div>
+          <div class="unit">{{ 'buy.remaining' | translate }}</div>
+        </div>
+      </div>
+      <div class="meter"><span [style.width.%]="fundingPct(a)"></span></div>
+
+      @if (soldOut(a)) {
+        <div class="chip chip-neutral" style="justify-content:center; padding:10px;"><app-icon name="checkCircle"></app-icon> {{ 'buy.fullySubscribed' | translate }}</div>
+      } @else if (!store.investor().verified) {
+        <div class="risk-item"><app-icon name="shield"></app-icon><div>{{ 'buy.kycRequired' | translate }}</div></div>
+        <a class="btn btn-primary btn-block btn-lg" [routerLink]="['/kyc', a.id]"><app-icon name="shield"></app-icon> {{ 'buy.completeVerification' | translate }}</a>
+      } @else {
+        <div class="qty-row">
+          <label style="font-size:13px; font-weight:600;">{{ 'buy.tokensLabel' | translate }}</label>
+          <div class="stepper">
+            <button type="button" [attr.aria-label]="'buy.decrease' | translate" (click)="decreaseQty(a)"><app-icon name="minus"></app-icon></button>
+            <input class="mono" type="text" inputmode="numeric" [value]="qty()" (change)="onQtyInput(a, $any($event.target).value)">
+            <button type="button" [attr.aria-label]="'buy.increase' | translate" (click)="increaseQty(a)"><app-icon name="plus"></app-icon></button>
+          </div>
+        </div>
+        <div class="buy-summary">
+          <div class="row"><span>{{ 'buy.subtotal' | translate }}</span><span class="mono">{{ fmt(qty() * a.tokenPrice) }}</span></div>
+          <div class="row"><span>{{ 'buy.platformFee' | translate }}</span><span class="mono">$0.00</span></div>
+          <div class="row total"><span>{{ 'buy.total' | translate }}</span><span class="mono">{{ fmt(qty() * a.tokenPrice) }}</span></div>
+        </div>
+        <label class="check-row">
+          <input type="checkbox" [checked]="ack()" (change)="ack.set($any($event.target).checked)">
+          <span>{{ 'buy.ackLabel' | translate }}</span>
+        </label>
+        <button class="btn btn-primary btn-block btn-lg" [disabled]="!ack()" (click)="buy(a)">
+          {{ (a.kind === 'preproduction' ? 'buy.fundCampaign' : 'buy.buyTokens') | translate }} <app-icon name="arrowRight"></app-icon>
+        </button>
+      }
+      <div class="prose" style="font-size:11.5px;">{{ 'buy.kycNote' | translate }}</div>
+    </div>
+  </div>
+
+  @if (success(); as s) {
+    <div class="modal-scrim" (click)="$event.target === $event.currentTarget && closeModal()">
+      <div class="modal">
+        <div class="success-icon"><app-icon name="check"></app-icon></div>
+        <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:18px;">{{ (a.kind === 'preproduction' ? 'success.contributionConfirmed' : 'success.purchaseConfirmed') | translate }}</h3>
+        <p style="font-size:13.5px; color:var(--text-secondary);">
+          {{ 'success.body' | translate: { qty: s.qty + ' ' + (successQtyKey() | translate), title: a.title, total: fmt(s.total) } }}
+        </p>
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn-secondary btn-block" (click)="closeModal()">{{ 'success.keepBrowsing' | translate }}</button>
+          <a class="btn btn-primary btn-block" routerLink="/portfolio">{{ 'success.viewPortfolio' | translate }}</a>
+        </div>
+      </div>
+    </div>
+  }
+}

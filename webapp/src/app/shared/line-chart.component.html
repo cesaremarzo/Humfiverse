@@ -1,0 +1,36 @@
+<div class="chart-svg-wrap" style="position:relative;">
+  <svg [attr.viewBox]="'0 0 ' + w + ' ' + h" style="width:100%;height:auto;overflow:visible;" preserveAspectRatio="none" (mouseleave)="deactivate()">
+    <defs>
+      <linearGradient id="lc-fill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="var(--chart-line)" stop-opacity="0.28"/>
+        <stop offset="100%" stop-color="var(--chart-line)" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    @for (gy of gridLines; track gy) {
+      <line [attr.x1]="padL" [attr.y1]="gy.toFixed(1)" [attr.x2]="w - padR" [attr.y2]="gy.toFixed(1)" stroke="var(--border)" stroke-width="1"/>
+    }
+    <path [attr.d]="areaPath" fill="url(#lc-fill)" stroke="none"/>
+    <path [attr.d]="linePath" fill="none" stroke="var(--chart-line)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    @if (points.length) {
+      <circle [attr.cx]="points[points.length-1].x.toFixed(1)" [attr.cy]="points[points.length-1].y.toFixed(1)" r="4" fill="var(--chart-line)"/>
+    }
+    @if (hoverIndex !== null) {
+      <line [attr.x1]="hoverX" [attr.y1]="padT" [attr.x2]="hoverX" [attr.y2]="padT + (h - padT - padB)" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="3 3"/>
+      <circle [attr.cx]="hoverX" [attr.cy]="hoverY" r="4.5" fill="var(--chart-line)" stroke="var(--surface)" stroke-width="2"/>
+    }
+    @for (p of points; track $index) {
+      <circle [attr.cx]="p.x.toFixed(1)" [attr.cy]="p.y.toFixed(1)" r="9" fill="transparent" (mouseenter)="activate($index)" (focus)="activate($index)"/>
+    }
+    @for (o of labels; track o.i) {
+      <text [attr.x]="points[o.i].x.toFixed(1)" [attr.y]="h - 6" font-size="9" fill="var(--text-muted)"
+            [attr.text-anchor]="o.i === 0 ? 'start' : o.i === data.length - 1 ? 'end' : 'middle'"
+            font-family="IBM Plex Mono, monospace">{{ o.month }}</text>
+    }
+  </svg>
+  @if (hoverIndex !== null) {
+    <div class="lc-tooltip mono" style="position:absolute; pointer-events:none; background:var(--text); color:var(--bg); font-size:11.5px; padding:5px 9px; border-radius:8px; white-space:nowrap; transform:translate(-50%,-130%); z-index:5;"
+         [style.left.%]="hoverX / w * 100" [style.top.%]="hoverY / h * 100">
+      <strong>{{ fmt(data[hoverIndex].royaltyUSD) }}</strong> · {{ data[hoverIndex].month }}
+    </div>
+  }
+</div>

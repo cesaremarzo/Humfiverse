@@ -1,0 +1,68 @@
+@if (!holdings().length) {
+  <div class="page-head"><div><span class="page-kicker">{{ 'portfolio.kicker' | translate }}</span><h1>{{ 'portfolio.title' | translate }}</h1></div></div>
+  <div class="empty-state card"><app-icon name="wallet"></app-icon><h3>{{ 'portfolio.emptyTitle' | translate }}</h3><p>{{ 'portfolio.emptyBody' | translate }}</p></div>
+} @else {
+  <div class="page-head">
+    <div><span class="page-kicker">{{ 'portfolio.kicker' | translate }}</span><h1>{{ 'portfolio.title' | translate }}</h1><p class="page-sub">{{ 'portfolio.subtitle' | translate }}</p></div>
+  </div>
+
+  <div class="stat-grid">
+    <div class="card stat-tile"><div class="label">{{ 'portfolio.tokensHeld' | translate }}</div><div class="value">{{ totalTokens().toLocaleString() }}</div></div>
+    <div class="card stat-tile"><div class="label">{{ 'portfolio.costBasis' | translate }}</div><div class="value">{{ fmt(totalCost()) }}</div></div>
+    <div class="card stat-tile"><div class="label">{{ 'portfolio.unclaimedRoyalties' | translate }}</div><div class="value" style="color:var(--accent-ink);">{{ fmt(totalUnclaimed()) }}</div></div>
+    <div class="card stat-tile"><div class="label">{{ 'portfolio.lifetimeRedeemed' | translate }}</div><div class="value" style="color:var(--good);">{{ fmt(totalClaimed()) }}</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:24px;">
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>{{ 'portfolio.tableAsset' | translate }}</th><th class="cell-num">{{ 'portfolio.tableTokens' | translate }}</th><th class="cell-num">{{ 'portfolio.tableCostBasis' | translate }}</th><th class="cell-num">{{ 'portfolio.tableUnclaimed' | translate }}</th><th></th>
+        </tr></thead>
+        <tbody>
+          @for (h of holdings(); track h.assetId) {
+            <tr>
+              <td><a [routerLink]="['/asset', h.assetId]" style="text-decoration:none; color:inherit;"><div class="row-song">
+                <div class="row-thumb" [style.background]="bg(h.assetId, 'catalogue')"></div>
+                <div><div class="cell-primary">{{ assetTitle(h.assetId) }}</div><div style="font-size:12px; color:var(--text-secondary);">{{ assetArtist(h.assetId) }}</div></div>
+              </div></a></td>
+              <td class="cell-num mono">{{ h.tokens }}</td>
+              <td class="cell-num mono">{{ fmt(h.costBasis) }}</td>
+              <td class="cell-num mono" [style.color]="h.unclaimed > 0 ? 'var(--accent-ink)' : null" [style.font-weight]="h.unclaimed > 0 ? 600 : null">{{ fmt(h.unclaimed) }}</td>
+              <td style="text-align:right;">
+                @if (h.unclaimed > 0) {
+                  <a class="btn btn-secondary btn-sm" routerLink="/redeem"><app-icon name="wallet"></app-icon> {{ 'portfolio.redeem' | translate }}</a>
+                } @else {
+                  <span class="chip chip-neutral"><app-icon name="checkCircle"></app-icon> {{ 'portfolio.upToDate' | translate }}</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="page-head" style="margin-bottom:14px;">
+    <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:17px;">{{ 'portfolio.distributionHistory' | translate }}</h3>
+    @if (totalUnclaimed() > 0) {
+      <a class="btn btn-primary btn-sm" routerLink="/redeem"><app-icon name="wallet"></app-icon> {{ 'portfolio.redeemVia' | translate: { amount: fmt(totalUnclaimed()) } }}</a>
+    }
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>{{ 'portfolio.tableDate' | translate }}</th><th>{{ 'portfolio.tableAsset' | translate }}</th><th class="cell-num">{{ 'portfolio.tableAmount' | translate }}</th></tr></thead>
+        <tbody>
+          @for (d of distributionsReversed(); track $index) {
+            <tr>
+              <td>{{ d.date }}</td>
+              <td>{{ assetTitle(d.assetId) }}</td>
+              <td class="cell-num mono" style="color:var(--good);">+{{ fmt(d.amount) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}

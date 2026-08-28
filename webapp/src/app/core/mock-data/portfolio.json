@@ -1,0 +1,33 @@
+{
+  "holdings": [
+    {
+      "assetId": "midnight-static",
+      "tokens": 40,
+      "costBasis": 1000,
+      "unclaimed": 38.4
+    },
+    {
+      "assetId": "ember-choir",
+      "tokens": 12,
+      "costBasis": 480,
+      "unclaimed": 14.1
+    }
+  ],
+  "distributions": [
+    {
+      "date": "Jun 2026",
+      "assetId": "midnight-static",
+      "amount": 31.2
+    },
+    {
+      "date": "May 2026",
+      "assetId": "midnight-static",
+      "amount": 29.8
+    },
+    {
+      "date": "Jul 2026",
+      "assetId": "ember-choir",
+      "amount": 12.5
+    }
+  ]
+}

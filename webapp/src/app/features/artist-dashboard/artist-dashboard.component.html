@@ -1,0 +1,23 @@
+@if (!store.campaigns().length) {
+  <div class="page-head"><div><span class="page-kicker">{{ 'artistDash.kicker' | translate }}</span><h1>{{ 'artistDash.title' | translate }}</h1></div></div>
+  <div class="empty-state card">
+    <app-icon name="music"></app-icon>
+    <h3>{{ 'artistDash.emptyTitle' | translate }}</h3>
+    <p>{{ 'artistDash.emptyBody' | translate }} <a routerLink="/artist/onboarding">{{ 'artistDash.startCampaign' | translate }}</a></p>
+  </div>
+} @else {
+  <div class="page-head">
+    <div><span class="page-kicker">{{ 'artistDash.kicker' | translate }}</span><h1>{{ 'artistDash.title' | translate }}</h1></div>
+    <a class="btn btn-primary" routerLink="/artist/onboarding"><app-icon name="sparkles"></app-icon> {{ 'artistDash.newCampaign' | translate }}</a>
+  </div>
+  <div class="stat-grid">
+    <div class="card stat-tile"><div class="label">{{ 'artistDash.activeCampaigns' | translate }}</div><div class="value">{{ store.campaigns().length }}</div></div>
+    <div class="card stat-tile"><div class="label">{{ 'artistDash.totalRaised' | translate }}</div><div class="value">{{ totalRaisedShort() }}</div></div>
+    <div class="card stat-tile"><div class="label">{{ 'artistDash.tokenHolders' | translate }}</div><div class="value">{{ totalHolders() }}</div></div>
+  </div>
+  <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(340px,1fr));">
+    @for (c of store.campaigns(); track c.id) {
+      <app-campaign-card [campaign]="c"></app-campaign-card>
+    }
+  </div>
+}
