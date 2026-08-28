@@ -1,7 +1,7 @@
-<div style="position:relative; overflow:hidden;">
+<div style="position:relative; isolation:isolate; overflow:hidden;">
   <svg
     width="1400" height="1400" viewBox="0 0 120 120"
-    style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); opacity:0.055; pointer-events:none; z-index:-1;"
+    style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); opacity:0.16; pointer-events:none; z-index:0;"
     aria-hidden="true">
     <line x1="16" y1="55" x2="16" y2="65" stroke="var(--accent)" stroke-width="6.5" stroke-linecap="round" opacity="0.4"/>
     <line x1="27" y1="44.7" x2="27" y2="75.3" stroke="var(--accent)" stroke-width="6.5" stroke-linecap="round" opacity="0.6"/>
@@ -14,6 +14,7 @@
     <line x1="104" y1="55" x2="104" y2="65" stroke="var(--accent)" stroke-width="6.5" stroke-linecap="round" opacity="0.4"/>
   </svg>
 
+  <div style="position:relative; z-index:1;">
   <div class="hero-split">
   <div>
     <span class="page-kicker">{{ 'forArtists.kicker' | translate }}</span>
@@ -62,4 +63,5 @@
     }
   </div>
 }
+  </div>
 </div>
