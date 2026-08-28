@@ -1,6 +1,6 @@
 "use strict";
 /* Seed data — mirrors the mock ASSETS/CAMPAIGNS/portfolio previously
-   hardcoded in the frontend (dashboard/index.html), now served from a
+   hardcoded in the frontend (docs/index.html), now served from a
    real backend + SQLite database instead of living only in client JS. */
 
 function monthLabel(offsetFromNow) {

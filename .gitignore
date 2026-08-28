@@ -1,3 +1,4 @@
 node_modules/
 server/humfiverse.db
 .DS_Store
+.claude/
