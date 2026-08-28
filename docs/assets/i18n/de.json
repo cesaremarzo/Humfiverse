@@ -299,5 +299,8 @@
   "detail.onchainNetwork": "Base Sepolia (Testnetz)",
   "detail.onchainTokenId": "Token-ID",
   "detail.onchainPool": "Pool / Gesamtangebot",
-  "detail.onchainExplorer": "Im Block-Explorer ansehen"
+  "detail.onchainExplorer": "Im Block-Explorer ansehen",
+  "landing.tagline": "Finanzieren Sie die Unabhängigkeit Ihrer Kunst.",
+  "landing.artistBtn": "Ich bin Künstler:in",
+  "landing.investorBtn": "Ich bin Investor:in"
 }

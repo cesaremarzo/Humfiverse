@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'marketplace' },
+  { path: '', pathMatch: 'full', loadComponent: () => import('./features/landing/landing.component').then((m) => m.LandingComponent) },
   { path: 'marketplace', loadComponent: () => import('./features/marketplace/marketplace.component').then((m) => m.MarketplaceComponent) },
   { path: 'asset/:id', loadComponent: () => import('./features/asset-detail/asset-detail.component').then((m) => m.AssetDetailComponent) },
   { path: 'portfolio', loadComponent: () => import('./features/portfolio/portfolio.component').then((m) => m.PortfolioComponent) },
