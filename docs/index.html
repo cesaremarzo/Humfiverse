@@ -326,6 +326,22 @@
   .stat-tile .value{ font-family:"IBM Plex Mono",monospace; font-size:20px; font-weight:600; margin-top:6px; }
   .stat-tile .delta{ font-size:12px; margin-top:4px; color:var(--good); }
 
+  .yield-popover{
+    position:absolute; top:100%; left:0; margin-top:10px; width:270px; z-index:30; text-align:left;
+    background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px;
+    box-shadow:var(--shadow-lg);
+  }
+  .yield-popover::before{
+    content:""; position:absolute; bottom:100%; left:18px; width:10px; height:10px;
+    background:var(--surface); border-left:1px solid var(--border); border-top:1px solid var(--border);
+    transform:rotate(45deg); margin-bottom:-5px;
+  }
+  .yield-popover-title{ font-size:12.5px; font-weight:600; color:var(--text); margin-bottom:8px; }
+  .yield-popover-formula{ font-size:11px; color:var(--text-secondary); background:var(--surface-2); border-radius:8px; padding:8px 10px; margin-bottom:8px; line-height:1.5; white-space:normal; }
+  .yield-popover-calc{ font-size:11px; color:var(--text); margin-bottom:10px; line-height:1.5; }
+  .yield-popover-disclaimer{ font-size:11px; color:var(--warning); display:flex; gap:6px; align-items:flex-start; line-height:1.45; }
+  .yield-popover-disclaimer svg{ flex:none; margin-top:1px; width:13px; height:13px; }
+
   .chart-card{ padding:18px 20px 12px; }
   .chart-card-head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
   .chart-card-head h3{ font-size:15px; font-family:"IBM Plex Sans",sans-serif; font-weight:600; }
@@ -601,8 +617,8 @@ const ASSETS = [
   {
     id:'midnight-static', kind:'catalogue', title:'Midnight Static', artistName:'Nova Reyes', genre:'Indie Pop',
     description:'Three-single catalogue with a steady 24-month streaming history across Spotify, Apple Music and SIAE-reported performance royalties. No prior liens; verified chain of title.',
-    verified:true, tokenPrice:25, tokensTotal:4000, tokensSold:2860, projectedYield:8.2,
-    royaltyHistory: buildRoyaltyHistory(24, 3400, 1.018, 0.16, 41),
+    verified:true, tokenPrice:25, tokensTotal:4000, tokensSold:2860,
+    royaltyHistory: buildRoyaltyHistory(24, 500, 1.018, 0.16, 41),
     aiDisclosure:{ vocals:'human', instrumentation:'human', composition:'human', postProduction:'human', lyrics:'human' },
     dspPolicy:'Spotify: monetized normally. TIDAL: unaffected (no AI content declared).',
     riskFactors:[
@@ -636,8 +652,8 @@ const ASSETS = [
   {
     id:'ember-choir', kind:'catalogue', title:'Ember Choir', artistName:'Sasha Wren', genre:'Alt R&B',
     description:'A four-track EP with 18 months of reported royalties. Independently verified against distributor statements; token proceeds go to the artist as a partial catalogue sale.',
-    verified:true, tokenPrice:40, tokensTotal:2500, tokensSold:2500, projectedYield:6.4,
-    royaltyHistory: buildRoyaltyHistory(18, 5200, 1.01, 0.14, 87),
+    verified:true, tokenPrice:40, tokensTotal:2500, tokensSold:2500,
+    royaltyHistory: buildRoyaltyHistory(18, 470, 1.01, 0.14, 87),
     aiDisclosure:{ vocals:'human', instrumentation:'human', composition:'human', postProduction:'human', lyrics:'human' },
     dspPolicy:'Spotify & TIDAL: unaffected (no AI content declared).',
     riskFactors:[
@@ -650,8 +666,8 @@ const ASSETS = [
   {
     id:'paper-cranes', kind:'catalogue', title:'Paper Cranes', artistName:'Kobo Lindqvist', genre:'Lo-fi / Ambient',
     description:'A meditative six-track catalogue with a long tail of consistent, low-volatility sync and mechanical royalties rather than viral streaming spikes.',
-    verified:true, tokenPrice:15, tokensTotal:5000, tokensSold:940, projectedYield:5.1,
-    royaltyHistory: buildRoyaltyHistory(24, 2100, 1.006, 0.10, 19),
+    verified:true, tokenPrice:15, tokensTotal:5000, tokensSold:940,
+    royaltyHistory: buildRoyaltyHistory(24, 290, 1.006, 0.10, 19),
     aiDisclosure:{ vocals:'human', instrumentation:'ai-assisted', composition:'human', postProduction:'human', lyrics:'human' },
     dspPolicy:'Spotify: monetized normally, AI-assisted instrumentation disclosed via DDEX metadata. TIDAL: below "substantially AI-generated" threshold as currently defined.',
     riskFactors:[
@@ -685,8 +701,8 @@ const ASSETS = [
   {
     id:'copper-radio', kind:'catalogue', title:'Copper Radio', artistName:'The Aftertaste', genre:'Rock',
     description:'A seven-song back catalogue from a touring band, tokenized to raise partial liquidity while the band retains the majority interest and full creative control.',
-    verified:true, tokenPrice:30, tokensTotal:3200, tokensSold:3200, projectedYield:7.0,
-    royaltyHistory: buildRoyaltyHistory(24, 4600, 1.004, 0.20, 63),
+    verified:true, tokenPrice:30, tokensTotal:3200, tokensSold:3200,
+    royaltyHistory: buildRoyaltyHistory(24, 535, 1.004, 0.20, 63),
     aiDisclosure:{ vocals:'human', instrumentation:'human', composition:'human', postProduction:'human', lyrics:'human' },
     dspPolicy:'Spotify & TIDAL: unaffected (no AI content declared).',
     riskFactors:[
@@ -778,6 +794,26 @@ function assetById(id){ return ASSETS.find(a => a.id === id); }
 function fundingRaised(a){ return a.tokenPrice * a.tokensSold; }
 function fundingGoal(a){ return a.tokenPrice * a.tokensTotal; }
 function fundingPct(a){ return Math.min(100, Math.round((a.tokensSold/a.tokensTotal)*100)); }
+
+/* Projected yield — computed from actual trailing royalty history instead
+   of a hardcoded number: (royalty paid out over the last 12 reported
+   months) / (tokenPrice * tokensTotal) * 100. Returns null when there's
+   no royalty history (e.g. pre-production/unreleased tracks), which
+   callers should handle by not showing a yield figure at all. This is a
+   trailing/historical figure, not a promised or guaranteed return. */
+function computeYieldBreakdown(a){
+  if (!a.royaltyHistory || !a.royaltyHistory.length || !a.tokenPrice || !a.tokensTotal) return null;
+  const last12 = a.royaltyHistory.slice(-12);
+  const trailingRoyalty = last12.reduce((sum, m) => sum + m.royaltyUSD, 0);
+  const raiseValue = a.tokenPrice * a.tokensTotal;
+  if (!raiseValue) return null;
+  const pct = (trailingRoyalty / raiseValue) * 100;
+  return { pct, trailingRoyalty, raiseValue, months: last12.length };
+}
+function computeProjectedYield(a){
+  const b = computeYieldBreakdown(a);
+  return b ? b.pct : null;
+}
 
 const CAMPAIGNS = [
   {
@@ -949,6 +985,11 @@ const I18N = {
     'tab.disclosure':'AI disclosure', 'tab.documents':'Documents', 'tab.risk':'Risk factors',
     'detail.tokenPrice':'Token price', 'detail.tokens':'Tokens', 'detail.useOfFunds':'Use of funds',
     'detail.projYield':'Proj. yield', 'detail.funded':'Funded',
+    'yieldInfo.ariaLabel':'How is this calculated?',
+    'yieldInfo.title':'How this is calculated',
+    'yieldInfo.formula':'Yield % = (royalty paid out over the trailing 12 reported months ÷ token price × total tokens) × 100',
+    'yieldInfo.calculation':'{royalty} ÷ {raise} × 100 = {pct}%',
+    'yieldInfo.disclaimer':'This is a trailing, historical figure — not a promised or guaranteed return. Future royalty income can go down as well as up.',
     'detail.milestoneSnapshot':'Milestone escrow snapshot',
     'detail.reportedRoyaltyIncome':'Reported royalty income', 'detail.monthlyUsd':'Monthly, USD',
     'detail.dspPolicyNote':'DSP policy note.',
@@ -1132,6 +1173,11 @@ const I18N = {
     'tab.disclosure':'Disclosure AI', 'tab.documents':'Documenti', 'tab.risk':'Fattori di rischio',
     'detail.tokenPrice':'Prezzo token', 'detail.tokens':'Token', 'detail.useOfFunds':'Utilizzo fondi',
     'detail.projYield':'Rendimento previsto', 'detail.funded':'Finanziato',
+    'yieldInfo.ariaLabel':'Come viene calcolato?',
+    'yieldInfo.title':'Come viene calcolato',
+    'yieldInfo.formula':'Rendimento % = (royalty distribuita negli ultimi 12 mesi rendicontati ÷ prezzo token × token totali) × 100',
+    'yieldInfo.calculation':'{royalty} ÷ {raise} × 100 = {pct}%',
+    'yieldInfo.disclaimer':'È un dato storico su base mobile, non un rendimento promesso o garantito. Le royalty future possono scendere oltre che salire.',
     'detail.milestoneSnapshot':'Riepilogo escrow a milestone',
     'detail.reportedRoyaltyIncome':'Royalty dichiarate', 'detail.monthlyUsd':'Mensile, USD',
     'detail.dspPolicyNote':'Nota policy DSP.',
@@ -1315,6 +1361,11 @@ const I18N = {
     'tab.disclosure':'Divulgación AI', 'tab.documents':'Documentos', 'tab.risk':'Factores de riesgo',
     'detail.tokenPrice':'Precio del token', 'detail.tokens':'Tokens', 'detail.useOfFunds':'Uso de los fondos',
     'detail.projYield':'Rendimiento previsto', 'detail.funded':'Financiado',
+    'yieldInfo.ariaLabel':'¿Cómo se calcula?',
+    'yieldInfo.title':'Cómo se calcula',
+    'yieldInfo.formula':'Rendimiento % = (regalías pagadas en los últimos 12 meses reportados ÷ precio del token × tokens totales) × 100',
+    'yieldInfo.calculation':'{royalty} ÷ {raise} × 100 = {pct}%',
+    'yieldInfo.disclaimer':'Es una cifra histórica y móvil, no un rendimiento prometido o garantizado. Los ingresos futuros por regalías pueden bajar además de subir.',
     'detail.milestoneSnapshot':'Resumen de la custodia por hitos',
     'detail.reportedRoyaltyIncome':'Ingresos por royalties declarados', 'detail.monthlyUsd':'Mensual, USD',
     'detail.dspPolicyNote':'Nota sobre la política del DSP.',
@@ -1498,6 +1549,11 @@ const I18N = {
     'tab.disclosure':'Divulgation IA', 'tab.documents':'Documents', 'tab.risk':'Facteurs de risque',
     'detail.tokenPrice':'Prix du token', 'detail.tokens':'Tokens', 'detail.useOfFunds':'Utilisation des fonds',
     'detail.projYield':'Rendement prévu', 'detail.funded':'Financé',
+    'yieldInfo.ariaLabel':'Comment est-ce calculé ?',
+    'yieldInfo.title':'Comment ce chiffre est calculé',
+    'yieldInfo.formula':'Rendement % = (redevances versées sur les 12 derniers mois déclarés ÷ prix du token × total des tokens) × 100',
+    'yieldInfo.calculation':'{royalty} ÷ {raise} × 100 = {pct} %',
+    'yieldInfo.disclaimer':'Il s’agit d’un chiffre historique glissant, pas d’un rendement promis ou garanti. Les revenus de redevances futurs peuvent baisser autant qu’augmenter.',
     'detail.milestoneSnapshot':'Aperçu du séquestre par jalons',
     'detail.reportedRoyaltyIncome':'Revenus de royalties déclarés', 'detail.monthlyUsd':'Mensuel, USD',
     'detail.dspPolicyNote':'Note sur la politique du DSP.',
@@ -1681,6 +1737,11 @@ const I18N = {
     'tab.disclosure':'KI-Offenlegung', 'tab.documents':'Dokumente', 'tab.risk':'Risikofaktoren',
     'detail.tokenPrice':'Tokenpreis', 'detail.tokens':'Tokens', 'detail.useOfFunds':'Mittelverwendung',
     'detail.projYield':'Erwartete Rendite', 'detail.funded':'Finanziert',
+    'yieldInfo.ariaLabel':'Wie wird das berechnet?',
+    'yieldInfo.title':'So wird das berechnet',
+    'yieldInfo.formula':'Rendite % = (ausgezahlte Tantiemen der letzten 12 gemeldeten Monate ÷ Tokenpreis × Gesamtzahl der Tokens) × 100',
+    'yieldInfo.calculation':'{royalty} ÷ {raise} × 100 = {pct}%',
+    'yieldInfo.disclaimer':'Dies ist eine gleitende, historische Kennzahl — keine versprochene oder garantierte Rendite. Künftige Tantiemeneinnahmen können ebenso sinken wie steigen.',
     'detail.milestoneSnapshot':'Übersicht Meilenstein-Treuhand',
     'detail.reportedRoyaltyIncome':'Gemeldete Tantiemeneinnahmen', 'detail.monthlyUsd':'Monatlich, USD',
     'detail.dspPolicyNote':'Hinweis zur DSP-Richtlinie.',
@@ -2295,7 +2356,7 @@ function assetCard(a){
       <div class="asset-foot">
         ${isPre
           ? `<span class="yield venture">${t('asset.financingRound')}</span>`
-          : `<span class="yield">${t('asset.projYield', { pct: a.projectedYield })}</span>`}
+          : `<span class="yield">${t('asset.projYield', { pct: (computeProjectedYield(a)||0).toFixed(1) })}</span>`}
         <span class="mono" style="font-size:12.5px; color:var(--text-secondary);">${t('asset.perToken', { price: fmtUSD(a.tokenPrice) })}</span>
       </div>
     </div>
@@ -2305,10 +2366,34 @@ function assetCard(a){
 /* ===================================================================
    VIEW — Asset detail + buy flow
 =================================================================== */
-const detailUI = {}; // per-asset ui state: { tab, qty, ack, success }
+const detailUI = {}; // per-asset ui state: { tab, qty, ack, success, yieldInfoOpen }
 function getDetailUI(id){
-  if (!detailUI[id]) detailUI[id] = { tab:'overview', qty:1, ack:false, success:null };
+  if (!detailUI[id]) detailUI[id] = { tab:'overview', qty:1, ack:false, success:null, yieldInfoOpen:false };
   return detailUI[id];
+}
+
+function renderYieldTile(a, ui){
+  const b = computeYieldBreakdown(a);
+  if (!b) return `<div class="card stat-tile"><div class="label">${t('detail.projYield')}</div><div class="value">—</div></div>`;
+  return `
+    <div class="card stat-tile" style="position:relative;">
+      <div class="label" style="display:flex; align-items:center; gap:5px;">
+        <span>${t('detail.projYield')}</span>
+        <button type="button" id="yieldInfoBtn" style="width:16px; height:16px; border:none; background:none; padding:0; margin:0; color:var(--text-muted); cursor:pointer; display:inline-flex;" aria-label="${t('yieldInfo.ariaLabel')}">${icon('info')}</button>
+      </div>
+      <div class="value" style="color:var(--good);">${b.pct.toFixed(1)}%</div>
+      ${ui.yieldInfoOpen ? renderYieldInfoPopover(b) : ''}
+    </div>`;
+}
+
+function renderYieldInfoPopover(b){
+  return `
+  <div class="yield-popover" id="yieldPopover">
+    <div class="yield-popover-title">${t('yieldInfo.title')}</div>
+    <div class="yield-popover-formula mono">${t('yieldInfo.formula')}</div>
+    <div class="yield-popover-calc mono">${t('yieldInfo.calculation', { royalty: fmtUSD(b.trailingRoyalty), raise: fmtUSD(b.raiseValue), pct: b.pct.toFixed(1) })}</div>
+    <div class="yield-popover-disclaimer">${icon('alert')}<span>${t('yieldInfo.disclaimer')}</span></div>
+  </div>`;
 }
 
 function renderAssetDetail(id){
@@ -2366,7 +2451,7 @@ function renderDetailTab(a, ui){
         <div class="card stat-tile"><div class="label">${t('detail.tokens')}</div><div class="value">${a.tokensSold.toLocaleString()}/${a.tokensTotal.toLocaleString()}</div></div>
         ${isPre
           ? `<div class="card stat-tile"><div class="label">${t('detail.useOfFunds')}</div><div class="value" style="font-size:13px; font-family:'IBM Plex Sans',sans-serif;">${a.targetRaiseUse}</div></div>`
-          : `<div class="card stat-tile"><div class="label">${t('detail.projYield')}</div><div class="value" style="color:var(--good);">${a.projectedYield}%</div></div>`}
+          : renderYieldTile(a, ui)}
         <div class="card stat-tile"><div class="label">${t('detail.funded')}</div><div class="value">${fundingPct(a)}%</div></div>
       </div>
       ${isPre ? `
@@ -2691,6 +2776,9 @@ function wireDetailEvents(a){
   const app = document.getElementById('app');
   const ui = getDetailUI(a.id);
   app.querySelectorAll('.tabs [data-tab]').forEach(btn => btn.addEventListener('click', () => { ui.tab = btn.dataset.tab; render(); }));
+
+  const yieldInfoBtn = app.querySelector('#yieldInfoBtn');
+  if (yieldInfoBtn) yieldInfoBtn.addEventListener('click', () => { ui.yieldInfoOpen = !ui.yieldInfoOpen; render(); });
 
   const remaining = a.tokensTotal - a.tokensSold;
   const qtyInput = app.querySelector('#qtyInput');
@@ -3287,7 +3375,6 @@ async function submitCampaign(){
       { name:'Release confirmed on DSPs', trancheAmount: Math.round(total*0.1), status:'pending' },
     ];
   } else {
-    asset.projectedYield = 5.5;
     asset.royaltyHistory = buildRoyaltyHistory(Math.max(3,parseInt(d.catalogue.months,10)||6), 1800, 1.01, 0.18, id.length*7);
   }
   ASSETS.unshift(asset);

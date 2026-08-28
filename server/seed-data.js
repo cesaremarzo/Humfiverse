@@ -24,8 +24,8 @@ const ASSETS = [
   {
     id: "midnight-static", kind: "catalogue", title: "Midnight Static", artistName: "Nova Reyes", genre: "Indie Pop",
     description: "Three-single catalogue with a steady 24-month streaming history across Spotify, Apple Music and SIAE-reported performance royalties. No prior liens; verified chain of title.",
-    verified: true, tokenPrice: 25, tokensTotal: 4000, tokensSold: 2860, projectedYield: 8.2,
-    royaltyHistory: buildRoyaltyHistory(24, 3400, 1.018, 0.16, 41),
+    verified: true, tokenPrice: 25, tokensTotal: 4000, tokensSold: 2860,
+    royaltyHistory: buildRoyaltyHistory(24, 500, 1.018, 0.16, 41),
     aiDisclosure: { vocals: "human", instrumentation: "human", composition: "human", postProduction: "human", lyrics: "human" },
     dspPolicy: "Spotify: monetized normally. TIDAL: unaffected (no AI content declared).",
     riskFactors: [
@@ -59,8 +59,8 @@ const ASSETS = [
   {
     id: "ember-choir", kind: "catalogue", title: "Ember Choir", artistName: "Sasha Wren", genre: "Alt R&B",
     description: "A four-track EP with 18 months of reported royalties. Independently verified against distributor statements; token proceeds go to the artist as a partial catalogue sale.",
-    verified: true, tokenPrice: 40, tokensTotal: 2500, tokensSold: 2500, projectedYield: 6.4,
-    royaltyHistory: buildRoyaltyHistory(18, 5200, 1.01, 0.14, 87),
+    verified: true, tokenPrice: 40, tokensTotal: 2500, tokensSold: 2500,
+    royaltyHistory: buildRoyaltyHistory(18, 470, 1.01, 0.14, 87),
     aiDisclosure: { vocals: "human", instrumentation: "human", composition: "human", postProduction: "human", lyrics: "human" },
     dspPolicy: "Spotify & TIDAL: unaffected (no AI content declared).",
     riskFactors: [
@@ -73,8 +73,8 @@ const ASSETS = [
   {
     id: "paper-cranes", kind: "catalogue", title: "Paper Cranes", artistName: "Kobo Lindqvist", genre: "Lo-fi / Ambient",
     description: "A meditative six-track catalogue with a long tail of consistent, low-volatility sync and mechanical royalties rather than viral streaming spikes.",
-    verified: true, tokenPrice: 15, tokensTotal: 5000, tokensSold: 940, projectedYield: 5.1,
-    royaltyHistory: buildRoyaltyHistory(24, 2100, 1.006, 0.10, 19),
+    verified: true, tokenPrice: 15, tokensTotal: 5000, tokensSold: 940,
+    royaltyHistory: buildRoyaltyHistory(24, 290, 1.006, 0.10, 19),
     aiDisclosure: { vocals: "human", instrumentation: "ai-assisted", composition: "human", postProduction: "human", lyrics: "human" },
     dspPolicy: 'Spotify: monetized normally, AI-assisted instrumentation disclosed via DDEX metadata. TIDAL: below "substantially AI-generated" threshold as currently defined.',
     riskFactors: [
@@ -108,8 +108,8 @@ const ASSETS = [
   {
     id: "copper-radio", kind: "catalogue", title: "Copper Radio", artistName: "The Aftertaste", genre: "Rock",
     description: "A seven-song back catalogue from a touring band, tokenized to raise partial liquidity while the band retains the majority interest and full creative control.",
-    verified: true, tokenPrice: 30, tokensTotal: 3200, tokensSold: 3200, projectedYield: 7.0,
-    royaltyHistory: buildRoyaltyHistory(24, 4600, 1.004, 0.20, 63),
+    verified: true, tokenPrice: 30, tokensTotal: 3200, tokensSold: 3200,
+    royaltyHistory: buildRoyaltyHistory(24, 535, 1.004, 0.20, 63),
     aiDisclosure: { vocals: "human", instrumentation: "human", composition: "human", postProduction: "human", lyrics: "human" },
     dspPolicy: "Spotify & TIDAL: unaffected (no AI content declared).",
     riskFactors: [
