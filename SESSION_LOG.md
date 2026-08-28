@@ -78,3 +78,63 @@ the backend is a mock data server, not real infrastructure.
   see the assistant's persistent memory for this project if curious.
 - No functional/code changes this update — purely the logging workflow
   itself, committed and pushed (`60321ff`).
+
+---
+
+## 2026-08-28 → 2026-08-29 (major session — read this fully before continuing)
+
+Huge session. Frontend was fully rewritten (Angular), real legal decisions were made (Luxembourg, MiFID II), and a real smart contract is live on a real testnet with real transactions. Details below, roughly in the order they happened.
+
+**1. Compliance decisions (see `planning/legal-regulatory-notes.md` §7 for full detail):**
+- Confirmed path: token = MiFID II financial instrument (not MiCA/CASP), issuing vehicle moved from an Italian SPV to a **Luxembourg securitization vehicle** (compartments instead of one company per catalogue), Malta explicitly considered and rejected (Malta's edge is CASP-specific, irrelevant here; also FATF grey-listed 2021–2022).
+- A real secondary market (investors trading tokens with each other, price moving) would need **MTF/OTF authorization under MiFID II**, not CASP — heavier than issuance, EU-harmonized, not eased by any jurisdiction choice. Not built for real; only simulated where it appears in the UI.
+- MiFID II Art. 25(3) investor appropriateness is implemented for real in the UI (see #3 below).
+
+**2. Artist contract template, now Luxembourg-governed:**
+- `server/contract-template.js` (mirrored as fallback in the Angular app) — a milestone-escrow/royalty-assignment agreement artists accept when launching a catalogue-kind campaign. 8 clauses, 5 flagged as needing separate individual acceptance (SPV-manager discretion, tranche forfeiture, liability limit, royalty exclusivity, governing law/forum) — the UX principle (flag risky clauses, separate checkboxes) is kept, but the legal basis is no longer cited as Italian art. 1341 co.2 c.c. (wrong now that it's Luxembourg-governed) — replaced with a `legalBasisNote` pointing at EU Directive 93/13/EEC + Luxembourg adhesion-contract principles, explicitly flagged as **not confirmed by counsel**.
+- **Authoritative language is now French** (`fr`), not Italian — Luxembourg civil/commercial law is published in French. IT/EN/ES/DE are provisional AI-assisted translations; the UI shows a visible warning whenever viewing in a non-authoritative language.
+- Draft prototype text throughout — never reviewed by a real lawyer. Don't treat as usable for anything real.
+
+**3. Investor KYC / MiFID II appropriateness — implemented, gates the buy flow:**
+- New `#/kyc` flow: identity fields, retail/professional classification (self-declared, not the real Annex II criteria), a 4-question appropriateness assessment scored server-side (`server/server.js` `scoreAppropriateness()` — an illustrative heuristic, not a validated methodology), AML source-of-funds + PEP self-declaration.
+- Below-threshold shows a warning but does **not** block purchase — matches the real execution-only regime (warn, don't refuse).
+- The buy button on asset-detail is disabled until `investor.verified` is true.
+
+**4. Projected yield — was fake, now actually computed:**
+- Old: a hardcoded number, disconnected from the royalty-history chart next to it.
+- New: `yield% = (royalty paid over trailing 12 months ÷ (tokenPrice × tokensTotal)) × 100`, in `computeYieldBreakdown()`. An info popover shows the formula + real numbers + a "not a guaranteed return" disclaimer.
+- Fixing this exposed the mock royalty-history generator was never calibrated against token price/supply — computed yields came out at 37–71% before `buildRoyaltyHistory()` base amounts were rescaled in the seed data to reproduce plausible single-digit numbers (same shape, different scale).
+
+**5. Real smart contract, deployed to a real testnet (Base Sepolia) — this is not simulated:**
+- `contracts/` — Hardhat project, `HumfiverseCatalogueToken.sol` (ERC-1155, OpenZeppelin v5). One token id per catalogue-kind demo track. `mintCatalogue()` mints the full supply into the contract's own balance (the "pool"), using `ERC1155Holder` (plain mint-to-self reverts without it — real bug hit and fixed). `releaseFromPool()` is owner-gated and over-release-guarded. 8 passing tests.
+- **Deployed and live**: contract at [`0xC1aFD3D24de2C344053bBe83aB412140C452146b`](https://sepolia.basescan.org/address/0xC1aFD3D24de2C344053bBe83aB412140C452146b) on Base Sepolia. Deployer/owner wallet: `0x142F945e13f59FdE3583bea8F78528a44317BfC6` — **a real private key the user pasted into chat** (`27dda16bbcb4b1a99f6766cc134708fc2e5bffd5548d2b18be580df2a1b7bef1`). Testnet-only, negligible balance (~0.00018 ETH), but it IS exposed in this conversation's history — never treat it as safe to reuse anywhere with real value.
+- 6 tokens minted so far, all real on-chain transactions (verified by querying `CatalogueMinted` events directly from the chain, not just local DB): midnight-static(1, 4000), ember-choir(2, 2500), paper-cranes(3, 5000), copper-radio(4, 3200), test-catalogue-1(5, 1000), midnight-echo-2(6, 1500). **No token called "Guns" exists on-chain** — user asked about it, turned out the live site's mint silently failed (see below) and the campaign only ever existed client-side in their browser.
+- `contracts/.env` and `server/.env` hold the operator key locally (both gitignored, confirmed never committed). `.env.example` files show what's needed.
+
+**6. On-chain data wired into the app, new campaigns auto-mint:**
+- `server/chain.js` — the backend's one real dependency (`ethers`). `GET /api/onchain/:assetId` (public read, live pool/supply/released, no key needed) and `POST /api/onchain/mint` (owner-gated write). `onchain_tokens` table maps assetId→tokenId, seeded at boot with the 4 original catalogues' real historical tx hashes.
+- **Real bug found and fixed**: the local token-id counter can desync from on-chain truth (happened during testing when the local DB was wiped but the chain still remembered token id 5 was taken) — mint now verifies `totalSupplyOf(candidateId) == 0` on-chain before committing to an id, not just trusting local bookkeeping.
+- Angular's artist-onboarding wizard calls the mint endpoint automatically after creating a new catalogue-kind campaign, using the UI's own `tokensTotal` as the on-chain supply. Asset-detail page shows a live on-chain panel (token id, pool/supply, block-explorer link) when present.
+- **Known gap, not yet resolved**: the production backend on Render (`https://humfiverse-api.onrender.com`) does NOT have `CHAIN_OPERATOR_PRIVATE_KEY` set, and as of last check also appeared to be running an older deploy (`/api/onchain/*` returned 404 there while working locally) — Render's auto-deploy may not have picked up recent pushes. **Next session: check whether the user added the env var / triggered a manual deploy on Render, verify `GET https://humfiverse-api.onrender.com/api/onchain/midnight-static` actually works, and confirm minting succeeds from the live site, not just locally.**
+
+**7. Frontend fully rewritten from the HTML/JS monolith to Angular (`webapp/`):**
+- Full 1:1 feature parity, done via a background fork with a very detailed brief — verified afterward independently (build success, live API smoke test, i18n key-count parity 294/294 at the time, now 304/304 after later additions). Standalone components + Angular Signals (not RxJS/NgRx) for state, `@ngx-translate/core` for runtime i18n (no reload), hash-based routing (`withHashLocation()`, keeps the old `#/marketplace` URL shape, sidesteps GitHub Pages SPA-routing issues entirely).
+- Source: `webapp/src/app/` — `core/` (StoreService = central signal store, ApiService, WalletService), `features/` (one component per screen), `shared/`, `layout/`.
+- **Build output goes to `docs/`** (`angular.json` outputPath `../docs`), so GitHub Pages' existing "serve from /docs" setting didn't need to change. To rebuild after any source edit: `cd webapp && npx ng build`, then `git add -A && git commit && git push` from the repo root (the `docs/` diff — hashed chunk filenames change every build, that's normal).
+- **No headless/real browser was available in this environment all session** — every verification was build-success + HTTP/API smoke tests + code tracing, never an actual visual click-through by Claude. Worth doing a real manual pass at some point.
+- Old `dashboard/`-era rooster mascot and the original AI-robot-busker mascot are both gone (robot was removed earlier per explicit request, well before the Angular rewrite).
+
+**8. Brand: purple, not terracotta; new waveform logo:**
+- Accent color changed from terracotta (`#A6572A`/`#D98A4D`) to deep purple (`#6B3FA0` light / `#C39BE8` dark) — applied via the existing CSS custom-property system (`--accent`, `--accent-ink`, `--accent-soft`, `--accent-soft-border`, both theme blocks), so it propagates everywhere automatically.
+- Logo: a symmetric 9-bar sine-profile waveform (chosen over an earlier concentric-rings direction, then over an earlier ripple/burst/open-mouth set of 3 directions — see the published design canvas artifact from earlier in the session if it's still needed, URL not re-saved here). Used as the topbar brand mark, and as a large (opacity ~0.16) decorative background on the for-artists page and the new landing page.
+- **A new root landing page** (`webapp/src/app/features/landing/`) replaces the old redirect-straight-to-marketplace behavior: logo, tagline ("Get your art's independence funded." + translations), two buttons ("I'm an artist" / "I'm an investor") that set the existing `perspective` signal and navigate to `/for-artists` or `/marketplace`.
+
+**9. Housekeeping:**
+- `gh` CLI stays authenticated — `git push`/`pull` just work, no manual tokens.
+- An empty, untracked, unexplained `password` file appeared at the repo root at some point this session (found by the Angular-migration fork) — added to `.gitignore` so it never gets committed, left in place, origin never determined, harmless (0 bytes).
+- `.gitignore` now also excludes `.env` at the repo root level (previously only `contracts/.gitignore` had it — a real gap, since `server/.env` wasn't excluded until this was fixed).
+
+**Open items for next session:**
+- Resolve the Render deploy/env-var gap (§6) — this is the immediate next step the user asked for.
+- No real browser click-through has ever been done on the Angular app — worth doing once, especially the artist-onboarding wizard and KYC flow end to end.
+- Everything is still fundamentally a demo: no real SPV, no real KYC verification, no real payments, testnet-only crypto. That's intentional and matches where the actual project is (see `planning/technical-architecture.md` for the real phased build plan) — don't let the real Base Sepolia contract create a false impression that more is "real" than actually is.
