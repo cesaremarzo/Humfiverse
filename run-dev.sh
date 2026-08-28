@@ -4,7 +4,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 echo "Starting backend on http://localhost:3001 ..."
-(cd server && node server.js) &
+(cd server && node --experimental-sqlite server.js) &
 BACKEND_PID=$!
 
 echo "Starting frontend on http://localhost:8080 ..."
