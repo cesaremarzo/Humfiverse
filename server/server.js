@@ -1,22 +1,29 @@
 "use strict";
 /* Humfiverse mock backend.
    Replaces the frontend's hardcoded ASSETS/CAMPAIGNS/portfolio arrays with
-   a real HTTP API backed by SQLite. Still entirely simulated (no real
-   money, wallets, or contracts) — see claude_technical-architecture.md for
-   what a production backend (SPV, oracle, KYC, on-chain contracts) would
-   actually require.
+   a real HTTP API backed by SQLite. Most of it is still simulated (no
+   real money, KYC, or SPV) — see planning/technical-architecture.md for
+   what a full production backend would actually require. The one piece
+   that IS real: the on-chain integration in chain.js talks to a deployed
+   ERC-1155 contract on the Base Sepolia testnet (§2.10 of that doc).
 
-   Zero npm dependencies: uses node's built-in http module and node:sqlite
-   (stable in the Node version this was built against). Run with:
+   Uses node's built-in http module and node:sqlite (stable in the Node
+   version this was built against), plus one real dependency — ethers,
+   for the on-chain integration (see chain.js; not reasonable to hand-roll
+   transaction signing). Run with:
      node server.js
-   Configure the port via PORT env var (defaults to 3001).
+   Configure the port via PORT env var (defaults to 3001). On-chain
+   minting needs CHAIN_OPERATOR_PRIVATE_KEY set (see chain.js) — without
+   it, everything else still works, minting just stays disabled.
 */
 
+require("dotenv").config();
 const http = require("node:http");
 const path = require("node:path");
 const { DatabaseSync } = require("node:sqlite");
 const { ASSETS, CAMPAIGNS, PORTFOLIO } = require("./seed-data");
 const { CONTRACT_TEMPLATE } = require("./contract-template");
+const chain = require("./chain");
 
 const PORT = process.env.PORT || 3001;
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, "humfiverse.db");
@@ -51,6 +58,14 @@ db.exec(`
     receipt_hash TEXT,
     created_at TEXT
   );
+  CREATE TABLE IF NOT EXISTS onchain_tokens (
+    token_id INTEGER PRIMARY KEY,
+    asset_id TEXT UNIQUE NOT NULL,
+    slug TEXT NOT NULL,
+    supply INTEGER NOT NULL,
+    tx_hash TEXT,
+    minted_at TEXT
+  );
 `);
 
 function seedIfEmpty() {
@@ -70,6 +85,21 @@ function seedIfEmpty() {
     for (const h of PORTFOLIO.holdings) insertHolding.run(h.assetId, h.tokens, h.costBasis, h.unclaimed);
     const insertDist = db.prepare("INSERT INTO distributions (date, assetId, amount) VALUES (?, ?, ?)");
     for (const d of PORTFOLIO.distributions) insertDist.run(d.date, d.assetId, d.amount);
+  }
+  const onchainCount = db.prepare("SELECT COUNT(*) AS n FROM onchain_tokens").get().n;
+  if (onchainCount === 0) {
+    // The four seed catalogues were already minted directly via
+    // contracts/scripts/mintCatalogues.js before this endpoint existed —
+    // seeded here with their real Base Sepolia tx hashes so the API
+    // reflects what's actually on-chain, not just what this server minted.
+    const insertOnchain = db.prepare(
+      "INSERT INTO onchain_tokens (token_id, asset_id, slug, supply, tx_hash, minted_at) VALUES (?, ?, ?, ?, ?, ?)"
+    );
+    const mintedAt = "2026-08-28T22:30:00.000Z";
+    insertOnchain.run(1, "midnight-static", "midnight-static", 4000, "0x897079c54dba4b5531802fe7cd2454f1a8fe2032a50a159dc39589a218dfbff5", mintedAt);
+    insertOnchain.run(2, "ember-choir", "ember-choir", 2500, "0x6673060bf68e4d9f026e81fd2843d00868ab73648ae7e1aa08594fee758d2628", mintedAt);
+    insertOnchain.run(3, "paper-cranes", "paper-cranes", 5000, "0x31249c0f4c0a8654232b531d3321e681545a25c240920455e2ae7df5dd984272", mintedAt);
+    insertOnchain.run(4, "copper-radio", "copper-radio", 3200, "0x1a11a8e5cb2d938796c8ed49f5bdaad34a0c8fd999739afacab6cc80ab8a3047", mintedAt);
   }
 }
 seedIfEmpty();
@@ -197,6 +227,33 @@ function recordKyc(body) {
   return { verified: true, classification, appropriatenessResult: result, score, receiptHash };
 }
 
+function getOnchainRecord(assetId) {
+  return db.prepare("SELECT token_id, asset_id, slug, supply, tx_hash, minted_at FROM onchain_tokens WHERE asset_id = ?").get(assetId);
+}
+
+/* The local table is a hint for where to start looking, not the source of
+   truth — see chain.js isTokenIdFree() for why this actually verifies
+   on-chain before committing to a token id, rather than trusting the
+   local MAX(token_id)+1 alone. */
+async function nextFreeTokenId() {
+  const row = db.prepare("SELECT MAX(token_id) AS maxId FROM onchain_tokens").get();
+  let candidate = (row.maxId || 0) + 1;
+  while (!(await chain.isTokenIdFree(candidate))) candidate += 1;
+  return candidate;
+}
+
+async function mintAssetOnchain(assetId, slug, supply) {
+  const existing = getOnchainRecord(assetId);
+  if (existing) throw Object.assign(new Error("asset already has an on-chain token"), { code: "already_minted", record: existing });
+
+  const tokenId = await nextFreeTokenId();
+  const result = await chain.mintCatalogueOnchain(tokenId, slug, supply);
+  db.prepare(
+    "INSERT INTO onchain_tokens (token_id, asset_id, slug, supply, tx_hash, minted_at) VALUES (?, ?, ?, ?, ?, ?)"
+  ).run(tokenId, assetId, slug, supply, result.txHash, new Date().toISOString());
+  return result;
+}
+
 function sendJson(res, status, body) {
   const json = JSON.stringify(body);
   res.writeHead(status, {
@@ -267,6 +324,43 @@ const server = http.createServer(async (req, res) => {
       sendJson(res, 200, recordKyc(body));
     } catch (e) {
       sendJson(res, 400, { error: "invalid request body" });
+    }
+    return;
+  }
+
+  const onchainMatch = url.pathname.match(/^\/api\/onchain\/([^/]+)$/);
+  if (req.method === "GET" && onchainMatch) {
+    try {
+      const assetId = decodeURIComponent(onchainMatch[1]);
+      const record = getOnchainRecord(assetId);
+      if (!record) { sendJson(res, 200, { onchain: false }); return; }
+      const poolInfo = await chain.getPoolInfo(record.token_id);
+      sendJson(res, 200, { onchain: true, assetId, slug: record.slug, mintTxHash: record.tx_hash, mintedAt: record.minted_at, ...poolInfo });
+    } catch (e) {
+      sendJson(res, 502, { error: "could not read on-chain data", detail: String(e.message || e) });
+    }
+    return;
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/onchain/mint") {
+    try {
+      const body = await readBody(req);
+      if (!body.assetId || !body.slug || !body.supply) {
+        sendJson(res, 400, { error: "assetId, slug and supply are required" });
+        return;
+      }
+      if (!chain.mintingEnabled()) {
+        sendJson(res, 503, { error: "on-chain minting is disabled on this server (no operator key configured)" });
+        return;
+      }
+      const result = await mintAssetOnchain(body.assetId, body.slug, body.supply);
+      sendJson(res, 200, result);
+    } catch (e) {
+      if (e.code === "already_minted") {
+        sendJson(res, 409, { error: "asset already has an on-chain token", record: e.record });
+      } else {
+        sendJson(res, 502, { error: "on-chain mint failed", detail: String(e.message || e) });
+      }
     }
     return;
   }

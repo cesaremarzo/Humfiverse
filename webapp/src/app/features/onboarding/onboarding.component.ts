@@ -253,6 +253,23 @@ export class OnboardingComponent {
     this.data.set(freshWizardData());
 
     this.toast.show(this.translate.instant('toast.campaignLaunched'), 'sparkles');
+
+    // Only catalogue-kind assets get an on-chain token — preproduction
+    // (milestone-escrow) campaigns use a different mechanism, matching
+    // the scope of HumfiverseCatalogueToken (see contracts/ and
+    // planning/technical-architecture.md §2.7/§2.10).
+    if (!isPre && this.store.backendAvailable()) {
+      this.api
+        .mintOnchainToken({ assetId: id, slug: id, supply: asset.tokensTotal })
+        .then((result) => {
+          this.toast.show(this.translate.instant('toast.onchainMinted', { tokenId: result.tokenId }), 'checkCircle');
+        })
+        .catch((err) => {
+          console.warn('On-chain mint did not happen (campaign was still created normally).', err);
+          this.toast.show(this.translate.instant('toast.onchainMintFailed'), 'alert');
+        });
+    }
+
     this.router.navigateByUrl('/artist/dashboard');
   }
 }

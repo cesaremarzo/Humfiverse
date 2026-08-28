@@ -292,5 +292,12 @@
   "toast.walletDisconnected": "Wallet disconnected.",
   "toast.statementAttached": "Statement attached (mock).",
   "toast.campaignLaunched": "Campaign launched — now listed in the marketplace.",
-  "toast.noWalletDetected": "No wallet detected. Install the MetaMask extension, then try again."
+  "toast.noWalletDetected": "No wallet detected. Install the MetaMask extension, then try again.",
+  "toast.onchainMinted": "Token minted on-chain (Base Sepolia) — token id #{{tokenId}}.",
+  "toast.onchainMintFailed": "Campaign created, but the on-chain token could not be minted right now.",
+  "detail.onchainTitle": "On-chain token",
+  "detail.onchainNetwork": "Base Sepolia (testnet)",
+  "detail.onchainTokenId": "Token ID",
+  "detail.onchainPool": "Pool / total supply",
+  "detail.onchainExplorer": "View on block explorer"
 }

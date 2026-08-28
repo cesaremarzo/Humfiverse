@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { BackendData, ContractAcceptanceResult, ContractTemplate, KycResult, RedeemResult } from './models';
+import { BackendData, ContractAcceptanceResult, ContractTemplate, KycResult, OnchainInfo, OnchainMintResult, RedeemResult } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -38,5 +38,13 @@ export class ApiService {
 
   health(): Promise<{ ok: boolean }> {
     return firstValueFrom(this.http.get<{ ok: boolean }>(`${this.base}/api/health`));
+  }
+
+  getOnchainInfo(assetId: string): Promise<OnchainInfo> {
+    return firstValueFrom(this.http.get<OnchainInfo>(`${this.base}/api/onchain/${encodeURIComponent(assetId)}`));
+  }
+
+  mintOnchainToken(payload: { assetId: string; slug: string; supply: number }): Promise<OnchainMintResult> {
+    return firstValueFrom(this.http.post<OnchainMintResult>(`${this.base}/api/onchain/mint`, payload));
   }
 }

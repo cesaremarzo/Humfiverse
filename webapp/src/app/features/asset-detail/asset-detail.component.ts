@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -9,7 +9,8 @@ import { MilestoneTrackComponent } from '../../shared/milestone-track.component'
 import { DisclosureChipComponent } from '../../shared/disclosure-chip.component';
 import { LineChartComponent } from '../../shared/line-chart.component';
 import { StoreService } from '../../core/store.service';
-import { Asset, DisclosureLevel } from '../../core/models';
+import { ApiService } from '../../core/api.service';
+import { Asset, DisclosureLevel, OnchainInfo } from '../../core/models';
 import { fmtUSD, fmtUSDShort, fundingPct } from '../../core/format.util';
 import { computeYieldBreakdown } from '../../core/yield.util';
 
@@ -32,6 +33,8 @@ export class AssetDetailComponent {
   ack = signal(false);
   success = signal<{ qty: number; total: number } | null>(null);
   yieldInfoOpen = signal(false);
+  onchainInfo = signal<OnchainInfo | null>(null);
+  onchainLoading = signal(false);
 
   disclosureRows: [keyof Asset['aiDisclosure'], string][] = [
     ['vocals', 'disclosure.vocals'],
@@ -41,7 +44,22 @@ export class AssetDetailComponent {
     ['lyrics', 'disclosure.lyrics']
   ];
 
-  constructor(public store: StoreService) {}
+  constructor(
+    public store: StoreService,
+    private api: ApiService
+  ) {
+    effect(() => {
+      const id = this.id();
+      if (!id) return;
+      this.onchainInfo.set(null);
+      this.onchainLoading.set(true);
+      this.api
+        .getOnchainInfo(id)
+        .then((info) => this.onchainInfo.set(info))
+        .catch(() => this.onchainInfo.set({ onchain: false }))
+        .finally(() => this.onchainLoading.set(false));
+    });
+  }
 
   isPre(a: Asset): boolean {
     return a.kind === 'preproduction';

@@ -87,6 +87,22 @@
           <div class="card panel" style="font-size:13px; color:var(--text-secondary);">
             <strong style="color:var(--text);">{{ 'detail.dspPolicyNote' | translate }}</strong> {{ a.dspPolicy }}
           </div>
+
+          @if (onchainInfo()?.onchain) {
+            <div class="card panel">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+                <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:15px;">{{ 'detail.onchainTitle' | translate }}</h3>
+                <span class="chip chip-accent">{{ 'detail.onchainNetwork' | translate }}</span>
+              </div>
+              <div class="stat-row" style="margin-top:14px;">
+                <div class="card stat-tile"><div class="label">{{ 'detail.onchainTokenId' | translate }}</div><div class="value mono">#{{ $any(onchainInfo()).tokenId }}</div></div>
+                <div class="card stat-tile"><div class="label">{{ 'detail.onchainPool' | translate }}</div><div class="value mono">{{ $any(onchainInfo()).poolBalance }} / {{ $any(onchainInfo()).totalSupply }}</div></div>
+              </div>
+              <a [href]="$any(onchainInfo()).explorerUrl" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" style="margin-top:14px;">
+                <app-icon name="arrowRight"></app-icon> {{ 'detail.onchainExplorer' | translate }}
+              </a>
+            </div>
+          }
         }
 
         @if (tab() === 'royalty' && !isPre(a)) {

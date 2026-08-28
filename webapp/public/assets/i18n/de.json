@@ -292,5 +292,12 @@
   "toast.walletDisconnected": "Wallet getrennt.",
   "toast.statementAttached": "Abrechnung angehängt (simuliert).",
   "toast.campaignLaunched": "Kampagne gestartet — jetzt im Marktplatz gelistet.",
-  "toast.noWalletDetected": "Keine Wallet erkannt. Installieren Sie die MetaMask-Erweiterung und versuchen Sie es erneut."
+  "toast.noWalletDetected": "Keine Wallet erkannt. Installieren Sie die MetaMask-Erweiterung und versuchen Sie es erneut.",
+  "toast.onchainMinted": "Token on-chain geprägt (Base Sepolia) — Token-ID #{{tokenId}}.",
+  "toast.onchainMintFailed": "Kampagne erstellt, aber der On-Chain-Token konnte gerade nicht geprägt werden.",
+  "detail.onchainTitle": "On-Chain-Token",
+  "detail.onchainNetwork": "Base Sepolia (Testnetz)",
+  "detail.onchainTokenId": "Token-ID",
+  "detail.onchainPool": "Pool / Gesamtangebot",
+  "detail.onchainExplorer": "Im Block-Explorer ansehen"
 }

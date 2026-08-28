@@ -292,5 +292,12 @@
   "toast.walletDisconnected": "Wallet disconnesso.",
   "toast.statementAttached": "Rendiconto allegato (simulato).",
   "toast.campaignLaunched": "Campagna avviata — ora presente nel marketplace.",
-  "toast.noWalletDetected": "Nessun wallet rilevato. Installa l’estensione MetaMask e riprova."
+  "toast.noWalletDetected": "Nessun wallet rilevato. Installa l’estensione MetaMask e riprova.",
+  "toast.onchainMinted": "Token coniato on-chain (Base Sepolia) — token id #{{tokenId}}.",
+  "toast.onchainMintFailed": "Campagna creata, ma non è stato possibile coniare il token on-chain in questo momento.",
+  "detail.onchainTitle": "Token on-chain",
+  "detail.onchainNetwork": "Base Sepolia (testnet)",
+  "detail.onchainTokenId": "ID token",
+  "detail.onchainPool": "Pool / fornitura totale",
+  "detail.onchainExplorer": "Vedi sul block explorer"
 }

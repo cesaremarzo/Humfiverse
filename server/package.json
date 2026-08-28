@@ -2,12 +2,16 @@
   "name": "humfiverse-server",
   "version": "0.1.0",
   "private": true,
-  "description": "Mock backend for the Humfiverse frontend prototype (SQLite-backed, zero npm dependencies).",
+  "description": "Mock backend for the Humfiverse frontend prototype (SQLite-backed; the only dependency is ethers, for the Base Sepolia on-chain integration).",
   "main": "server.js",
   "scripts": {
     "start": "node --experimental-sqlite server.js"
   },
   "engines": {
     "node": ">=22.5.0"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "ethers": "^6.17.0"
   }
 }

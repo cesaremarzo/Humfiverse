@@ -158,3 +158,30 @@ export interface BackendData {
   campaigns: Campaign[];
   portfolio: Portfolio;
 }
+
+/** Live on-chain data for a catalogue-kind asset — see server/chain.js and
+ * contracts/contracts/HumfiverseCatalogueToken.sol. `onchain: false` means
+ * this asset has no on-chain token yet (preproduction assets never do). */
+export type OnchainInfo =
+  | { onchain: false }
+  | {
+      onchain: true;
+      assetId: string;
+      slug: string;
+      mintTxHash: string;
+      mintedAt: string;
+      tokenId: number;
+      contractAddress: string;
+      network: string;
+      explorerUrl: string;
+      poolBalance: string;
+      totalSupply: string;
+      released: string;
+    };
+
+export interface OnchainMintResult {
+  tokenId: number;
+  txHash: string;
+  contractAddress: string;
+  explorerUrl: string;
+}
