@@ -746,10 +746,750 @@ const CAMPAIGNS = [
 ];
 
 /* ===================================================================
+   I18N — UI-chrome translations only. Mock asset/campaign/portfolio
+   content (ASSETS/CAMPAIGNS/portfolio, mirrored in server/seed-data.js)
+   is deliberately left in English — it's seed/demo data, not UI text.
+=================================================================== */
+const SUPPORTED_LOCALES = ['en','it','es','fr','de'];
+const LOCALE_LABEL = { en:'EN', it:'IT', es:'ES', fr:'FR', de:'DE' };
+
+const I18N = {
+  en: {
+    'nav.marketplace':'Marketplace', 'nav.portfolio':'Portfolio', 'nav.redeem':'Redeem',
+    'nav.overview':'Overview', 'nav.myCampaigns':'My campaigns', 'nav.newCampaign':'New campaign',
+    'role.investor':'Investor', 'role.artist':'Artist', 'role.perspective':'Perspective',
+    'wallet.connect':'Connect wallet', 'wallet.connecting':'Connecting…', 'wallet.disconnect':'Disconnect',
+    'wallet.connectedTitle':'Connected wallet — view redeem page',
+    'theme.toggle':'Toggle theme',
+    'banner.title':'Working prototype, mock data.',
+    'banner.body':'Humfiverse is a pilot concept — figures, royalty statements and campaigns on this page are illustrative, not real financial instruments. Nothing here is investment advice.',
+    'banner.dismiss':'Dismiss',
+    'footer.tagline':'Humfiverse — a music royalty-stream tokenization concept. Prototype build, {year}.',
+    'footer.disclaimer':'Not a securities offering. See risk factors on each asset.',
+    'lang.label':'Language',
+    'brand.tagline':'Royalty-stream tokenization',
+
+    'marketplace.kicker':'Marketplace', 'marketplace.title':'Fractional royalty shares, verified before they’re listed',
+    'marketplace.subtitle':'Browse tokenized catalogues with reported streaming history, or finance an unfinished track before it’s produced. Each listing discloses its AI-content exposure and diligence status up front.',
+    'marketplace.filterAll':'All ({n})', 'marketplace.filterCatalogues':'Catalogues', 'marketplace.filterPreproduction':'Pre-production',
+    'marketplace.searchPlaceholder':'Search by title, artist or genre',
+    'marketplace.emptyTitle':'No listings match that search', 'marketplace.emptyBody':'Try a different keyword or clear the filter.',
+
+    'asset.soldOut':'Sold out', 'asset.preproduction':'Pre-production', 'asset.funding':'Funding',
+    'asset.verified':'Verified', 'asset.pending':'Pending', 'asset.diligencePending':'Diligence pending',
+    'asset.ofGoal':'{raised} of {goal}', 'asset.financingRound':'Financing round', 'asset.projYield':'{pct}% proj. yield',
+    'asset.perToken':'{price}/token',
+
+    'tab.overview':'Overview', 'tab.royaltyData':'Royalty data', 'tab.milestones':'Escrow & milestones',
+    'tab.disclosure':'AI disclosure', 'tab.documents':'Documents', 'tab.risk':'Risk factors',
+    'detail.tokenPrice':'Token price', 'detail.tokens':'Tokens', 'detail.useOfFunds':'Use of funds',
+    'detail.projYield':'Proj. yield', 'detail.funded':'Funded',
+    'detail.milestoneSnapshot':'Milestone escrow snapshot',
+    'detail.reportedRoyaltyIncome':'Reported royalty income', 'detail.monthlyUsd':'Monthly, USD',
+    'detail.dspPolicyNote':'DSP policy note.',
+    'detail.trailingTotal':'Trailing total', 'detail.monthlyAvg':'Monthly avg.', 'detail.history':'History', 'detail.moSuffix':'{n} mo.',
+    'detail.fullReportedHistory':'Full reported history',
+    'detail.sourcedFrom':'Sourced from distributor/PRO statements during onboarding diligence (see Documents tab). Historical income is not a guarantee of future royalty payments.',
+    'detail.milestoneGatedEscrow':'Milestone-gated escrow',
+    'detail.escrowProse':'Funds raised sit in a smart-contract escrow, not a commingled account. Each tranche releases only once the SPV manager confirms that milestone was met. If the funding goal isn’t reached, or a later milestone is never delivered, the unreleased remainder is refunded to contributors pro-rata.',
+    'detail.governance':'Governance',
+    'detail.governanceProse':'Token holders for this campaign get an <strong>advisory</strong> vote on a pre-vetted shortlist (e.g. which studio records the session) — the SPV manager retains formal contracting authority. No binding on-chain votes ship in this pilot.',
+    'detail.disclosureIntro':'Per-element AI-content disclosure, in the DDEX-style categories DSPs are moving toward. This reduces reliance on self-reporting and gives investors a clearer read on platform-policy exposure.',
+    'detail.platformPolicyExposure':'Platform policy exposure.',
+    'detail.notFoundTitle':'Listing not found', 'detail.notFoundBody':'This asset may have been removed.',
+    'disclosure.vocals':'Vocals', 'disclosure.instrumentation':'Instrumentation', 'disclosure.composition':'Composition',
+    'disclosure.postProduction':'Post-production', 'disclosure.lyrics':'Lyrics',
+    'disclosure.human':'Human', 'disclosure.aiAssisted':'AI-assisted', 'disclosure.ai':'AI-generated', 'disclosure.pending':'Pending', 'disclosure.na':'N/A',
+    'milestone.released':'Released', 'milestone.inProgress':'In progress', 'milestone.pending':'Pending',
+
+    'buy.perToken':'per token', 'buy.remaining':'remaining', 'buy.fullySubscribed':'This listing is fully subscribed',
+    'buy.tokensLabel':'Tokens', 'buy.decrease':'Decrease', 'buy.increase':'Increase',
+    'buy.subtotal':'Subtotal', 'buy.platformFee':'Platform fee', 'buy.total':'Total',
+    'buy.ackLabel':'I understand this is a pilot structure, not investment advice, and I’ve reviewed the risk factors.',
+    'buy.fundCampaign':'Fund this campaign', 'buy.buyTokens':'Buy tokens',
+    'buy.kycNote':'KYC/AML verification (simulated) is required before funds settle. No crypto wallet needed — fiat on-ramp shown as a mock step.',
+
+    'success.contributionConfirmed':'Contribution confirmed', 'success.purchaseConfirmed':'Purchase confirmed',
+    'success.body':'You now hold <strong>{qty}</strong> of <strong>{title}</strong>, for a total of {total}.',
+    'success.token':'token', 'success.tokens':'tokens',
+    'success.keepBrowsing':'Keep browsing', 'success.viewPortfolio':'View portfolio',
+
+    'portfolio.kicker':'Portfolio', 'portfolio.title':'Your holdings',
+    'portfolio.emptyTitle':'No holdings yet',
+    'portfolio.emptyBody':'Browse the <a href="#/marketplace">marketplace</a> to buy your first fractional royalty share.',
+    'portfolio.subtitle':'Royalty income accrues here as the SPV confirms it received payment from DSPs and PROs. Connect a wallet on the <a href="#/redeem">Redeem</a> page to pull your accrued share on-chain.',
+    'portfolio.tokensHeld':'Tokens held', 'portfolio.costBasis':'Cost basis', 'portfolio.unclaimedRoyalties':'Unclaimed royalties', 'portfolio.lifetimeRedeemed':'Lifetime redeemed',
+    'portfolio.tableAsset':'Asset', 'portfolio.tableTokens':'Tokens', 'portfolio.tableCostBasis':'Cost basis', 'portfolio.tableUnclaimed':'Unclaimed',
+    'portfolio.redeem':'Redeem', 'portfolio.upToDate':'Up to date',
+    'portfolio.distributionHistory':'Distribution history', 'portfolio.redeemVia':'Redeem via wallet ({amount})',
+    'portfolio.tableDate':'Date', 'portfolio.tableAmount':'Amount',
+
+    'redeem.kicker':'Redeem', 'redeem.title':'Redeem your royalty share to your wallet',
+    'redeem.subtitle':'Connect a wallet to identify where your accrued royalties should be paid. Redeeming pulls your unclaimed balance on-chain to that address — in this prototype the transfer itself is simulated, no real funds move and no signature beyond connecting is ever requested.',
+    'redeem.connectPrompt':'Connect a wallet to continue',
+    'redeem.connectBody':'MetaMask (or any injected EVM wallet) identifies the address your redeemed royalties are sent to.',
+    'redeem.connectBtn':'Connect MetaMask',
+    'redeem.noWalletNote':'No wallet extension detected in this browser — <a href="https://metamask.io" target="_blank" rel="noopener">install MetaMask</a> to try this flow for real.',
+    'redeem.connectedNetwork':'{chain} · connected',
+    'redeem.nothingYetTitle':'Nothing to redeem yet', 'redeem.nothingYetBody':'Buy a fractional royalty share in the <a href="#/marketplace">marketplace</a> first.',
+    'redeem.redeemableNow':'Redeemable now', 'redeem.lifetimeRedeemed':'Lifetime redeemed', 'redeem.destinationWallet':'Destination wallet',
+    'redeem.tableAsset':'Asset', 'redeem.tableTokens':'Tokens', 'redeem.tableRedeemable':'Redeemable',
+    'redeem.redeemBtn':'Redeem', 'redeem.redeeming':'Redeeming…', 'redeem.upToDate':'Up to date',
+    'redeem.redeemAll':'Redeem all to wallet ({amount})',
+    'redeem.allRedeemed':'Everything is redeemed — check back after your next royalty period.',
+    'redeem.successTitle':'Redeemed to your wallet', 'redeem.successBody':'<strong>{amount}</strong> sent to {addr}.',
+    'redeem.txHashLabel':'Transaction hash (simulated)', 'redeem.done':'Done',
+
+    'forArtists.kicker':'For artists &amp; rights holders', 'forArtists.title':'Raise against your catalogue — or finance the track before it exists',
+    'forArtists.subtitle':'Tokenize an already-monetized catalogue for upfront liquidity, or let listeners fund production of an unfinished track through milestone-gated escrow. Either way, you keep creative control — token holders get transparency and a share of the upside, not a seat at the mixing desk.',
+    'forArtists.startCampaign':'Start a campaign', 'forArtists.viewCampaigns':'View my campaigns',
+    'forArtists.feature1Title':'Escrow, not a shared account', 'forArtists.feature1Body':'Raised funds sit in a milestone-gated smart contract — a tranche only releases when a milestone is confirmed, with a pro-rata refund path if the campaign stalls.',
+    'forArtists.feature2Title':'AI-disclosure built in', 'forArtists.feature2Body':'Per-element disclosure (vocals, instrumentation, composition, post-production, lyrics) is captured at upload — evidence you can point to if a DSP’s classification is ever disputed.',
+    'forArtists.feature3Title':'Advisory governance only', 'forArtists.feature3Body':'Token holders can vote on a shortlist you’ve already vetted — never a binding vote that exposes anyone to partnership-style liability.',
+    'forArtists.yourCampaigns':'Your campaigns', 'forArtists.viewAll':'View all',
+
+    'wizStep.basics':'Track details', 'wizStep.model':'Financing model', 'wizStep.source':'Verification / budget',
+    'wizStep.disclosure':'AI disclosure', 'wizStep.review':'Review & submit',
+    'wizard.kicker':'New campaign', 'wizard.title':'Set up a royalty-token campaign',
+    'wizard.back':'Back', 'wizard.continueBtn':'Continue', 'wizard.launchCampaign':'Launch campaign',
+    'wizard.fillRequired':'Fill in the required fields first.',
+
+    'wizBasics.title':'Tell us about the track or catalogue',
+    'wizBasics.subtitle':'Just enough to generate a listing preview — full metadata is collected later in a real onboarding flow.',
+    'wizBasics.titleLabel':'Title', 'wizBasics.titlePlaceholder':'e.g. Glass Horizon',
+    'wizBasics.artistLabel':'Artist / act name', 'wizBasics.artistPlaceholder':'e.g. Cerchio Blu',
+    'wizBasics.genreLabel':'Genre',
+    'wizBasics.descLabel':'Short description', 'wizBasics.descPlaceholder':'What makes this catalogue or track worth financing?',
+
+    'genre.indiePop':'Indie Pop', 'genre.electronic':'Electronic', 'genre.altRnb':'Alt R&B', 'genre.lofiAmbient':'Lo-fi / Ambient',
+    'genre.cinematic':'Cinematic / Orchestral', 'genre.rock':'Rock', 'genre.hiphop':'Hip-Hop', 'genre.other':'Other',
+
+    'wizModel.title':'Which model fits this campaign?',
+    'wizModel.subtitle':'This is the single biggest fork in the road — it changes the risk profile, the pitch to investors, and the compliance path.',
+    'wizModel.catalogueTitle':'Tokenize an existing catalogue', 'wizModel.catalogueBody':'Bond-like. Your track is already released and earning. Investors buy a share of known, reported income.',
+    'wizModel.preprodTitle':'Pre-production financing', 'wizModel.preprodBody':'Venture-like. Raise to finish an unreleased draft — session musicians, studio time, mix &amp; master — before it exists.',
+
+    'wizSource.preprodTitle':'Production budget', 'wizSource.preprodSubtitle':'This becomes your milestone escrow — each line releases as a tranche once confirmed.',
+    'wizSource.studioLabel':'Studio time', 'wizSource.sessionLabel':'Session musicians / vocalist', 'wizSource.mixLabel':'Mixing &amp; mastering', 'wizSource.extraLabel':'Release / marketing',
+    'wizSource.totalLabel':'Total funding goal', 'wizSource.tokenNote':'Tokens will be priced at $10 — that’s {n} tokens at this goal.',
+    'wizSource.catalogueTitle':'Royalty verification', 'wizSource.catalogueSubtitle':'In a real flow this is a human-in-the-loop diligence process against PRO and distributor statements. Here, a quick mock of what we’d collect.',
+    'wizSource.distributorLabel':'Primary distributor / PRO', 'wizSource.monthsLabel':'Months of reported history',
+    'wizSource.statementLabel':'Royalty statement', 'wizSource.statementPlaceholder':'Click to attach a statement (mock)',
+    'wizSource.statementHint':'PDF or CSV export from your distributor/PRO dashboard.',
+
+    'wizDisclosure.title':'AI-content disclosure',
+    'wizDisclosure.subtitle':'Recorded once, reused everywhere: as DDEX metadata for DSPs, and as the evidence file if a classification is ever disputed.',
+
+    'wizReview.title':'Review &amp; launch', 'wizReview.titleField':'Title', 'wizReview.modelField':'Model',
+    'wizReview.fundingGoalField':'Funding goal', 'wizReview.historyField':'History', 'wizReview.modelPreprod':'Pre-production', 'wizReview.modelCatalogue':'Catalogue',
+    'wizReview.launchNote':'Launching creates a listing visible in the marketplace with mock data seeded from what you entered. In a real launch this step would trigger SPV setup and legal review — nothing here is a real offering.',
+    'wizReview.ackLabel':'I understand this is a prototype: no real funds, tokens or legal entity are created.',
+
+    'artistDash.kicker':'Artist dashboard', 'artistDash.title':'My campaigns', 'artistDash.newCampaign':'New campaign',
+    'artistDash.activeCampaigns':'Active campaigns', 'artistDash.totalRaised':'Total raised', 'artistDash.tokenHolders':'Token holders',
+    'artistDash.emptyTitle':'No campaigns yet', 'artistDash.emptyBody':'Launch your first campaign to see it here.', 'artistDash.startCampaign':'Start a campaign',
+    'campaignCard.tokenHolders':'{n} token holders', 'campaignCard.viewListing':'View listing',
+
+    'toast.walletConnected':'Wallet connected.', 'toast.connectionRejected':'Connection request rejected.',
+    'toast.couldNotConnect':'Could not connect to wallet.', 'toast.walletDisconnected':'Wallet disconnected.',
+    'toast.statementAttached':'Statement attached (mock).', 'toast.campaignLaunched':'Campaign launched — now listed in the marketplace.',
+    'toast.noWalletDetected':'No wallet detected. Install the MetaMask extension, then try again.',
+  },
+  it: {
+    'nav.marketplace':'Marketplace', 'nav.portfolio':'Portafoglio', 'nav.redeem':'Riscatta',
+    'nav.overview':'Panoramica', 'nav.myCampaigns':'Le mie campagne', 'nav.newCampaign':'Nuova campagna',
+    'role.investor':'Investitore', 'role.artist':'Artista', 'role.perspective':'Prospettiva',
+    'wallet.connect':'Connetti wallet', 'wallet.connecting':'Connessione…', 'wallet.disconnect':'Disconnetti',
+    'wallet.connectedTitle':'Wallet connesso — vai alla pagina di riscatto',
+    'theme.toggle':'Cambia tema',
+    'banner.title':'Prototipo funzionante, dati fittizi.',
+    'banner.body':'Humfiverse è un progetto pilota — cifre, rendiconti royalty e campagne in questa pagina sono illustrativi, non strumenti finanziari reali. Nulla qui costituisce consulenza di investimento.',
+    'banner.dismiss':'Chiudi',
+    'footer.tagline':'Humfiverse — un progetto di tokenizzazione di flussi royalty musicali. Build prototipo, {year}.',
+    'footer.disclaimer':'Non è un’offerta di titoli. Consulta i fattori di rischio di ogni asset.',
+    'lang.label':'Lingua',
+    'brand.tagline':'Tokenizzazione di flussi royalty',
+
+    'marketplace.kicker':'Marketplace', 'marketplace.title':'Quote frazionate di royalty, verificate prima della quotazione',
+    'marketplace.subtitle':'Sfoglia cataloghi tokenizzati con storico streaming certificato, oppure finanzia un brano non ancora prodotto. Ogni listing dichiara subito la propria esposizione ai contenuti AI e lo stato della due diligence.',
+    'marketplace.filterAll':'Tutti ({n})', 'marketplace.filterCatalogues':'Cataloghi', 'marketplace.filterPreproduction':'Pre-produzione',
+    'marketplace.searchPlaceholder':'Cerca per titolo, artista o genere',
+    'marketplace.emptyTitle':'Nessun listing corrisponde alla ricerca', 'marketplace.emptyBody':'Prova una parola chiave diversa o rimuovi il filtro.',
+
+    'asset.soldOut':'Esaurito', 'asset.preproduction':'Pre-produzione', 'asset.funding':'In raccolta',
+    'asset.verified':'Verificato', 'asset.pending':'In attesa', 'asset.diligencePending':'Diligence in corso',
+    'asset.ofGoal':'{raised} su {goal}', 'asset.financingRound':'Round di finanziamento', 'asset.projYield':'{pct}% rendimento previsto',
+    'asset.perToken':'{price}/token',
+
+    'tab.overview':'Panoramica', 'tab.royaltyData':'Dati royalty', 'tab.milestones':'Escrow e milestone',
+    'tab.disclosure':'Disclosure AI', 'tab.documents':'Documenti', 'tab.risk':'Fattori di rischio',
+    'detail.tokenPrice':'Prezzo token', 'detail.tokens':'Token', 'detail.useOfFunds':'Utilizzo fondi',
+    'detail.projYield':'Rendimento previsto', 'detail.funded':'Finanziato',
+    'detail.milestoneSnapshot':'Riepilogo escrow a milestone',
+    'detail.reportedRoyaltyIncome':'Royalty dichiarate', 'detail.monthlyUsd':'Mensile, USD',
+    'detail.dspPolicyNote':'Nota policy DSP.',
+    'detail.trailingTotal':'Totale periodo', 'detail.monthlyAvg':'Media mensile', 'detail.history':'Storico', 'detail.moSuffix':'{n} mesi',
+    'detail.fullReportedHistory':'Storico completo dichiarato',
+    'detail.sourcedFrom':'Fonte: rendiconti distributore/PRO raccolti durante la diligence di onboarding (vedi scheda Documenti). Il rendimento storico non garantisce pagamenti royalty futuri.',
+    'detail.milestoneGatedEscrow':'Escrow vincolato a milestone',
+    'detail.escrowProse':'I fondi raccolti restano in un escrow su smart contract, non in un conto comune. Ogni tranche viene rilasciata solo quando lo SPV manager conferma il raggiungimento della milestone. Se l’obiettivo di raccolta non viene raggiunto, o una milestone successiva non viene mai consegnata, la parte non rilasciata è rimborsata pro-rata ai partecipanti.',
+    'detail.governance':'Governance',
+    'detail.governanceProse':'I token holder di questa campagna hanno un voto <strong>consultivo</strong> su una shortlist già vagliata (es. quale studio registra la sessione) — lo SPV manager mantiene il potere formale di firma dei contratti. Nessun voto on-chain vincolante è previsto in questo pilota.',
+    'detail.disclosureIntro':'Disclosure AI per singolo elemento, secondo le categorie in stile DDEX verso cui si stanno muovendo i DSP. Riduce la dipendenza dall’autocertificazione e dà agli investitori una lettura più chiara dell’esposizione alle policy delle piattaforme.',
+    'detail.platformPolicyExposure':'Esposizione alla policy della piattaforma.',
+    'detail.notFoundTitle':'Listing non trovato', 'detail.notFoundBody':'Questo asset potrebbe essere stato rimosso.',
+    'disclosure.vocals':'Voce', 'disclosure.instrumentation':'Strumentazione', 'disclosure.composition':'Composizione',
+    'disclosure.postProduction':'Post-produzione', 'disclosure.lyrics':'Testo',
+    'disclosure.human':'Umano', 'disclosure.aiAssisted':'Assistito da AI', 'disclosure.ai':'Generato da AI', 'disclosure.pending':'In attesa', 'disclosure.na':'N/D',
+    'milestone.released':'Rilasciata', 'milestone.inProgress':'In corso', 'milestone.pending':'In attesa',
+
+    'buy.perToken':'per token', 'buy.remaining':'rimanenti', 'buy.fullySubscribed':'Questo listing è interamente sottoscritto',
+    'buy.tokensLabel':'Token', 'buy.decrease':'Diminuisci', 'buy.increase':'Aumenta',
+    'buy.subtotal':'Subtotale', 'buy.platformFee':'Commissione piattaforma', 'buy.total':'Totale',
+    'buy.ackLabel':'Comprendo che si tratta di una struttura pilota, non di consulenza di investimento, e ho letto i fattori di rischio.',
+    'buy.fundCampaign':'Finanzia questa campagna', 'buy.buyTokens':'Acquista token',
+    'buy.kycNote':'La verifica KYC/AML (simulata) è richiesta prima del regolamento dei fondi. Nessun wallet crypto necessario — l’on-ramp fiat è mostrato come passaggio fittizio.',
+
+    'success.contributionConfirmed':'Contributo confermato', 'success.purchaseConfirmed':'Acquisto confermato',
+    'success.body':'Ora possiedi <strong>{qty}</strong> di <strong>{title}</strong>, per un totale di {total}.',
+    'success.token':'token', 'success.tokens':'token',
+    'success.keepBrowsing':'Continua a sfogliare', 'success.viewPortfolio':'Vai al portafoglio',
+
+    'portfolio.kicker':'Portafoglio', 'portfolio.title':'Le tue quote',
+    'portfolio.emptyTitle':'Ancora nessuna quota',
+    'portfolio.emptyBody':'Sfoglia il <a href="#/marketplace">marketplace</a> per acquistare la tua prima quota royalty frazionata.',
+    'portfolio.subtitle':'Le royalty maturano qui man mano che lo SPV conferma di aver ricevuto i pagamenti da DSP e PRO. Connetti un wallet nella pagina <a href="#/redeem">Riscatta</a> per prelevare la tua quota maturata on-chain.',
+    'portfolio.tokensHeld':'Token posseduti', 'portfolio.costBasis':'Costo base', 'portfolio.unclaimedRoyalties':'Royalty non riscattate', 'portfolio.lifetimeRedeemed':'Riscattato totale',
+    'portfolio.tableAsset':'Asset', 'portfolio.tableTokens':'Token', 'portfolio.tableCostBasis':'Costo base', 'portfolio.tableUnclaimed':'Non riscattato',
+    'portfolio.redeem':'Riscatta', 'portfolio.upToDate':'Aggiornato',
+    'portfolio.distributionHistory':'Storico distribuzioni', 'portfolio.redeemVia':'Riscatta via wallet ({amount})',
+    'portfolio.tableDate':'Data', 'portfolio.tableAmount':'Importo',
+
+    'redeem.kicker':'Riscatta', 'redeem.title':'Riscatta la tua quota royalty sul tuo wallet',
+    'redeem.subtitle':'Connetti un wallet per indicare dove devono essere versate le tue royalty maturate. Il riscatto trasferisce on-chain il tuo saldo non riscattato a quell’indirizzo — in questo prototipo il trasferimento è simulato: nessun fondo reale si muove e non viene mai richiesta alcuna firma oltre alla connessione.',
+    'redeem.connectPrompt':'Connetti un wallet per continuare',
+    'redeem.connectBody':'MetaMask (o qualsiasi wallet EVM iniettato) identifica l’indirizzo a cui vengono inviate le tue royalty riscattate.',
+    'redeem.connectBtn':'Connetti MetaMask',
+    'redeem.noWalletNote':'Nessuna estensione wallet rilevata in questo browser — <a href="https://metamask.io" target="_blank" rel="noopener">installa MetaMask</a> per provare questo flusso davvero.',
+    'redeem.connectedNetwork':'{chain} · connesso',
+    'redeem.nothingYetTitle':'Ancora niente da riscattare', 'redeem.nothingYetBody':'Acquista prima una quota royalty frazionata nel <a href="#/marketplace">marketplace</a>.',
+    'redeem.redeemableNow':'Riscattabile ora', 'redeem.lifetimeRedeemed':'Riscattato totale', 'redeem.destinationWallet':'Wallet di destinazione',
+    'redeem.tableAsset':'Asset', 'redeem.tableTokens':'Token', 'redeem.tableRedeemable':'Riscattabile',
+    'redeem.redeemBtn':'Riscatta', 'redeem.redeeming':'Riscatto in corso…', 'redeem.upToDate':'Aggiornato',
+    'redeem.redeemAll':'Riscatta tutto sul wallet ({amount})',
+    'redeem.allRedeemed':'Tutto riscattato — ricontrolla dopo il prossimo periodo di royalty.',
+    'redeem.successTitle':'Riscattato sul tuo wallet', 'redeem.successBody':'<strong>{amount}</strong> inviati a {addr}.',
+    'redeem.txHashLabel':'Hash transazione (simulato)', 'redeem.done':'Fatto',
+
+    'forArtists.kicker':'Per artisti e titolari di diritti', 'forArtists.title':'Raccogli fondi sul tuo catalogo — o finanzia il brano prima ancora che esista',
+    'forArtists.subtitle':'Tokenizza un catalogo già monetizzato per liquidità immediata, oppure lascia che gli ascoltatori finanzino la produzione di un brano non ancora pubblicato tramite escrow a milestone. In entrambi i casi mantieni il controllo creativo — i token holder ottengono trasparenza e una quota dell’upside, non un posto al mixer.',
+    'forArtists.startCampaign':'Avvia una campagna', 'forArtists.viewCampaigns':'Vedi le mie campagne',
+    'forArtists.feature1Title':'Escrow, non un conto condiviso', 'forArtists.feature1Body':'I fondi raccolti restano in uno smart contract vincolato a milestone — una tranche si rilascia solo quando una milestone è confermata, con un percorso di rimborso pro-rata se la campagna si blocca.',
+    'forArtists.feature2Title':'Disclosure AI integrata', 'forArtists.feature2Body':'La disclosure per singolo elemento (voce, strumentazione, composizione, post-produzione, testo) è raccolta al momento del caricamento — una prova a cui fare riferimento se la classificazione di un DSP viene mai contestata.',
+    'forArtists.feature3Title':'Solo governance consultiva', 'forArtists.feature3Body':'I token holder possono votare su una shortlist che hai già selezionato — mai un voto vincolante che esponga qualcuno a responsabilità di tipo societario.',
+    'forArtists.yourCampaigns':'Le tue campagne', 'forArtists.viewAll':'Vedi tutte',
+
+    'wizStep.basics':'Dettagli brano', 'wizStep.model':'Modello di finanziamento', 'wizStep.source':'Verifica / budget',
+    'wizStep.disclosure':'Disclosure AI', 'wizStep.review':'Rivedi e invia',
+    'wizard.kicker':'Nuova campagna', 'wizard.title':'Imposta una campagna royalty-token',
+    'wizard.back':'Indietro', 'wizard.continueBtn':'Continua', 'wizard.launchCampaign':'Avvia campagna',
+    'wizard.fillRequired':'Compila prima i campi obbligatori.',
+
+    'wizBasics.title':'Parlaci del brano o del catalogo',
+    'wizBasics.subtitle':'Il minimo indispensabile per generare un’anteprima del listing — i metadati completi si raccolgono più avanti in un vero flusso di onboarding.',
+    'wizBasics.titleLabel':'Titolo', 'wizBasics.titlePlaceholder':'es. Glass Horizon',
+    'wizBasics.artistLabel':'Nome artista / progetto', 'wizBasics.artistPlaceholder':'es. Cerchio Blu',
+    'wizBasics.genreLabel':'Genere',
+    'wizBasics.descLabel':'Breve descrizione', 'wizBasics.descPlaceholder':'Cosa rende questo catalogo o brano degno di essere finanziato?',
+
+    'genre.indiePop':'Indie Pop', 'genre.electronic':'Elettronica', 'genre.altRnb':'Alt R&B', 'genre.lofiAmbient':'Lo-fi / Ambient',
+    'genre.cinematic':'Cinematica / Orchestrale', 'genre.rock':'Rock', 'genre.hiphop':'Hip-Hop', 'genre.other':'Altro',
+
+    'wizModel.title':'Quale modello si adatta a questa campagna?',
+    'wizModel.subtitle':'È il bivio più importante di tutti — cambia il profilo di rischio, il pitch agli investitori e il percorso di compliance.',
+    'wizModel.catalogueTitle':'Tokenizza un catalogo esistente', 'wizModel.catalogueBody':'Simile a un’obbligazione. Il tuo brano è già pubblicato e genera reddito. Gli investitori acquistano una quota di reddito noto e dichiarato.',
+    'wizModel.preprodTitle':'Finanziamento pre-produzione', 'wizModel.preprodBody':'Simile a un investimento venture. Raccogli fondi per completare una bozza inedita — musicisti session, tempo in studio, mix e master — prima che esista.',
+
+    'wizSource.preprodTitle':'Budget di produzione', 'wizSource.preprodSubtitle':'Diventa il tuo escrow a milestone — ogni voce si rilascia come tranche una volta confermata.',
+    'wizSource.studioLabel':'Tempo in studio', 'wizSource.sessionLabel':'Musicisti session / vocalist', 'wizSource.mixLabel':'Mix e mastering', 'wizSource.extraLabel':'Pubblicazione / marketing',
+    'wizSource.totalLabel':'Obiettivo totale di raccolta', 'wizSource.tokenNote':'I token saranno prezzati a $10 — sono {n} token per questo obiettivo.',
+    'wizSource.catalogueTitle':'Verifica royalty', 'wizSource.catalogueSubtitle':'In un flusso reale questo è un processo di diligence con supervisione umana su rendiconti PRO e distributore. Qui, una simulazione veloce di cosa raccoglieremmo.',
+    'wizSource.distributorLabel':'Distributore / PRO principale', 'wizSource.monthsLabel':'Mesi di storico dichiarato',
+    'wizSource.statementLabel':'Rendiconto royalty', 'wizSource.statementPlaceholder':'Clicca per allegare un rendiconto (simulato)',
+    'wizSource.statementHint':'Export PDF o CSV dalla dashboard del tuo distributore/PRO.',
+
+    'wizDisclosure.title':'Disclosure contenuti AI',
+    'wizDisclosure.subtitle':'Registrata una volta, riutilizzata ovunque: come metadati DDEX per i DSP, e come prova documentale se una classificazione viene mai contestata.',
+
+    'wizReview.title':'Rivedi e avvia', 'wizReview.titleField':'Titolo', 'wizReview.modelField':'Modello',
+    'wizReview.fundingGoalField':'Obiettivo di raccolta', 'wizReview.historyField':'Storico', 'wizReview.modelPreprod':'Pre-produzione', 'wizReview.modelCatalogue':'Catalogo',
+    'wizReview.launchNote':'L’avvio crea un listing visibile nel marketplace con dati fittizi generati da quanto inserito. In un lancio reale questo passo attiverebbe la costituzione della SPV e la revisione legale — nulla qui è un’offerta reale.',
+    'wizReview.ackLabel':'Comprendo che si tratta di un prototipo: non vengono creati fondi, token o entità legali reali.',
+
+    'artistDash.kicker':'Dashboard artista', 'artistDash.title':'Le mie campagne', 'artistDash.newCampaign':'Nuova campagna',
+    'artistDash.activeCampaigns':'Campagne attive', 'artistDash.totalRaised':'Totale raccolto', 'artistDash.tokenHolders':'Token holder',
+    'artistDash.emptyTitle':'Ancora nessuna campagna', 'artistDash.emptyBody':'Avvia la tua prima campagna per vederla qui.', 'artistDash.startCampaign':'Avvia una campagna',
+    'campaignCard.tokenHolders':'{n} token holder', 'campaignCard.viewListing':'Vedi il listing',
+
+    'toast.walletConnected':'Wallet connesso.', 'toast.connectionRejected':'Richiesta di connessione rifiutata.',
+    'toast.couldNotConnect':'Impossibile connettersi al wallet.', 'toast.walletDisconnected':'Wallet disconnesso.',
+    'toast.statementAttached':'Rendiconto allegato (simulato).', 'toast.campaignLaunched':'Campagna avviata — ora presente nel marketplace.',
+    'toast.noWalletDetected':'Nessun wallet rilevato. Installa l’estensione MetaMask e riprova.',
+  },
+  es: {
+    'nav.marketplace':'Mercado', 'nav.portfolio':'Cartera', 'nav.redeem':'Canjear',
+    'nav.overview':'Resumen', 'nav.myCampaigns':'Mis campañas', 'nav.newCampaign':'Nueva campaña',
+    'role.investor':'Inversor', 'role.artist':'Artista', 'role.perspective':'Perspectiva',
+    'wallet.connect':'Conectar wallet', 'wallet.connecting':'Conectando…', 'wallet.disconnect':'Desconectar',
+    'wallet.connectedTitle':'Wallet conectada — ver página de canje',
+    'theme.toggle':'Cambiar tema',
+    'banner.title':'Prototipo funcional, datos ficticios.',
+    'banner.body':'Humfiverse es un proyecto piloto — las cifras, extractos de royalties y campañas de esta página son ilustrativos, no instrumentos financieros reales. Nada aquí constituye asesoramiento de inversión.',
+    'banner.dismiss':'Cerrar',
+    'footer.tagline':'Humfiverse — un concepto de tokenización de flujos de royalties musicales. Build de prototipo, {year}.',
+    'footer.disclaimer':'No es una oferta de valores. Consulta los factores de riesgo de cada activo.',
+    'lang.label':'Idioma',
+    'brand.tagline':'Tokenización de flujos de royalties',
+
+    'marketplace.kicker':'Mercado', 'marketplace.title':'Participaciones fraccionadas de royalties, verificadas antes de cotizar',
+    'marketplace.subtitle':'Explora catálogos tokenizados con historial de streaming certificado, o financia una pista inacabada antes de producirla. Cada listado revela por adelantado su exposición a contenido AI y el estado de la diligencia debida.',
+    'marketplace.filterAll':'Todos ({n})', 'marketplace.filterCatalogues':'Catálogos', 'marketplace.filterPreproduction':'Preproducción',
+    'marketplace.searchPlaceholder':'Buscar por título, artista o género',
+    'marketplace.emptyTitle':'Ningún listado coincide con esa búsqueda', 'marketplace.emptyBody':'Prueba otra palabra clave o borra el filtro.',
+
+    'asset.soldOut':'Agotado', 'asset.preproduction':'Preproducción', 'asset.funding':'En financiación',
+    'asset.verified':'Verificado', 'asset.pending':'Pendiente', 'asset.diligencePending':'Diligencia pendiente',
+    'asset.ofGoal':'{raised} de {goal}', 'asset.financingRound':'Ronda de financiación', 'asset.projYield':'{pct}% rendimiento previsto',
+    'asset.perToken':'{price}/token',
+
+    'tab.overview':'Resumen', 'tab.royaltyData':'Datos de royalties', 'tab.milestones':'Custodia e hitos',
+    'tab.disclosure':'Divulgación AI', 'tab.documents':'Documentos', 'tab.risk':'Factores de riesgo',
+    'detail.tokenPrice':'Precio del token', 'detail.tokens':'Tokens', 'detail.useOfFunds':'Uso de los fondos',
+    'detail.projYield':'Rendimiento previsto', 'detail.funded':'Financiado',
+    'detail.milestoneSnapshot':'Resumen de la custodia por hitos',
+    'detail.reportedRoyaltyIncome':'Ingresos por royalties declarados', 'detail.monthlyUsd':'Mensual, USD',
+    'detail.dspPolicyNote':'Nota sobre la política del DSP.',
+    'detail.trailingTotal':'Total del periodo', 'detail.monthlyAvg':'Promedio mensual', 'detail.history':'Historial', 'detail.moSuffix':'{n} meses',
+    'detail.fullReportedHistory':'Historial completo declarado',
+    'detail.sourcedFrom':'Procedente de extractos del distribuidor/PRO durante la diligencia de onboarding (ver pestaña Documentos). El ingreso histórico no garantiza pagos de royalties futuros.',
+    'detail.milestoneGatedEscrow':'Custodia condicionada a hitos',
+    'detail.escrowProse':'Los fondos recaudados permanecen en una custodia mediante smart contract, no en una cuenta común. Cada tramo se libera solo cuando el gestor de la SPV confirma que se cumplió el hito. Si no se alcanza el objetivo de financiación, o un hito posterior nunca se entrega, el remanente no liberado se reembolsa de forma prorrateada a los contribuyentes.',
+    'detail.governance':'Gobernanza',
+    'detail.governanceProse':'Los poseedores de tokens de esta campaña tienen un voto <strong>consultivo</strong> sobre una preselección ya evaluada (p. ej., qué estudio graba la sesión) — el gestor de la SPV conserva la autoridad formal para contratar. En este piloto no se implementa ningún voto on-chain vinculante.',
+    'detail.disclosureIntro':'Divulgación de contenido AI por elemento, en las categorías de estilo DDEX hacia las que se dirigen los DSP. Esto reduce la dependencia de la autodeclaración y da a los inversores una lectura más clara de la exposición a las políticas de la plataforma.',
+    'detail.platformPolicyExposure':'Exposición a la política de la plataforma.',
+    'detail.notFoundTitle':'Listado no encontrado', 'detail.notFoundBody':'Es posible que este activo haya sido eliminado.',
+    'disclosure.vocals':'Voz', 'disclosure.instrumentation':'Instrumentación', 'disclosure.composition':'Composición',
+    'disclosure.postProduction':'Posproducción', 'disclosure.lyrics':'Letra',
+    'disclosure.human':'Humano', 'disclosure.aiAssisted':'Asistido por AI', 'disclosure.ai':'Generado por AI', 'disclosure.pending':'Pendiente', 'disclosure.na':'N/D',
+    'milestone.released':'Liberado', 'milestone.inProgress':'En curso', 'milestone.pending':'Pendiente',
+
+    'buy.perToken':'por token', 'buy.remaining':'restantes', 'buy.fullySubscribed':'Este listado está totalmente suscrito',
+    'buy.tokensLabel':'Tokens', 'buy.decrease':'Disminuir', 'buy.increase':'Aumentar',
+    'buy.subtotal':'Subtotal', 'buy.platformFee':'Comisión de la plataforma', 'buy.total':'Total',
+    'buy.ackLabel':'Entiendo que se trata de una estructura piloto, no de asesoramiento de inversión, y que he revisado los factores de riesgo.',
+    'buy.fundCampaign':'Financiar esta campaña', 'buy.buyTokens':'Comprar tokens',
+    'buy.kycNote':'Se requiere verificación KYC/AML (simulada) antes de liquidar los fondos. No se necesita wallet cripto — la rampa fiat se muestra como paso simulado.',
+
+    'success.contributionConfirmed':'Contribución confirmada', 'success.purchaseConfirmed':'Compra confirmada',
+    'success.body':'Ahora posees <strong>{qty}</strong> de <strong>{title}</strong>, por un total de {total}.',
+    'success.token':'token', 'success.tokens':'tokens',
+    'success.keepBrowsing':'Seguir explorando', 'success.viewPortfolio':'Ver cartera',
+
+    'portfolio.kicker':'Cartera', 'portfolio.title':'Tus participaciones',
+    'portfolio.emptyTitle':'Todavía no hay participaciones',
+    'portfolio.emptyBody':'Explora el <a href="#/marketplace">mercado</a> para comprar tu primera participación fraccionada de royalties.',
+    'portfolio.subtitle':'Los ingresos por royalties se acumulan aquí a medida que la SPV confirma haber recibido el pago de los DSP y las PRO. Conecta una wallet en la página de <a href="#/redeem">Canje</a> para retirar tu parte acumulada on-chain.',
+    'portfolio.tokensHeld':'Tokens en cartera', 'portfolio.costBasis':'Coste base', 'portfolio.unclaimedRoyalties':'Royalties no canjeadas', 'portfolio.lifetimeRedeemed':'Canjeado total',
+    'portfolio.tableAsset':'Activo', 'portfolio.tableTokens':'Tokens', 'portfolio.tableCostBasis':'Coste base', 'portfolio.tableUnclaimed':'No canjeado',
+    'portfolio.redeem':'Canjear', 'portfolio.upToDate':'Al día',
+    'portfolio.distributionHistory':'Historial de distribuciones', 'portfolio.redeemVia':'Canjear vía wallet ({amount})',
+    'portfolio.tableDate':'Fecha', 'portfolio.tableAmount':'Importe',
+
+    'redeem.kicker':'Canjear', 'redeem.title':'Canjea tu participación de royalties a tu wallet',
+    'redeem.subtitle':'Conecta una wallet para identificar dónde deben pagarse tus royalties acumuladas. Canjear transfiere on-chain tu saldo no canjeado a esa dirección — en este prototipo la transferencia en sí está simulada, no se mueven fondos reales y nunca se solicita ninguna firma más allá de la conexión.',
+    'redeem.connectPrompt':'Conecta una wallet para continuar',
+    'redeem.connectBody':'MetaMask (o cualquier wallet EVM inyectada) identifica la dirección a la que se envían tus royalties canjeadas.',
+    'redeem.connectBtn':'Conectar MetaMask',
+    'redeem.noWalletNote':'No se detectó ninguna extensión de wallet en este navegador — <a href="https://metamask.io" target="_blank" rel="noopener">instala MetaMask</a> para probar este flujo de verdad.',
+    'redeem.connectedNetwork':'{chain} · conectado',
+    'redeem.nothingYetTitle':'Todavía no hay nada que canjear', 'redeem.nothingYetBody':'Compra primero una participación fraccionada de royalties en el <a href="#/marketplace">mercado</a>.',
+    'redeem.redeemableNow':'Canjeable ahora', 'redeem.lifetimeRedeemed':'Canjeado total', 'redeem.destinationWallet':'Wallet de destino',
+    'redeem.tableAsset':'Activo', 'redeem.tableTokens':'Tokens', 'redeem.tableRedeemable':'Canjeable',
+    'redeem.redeemBtn':'Canjear', 'redeem.redeeming':'Canjeando…', 'redeem.upToDate':'Al día',
+    'redeem.redeemAll':'Canjear todo a la wallet ({amount})',
+    'redeem.allRedeemed':'Todo canjeado — vuelve a comprobarlo después del próximo periodo de royalties.',
+    'redeem.successTitle':'Canjeado a tu wallet', 'redeem.successBody':'<strong>{amount}</strong> enviados a {addr}.',
+    'redeem.txHashLabel':'Hash de transacción (simulado)', 'redeem.done':'Hecho',
+
+    'forArtists.kicker':'Para artistas y titulares de derechos', 'forArtists.title':'Recauda sobre tu catálogo — o financia la pista antes de que exista',
+    'forArtists.subtitle':'Tokeniza un catálogo ya monetizado para obtener liquidez inmediata, o deja que los oyentes financien la producción de una pista inédita mediante custodia condicionada a hitos. En cualquier caso, conservas el control creativo — los poseedores de tokens obtienen transparencia y una parte del beneficio, no un asiento en la mesa de mezclas.',
+    'forArtists.startCampaign':'Iniciar una campaña', 'forArtists.viewCampaigns':'Ver mis campañas',
+    'forArtists.feature1Title':'Custodia, no una cuenta compartida', 'forArtists.feature1Body':'Los fondos recaudados permanecen en un smart contract condicionado a hitos — un tramo solo se libera cuando se confirma un hito, con reembolso prorrateado si la campaña se estanca.',
+    'forArtists.feature2Title':'Divulgación AI incorporada', 'forArtists.feature2Body':'La divulgación por elemento (voz, instrumentación, composición, posproducción, letra) se recoge en el momento de la carga — una prueba a la que recurrir si alguna vez se disputa la clasificación de un DSP.',
+    'forArtists.feature3Title':'Solo gobernanza consultiva', 'forArtists.feature3Body':'Los poseedores de tokens pueden votar sobre una preselección que ya has evaluado — nunca un voto vinculante que exponga a nadie a responsabilidad de tipo societario.',
+    'forArtists.yourCampaigns':'Tus campañas', 'forArtists.viewAll':'Ver todas',
+
+    'wizStep.basics':'Detalles de la pista', 'wizStep.model':'Modelo de financiación', 'wizStep.source':'Verificación / presupuesto',
+    'wizStep.disclosure':'Divulgación AI', 'wizStep.review':'Revisar y enviar',
+    'wizard.kicker':'Nueva campaña', 'wizard.title':'Configura una campaña de royalty-token',
+    'wizard.back':'Atrás', 'wizard.continueBtn':'Continuar', 'wizard.launchCampaign':'Lanzar campaña',
+    'wizard.fillRequired':'Completa primero los campos obligatorios.',
+
+    'wizBasics.title':'Cuéntanos sobre la pista o el catálogo',
+    'wizBasics.subtitle':'Lo justo para generar una vista previa del listado — los metadatos completos se recogen más adelante en un flujo de onboarding real.',
+    'wizBasics.titleLabel':'Título', 'wizBasics.titlePlaceholder':'p. ej. Glass Horizon',
+    'wizBasics.artistLabel':'Nombre del artista / proyecto', 'wizBasics.artistPlaceholder':'p. ej. Cerchio Blu',
+    'wizBasics.genreLabel':'Género',
+    'wizBasics.descLabel':'Descripción breve', 'wizBasics.descPlaceholder':'¿Qué hace que este catálogo o pista merezca ser financiado?',
+
+    'genre.indiePop':'Indie Pop', 'genre.electronic':'Electrónica', 'genre.altRnb':'Alt R&B', 'genre.lofiAmbient':'Lo-fi / Ambient',
+    'genre.cinematic':'Cinemática / Orquestal', 'genre.rock':'Rock', 'genre.hiphop':'Hip-Hop', 'genre.other':'Otro',
+
+    'wizModel.title':'¿Qué modelo encaja con esta campaña?',
+    'wizModel.subtitle':'Esta es la bifurcación más importante del camino — cambia el perfil de riesgo, el discurso a los inversores y la ruta de cumplimiento normativo.',
+    'wizModel.catalogueTitle':'Tokenizar un catálogo existente', 'wizModel.catalogueBody':'Similar a un bono. Tu pista ya está publicada y genera ingresos. Los inversores compran una parte de un ingreso conocido y declarado.',
+    'wizModel.preprodTitle':'Financiación de preproducción', 'wizModel.preprodBody':'Similar a una inversión de riesgo. Recauda fondos para terminar un borrador inédito — músicos de sesión, tiempo de estudio, mezcla y masterización — antes de que exista.',
+
+    'wizSource.preprodTitle':'Presupuesto de producción', 'wizSource.preprodSubtitle':'Esto se convierte en tu custodia por hitos — cada línea se libera como tramo una vez confirmada.',
+    'wizSource.studioLabel':'Tiempo de estudio', 'wizSource.sessionLabel':'Músicos de sesión / vocalista', 'wizSource.mixLabel':'Mezcla y masterización', 'wizSource.extraLabel':'Lanzamiento / marketing',
+    'wizSource.totalLabel':'Objetivo total de financiación', 'wizSource.tokenNote':'Los tokens tendrán un precio de $10 — son {n} tokens para este objetivo.',
+    'wizSource.catalogueTitle':'Verificación de royalties', 'wizSource.catalogueSubtitle':'En un flujo real esto es un proceso de diligencia con supervisión humana sobre extractos de la PRO y del distribuidor. Aquí, una simulación rápida de lo que recogeríamos.',
+    'wizSource.distributorLabel':'Distribuidor / PRO principal', 'wizSource.monthsLabel':'Meses de historial declarado',
+    'wizSource.statementLabel':'Extracto de royalties', 'wizSource.statementPlaceholder':'Haz clic para adjuntar un extracto (simulado)',
+    'wizSource.statementHint':'Exportación PDF o CSV desde el panel de tu distribuidor/PRO.',
+
+    'wizDisclosure.title':'Divulgación de contenido AI',
+    'wizDisclosure.subtitle':'Se registra una vez y se reutiliza en todas partes: como metadatos DDEX para los DSP, y como archivo de evidencia si alguna vez se disputa una clasificación.',
+
+    'wizReview.title':'Revisar y lanzar', 'wizReview.titleField':'Título', 'wizReview.modelField':'Modelo',
+    'wizReview.fundingGoalField':'Objetivo de financiación', 'wizReview.historyField':'Historial', 'wizReview.modelPreprod':'Preproducción', 'wizReview.modelCatalogue':'Catálogo',
+    'wizReview.launchNote':'Lanzar crea un listado visible en el mercado con datos ficticios generados a partir de lo que introdujiste. En un lanzamiento real este paso activaría la constitución de la SPV y la revisión legal — nada aquí es una oferta real.',
+    'wizReview.ackLabel':'Entiendo que esto es un prototipo: no se crean fondos, tokens ni entidades legales reales.',
+
+    'artistDash.kicker':'Panel de artista', 'artistDash.title':'Mis campañas', 'artistDash.newCampaign':'Nueva campaña',
+    'artistDash.activeCampaigns':'Campañas activas', 'artistDash.totalRaised':'Total recaudado', 'artistDash.tokenHolders':'Poseedores de tokens',
+    'artistDash.emptyTitle':'Aún no hay campañas', 'artistDash.emptyBody':'Lanza tu primera campaña para verla aquí.', 'artistDash.startCampaign':'Iniciar una campaña',
+    'campaignCard.tokenHolders':'{n} poseedores de tokens', 'campaignCard.viewListing':'Ver listado',
+
+    'toast.walletConnected':'Wallet conectada.', 'toast.connectionRejected':'Solicitud de conexión rechazada.',
+    'toast.couldNotConnect':'No se pudo conectar a la wallet.', 'toast.walletDisconnected':'Wallet desconectada.',
+    'toast.statementAttached':'Extracto adjuntado (simulado).', 'toast.campaignLaunched':'Campaña lanzada — ya aparece en el mercado.',
+    'toast.noWalletDetected':'No se detectó ninguna wallet. Instala la extensión MetaMask e inténtalo de nuevo.',
+  },
+  fr: {
+    'nav.marketplace':'Marché', 'nav.portfolio':'Portefeuille', 'nav.redeem':'Racheter',
+    'nav.overview':'Aperçu', 'nav.myCampaigns':'Mes campagnes', 'nav.newCampaign':'Nouvelle campagne',
+    'role.investor':'Investisseur', 'role.artist':'Artiste', 'role.perspective':'Perspective',
+    'wallet.connect':'Connecter un wallet', 'wallet.connecting':'Connexion…', 'wallet.disconnect':'Déconnecter',
+    'wallet.connectedTitle':'Wallet connecté — voir la page de rachat',
+    'theme.toggle':'Changer de thème',
+    'banner.title':'Prototype fonctionnel, données fictives.',
+    'banner.body':'Humfiverse est un projet pilote — les chiffres, relevés de royalties et campagnes de cette page sont illustratifs, pas de véritables instruments financiers. Rien ici ne constitue un conseil en investissement.',
+    'banner.dismiss':'Fermer',
+    'footer.tagline':'Humfiverse — un concept de tokenisation des flux de royalties musicales. Build prototype, {year}.',
+    'footer.disclaimer':'Ceci n’est pas une offre de titres. Consultez les facteurs de risque de chaque actif.',
+    'lang.label':'Langue',
+    'brand.tagline':'Tokenisation des flux de royalties',
+
+    'marketplace.kicker':'Marché', 'marketplace.title':'Parts fractionnées de royalties, vérifiées avant leur mise en ligne',
+    'marketplace.subtitle':'Parcourez des catalogues tokenisés avec un historique de streaming déclaré, ou financez un titre inachevé avant sa production. Chaque annonce indique d’emblée son exposition au contenu IA et l’état de la vérification préalable.',
+    'marketplace.filterAll':'Tous ({n})', 'marketplace.filterCatalogues':'Catalogues', 'marketplace.filterPreproduction':'Préproduction',
+    'marketplace.searchPlaceholder':'Rechercher par titre, artiste ou genre',
+    'marketplace.emptyTitle':'Aucune annonce ne correspond à cette recherche', 'marketplace.emptyBody':'Essayez un autre mot-clé ou effacez le filtre.',
+
+    'asset.soldOut':'Épuisé', 'asset.preproduction':'Préproduction', 'asset.funding':'En financement',
+    'asset.verified':'Vérifié', 'asset.pending':'En attente', 'asset.diligencePending':'Vérification en cours',
+    'asset.ofGoal':'{raised} sur {goal}', 'asset.financingRound':'Tour de financement', 'asset.projYield':'{pct}% rendement prévu',
+    'asset.perToken':'{price}/token',
+
+    'tab.overview':'Aperçu', 'tab.royaltyData':'Données de royalties', 'tab.milestones':'Séquestre et jalons',
+    'tab.disclosure':'Divulgation IA', 'tab.documents':'Documents', 'tab.risk':'Facteurs de risque',
+    'detail.tokenPrice':'Prix du token', 'detail.tokens':'Tokens', 'detail.useOfFunds':'Utilisation des fonds',
+    'detail.projYield':'Rendement prévu', 'detail.funded':'Financé',
+    'detail.milestoneSnapshot':'Aperçu du séquestre par jalons',
+    'detail.reportedRoyaltyIncome':'Revenus de royalties déclarés', 'detail.monthlyUsd':'Mensuel, USD',
+    'detail.dspPolicyNote':'Note sur la politique du DSP.',
+    'detail.trailingTotal':'Total de la période', 'detail.monthlyAvg':'Moyenne mensuelle', 'detail.history':'Historique', 'detail.moSuffix':'{n} mois',
+    'detail.fullReportedHistory':'Historique complet déclaré',
+    'detail.sourcedFrom':'Source : relevés du distributeur/de la PRO recueillis lors de la vérification d’onboarding (voir l’onglet Documents). Les revenus historiques ne garantissent pas les paiements futurs de royalties.',
+    'detail.milestoneGatedEscrow':'Séquestre conditionné par jalons',
+    'detail.escrowProse':'Les fonds récoltés restent dans un séquestre sur smart contract, pas sur un compte commun. Chaque tranche n’est libérée que lorsque le gestionnaire de la SPV confirme que le jalon a été atteint. Si l’objectif de financement n’est pas atteint, ou si un jalon ultérieur n’est jamais livré, le solde non libéré est remboursé au prorata aux contributeurs.',
+    'detail.governance':'Gouvernance',
+    'detail.governanceProse':'Les détenteurs de tokens de cette campagne disposent d’un vote <strong>consultatif</strong> sur une liste restreinte déjà validée (par ex. quel studio enregistre la session) — le gestionnaire de la SPV conserve le pouvoir formel de contracter. Aucun vote on-chain contraignant n’est prévu dans ce pilote.',
+    'detail.disclosureIntro':'Divulgation du contenu IA par élément, selon les catégories de style DDEX vers lesquelles évoluent les DSP. Cela réduit la dépendance à l’autodéclaration et donne aux investisseurs une lecture plus claire de l’exposition aux politiques des plateformes.',
+    'detail.platformPolicyExposure':'Exposition à la politique de la plateforme.',
+    'detail.notFoundTitle':'Annonce introuvable', 'detail.notFoundBody':'Cet actif a peut-être été retiré.',
+    'disclosure.vocals':'Voix', 'disclosure.instrumentation':'Instrumentation', 'disclosure.composition':'Composition',
+    'disclosure.postProduction':'Postproduction', 'disclosure.lyrics':'Paroles',
+    'disclosure.human':'Humain', 'disclosure.aiAssisted':'Assisté par IA', 'disclosure.ai':'Généré par IA', 'disclosure.pending':'En attente', 'disclosure.na':'N/D',
+    'milestone.released':'Libérée', 'milestone.inProgress':'En cours', 'milestone.pending':'En attente',
+
+    'buy.perToken':'par token', 'buy.remaining':'restants', 'buy.fullySubscribed':'Cette annonce est entièrement souscrite',
+    'buy.tokensLabel':'Tokens', 'buy.decrease':'Diminuer', 'buy.increase':'Augmenter',
+    'buy.subtotal':'Sous-total', 'buy.platformFee':'Frais de plateforme', 'buy.total':'Total',
+    'buy.ackLabel':'Je comprends qu’il s’agit d’une structure pilote, pas d’un conseil en investissement, et j’ai pris connaissance des facteurs de risque.',
+    'buy.fundCampaign':'Financer cette campagne', 'buy.buyTokens':'Acheter des tokens',
+    'buy.kycNote':'Une vérification KYC/AML (simulée) est requise avant le règlement des fonds. Aucun wallet crypto requis — la rampe fiat est présentée comme une étape fictive.',
+
+    'success.contributionConfirmed':'Contribution confirmée', 'success.purchaseConfirmed':'Achat confirmé',
+    'success.body':'Vous détenez désormais <strong>{qty}</strong> de <strong>{title}</strong>, pour un total de {total}.',
+    'success.token':'token', 'success.tokens':'tokens',
+    'success.keepBrowsing':'Continuer à parcourir', 'success.viewPortfolio':'Voir le portefeuille',
+
+    'portfolio.kicker':'Portefeuille', 'portfolio.title':'Vos parts',
+    'portfolio.emptyTitle':'Aucune part pour l’instant',
+    'portfolio.emptyBody':'Parcourez le <a href="#/marketplace">marché</a> pour acheter votre première part fractionnée de royalties.',
+    'portfolio.subtitle':'Les revenus de royalties s’accumulent ici à mesure que la SPV confirme avoir reçu le paiement des DSP et des PRO. Connectez un wallet sur la page <a href="#/redeem">Racheter</a> pour retirer votre part accumulée on-chain.',
+    'portfolio.tokensHeld':'Tokens détenus', 'portfolio.costBasis':'Coût de base', 'portfolio.unclaimedRoyalties':'Royalties non rachetées', 'portfolio.lifetimeRedeemed':'Total racheté',
+    'portfolio.tableAsset':'Actif', 'portfolio.tableTokens':'Tokens', 'portfolio.tableCostBasis':'Coût de base', 'portfolio.tableUnclaimed':'Non racheté',
+    'portfolio.redeem':'Racheter', 'portfolio.upToDate':'À jour',
+    'portfolio.distributionHistory':'Historique des distributions', 'portfolio.redeemVia':'Racheter via wallet ({amount})',
+    'portfolio.tableDate':'Date', 'portfolio.tableAmount':'Montant',
+
+    'redeem.kicker':'Racheter', 'redeem.title':'Rachetez votre part de royalties sur votre wallet',
+    'redeem.subtitle':'Connectez un wallet pour indiquer où vos royalties accumulées doivent être versées. Le rachat transfère on-chain votre solde non racheté vers cette adresse — dans ce prototype, le transfert lui-même est simulé, aucun fonds réel ne bouge et aucune signature au-delà de la connexion n’est jamais demandée.',
+    'redeem.connectPrompt':'Connectez un wallet pour continuer',
+    'redeem.connectBody':'MetaMask (ou tout wallet EVM injecté) identifie l’adresse vers laquelle vos royalties rachetées sont envoyées.',
+    'redeem.connectBtn':'Connecter MetaMask',
+    'redeem.noWalletNote':'Aucune extension de wallet détectée dans ce navigateur — <a href="https://metamask.io" target="_blank" rel="noopener">installez MetaMask</a> pour essayer ce flux pour de vrai.',
+    'redeem.connectedNetwork':'{chain} · connecté',
+    'redeem.nothingYetTitle':'Rien à racheter pour le moment', 'redeem.nothingYetBody':'Achetez d’abord une part fractionnée de royalties sur le <a href="#/marketplace">marché</a>.',
+    'redeem.redeemableNow':'Rachetable maintenant', 'redeem.lifetimeRedeemed':'Total racheté', 'redeem.destinationWallet':'Wallet de destination',
+    'redeem.tableAsset':'Actif', 'redeem.tableTokens':'Tokens', 'redeem.tableRedeemable':'Rachetable',
+    'redeem.redeemBtn':'Racheter', 'redeem.redeeming':'Rachat en cours…', 'redeem.upToDate':'À jour',
+    'redeem.redeemAll':'Tout racheter vers le wallet ({amount})',
+    'redeem.allRedeemed':'Tout est racheté — revenez après votre prochaine période de royalties.',
+    'redeem.successTitle':'Racheté vers votre wallet', 'redeem.successBody':'<strong>{amount}</strong> envoyés à {addr}.',
+    'redeem.txHashLabel':'Hash de transaction (simulé)', 'redeem.done':'Terminé',
+
+    'forArtists.kicker':'Pour les artistes et ayants droit', 'forArtists.title':'Levez des fonds sur votre catalogue — ou financez le titre avant qu’il n’existe',
+    'forArtists.subtitle':'Tokenisez un catalogue déjà monétisé pour obtenir des liquidités immédiates, ou laissez les auditeurs financer la production d’un titre inédit via un séquestre conditionné par jalons. Dans tous les cas, vous conservez le contrôle créatif — les détenteurs de tokens obtiennent de la transparence et une part de la plus-value, pas une place à la console de mixage.',
+    'forArtists.startCampaign':'Démarrer une campagne', 'forArtists.viewCampaigns':'Voir mes campagnes',
+    'forArtists.feature1Title':'Séquestre, pas un compte partagé', 'forArtists.feature1Body':'Les fonds récoltés restent dans un smart contract conditionné par jalons — une tranche n’est libérée que lorsqu’un jalon est confirmé, avec un remboursement au prorata si la campagne s’enlise.',
+    'forArtists.feature2Title':'Divulgation IA intégrée', 'forArtists.feature2Body':'La divulgation par élément (voix, instrumentation, composition, postproduction, paroles) est recueillie au moment du téléversement — une preuve à laquelle se référer si la classification d’un DSP est un jour contestée.',
+    'forArtists.feature3Title':'Gouvernance consultative uniquement', 'forArtists.feature3Body':'Les détenteurs de tokens peuvent voter sur une liste restreinte que vous avez déjà validée — jamais un vote contraignant qui exposerait quiconque à une responsabilité de type sociétaire.',
+    'forArtists.yourCampaigns':'Vos campagnes', 'forArtists.viewAll':'Tout voir',
+
+    'wizStep.basics':'Détails du titre', 'wizStep.model':'Modèle de financement', 'wizStep.source':'Vérification / budget',
+    'wizStep.disclosure':'Divulgation IA', 'wizStep.review':'Vérifier et soumettre',
+    'wizard.kicker':'Nouvelle campagne', 'wizard.title':'Configurer une campagne royalty-token',
+    'wizard.back':'Retour', 'wizard.continueBtn':'Continuer', 'wizard.launchCampaign':'Lancer la campagne',
+    'wizard.fillRequired':'Remplissez d’abord les champs obligatoires.',
+
+    'wizBasics.title':'Parlez-nous du titre ou du catalogue',
+    'wizBasics.subtitle':'Juste assez pour générer un aperçu de l’annonce — les métadonnées complètes sont recueillies plus tard dans un véritable flux d’onboarding.',
+    'wizBasics.titleLabel':'Titre', 'wizBasics.titlePlaceholder':'ex. Glass Horizon',
+    'wizBasics.artistLabel':'Nom de l’artiste / du projet', 'wizBasics.artistPlaceholder':'ex. Cerchio Blu',
+    'wizBasics.genreLabel':'Genre',
+    'wizBasics.descLabel':'Brève description', 'wizBasics.descPlaceholder':'Qu’est-ce qui rend ce catalogue ou ce titre digne d’être financé ?',
+
+    'genre.indiePop':'Indie Pop', 'genre.electronic':'Électronique', 'genre.altRnb':'Alt R&B', 'genre.lofiAmbient':'Lo-fi / Ambient',
+    'genre.cinematic':'Cinématique / Orchestrale', 'genre.rock':'Rock', 'genre.hiphop':'Hip-Hop', 'genre.other':'Autre',
+
+    'wizModel.title':'Quel modèle convient à cette campagne ?',
+    'wizModel.subtitle':'C’est la bifurcation la plus importante du parcours — elle change le profil de risque, le discours aux investisseurs et le parcours de conformité.',
+    'wizModel.catalogueTitle':'Tokeniser un catalogue existant', 'wizModel.catalogueBody':'Type obligataire. Votre titre est déjà sorti et génère des revenus. Les investisseurs achètent une part de revenus connus et déclarés.',
+    'wizModel.preprodTitle':'Financement de préproduction', 'wizModel.preprodBody':'Type capital-risque. Levez des fonds pour terminer une ébauche inédite — musiciens de session, temps studio, mixage et mastering — avant qu’elle n’existe.',
+
+    'wizSource.preprodTitle':'Budget de production', 'wizSource.preprodSubtitle':'Cela devient votre séquestre par jalons — chaque ligne se libère en tranche une fois confirmée.',
+    'wizSource.studioLabel':'Temps studio', 'wizSource.sessionLabel':'Musiciens de session / chanteur', 'wizSource.mixLabel':'Mixage et mastering', 'wizSource.extraLabel':'Sortie / marketing',
+    'wizSource.totalLabel':'Objectif total de financement', 'wizSource.tokenNote':'Les tokens seront au prix de 10 $ — soit {n} tokens pour cet objectif.',
+    'wizSource.catalogueTitle':'Vérification des royalties', 'wizSource.catalogueSubtitle':'Dans un flux réel, il s’agit d’un processus de vérification avec supervision humaine face aux relevés de la PRO et du distributeur. Ici, une simulation rapide de ce que nous recueillerions.',
+    'wizSource.distributorLabel':'Distributeur / PRO principal', 'wizSource.monthsLabel':'Mois d’historique déclaré',
+    'wizSource.statementLabel':'Relevé de royalties', 'wizSource.statementPlaceholder':'Cliquez pour joindre un relevé (simulé)',
+    'wizSource.statementHint':'Export PDF ou CSV depuis le tableau de bord de votre distributeur/PRO.',
+
+    'wizDisclosure.title':'Divulgation du contenu IA',
+    'wizDisclosure.subtitle':'Enregistrée une fois, réutilisée partout : comme métadonnées DDEX pour les DSP, et comme preuve documentaire si une classification est un jour contestée.',
+
+    'wizReview.title':'Vérifier et lancer', 'wizReview.titleField':'Titre', 'wizReview.modelField':'Modèle',
+    'wizReview.fundingGoalField':'Objectif de financement', 'wizReview.historyField':'Historique', 'wizReview.modelPreprod':'Préproduction', 'wizReview.modelCatalogue':'Catalogue',
+    'wizReview.launchNote':'Le lancement crée une annonce visible sur le marché avec des données fictives générées à partir de ce que vous avez saisi. Lors d’un lancement réel, cette étape déclencherait la constitution de la SPV et une revue juridique — rien ici n’est une offre réelle.',
+    'wizReview.ackLabel':'Je comprends qu’il s’agit d’un prototype : aucun fonds, token ou entité juridique réel n’est créé.',
+
+    'artistDash.kicker':'Tableau de bord artiste', 'artistDash.title':'Mes campagnes', 'artistDash.newCampaign':'Nouvelle campagne',
+    'artistDash.activeCampaigns':'Campagnes actives', 'artistDash.totalRaised':'Total levé', 'artistDash.tokenHolders':'Détenteurs de tokens',
+    'artistDash.emptyTitle':'Aucune campagne pour l’instant', 'artistDash.emptyBody':'Lancez votre première campagne pour la voir ici.', 'artistDash.startCampaign':'Démarrer une campagne',
+    'campaignCard.tokenHolders':'{n} détenteurs de tokens', 'campaignCard.viewListing':'Voir l’annonce',
+
+    'toast.walletConnected':'Wallet connecté.', 'toast.connectionRejected':'Demande de connexion refusée.',
+    'toast.couldNotConnect':'Impossible de se connecter au wallet.', 'toast.walletDisconnected':'Wallet déconnecté.',
+    'toast.statementAttached':'Relevé joint (simulé).', 'toast.campaignLaunched':'Campagne lancée — désormais visible sur le marché.',
+    'toast.noWalletDetected':'Aucun wallet détecté. Installez l’extension MetaMask, puis réessayez.',
+  },
+  de: {
+    'nav.marketplace':'Marktplatz', 'nav.portfolio':'Portfolio', 'nav.redeem':'Einlösen',
+    'nav.overview':'Übersicht', 'nav.myCampaigns':'Meine Kampagnen', 'nav.newCampaign':'Neue Kampagne',
+    'role.investor':'Investor', 'role.artist':'Künstler', 'role.perspective':'Perspektive',
+    'wallet.connect':'Wallet verbinden', 'wallet.connecting':'Verbindung wird hergestellt…', 'wallet.disconnect':'Trennen',
+    'wallet.connectedTitle':'Wallet verbunden — zur Einlöse-Seite',
+    'theme.toggle':'Design wechseln',
+    'banner.title':'Funktionierender Prototyp, fiktive Daten.',
+    'banner.body':'Humfiverse ist ein Pilotkonzept — Zahlen, Tantiemenabrechnungen und Kampagnen auf dieser Seite sind illustrativ, keine echten Finanzinstrumente. Nichts hier ist eine Anlageberatung.',
+    'banner.dismiss':'Schließen',
+    'footer.tagline':'Humfiverse — ein Konzept zur Tokenisierung von Musik-Tantiemenströmen. Prototyp-Build, {year}.',
+    'footer.disclaimer':'Kein Wertpapierangebot. Risikofaktoren zu jedem Vermögenswert beachten.',
+    'lang.label':'Sprache',
+    'brand.tagline':'Tokenisierung von Tantiemenströmen',
+
+    'marketplace.kicker':'Marktplatz', 'marketplace.title':'Fraktionierte Tantiemenanteile, vor der Notierung geprüft',
+    'marketplace.subtitle':'Durchsuchen Sie tokenisierte Kataloge mit dokumentierter Streaming-Historie oder finanzieren Sie einen unfertigen Titel vor der Produktion. Jedes Listing legt Exposure gegenüber KI-Inhalten und Prüfstatus offen.',
+    'marketplace.filterAll':'Alle ({n})', 'marketplace.filterCatalogues':'Kataloge', 'marketplace.filterPreproduction':'Vorproduktion',
+    'marketplace.searchPlaceholder':'Suche nach Titel, Künstler oder Genre',
+    'marketplace.emptyTitle':'Keine Listings entsprechen dieser Suche', 'marketplace.emptyBody':'Versuchen Sie ein anderes Stichwort oder entfernen Sie den Filter.',
+
+    'asset.soldOut':'Ausverkauft', 'asset.preproduction':'Vorproduktion', 'asset.funding':'In Finanzierung',
+    'asset.verified':'Verifiziert', 'asset.pending':'Ausstehend', 'asset.diligencePending':'Prüfung ausstehend',
+    'asset.ofGoal':'{raised} von {goal}', 'asset.financingRound':'Finanzierungsrunde', 'asset.projYield':'{pct}% erwartete Rendite',
+    'asset.perToken':'{price}/Token',
+
+    'tab.overview':'Übersicht', 'tab.royaltyData':'Tantiemendaten', 'tab.milestones':'Treuhand & Meilensteine',
+    'tab.disclosure':'KI-Offenlegung', 'tab.documents':'Dokumente', 'tab.risk':'Risikofaktoren',
+    'detail.tokenPrice':'Tokenpreis', 'detail.tokens':'Tokens', 'detail.useOfFunds':'Mittelverwendung',
+    'detail.projYield':'Erwartete Rendite', 'detail.funded':'Finanziert',
+    'detail.milestoneSnapshot':'Übersicht Meilenstein-Treuhand',
+    'detail.reportedRoyaltyIncome':'Gemeldete Tantiemeneinnahmen', 'detail.monthlyUsd':'Monatlich, USD',
+    'detail.dspPolicyNote':'Hinweis zur DSP-Richtlinie.',
+    'detail.trailingTotal':'Summe des Zeitraums', 'detail.monthlyAvg':'Monatlicher Durchschnitt', 'detail.history':'Historie', 'detail.moSuffix':'{n} Mon.',
+    'detail.fullReportedHistory':'Vollständige gemeldete Historie',
+    'detail.sourcedFrom':'Quelle: Vertriebs-/PRO-Abrechnungen aus der Onboarding-Prüfung (siehe Reiter Dokumente). Historische Einnahmen sind keine Garantie für künftige Tantiemenzahlungen.',
+    'detail.milestoneGatedEscrow':'An Meilensteine gebundene Treuhand',
+    'detail.escrowProse':'Eingesammelte Mittel verbleiben in einer Smart-Contract-Treuhand, nicht auf einem gemeinsamen Konto. Jede Tranche wird erst freigegeben, wenn der SPV-Manager bestätigt, dass der Meilenstein erreicht wurde. Wird das Finanzierungsziel nicht erreicht oder ein späterer Meilenstein nie geliefert, wird der nicht freigegebene Restbetrag anteilig an die Beitragenden zurückerstattet.',
+    'detail.governance':'Governance',
+    'detail.governanceProse':'Token-Inhaber dieser Kampagne erhalten ein <strong>beratendes</strong> Stimmrecht zu einer bereits vorgeprüften Shortlist (z. B. welches Studio die Session aufnimmt) — die formale Vertragsschließungsbefugnis verbleibt beim SPV-Manager. In diesem Pilotprojekt sind keine bindenden On-Chain-Abstimmungen vorgesehen.',
+    'detail.disclosureIntro':'KI-Inhaltsoffenlegung je Element, in den DDEX-ähnlichen Kategorien, auf die sich DSPs zubewegen. Das verringert die Abhängigkeit von Selbstauskünften und gibt Investoren einen klareren Einblick in das Risiko gegenüber Plattformrichtlinien.',
+    'detail.platformPolicyExposure':'Risiko gegenüber Plattformrichtlinien.',
+    'detail.notFoundTitle':'Listing nicht gefunden', 'detail.notFoundBody':'Dieser Vermögenswert wurde möglicherweise entfernt.',
+    'disclosure.vocals':'Gesang', 'disclosure.instrumentation':'Instrumentierung', 'disclosure.composition':'Komposition',
+    'disclosure.postProduction':'Postproduktion', 'disclosure.lyrics':'Text',
+    'disclosure.human':'Menschlich', 'disclosure.aiAssisted':'KI-unterstützt', 'disclosure.ai':'KI-generiert', 'disclosure.pending':'Ausstehend', 'disclosure.na':'N/V',
+    'milestone.released':'Freigegeben', 'milestone.inProgress':'In Bearbeitung', 'milestone.pending':'Ausstehend',
+
+    'buy.perToken':'pro Token', 'buy.remaining':'verbleibend', 'buy.fullySubscribed':'Dieses Listing ist vollständig gezeichnet',
+    'buy.tokensLabel':'Tokens', 'buy.decrease':'Verringern', 'buy.increase':'Erhöhen',
+    'buy.subtotal':'Zwischensumme', 'buy.platformFee':'Plattformgebühr', 'buy.total':'Gesamt',
+    'buy.ackLabel':'Mir ist bewusst, dass dies eine Pilotstruktur und keine Anlageberatung ist, und ich habe die Risikofaktoren geprüft.',
+    'buy.fundCampaign':'Diese Kampagne finanzieren', 'buy.buyTokens':'Tokens kaufen',
+    'buy.kycNote':'Vor der Abwicklung der Mittel ist eine (simulierte) KYC/AML-Prüfung erforderlich. Keine Krypto-Wallet nötig — die Fiat-Anbindung wird als simulierter Schritt gezeigt.',
+
+    'success.contributionConfirmed':'Beitrag bestätigt', 'success.purchaseConfirmed':'Kauf bestätigt',
+    'success.body':'Sie besitzen jetzt <strong>{qty}</strong> von <strong>{title}</strong>, für insgesamt {total}.',
+    'success.token':'Token', 'success.tokens':'Tokens',
+    'success.keepBrowsing':'Weiter stöbern', 'success.viewPortfolio':'Portfolio ansehen',
+
+    'portfolio.kicker':'Portfolio', 'portfolio.title':'Ihre Bestände',
+    'portfolio.emptyTitle':'Noch keine Bestände',
+    'portfolio.emptyBody':'Durchsuchen Sie den <a href="#/marketplace">Marktplatz</a>, um Ihren ersten fraktionierten Tantiemenanteil zu kaufen.',
+    'portfolio.subtitle':'Tantiemeneinnahmen laufen hier auf, sobald die SPV den Zahlungseingang von DSPs und PROs bestätigt. Verbinden Sie auf der Seite <a href="#/redeem">Einlösen</a> eine Wallet, um Ihren aufgelaufenen Anteil on-chain abzurufen.',
+    'portfolio.tokensHeld':'Gehaltene Tokens', 'portfolio.costBasis':'Anschaffungskosten', 'portfolio.unclaimedRoyalties':'Nicht eingelöste Tantiemen', 'portfolio.lifetimeRedeemed':'Insgesamt eingelöst',
+    'portfolio.tableAsset':'Vermögenswert', 'portfolio.tableTokens':'Tokens', 'portfolio.tableCostBasis':'Anschaffungskosten', 'portfolio.tableUnclaimed':'Nicht eingelöst',
+    'portfolio.redeem':'Einlösen', 'portfolio.upToDate':'Aktuell',
+    'portfolio.distributionHistory':'Ausschüttungshistorie', 'portfolio.redeemVia':'Über Wallet einlösen ({amount})',
+    'portfolio.tableDate':'Datum', 'portfolio.tableAmount':'Betrag',
+
+    'redeem.kicker':'Einlösen', 'redeem.title':'Lösen Sie Ihren Tantiemenanteil auf Ihre Wallet ein',
+    'redeem.subtitle':'Verbinden Sie eine Wallet, um festzulegen, wohin Ihre aufgelaufenen Tantiemen ausgezahlt werden sollen. Beim Einlösen wird Ihr nicht eingelöster Saldo on-chain an diese Adresse übertragen — in diesem Prototyp ist die Übertragung selbst simuliert, es bewegen sich keine echten Mittel, und außer der Verbindung wird nie eine Signatur angefordert.',
+    'redeem.connectPrompt':'Verbinden Sie eine Wallet, um fortzufahren',
+    'redeem.connectBody':'MetaMask (oder jede andere injizierte EVM-Wallet) identifiziert die Adresse, an die Ihre eingelösten Tantiemen gesendet werden.',
+    'redeem.connectBtn':'MetaMask verbinden',
+    'redeem.noWalletNote':'In diesem Browser wurde keine Wallet-Erweiterung erkannt — <a href="https://metamask.io" target="_blank" rel="noopener">installieren Sie MetaMask</a>, um diesen Ablauf wirklich auszuprobieren.',
+    'redeem.connectedNetwork':'{chain} · verbunden',
+    'redeem.nothingYetTitle':'Noch nichts einzulösen', 'redeem.nothingYetBody':'Kaufen Sie zuerst einen fraktionierten Tantiemenanteil im <a href="#/marketplace">Marktplatz</a>.',
+    'redeem.redeemableNow':'Jetzt einlösbar', 'redeem.lifetimeRedeemed':'Insgesamt eingelöst', 'redeem.destinationWallet':'Ziel-Wallet',
+    'redeem.tableAsset':'Vermögenswert', 'redeem.tableTokens':'Tokens', 'redeem.tableRedeemable':'Einlösbar',
+    'redeem.redeemBtn':'Einlösen', 'redeem.redeeming':'Wird eingelöst…', 'redeem.upToDate':'Aktuell',
+    'redeem.redeemAll':'Alles auf die Wallet einlösen ({amount})',
+    'redeem.allRedeemed':'Alles eingelöst — schauen Sie nach dem nächsten Tantiemenzeitraum wieder vorbei.',
+    'redeem.successTitle':'Auf Ihre Wallet eingelöst', 'redeem.successBody':'<strong>{amount}</strong> gesendet an {addr}.',
+    'redeem.txHashLabel':'Transaktions-Hash (simuliert)', 'redeem.done':'Fertig',
+
+    'forArtists.kicker':'Für Künstler und Rechteinhaber', 'forArtists.title':'Kapital auf Ihren Katalog aufnehmen — oder den Titel finanzieren, bevor er existiert',
+    'forArtists.subtitle':'Tokenisieren Sie einen bereits monetarisierten Katalog für sofortige Liquidität, oder lassen Sie Hörer die Produktion eines unveröffentlichten Titels über eine meilensteingebundene Treuhand finanzieren. So oder so behalten Sie die kreative Kontrolle — Token-Inhaber erhalten Transparenz und einen Anteil am Erfolg, nicht einen Platz am Mischpult.',
+    'forArtists.startCampaign':'Kampagne starten', 'forArtists.viewCampaigns':'Meine Kampagnen ansehen',
+    'forArtists.feature1Title':'Treuhand, kein gemeinsames Konto', 'forArtists.feature1Body':'Eingesammelte Mittel verbleiben in einem meilensteingebundenen Smart Contract — eine Tranche wird erst freigegeben, wenn ein Meilenstein bestätigt ist, mit anteiliger Rückerstattung, falls die Kampagne ins Stocken gerät.',
+    'forArtists.feature2Title':'KI-Offenlegung integriert', 'forArtists.feature2Body':'Die Offenlegung je Element (Gesang, Instrumentierung, Komposition, Postproduktion, Text) wird beim Upload erfasst — ein Nachweis, auf den Sie sich berufen können, falls die Einstufung eines DSP je bestritten wird.',
+    'forArtists.feature3Title':'Nur beratende Governance', 'forArtists.feature3Body':'Token-Inhaber können über eine von Ihnen bereits geprüfte Shortlist abstimmen — nie eine bindende Abstimmung, die jemanden einer gesellschaftsähnlichen Haftung aussetzt.',
+    'forArtists.yourCampaigns':'Ihre Kampagnen', 'forArtists.viewAll':'Alle ansehen',
+
+    'wizStep.basics':'Titel-Details', 'wizStep.model':'Finanzierungsmodell', 'wizStep.source':'Verifizierung / Budget',
+    'wizStep.disclosure':'KI-Offenlegung', 'wizStep.review':'Prüfen & einreichen',
+    'wizard.kicker':'Neue Kampagne', 'wizard.title':'Eine Royalty-Token-Kampagne einrichten',
+    'wizard.back':'Zurück', 'wizard.continueBtn':'Weiter', 'wizard.launchCampaign':'Kampagne starten',
+    'wizard.fillRequired':'Bitte zuerst die Pflichtfelder ausfüllen.',
+
+    'wizBasics.title':'Erzählen Sie uns von dem Titel oder Katalog',
+    'wizBasics.subtitle':'Gerade genug, um eine Listing-Vorschau zu erzeugen — vollständige Metadaten werden später in einem echten Onboarding-Ablauf erfasst.',
+    'wizBasics.titleLabel':'Titel', 'wizBasics.titlePlaceholder':'z. B. Glass Horizon',
+    'wizBasics.artistLabel':'Künstler-/Projektname', 'wizBasics.artistPlaceholder':'z. B. Cerchio Blu',
+    'wizBasics.genreLabel':'Genre',
+    'wizBasics.descLabel':'Kurzbeschreibung', 'wizBasics.descPlaceholder':'Was macht diesen Katalog oder Titel finanzierungswürdig?',
+
+    'genre.indiePop':'Indie Pop', 'genre.electronic':'Elektronisch', 'genre.altRnb':'Alt R&B', 'genre.lofiAmbient':'Lo-fi / Ambient',
+    'genre.cinematic':'Filmmusik / Orchestral', 'genre.rock':'Rock', 'genre.hiphop':'Hip-Hop', 'genre.other':'Sonstiges',
+
+    'wizModel.title':'Welches Modell passt zu dieser Kampagne?',
+    'wizModel.subtitle':'Dies ist die wichtigste Weggabelung überhaupt — sie verändert das Risikoprofil, das Investoren-Pitch und den Compliance-Weg.',
+    'wizModel.catalogueTitle':'Einen bestehenden Katalog tokenisieren', 'wizModel.catalogueBody':'Anleiheähnlich. Ihr Titel ist bereits veröffentlicht und erwirtschaftet Einnahmen. Investoren kaufen einen Anteil an bekannten, gemeldeten Einnahmen.',
+    'wizModel.preprodTitle':'Vorproduktionsfinanzierung', 'wizModel.preprodBody':'Venture-ähnlich. Sammeln Sie Kapital, um einen unveröffentlichten Entwurf fertigzustellen — Session-Musiker, Studiozeit, Mix & Master — bevor er existiert.',
+
+    'wizSource.preprodTitle':'Produktionsbudget', 'wizSource.preprodSubtitle':'Dies wird Ihre Meilenstein-Treuhand — jede Zeile wird nach Bestätigung als Tranche freigegeben.',
+    'wizSource.studioLabel':'Studiozeit', 'wizSource.sessionLabel':'Session-Musiker / Sänger', 'wizSource.mixLabel':'Mix & Mastering', 'wizSource.extraLabel':'Veröffentlichung / Marketing',
+    'wizSource.totalLabel':'Gesamtes Finanzierungsziel', 'wizSource.tokenNote':'Tokens werden mit 10 $ bepreist — das sind {n} Tokens bei diesem Ziel.',
+    'wizSource.catalogueTitle':'Tantiemenverifizierung', 'wizSource.catalogueSubtitle':'In einem echten Ablauf ist dies ein von Menschen begleiteter Prüfprozess anhand von PRO- und Vertriebsabrechnungen. Hier eine schnelle Simulation dessen, was wir erfassen würden.',
+    'wizSource.distributorLabel':'Haupt-Vertrieb / PRO', 'wizSource.monthsLabel':'Monate gemeldeter Historie',
+    'wizSource.statementLabel':'Tantiemenabrechnung', 'wizSource.statementPlaceholder':'Klicken, um eine Abrechnung anzuhängen (simuliert)',
+    'wizSource.statementHint':'PDF- oder CSV-Export aus dem Dashboard Ihres Vertriebs/Ihrer PRO.',
+
+    'wizDisclosure.title':'KI-Inhaltsoffenlegung',
+    'wizDisclosure.subtitle':'Einmal erfasst, überall wiederverwendet: als DDEX-Metadaten für DSPs und als Nachweisdatei, falls eine Einstufung je bestritten wird.',
+
+    'wizReview.title':'Prüfen & starten', 'wizReview.titleField':'Titel', 'wizReview.modelField':'Modell',
+    'wizReview.fundingGoalField':'Finanzierungsziel', 'wizReview.historyField':'Historie', 'wizReview.modelPreprod':'Vorproduktion', 'wizReview.modelCatalogue':'Katalog',
+    'wizReview.launchNote':'Der Start erstellt ein im Marktplatz sichtbares Listing mit fiktiven Daten aus Ihren Eingaben. Bei einem echten Start würde dieser Schritt die SPV-Gründung und die Rechtsprüfung auslösen — nichts hier ist ein reales Angebot.',
+    'wizReview.ackLabel':'Mir ist bewusst, dass dies ein Prototyp ist: Es werden keine echten Mittel, Tokens oder Rechtseinheiten geschaffen.',
+
+    'artistDash.kicker':'Künstler-Dashboard', 'artistDash.title':'Meine Kampagnen', 'artistDash.newCampaign':'Neue Kampagne',
+    'artistDash.activeCampaigns':'Aktive Kampagnen', 'artistDash.totalRaised':'Gesamt eingesammelt', 'artistDash.tokenHolders':'Token-Inhaber',
+    'artistDash.emptyTitle':'Noch keine Kampagnen', 'artistDash.emptyBody':'Starten Sie Ihre erste Kampagne, um sie hier zu sehen.', 'artistDash.startCampaign':'Kampagne starten',
+    'campaignCard.tokenHolders':'{n} Token-Inhaber', 'campaignCard.viewListing':'Listing ansehen',
+
+    'toast.walletConnected':'Wallet verbunden.', 'toast.connectionRejected':'Verbindungsanfrage abgelehnt.',
+    'toast.couldNotConnect':'Verbindung zur Wallet nicht möglich.', 'toast.walletDisconnected':'Wallet getrennt.',
+    'toast.statementAttached':'Abrechnung angehängt (simuliert).', 'toast.campaignLaunched':'Kampagne gestartet — jetzt im Marktplatz gelistet.',
+    'toast.noWalletDetected':'Keine Wallet erkannt. Installieren Sie die MetaMask-Erweiterung und versuchen Sie es erneut.',
+  },
+};
+
+function detectInitialLocale(){
+  try {
+    const saved = localStorage.getItem('humfiverse-locale');
+    if (saved && SUPPORTED_LOCALES.includes(saved)) return saved;
+  } catch (err){ /* localStorage unavailable */ }
+  const nav = (navigator.language || 'en').slice(0,2).toLowerCase();
+  return SUPPORTED_LOCALES.includes(nav) ? nav : 'en';
+}
+function setLocale(locale){
+  if (!SUPPORTED_LOCALES.includes(locale)) return;
+  store.set({ locale });
+  try { localStorage.setItem('humfiverse-locale', locale); } catch (err){ /* ignore */ }
+  document.documentElement.lang = locale;
+}
+function t(key, vars){
+  const dict = I18N[store.state.locale] || I18N.en;
+  let str = dict[key] !== undefined ? dict[key] : (I18N.en[key] !== undefined ? I18N.en[key] : key);
+  if (vars){
+    Object.keys(vars).forEach(k => { str = str.split('{'+k+'}').join(vars[k]); });
+  }
+  return str;
+}
+
+/* ===================================================================
    STATE STORE
 =================================================================== */
 const store = {
   state: {
+    locale: detectInitialLocale(),
     route: parseRoute(),
     perspective: 'investor', // 'investor' | 'artist'
     bannerDismissed: false,
@@ -835,7 +1575,7 @@ function fakeTxHash(){
 }
 async function connectWallet(){
   if (!window.ethereum){
-    showToast('No wallet detected. Install the MetaMask extension, then try again.', { icon:'alert' });
+    showToast(t('toast.noWalletDetected'), { icon:'alert' });
     return;
   }
   store.update(s => { s.wallet.connecting = true; });
@@ -843,15 +1583,15 @@ async function connectWallet(){
     const accounts = await window.ethereum.request({ method:'eth_requestAccounts' });
     const chainId = await window.ethereum.request({ method:'eth_chainId' });
     store.update(s => { s.wallet.address = accounts[0] || null; s.wallet.chainId = chainId; s.wallet.connecting = false; });
-    if (accounts && accounts[0]) showToast('Wallet connected.', { icon:'wallet' });
+    if (accounts && accounts[0]) showToast(t('toast.walletConnected'), { icon:'wallet' });
   } catch (err){
     store.update(s => { s.wallet.connecting = false; });
-    showToast(err && err.code === 4001 ? 'Connection request rejected.' : 'Could not connect to wallet.', { icon:'alert' });
+    showToast(err && err.code === 4001 ? t('toast.connectionRejected') : t('toast.couldNotConnect'), { icon:'alert' });
   }
 }
 function disconnectWallet(){
   store.update(s => { s.wallet.address = null; s.wallet.chainId = null; });
-  showToast('Wallet disconnected.', { icon:'info' });
+  showToast(t('toast.walletDisconnected'), { icon:'info' });
 }
 async function silentWalletSync(){
   if (!window.ethereum) return;
@@ -873,19 +1613,22 @@ function wireWalletProviderEvents(){
   });
 }
 
-const DISCLOSURE_LABELS = { human:'Human', 'ai-assisted':'AI-assisted', ai:'AI-generated', pending:'Pending', 'n/a':'N/A' };
+function disclosureLabel(val){
+  const key = val==='human'?'disclosure.human':val==='ai-assisted'?'disclosure.aiAssisted':val==='ai'?'disclosure.ai':val==='pending'?'disclosure.pending':val==='n/a'?'disclosure.na':null;
+  return key ? t(key) : val;
+}
 function disclosureChip(val){
   const cls = val==='human' ? 'chip-good' : val==='ai-assisted' ? 'chip-warning' : val==='ai' ? 'chip-critical' : 'chip-neutral';
-  return `<span class="chip ${cls}">${DISCLOSURE_LABELS[val]||val}</span>`;
+  return `<span class="chip ${cls}">${disclosureLabel(val)}</span>`;
 }
 function statusChip(a){
-  if (a.status === 'sold-out') return `<span class="chip chip-neutral">${icon('checkCircle')} Sold out</span>`;
-  if (a.kind === 'preproduction') return `<span class="chip chip-accent">${icon('sparkles')} Pre-production</span>`;
-  return `<span class="chip chip-good">${icon('coins')} Funding</span>`;
+  if (a.status === 'sold-out') return `<span class="chip chip-neutral">${icon('checkCircle')} ${t('asset.soldOut')}</span>`;
+  if (a.kind === 'preproduction') return `<span class="chip chip-accent">${icon('sparkles')} ${t('asset.preproduction')}</span>`;
+  return `<span class="chip chip-good">${icon('coins')} ${t('asset.funding')}</span>`;
 }
 function verifiedChip(a, short){
-  if (a.verified) return `<span class="chip chip-good right">${icon('shield')} Verified</span>`;
-  return `<span class="chip chip-warning right">${icon('alert')} ${short ? 'Pending' : 'Diligence pending'}</span>`;
+  if (a.verified) return `<span class="chip chip-good right">${icon('shield')} ${t('asset.verified')}</span>`;
+  return `<span class="chip chip-warning right">${icon('alert')} ${short ? t('asset.pending') : t('asset.diligencePending')}</span>`;
 }
 
 /* ===================================================================
@@ -973,19 +1716,27 @@ let postRenderHooks = [];
 /* ===================================================================
    SHELL — topbar + footer + pilot banner
 =================================================================== */
+function renderLangSwitch(){
+  const cur = store.state.locale;
+  return `
+    <div class="role-switch" role="group" aria-label="${t('lang.label')}">
+      ${SUPPORTED_LOCALES.map(l => `<button data-lang="${l}" class="${l===cur?'active':''}">${LOCALE_LABEL[l]}</button>`).join('')}
+    </div>`;
+}
+
 function renderTopbar(){
   const s = store.state;
   const p = s.route.parts;
   const inArtist = s.perspective === 'artist';
   const investorLinks = [
-    ['#/marketplace','Marketplace', p[0]==='marketplace' || (p[0]==='asset')],
-    ['#/portfolio','Portfolio', p[0]==='portfolio'],
-    ['#/redeem','Redeem', p[0]==='redeem'],
+    ['#/marketplace', t('nav.marketplace'), p[0]==='marketplace' || (p[0]==='asset')],
+    ['#/portfolio', t('nav.portfolio'), p[0]==='portfolio'],
+    ['#/redeem', t('nav.redeem'), p[0]==='redeem'],
   ];
   const artistLinks = [
-    ['#/for-artists','Overview', p[0]==='for-artists'],
-    ['#/artist/dashboard','My campaigns', p[0]==='artist' && p[1]==='dashboard'],
-    ['#/artist/onboarding','New campaign', p[0]==='artist' && p[1]==='onboarding'],
+    ['#/for-artists', t('nav.overview'), p[0]==='for-artists'],
+    ['#/artist/dashboard', t('nav.myCampaigns'), p[0]==='artist' && p[1]==='dashboard'],
+    ['#/artist/onboarding', t('nav.newCampaign'), p[0]==='artist' && p[1]==='onboarding'],
   ];
   const links = inArtist ? artistLinks : investorLinks;
   return `
@@ -993,20 +1744,21 @@ function renderTopbar(){
     <a class="brand" href="#/marketplace">
       <svg class="brand-mark" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="15" stroke="var(--accent-ink)" stroke-width="1.6"/><circle cx="16" cy="16" r="4.4" fill="var(--accent-ink)"/><path d="M16 3.2v6.4M16 22.4v6.4M3.2 16h6.4M22.4 16h6.4" stroke="var(--accent-ink)" stroke-width="1.6" stroke-linecap="round"/></svg>
       <span class="brand-name">Humfiverse</span>
-      <span class="brand-tag">Royalty-stream tokenization</span>
+      <span class="brand-tag">${t('brand.tagline')}</span>
     </a>
     <nav class="topnav">
       ${links.map(([href,label,active]) => `<a href="${href}" class="${active?'active':''}">${label}</a>`).join('')}
     </nav>
     <div class="side-spacer"></div>
-    <div class="role-switch" role="tablist" aria-label="Perspective">
-      <button data-role="investor" class="${!inArtist?'active':''}">Investor</button>
-      <button data-role="artist" class="${inArtist?'active':''}">Artist</button>
+    ${renderLangSwitch()}
+    <div class="role-switch" role="tablist" aria-label="${t('role.perspective')}">
+      <button data-role="investor" class="${!inArtist?'active':''}">${t('role.investor')}</button>
+      <button data-role="artist" class="${inArtist?'active':''}">${t('role.artist')}</button>
     </div>
     ${s.wallet.address
-      ? `<a class="btn btn-secondary btn-sm mono" href="#/redeem" title="Connected wallet — view redeem page">${icon('wallet')} ${truncateAddr(s.wallet.address)}</a>`
-      : `<button class="btn btn-secondary btn-sm" id="walletBtn" ${s.wallet.connecting?'disabled':''}>${icon('wallet')} ${s.wallet.connecting?'Connecting…':'Connect wallet'}</button>`}
-    <button class="icon-btn" id="themeToggle" title="Toggle theme" aria-label="Toggle theme"></button>
+      ? `<a class="btn btn-secondary btn-sm mono" href="#/redeem" title="${t('wallet.connectedTitle')}">${icon('wallet')} ${truncateAddr(s.wallet.address)}</a>`
+      : `<button class="btn btn-secondary btn-sm" id="walletBtn" ${s.wallet.connecting?'disabled':''}>${icon('wallet')} ${s.wallet.connecting?t('wallet.connecting'):t('wallet.connect')}</button>`}
+    <button class="icon-btn" id="themeToggle" title="${t('theme.toggle')}" aria-label="${t('theme.toggle')}"></button>
   </header>`;
 }
 
@@ -1015,16 +1767,16 @@ function renderPilotBanner(){
   return `
   <div class="pilot-banner">
     ${icon('info')}
-    <div><b>Working prototype, mock data.</b> Humfiverse is a pilot concept — figures, royalty statements and campaigns on this page are illustrative, not real financial instruments. Nothing here is investment advice.</div>
-    <button class="dismiss" id="dismissBanner" aria-label="Dismiss">${icon('close')}</button>
+    <div><b>${t('banner.title')}</b> ${t('banner.body')}</div>
+    <button class="dismiss" id="dismissBanner" aria-label="${t('banner.dismiss')}">${icon('close')}</button>
   </div>`;
 }
 
 function renderFooter(){
   return `
   <footer class="footer">
-    <span>Humfiverse — a music royalty-stream tokenization concept. Prototype build, ${new Date().getFullYear()}.</span>
-    <span>Not a securities offering. See risk factors on each asset.</span>
+    <span>${t('footer.tagline', { year: new Date().getFullYear() })}</span>
+    <span>${t('footer.disclaimer')}</span>
   </footer>`;
 }
 
@@ -1056,6 +1808,9 @@ function render(){
 }
 
 function wireGlobalEvents(app){
+  app.querySelectorAll('[data-lang]').forEach(btn => {
+    btn.addEventListener('click', () => setLocale(btn.dataset.lang));
+  });
   app.querySelectorAll('.role-switch [data-role]').forEach(btn => {
     btn.addEventListener('click', () => {
       const role = btn.dataset.role;
@@ -1109,29 +1864,29 @@ function renderMarketplace(){
   return `
     <div class="page-head">
       <div>
-        <span class="page-kicker">Marketplace</span>
-        <h1>Fractional royalty shares, verified before they're listed</h1>
-        <p class="page-sub">Browse tokenized catalogues with reported streaming history, or finance an unfinished track before it's produced. Each listing discloses its AI-content exposure and diligence status up front.</p>
+        <span class="page-kicker">${t('marketplace.kicker')}</span>
+        <h1>${t('marketplace.title')}</h1>
+        <p class="page-sub">${t('marketplace.subtitle')}</p>
       </div>
     </div>
 
     <div class="toolbar">
       <div class="segmented">
-        <button data-filter="all" class="${marketplaceUI.filter==='all'?'active':''}">All (${ASSETS.length})</button>
-        <button data-filter="catalogue" class="${marketplaceUI.filter==='catalogue'?'active':''}">Catalogues</button>
-        <button data-filter="preproduction" class="${marketplaceUI.filter==='preproduction'?'active':''}">Pre-production</button>
+        <button data-filter="all" class="${marketplaceUI.filter==='all'?'active':''}">${t('marketplace.filterAll', { n: ASSETS.length })}</button>
+        <button data-filter="catalogue" class="${marketplaceUI.filter==='catalogue'?'active':''}">${t('marketplace.filterCatalogues')}</button>
+        <button data-filter="preproduction" class="${marketplaceUI.filter==='preproduction'?'active':''}">${t('marketplace.filterPreproduction')}</button>
       </div>
       <div class="search-box">
         ${icon('search')}
-        <input id="marketSearch" type="text" placeholder="Search by title, artist or genre" value="${marketplaceUI.query}">
+        <input id="marketSearch" type="text" placeholder="${t('marketplace.searchPlaceholder')}" value="${marketplaceUI.query}">
       </div>
     </div>
 
     ${list.length ? `<div class="grid">${list.map(assetCard).join('')}</div>` : `
       <div class="empty-state card">
         ${icon('search')}
-        <h3>No listings match that search</h3>
-        <p>Try a different keyword or clear the filter.</p>
+        <h3>${t('marketplace.emptyTitle')}</h3>
+        <p>${t('marketplace.emptyBody')}</p>
       </div>`}
   `;
 }
@@ -1155,15 +1910,15 @@ function assetCard(a){
       <div>
         <div class="meter"><span style="width:${pct}%"></span></div>
         <div class="asset-meta-row" style="margin-top:6px;">
-          <span>${fmtUSDShort(fundingRaised(a))} of ${fmtUSDShort(fundingGoal(a))}</span>
+          <span>${t('asset.ofGoal', { raised: fmtUSDShort(fundingRaised(a)), goal: fmtUSDShort(fundingGoal(a)) })}</span>
           <span class="value">${pct}%</span>
         </div>
       </div>
       <div class="asset-foot">
         ${isPre
-          ? `<span class="yield venture">Financing round</span>`
-          : `<span class="yield">${a.projectedYield}% proj. yield</span>`}
-        <span class="mono" style="font-size:12.5px; color:var(--text-secondary);">${fmtUSD(a.tokenPrice)}/token</span>
+          ? `<span class="yield venture">${t('asset.financingRound')}</span>`
+          : `<span class="yield">${t('asset.projYield', { pct: a.projectedYield })}</span>`}
+        <span class="mono" style="font-size:12.5px; color:var(--text-secondary);">${t('asset.perToken', { price: fmtUSD(a.tokenPrice) })}</span>
       </div>
     </div>
   </a>`;
@@ -1181,7 +1936,7 @@ function getDetailUI(id){
 function renderAssetDetail(id){
   const a = assetById(id);
   if (!a){
-    return `<div class="empty-state card">${icon('alert')}<h3>Listing not found</h3><p>This asset may have been removed. <a href="#/marketplace">Back to marketplace</a></p></div>`;
+    return `<div class="empty-state card">${icon('alert')}<h3>${t('detail.notFoundTitle')}</h3><p>${t('detail.notFoundBody')} <a href="#/marketplace">${t('nav.marketplace')}</a></p></div>`;
   }
   const ui = getDetailUI(id);
   const isPre = a.kind === 'preproduction';
@@ -1189,21 +1944,21 @@ function renderAssetDetail(id){
   const soldOut = remaining <= 0;
 
   const tabs = isPre
-    ? [['overview','Overview'],['milestones','Escrow & milestones'],['disclosure','AI disclosure'],['documents','Documents'],['risk','Risk factors']]
-    : [['overview','Overview'],['royalty','Royalty data'],['disclosure','AI disclosure'],['documents','Documents'],['risk','Risk factors']];
+    ? [['overview',t('tab.overview')],['milestones',t('tab.milestones')],['disclosure',t('tab.disclosure')],['documents',t('tab.documents')],['risk',t('tab.risk')]]
+    : [['overview',t('tab.overview')],['royalty',t('tab.royaltyData')],['disclosure',t('tab.disclosure')],['documents',t('tab.documents')],['risk',t('tab.risk')]];
 
   postRenderHooks.push(() => wireDetailEvents(a));
   if (!isPre) postRenderHooks.push(() => mountLineChart(document.getElementById('app'), a.royaltyHistory));
 
   return `
-    <div class="breadcrumb"><a href="#/marketplace">Marketplace</a> <span>${icon('chevronLeft')}</span> <span>${a.title}</span></div>
+    <div class="breadcrumb"><a href="#/marketplace">${t('nav.marketplace')}</a> <span>${icon('chevronLeft')}</span> <span>${a.title}</span></div>
 
     <div class="detail-layout">
       <div>
         <div class="detail-hero">
           <div class="detail-cover">${renderCover(a, { playSize:38, motifSize:52 })}</div>
           <div class="detail-heading">
-            <div class="chips">${statusChip(a)}${a.verified?`<span class="chip chip-good">${icon('shield')} Verified</span>`:`<span class="chip chip-warning">${icon('alert')} Diligence pending</span>`}</div>
+            <div class="chips">${statusChip(a)}${a.verified?`<span class="chip chip-good">${icon('shield')} ${t('asset.verified')}</span>`:`<span class="chip chip-warning">${icon('alert')} ${t('asset.diligencePending')}</span>`}</div>
             <h1>${a.title}</h1>
             <div class="artist">${a.artistName} · ${a.genre}</div>
           </div>
@@ -1229,24 +1984,24 @@ function renderDetailTab(a, ui){
     return `
       <div class="prose">${a.description}</div>
       <div class="stat-row">
-        <div class="card stat-tile"><div class="label">Token price</div><div class="value">${fmtUSD(a.tokenPrice)}</div></div>
-        <div class="card stat-tile"><div class="label">Tokens</div><div class="value">${a.tokensSold.toLocaleString()}/${a.tokensTotal.toLocaleString()}</div></div>
+        <div class="card stat-tile"><div class="label">${t('detail.tokenPrice')}</div><div class="value">${fmtUSD(a.tokenPrice)}</div></div>
+        <div class="card stat-tile"><div class="label">${t('detail.tokens')}</div><div class="value">${a.tokensSold.toLocaleString()}/${a.tokensTotal.toLocaleString()}</div></div>
         ${isPre
-          ? `<div class="card stat-tile"><div class="label">Use of funds</div><div class="value" style="font-size:13px; font-family:'IBM Plex Sans',sans-serif;">${a.targetRaiseUse}</div></div>`
-          : `<div class="card stat-tile"><div class="label">Proj. yield</div><div class="value" style="color:var(--good);">${a.projectedYield}%</div></div>`}
-        <div class="card stat-tile"><div class="label">Funded</div><div class="value">${fundingPct(a)}%</div></div>
+          ? `<div class="card stat-tile"><div class="label">${t('detail.useOfFunds')}</div><div class="value" style="font-size:13px; font-family:'IBM Plex Sans',sans-serif;">${a.targetRaiseUse}</div></div>`
+          : `<div class="card stat-tile"><div class="label">${t('detail.projYield')}</div><div class="value" style="color:var(--good);">${a.projectedYield}%</div></div>`}
+        <div class="card stat-tile"><div class="label">${t('detail.funded')}</div><div class="value">${fundingPct(a)}%</div></div>
       </div>
       ${isPre ? `
       <div class="card panel">
-        <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:15px; margin-bottom:10px;">Milestone escrow snapshot</h3>
+        <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:15px; margin-bottom:10px;">${t('detail.milestoneSnapshot')}</h3>
         ${milestoneTrack(a.milestones)}
       </div>` : `
       <div class="card chart-card">
-        <div class="chart-card-head"><h3>Reported royalty income</h3><span class="legend"><span class="legend-dot"></span> Monthly, USD</span></div>
+        <div class="chart-card-head"><h3>${t('detail.reportedRoyaltyIncome')}</h3><span class="legend"><span class="legend-dot"></span> ${t('detail.monthlyUsd')}</span></div>
         ${renderLineChart(a.royaltyHistory)}
       </div>`}
       <div class="card panel" style="font-size:13px; color:var(--text-secondary);">
-        <strong style="color:var(--text);">DSP policy note.</strong> ${a.dspPolicy}
+        <strong style="color:var(--text);">${t('detail.dspPolicyNote')}</strong> ${a.dspPolicy}
       </div>
     `;
   }
@@ -1255,38 +2010,38 @@ function renderDetailTab(a, ui){
     const avg = Math.round(total/a.royaltyHistory.length);
     return `
       <div class="stat-row">
-        <div class="card stat-tile"><div class="label">Trailing total</div><div class="value">${fmtUSDShort(total)}</div></div>
-        <div class="card stat-tile"><div class="label">Monthly avg.</div><div class="value">${fmtUSD(avg)}</div></div>
-        <div class="card stat-tile"><div class="label">History</div><div class="value">${a.royaltyHistory.length} mo.</div></div>
+        <div class="card stat-tile"><div class="label">${t('detail.trailingTotal')}</div><div class="value">${fmtUSDShort(total)}</div></div>
+        <div class="card stat-tile"><div class="label">${t('detail.monthlyAvg')}</div><div class="value">${fmtUSD(avg)}</div></div>
+        <div class="card stat-tile"><div class="label">${t('detail.history')}</div><div class="value">${t('detail.moSuffix', { n: a.royaltyHistory.length })}</div></div>
       </div>
       <div class="card chart-card">
-        <div class="chart-card-head"><h3>Full reported history</h3><span class="legend"><span class="legend-dot"></span> Monthly, USD</span></div>
+        <div class="chart-card-head"><h3>${t('detail.fullReportedHistory')}</h3><span class="legend"><span class="legend-dot"></span> ${t('detail.monthlyUsd')}</span></div>
         ${renderLineChart(a.royaltyHistory)}
       </div>
-      <div class="prose">Sourced from distributor/PRO statements during onboarding diligence (see Documents tab). Historical income is not a guarantee of future royalty payments.</div>
+      <div class="prose">${t('detail.sourcedFrom')}</div>
     `;
   }
   if (ui.tab === 'milestones' && isPre){
     return `
       <div class="card panel">
-        <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:15px; margin-bottom:14px;">Milestone-gated escrow</h3>
+        <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:15px; margin-bottom:14px;">${t('detail.milestoneGatedEscrow')}</h3>
         ${milestoneTrack(a.milestones)}
-        <div class="prose" style="margin-top:16px;">Funds raised sit in a smart-contract escrow, not a commingled account. Each tranche releases only once the SPV manager confirms that milestone was met. If the funding goal isn't reached, or a later milestone is never delivered, the unreleased remainder is refunded to contributors pro-rata.</div>
+        <div class="prose" style="margin-top:16px;">${t('detail.escrowProse')}</div>
       </div>
       <div class="card panel">
-        <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:15px; margin-bottom:12px;">Governance</h3>
-        <div class="prose">Token holders for this campaign get an <strong>advisory</strong> vote on a pre-vetted shortlist (e.g. which studio records the session) — the SPV manager retains formal contracting authority. No binding on-chain votes ship in this pilot.</div>
+        <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:15px; margin-bottom:12px;">${t('detail.governance')}</h3>
+        <div class="prose">${t('detail.governanceProse')}</div>
       </div>
     `;
   }
   if (ui.tab === 'disclosure'){
-    const rows = [['vocals','Vocals'],['instrumentation','Instrumentation'],['composition','Composition'],['postProduction','Post-production'],['lyrics','Lyrics']];
+    const rows = [['vocals',t('disclosure.vocals')],['instrumentation',t('disclosure.instrumentation')],['composition',t('disclosure.composition')],['postProduction',t('disclosure.postProduction')],['lyrics',t('disclosure.lyrics')]];
     return `
-      <div class="prose">Per-element AI-content disclosure, in the DDEX-style categories DSPs are moving toward. This reduces reliance on self-reporting and gives investors a clearer read on platform-policy exposure.</div>
+      <div class="prose">${t('detail.disclosureIntro')}</div>
       <div class="disclosure-grid">
         ${rows.map(([k,label]) => `<div class="disclosure-item"><div class="k">${label}</div><div class="v">${disclosureChip(a.aiDisclosure[k])}</div></div>`).join('')}
       </div>
-      <div class="card panel" style="font-size:13px; color:var(--text-secondary);"><strong style="color:var(--text);">Platform policy exposure.</strong> ${a.dspPolicy}</div>
+      <div class="card panel" style="font-size:13px; color:var(--text-secondary);"><strong style="color:var(--text);">${t('detail.platformPolicyExposure')}</strong> ${a.dspPolicy}</div>
     `;
   }
   if (ui.tab === 'documents'){
@@ -1306,7 +2061,7 @@ function milestoneTrack(milestones){
         <div class="milestone ${m.status}" style="${m.status==='active'?'--p:55%':''}">
           <div class="bar"><span></span></div>
           <div class="milestone-label"><span class="name">${m.name}</span></div>
-          <div class="milestone-label"><span class="amt">${fmtUSD(m.trancheAmount)} · ${m.status==='done'?'Released':m.status==='active'?'In progress':'Pending'}</span></div>
+          <div class="milestone-label"><span class="amt">${fmtUSD(m.trancheAmount)} · ${m.status==='done'?t('milestone.released'):m.status==='active'?t('milestone.inProgress'):t('milestone.pending')}</span></div>
         </div>`).join('')}
     </div>`;
 }
@@ -1316,50 +2071,51 @@ function renderBuyPanel(a, ui, remaining, soldOut){
   return `
   <div class="card buy-panel">
     <div class="buy-price">
-      <div><div class="amount">${fmtUSD(a.tokenPrice)}</div><div class="unit">per token</div></div>
+      <div><div class="amount">${fmtUSD(a.tokenPrice)}</div><div class="unit">${t('buy.perToken')}</div></div>
       <div style="text-align:right;">
         <div class="mono" style="font-weight:600;">${remaining.toLocaleString()}</div>
-        <div class="unit">remaining</div>
+        <div class="unit">${t('buy.remaining')}</div>
       </div>
     </div>
     <div class="meter"><span style="width:${fundingPct(a)}%"></span></div>
 
     ${soldOut ? `
-      <div class="chip chip-neutral" style="justify-content:center; padding:10px;">${icon('checkCircle')} This listing is fully subscribed</div>
+      <div class="chip chip-neutral" style="justify-content:center; padding:10px;">${icon('checkCircle')} ${t('buy.fullySubscribed')}</div>
     ` : `
       <div class="qty-row">
-        <label style="font-size:13px; font-weight:600;">Tokens</label>
+        <label style="font-size:13px; font-weight:600;">${t('buy.tokensLabel')}</label>
         <div class="stepper">
-          <button id="qtyMinus" aria-label="Decrease">${icon('minus')}</button>
+          <button id="qtyMinus" aria-label="${t('buy.decrease')}">${icon('minus')}</button>
           <input id="qtyInput" class="mono" type="text" inputmode="numeric" value="${ui.qty}">
-          <button id="qtyPlus" aria-label="Increase">${icon('plus')}</button>
+          <button id="qtyPlus" aria-label="${t('buy.increase')}">${icon('plus')}</button>
         </div>
       </div>
       <div class="buy-summary">
-        <div class="row"><span>Subtotal</span><span class="mono">${fmtUSD(total)}</span></div>
-        <div class="row"><span>Platform fee</span><span class="mono">$0.00</span></div>
-        <div class="row total"><span>Total</span><span class="mono">${fmtUSD(total)}</span></div>
+        <div class="row"><span>${t('buy.subtotal')}</span><span class="mono">${fmtUSD(total)}</span></div>
+        <div class="row"><span>${t('buy.platformFee')}</span><span class="mono">$0.00</span></div>
+        <div class="row total"><span>${t('buy.total')}</span><span class="mono">${fmtUSD(total)}</span></div>
       </div>
       <label class="check-row">
         <input type="checkbox" id="ackCheck" ${ui.ack?'checked':''}>
-        <span>I understand this is a pilot structure, not investment advice, and I've reviewed the risk factors.</span>
+        <span>${t('buy.ackLabel')}</span>
       </label>
-      <button class="btn btn-primary btn-block btn-lg" id="buyBtn" ${ui.ack?'':'disabled'}>${a.kind==='preproduction'?'Fund this campaign':'Buy tokens'} ${icon('arrowRight')}</button>
+      <button class="btn btn-primary btn-block btn-lg" id="buyBtn" ${ui.ack?'':'disabled'}>${a.kind==='preproduction'?t('buy.fundCampaign'):t('buy.buyTokens')} ${icon('arrowRight')}</button>
     `}
-    <div class="prose" style="font-size:11.5px;">KYC/AML verification (simulated) is required before funds settle. No crypto wallet needed — fiat on-ramp shown as a mock step.</div>
+    <div class="prose" style="font-size:11.5px;">${t('buy.kycNote')}</div>
   </div>`;
 }
 
 function renderSuccessModal(a, ui){
+  const qtyLabel = ui.success.qty + ' ' + (ui.success.qty > 1 ? t('success.tokens') : t('success.token'));
   return `
   <div class="modal-scrim" id="successScrim">
     <div class="modal">
       <div class="success-icon">${icon('check')}</div>
-      <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:18px;">${a.kind==='preproduction'?'Contribution confirmed':'Purchase confirmed'}</h3>
-      <p style="font-size:13.5px; color:var(--text-secondary);">You now hold <strong style="color:var(--text);">${ui.success.qty} token${ui.success.qty>1?'s':''}</strong> of <strong style="color:var(--text);">${a.title}</strong>, for a total of ${fmtUSD(ui.success.total)}.</p>
+      <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:18px;">${a.kind==='preproduction'?t('success.contributionConfirmed'):t('success.purchaseConfirmed')}</h3>
+      <p style="font-size:13.5px; color:var(--text-secondary);">${t('success.body', { qty: qtyLabel, title: a.title, total: fmtUSD(ui.success.total) })}</p>
       <div style="display:flex; gap:10px;">
-        <button class="btn btn-secondary btn-block" id="closeModal">Keep browsing</button>
-        <a class="btn btn-primary btn-block" href="#/portfolio">View portfolio</a>
+        <button class="btn btn-secondary btn-block" id="closeModal">${t('success.keepBrowsing')}</button>
+        <a class="btn btn-primary btn-block" href="#/portfolio">${t('success.viewPortfolio')}</a>
       </div>
     </div>
   </div>`;
@@ -1409,8 +2165,8 @@ function renderPortfolio(){
 
   if (!holdings.length){
     return `
-      <div class="page-head"><div><span class="page-kicker">Portfolio</span><h1>Your holdings</h1></div></div>
-      <div class="empty-state card">${icon('wallet')}<h3>No holdings yet</h3><p>Browse the <a href="#/marketplace">marketplace</a> to buy your first fractional royalty share.</p></div>`;
+      <div class="page-head"><div><span class="page-kicker">${t('portfolio.kicker')}</span><h1>${t('portfolio.title')}</h1></div></div>
+      <div class="empty-state card">${icon('wallet')}<h3>${t('portfolio.emptyTitle')}</h3><p>${t('portfolio.emptyBody')}</p></div>`;
   }
 
   const totalCost = holdings.reduce((s,h)=>s+h.costBasis,0);
@@ -1420,21 +2176,21 @@ function renderPortfolio(){
 
   return `
     <div class="page-head">
-      <div><span class="page-kicker">Portfolio</span><h1>Your holdings</h1><p class="page-sub">Royalty income accrues here as the SPV confirms it received payment from DSPs and PROs. Connect a wallet on the <a href="#/redeem">Redeem</a> page to pull your accrued share on-chain.</p></div>
+      <div><span class="page-kicker">${t('portfolio.kicker')}</span><h1>${t('portfolio.title')}</h1><p class="page-sub">${t('portfolio.subtitle')}</p></div>
     </div>
 
     <div class="stat-grid">
-      <div class="card stat-tile"><div class="label">Tokens held</div><div class="value">${totalTokens.toLocaleString()}</div></div>
-      <div class="card stat-tile"><div class="label">Cost basis</div><div class="value">${fmtUSD(totalCost)}</div></div>
-      <div class="card stat-tile"><div class="label">Unclaimed royalties</div><div class="value" style="color:var(--accent-ink);">${fmtUSD(totalUnclaimed)}</div></div>
-      <div class="card stat-tile"><div class="label">Lifetime redeemed</div><div class="value" style="color:var(--good);">${fmtUSD(totalClaimed)}</div></div>
+      <div class="card stat-tile"><div class="label">${t('portfolio.tokensHeld')}</div><div class="value">${totalTokens.toLocaleString()}</div></div>
+      <div class="card stat-tile"><div class="label">${t('portfolio.costBasis')}</div><div class="value">${fmtUSD(totalCost)}</div></div>
+      <div class="card stat-tile"><div class="label">${t('portfolio.unclaimedRoyalties')}</div><div class="value" style="color:var(--accent-ink);">${fmtUSD(totalUnclaimed)}</div></div>
+      <div class="card stat-tile"><div class="label">${t('portfolio.lifetimeRedeemed')}</div><div class="value" style="color:var(--good);">${fmtUSD(totalClaimed)}</div></div>
     </div>
 
     <div class="card" style="margin-bottom:24px;">
       <div class="table-wrap">
         <table>
           <thead><tr>
-            <th>Asset</th><th class="cell-num">Tokens</th><th class="cell-num">Cost basis</th><th class="cell-num">Unclaimed</th><th></th>
+            <th>${t('portfolio.tableAsset')}</th><th class="cell-num">${t('portfolio.tableTokens')}</th><th class="cell-num">${t('portfolio.tableCostBasis')}</th><th class="cell-num">${t('portfolio.tableUnclaimed')}</th><th></th>
           </tr></thead>
           <tbody>
             ${holdings.map(h => {
@@ -1447,7 +2203,7 @@ function renderPortfolio(){
                 <td class="cell-num mono">${h.tokens}</td>
                 <td class="cell-num mono">${fmtUSD(h.costBasis)}</td>
                 <td class="cell-num mono" style="${h.unclaimed>0?'color:var(--accent-ink); font-weight:600;':''}">${fmtUSD(h.unclaimed)}</td>
-                <td style="text-align:right;">${h.unclaimed>0 ? `<a class="btn btn-secondary btn-sm" href="#/redeem">${icon('wallet')} Redeem</a>` : `<span class="chip chip-neutral">${icon('checkCircle')} Up to date</span>`}</td>
+                <td style="text-align:right;">${h.unclaimed>0 ? `<a class="btn btn-secondary btn-sm" href="#/redeem">${icon('wallet')} ${t('portfolio.redeem')}</a>` : `<span class="chip chip-neutral">${icon('checkCircle')} ${t('portfolio.upToDate')}</span>`}</td>
               </tr>`;
             }).join('')}
           </tbody>
@@ -1455,11 +2211,11 @@ function renderPortfolio(){
       </div>
     </div>
 
-    <div class="page-head" style="margin-bottom:14px;"><h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:17px;">Distribution history</h3>${totalUnclaimed>0?`<a class="btn btn-primary btn-sm" href="#/redeem">${icon('wallet')} Redeem via wallet (${fmtUSD(totalUnclaimed)})</a>`:''}</div>
+    <div class="page-head" style="margin-bottom:14px;"><h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:17px;">${t('portfolio.distributionHistory')}</h3>${totalUnclaimed>0?`<a class="btn btn-primary btn-sm" href="#/redeem">${icon('wallet')} ${t('portfolio.redeemVia', { amount: fmtUSD(totalUnclaimed) })}</a>`:''}</div>
     <div class="card">
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Date</th><th>Asset</th><th class="cell-num">Amount</th></tr></thead>
+          <thead><tr><th>${t('portfolio.tableDate')}</th><th>${t('portfolio.tableAsset')}</th><th class="cell-num">${t('portfolio.tableAmount')}</th></tr></thead>
           <tbody>
             ${distributions.slice().reverse().map(d => `<tr>
               <td>${d.date}</td>
@@ -1484,9 +2240,9 @@ function renderRedeem(){
   return `
     <div class="page-head">
       <div>
-        <span class="page-kicker">Redeem</span>
-        <h1>Redeem your royalty share to your wallet</h1>
-        <p class="page-sub">Connect a wallet to identify where your accrued royalties should be paid. Redeeming pulls your unclaimed balance on-chain to that address — in this prototype the transfer itself is simulated, no real funds move and no signature beyond connecting is ever requested.</p>
+        <span class="page-kicker">${t('redeem.kicker')}</span>
+        <h1>${t('redeem.title')}</h1>
+        <p class="page-sub">${t('redeem.subtitle')}</p>
       </div>
     </div>
 
@@ -1502,11 +2258,11 @@ function renderWalletCard(wallet){
     <div class="card panel" style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:14px; padding:44px 24px; margin-bottom:26px;">
       <div style="width:44px; height:44px; border-radius:12px; background:var(--accent-soft); color:var(--accent-ink); display:flex; align-items:center; justify-content:center;">${icon('wallet')}</div>
       <div>
-        <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:17px; margin-bottom:6px;">Connect a wallet to continue</h3>
-        <p class="prose" style="max-width:46ch; margin:0 auto;">MetaMask (or any injected EVM wallet) identifies the address your redeemed royalties are sent to.</p>
+        <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:17px; margin-bottom:6px;">${t('redeem.connectPrompt')}</h3>
+        <p class="prose" style="max-width:46ch; margin:0 auto;">${t('redeem.connectBody')}</p>
       </div>
-      <button class="btn btn-primary btn-lg" id="connectWalletBtn" ${wallet.connecting?'disabled':''}>${icon('wallet')} ${wallet.connecting?'Connecting…':'Connect MetaMask'}</button>
-      ${!hasInjectedWallet() ? `<p class="prose" style="font-size:12px;">No wallet extension detected in this browser — <a href="https://metamask.io" target="_blank" rel="noopener">install MetaMask</a> to try this flow for real.</p>` : ''}
+      <button class="btn btn-primary btn-lg" id="connectWalletBtn" ${wallet.connecting?'disabled':''}>${icon('wallet')} ${wallet.connecting?t('wallet.connecting'):t('redeem.connectBtn')}</button>
+      ${!hasInjectedWallet() ? `<p class="prose" style="font-size:12px;">${t('redeem.noWalletNote')}</p>` : ''}
     </div>`;
   }
   return `
@@ -1515,10 +2271,10 @@ function renderWalletCard(wallet){
         <div style="width:36px; height:36px; border-radius:999px; background:var(--good-soft); color:var(--good); display:flex; align-items:center; justify-content:center; flex:none;">${icon('checkCircle')}</div>
         <div>
           <div class="cell-primary mono">${truncateAddr(wallet.address)}</div>
-          <div style="font-size:12px; color:var(--text-secondary);">${chainName(wallet.chainId)} · connected</div>
+          <div style="font-size:12px; color:var(--text-secondary);">${t('redeem.connectedNetwork', { chain: chainName(wallet.chainId) })}</div>
         </div>
       </div>
-      <button class="btn btn-ghost btn-sm" id="disconnectWalletBtn">Disconnect</button>
+      <button class="btn btn-ghost btn-sm" id="disconnectWalletBtn">${t('wallet.disconnect')}</button>
     </div>`;
 }
 
@@ -1527,22 +2283,22 @@ function hasInjectedWallet(){ return typeof window !== 'undefined' && !!window.e
 function renderRedeemTable(){
   const { holdings, distributions } = store.state.portfolio;
   if (!holdings.length){
-    return `<div class="empty-state card">${icon('wallet')}<h3>Nothing to redeem yet</h3><p>Buy a fractional royalty share in the <a href="#/marketplace">marketplace</a> first.</p></div>`;
+    return `<div class="empty-state card">${icon('wallet')}<h3>${t('redeem.nothingYetTitle')}</h3><p>${t('redeem.nothingYetBody')}</p></div>`;
   }
   const totalRedeemable = holdings.reduce((s,h)=>s+h.unclaimed,0);
   const totalRedeemed = distributions.reduce((s,d)=>s+d.amount,0);
 
   return `
     <div class="stat-grid">
-      <div class="card stat-tile"><div class="label">Redeemable now</div><div class="value" style="color:var(--accent-ink);">${fmtUSD(totalRedeemable)}</div></div>
-      <div class="card stat-tile"><div class="label">Lifetime redeemed</div><div class="value" style="color:var(--good);">${fmtUSD(totalRedeemed)}</div></div>
-      <div class="card stat-tile"><div class="label">Destination wallet</div><div class="value mono" style="font-size:15px;">${truncateAddr(store.state.wallet.address)}</div></div>
+      <div class="card stat-tile"><div class="label">${t('redeem.redeemableNow')}</div><div class="value" style="color:var(--accent-ink);">${fmtUSD(totalRedeemable)}</div></div>
+      <div class="card stat-tile"><div class="label">${t('redeem.lifetimeRedeemed')}</div><div class="value" style="color:var(--good);">${fmtUSD(totalRedeemed)}</div></div>
+      <div class="card stat-tile"><div class="label">${t('redeem.destinationWallet')}</div><div class="value mono" style="font-size:15px;">${truncateAddr(store.state.wallet.address)}</div></div>
     </div>
 
     <div class="card" style="margin-bottom:20px;">
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Asset</th><th class="cell-num">Tokens</th><th class="cell-num">Redeemable</th><th></th></tr></thead>
+          <thead><tr><th>${t('redeem.tableAsset')}</th><th class="cell-num">${t('redeem.tableTokens')}</th><th class="cell-num">${t('redeem.tableRedeemable')}</th><th></th></tr></thead>
           <tbody>
             ${holdings.map(h => {
               const a = assetById(h.assetId);
@@ -1555,8 +2311,8 @@ function renderRedeemTable(){
                 <td class="cell-num mono">${h.tokens}</td>
                 <td class="cell-num mono" style="${h.unclaimed>0?'color:var(--accent-ink); font-weight:600;':''}">${fmtUSD(h.unclaimed)}</td>
                 <td style="text-align:right;">${h.unclaimed>0
-                  ? `<button class="btn btn-secondary btn-sm" data-redeem="${a.id}" ${redeemUI.pending?'disabled':''}>${busy?'Redeeming…':'Redeem'}</button>`
-                  : `<span class="chip chip-neutral">${icon('checkCircle')} Up to date</span>`}</td>
+                  ? `<button class="btn btn-secondary btn-sm" data-redeem="${a.id}" ${redeemUI.pending?'disabled':''}>${busy?t('redeem.redeeming'):t('redeem.redeemBtn')}</button>`
+                  : `<span class="chip chip-neutral">${icon('checkCircle')} ${t('redeem.upToDate')}</span>`}</td>
               </tr>`;
             }).join('')}
           </tbody>
@@ -1564,7 +2320,7 @@ function renderRedeemTable(){
       </div>
     </div>
 
-    ${totalRedeemable>0 ? `<button class="btn btn-primary" id="redeemAllBtn" ${redeemUI.pending?'disabled':''}>${icon('wallet')} ${redeemUI.pending==='all'?'Redeeming…':'Redeem all to wallet ('+fmtUSD(totalRedeemable)+')'}</button>` : `<p class="prose">Everything is redeemed — check back after your next royalty period.</p>`}
+    ${totalRedeemable>0 ? `<button class="btn btn-primary" id="redeemAllBtn" ${redeemUI.pending?'disabled':''}>${icon('wallet')} ${redeemUI.pending==='all'?t('redeem.redeeming'):t('redeem.redeemAll', { amount: fmtUSD(totalRedeemable) })}</button>` : `<p class="prose">${t('redeem.allRedeemed')}</p>`}
   `;
 }
 
@@ -1574,13 +2330,13 @@ function renderRedeemSuccessModal(){
   <div class="modal-scrim" id="redeemScrim">
     <div class="modal">
       <div class="success-icon">${icon('check')}</div>
-      <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:18px;">Redeemed to your wallet</h3>
-      <p style="font-size:13.5px; color:var(--text-secondary);"><strong style="color:var(--text);">${fmtUSD(s.amount)}</strong> sent to <span class="mono">${truncateAddr(store.state.wallet.address)}</span>.</p>
+      <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:18px;">${t('redeem.successTitle')}</h3>
+      <p style="font-size:13.5px; color:var(--text-secondary);">${t('redeem.successBody', { amount: fmtUSD(s.amount), addr: `<span class="mono">${truncateAddr(store.state.wallet.address)}</span>` })}</p>
       <div class="card panel" style="text-align:left; font-size:12px;">
-        <div style="color:var(--text-secondary); margin-bottom:4px;">Transaction hash (simulated)</div>
+        <div style="color:var(--text-secondary); margin-bottom:4px;">${t('redeem.txHashLabel')}</div>
         <div class="mono" style="word-break:break-all;">${s.txHash}</div>
       </div>
-      <button class="btn btn-primary btn-block" id="closeRedeemModal">Done</button>
+      <button class="btn btn-primary btn-block" id="closeRedeemModal">${t('redeem.done')}</button>
     </div>
   </div>`;
 }
@@ -1645,12 +2401,12 @@ function renderForArtists(){
   return `
     <div class="hero-split">
       <div>
-        <span class="page-kicker">For artists &amp; rights holders</span>
-        <h1>Raise against your catalogue — or finance the track before it exists</h1>
-        <p class="page-sub" style="margin-top:14px; font-size:15px;">Tokenize an already-monetized catalogue for upfront liquidity, or let listeners fund production of an unfinished track through milestone-gated escrow. Either way, you keep creative control — token holders get transparency and a share of the upside, not a seat at the mixing desk.</p>
+        <span class="page-kicker">${t('forArtists.kicker')}</span>
+        <h1>${t('forArtists.title')}</h1>
+        <p class="page-sub" style="margin-top:14px; font-size:15px;">${t('forArtists.subtitle')}</p>
         <div style="display:flex; gap:12px; margin-top:22px; flex-wrap:wrap;">
-          <a class="btn btn-primary btn-lg" href="#/artist/onboarding">${icon('sparkles')} Start a campaign</a>
-          <a class="btn btn-secondary btn-lg" href="#/artist/dashboard">View my campaigns</a>
+          <a class="btn btn-primary btn-lg" href="#/artist/onboarding">${icon('sparkles')} ${t('forArtists.startCampaign')}</a>
+          <a class="btn btn-secondary btn-lg" href="#/artist/dashboard">${t('forArtists.viewCampaigns')}</a>
         </div>
       </div>
       <div class="mock-illustration" style="${coverStyle('artist-hero','preproduction')}; display:flex; align-items:center; justify-content:center; position:relative;">
@@ -1662,23 +2418,23 @@ function renderForArtists(){
     <div class="feature-grid">
       <div class="card feature-card">
         <div class="icon">${icon('shield')}</div>
-        <h4>Escrow, not a shared account</h4>
-        <p>Raised funds sit in a milestone-gated smart contract — a tranche only releases when a milestone is confirmed, with a pro-rata refund path if the campaign stalls.</p>
+        <h4>${t('forArtists.feature1Title')}</h4>
+        <p>${t('forArtists.feature1Body')}</p>
       </div>
       <div class="card feature-card">
         <div class="icon">${icon('sparkles')}</div>
-        <h4>AI-disclosure built in</h4>
-        <p>Per-element disclosure (vocals, instrumentation, composition, post-production, lyrics) is captured at upload — evidence you can point to if a DSP's classification is ever disputed.</p>
+        <h4>${t('forArtists.feature2Title')}</h4>
+        <p>${t('forArtists.feature2Body')}</p>
       </div>
       <div class="card feature-card">
         <div class="icon">${icon('scale')}</div>
-        <h4>Advisory governance only</h4>
-        <p>Token holders can vote on a shortlist you've already vetted — never a binding vote that exposes anyone to partnership-style liability.</p>
+        <h4>${t('forArtists.feature3Title')}</h4>
+        <p>${t('forArtists.feature3Body')}</p>
       </div>
     </div>
 
     ${myCampaigns.length ? `
-      <div class="page-head" style="margin-top:40px; margin-bottom:14px;"><h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:17px;">Your campaigns</h3><a href="#/artist/dashboard" style="font-size:13px;">View all ${icon('arrowRight')}</a></div>
+      <div class="page-head" style="margin-top:40px; margin-bottom:14px;"><h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:17px;">${t('forArtists.yourCampaigns')}</h3><a href="#/artist/dashboard" style="font-size:13px;">${t('forArtists.viewAll')} ${icon('arrowRight')}</a></div>
       <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));">${myCampaigns.slice(0,3).map(c => campaignCard(c)).join('')}</div>
     ` : ''}
   `;
@@ -1688,11 +2444,11 @@ function renderForArtists(){
    VIEW — Artist onboarding wizard
 =================================================================== */
 const WIZARD_STEPS = [
-  { key:'basics', label:'Track details' },
-  { key:'model', label:'Financing model' },
-  { key:'source', label:'Verification / budget' },
-  { key:'disclosure', label:'AI disclosure' },
-  { key:'review', label:'Review & submit' },
+  { key:'basics', labelKey:'wizStep.basics' },
+  { key:'model', labelKey:'wizStep.model' },
+  { key:'source', labelKey:'wizStep.source' },
+  { key:'disclosure', labelKey:'wizStep.disclosure' },
+  { key:'review', labelKey:'wizStep.review' },
 ];
 
 function renderOnboarding(){
@@ -1701,22 +2457,22 @@ function renderOnboarding(){
   const stepDef = WIZARD_STEPS[w.step];
 
   return `
-    <div class="page-head"><div><span class="page-kicker">New campaign</span><h1>Set up a royalty-token campaign</h1></div></div>
+    <div class="page-head"><div><span class="page-kicker">${t('wizard.kicker')}</span><h1>${t('wizard.title')}</h1></div></div>
     <div class="wizard-layout">
       <div class="wizard-rail">
         ${WIZARD_STEPS.map((s,i) => `
           <div class="wizard-step ${i<w.step?'done':i===w.step?'active':''}">
             <span class="dot">${i<w.step?icon('check'):i+1}</span>
-            <span>${s.label}</span>
+            <span>${t(s.labelKey)}</span>
           </div>`).join('')}
       </div>
       <div class="card panel" style="padding:28px;">
         ${renderWizardStep(stepDef.key, w)}
         <div class="wizard-foot">
-          <button class="btn btn-ghost" id="wizBack" ${w.step===0?'disabled':''}>${icon('chevronLeft')} Back</button>
+          <button class="btn btn-ghost" id="wizBack" ${w.step===0?'disabled':''}>${icon('chevronLeft')} ${t('wizard.back')}</button>
           ${w.step < WIZARD_STEPS.length-1
-            ? `<button class="btn btn-primary" id="wizNext">Continue ${icon('arrowRight')}</button>`
-            : `<button class="btn btn-primary" id="wizSubmit" ${w.data.ack?'':'disabled'}>${icon('sparkles')} Launch campaign</button>`}
+            ? `<button class="btn btn-primary" id="wizNext">${t('wizard.continueBtn')} ${icon('arrowRight')}</button>`
+            : `<button class="btn btn-primary" id="wizSubmit" ${w.data.ack?'':'disabled'}>${icon('sparkles')} ${t('wizard.launchCampaign')}</button>`}
         </div>
       </div>
     </div>
@@ -1726,32 +2482,33 @@ function renderOnboarding(){
 function renderWizardStep(key, w){
   const d = w.data;
   if (key === 'basics'){
+    const genres = [['Indie Pop','genre.indiePop'],['Electronic','genre.electronic'],['Alt R&B','genre.altRnb'],['Lo-fi / Ambient','genre.lofiAmbient'],['Cinematic / Orchestral','genre.cinematic'],['Rock','genre.rock'],['Hip-Hop','genre.hiphop'],['Other','genre.other']];
     return `
-      <h3 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:4px;">Tell us about the track or catalogue</h3>
-      <p class="prose" style="margin-bottom:18px;">Just enough to generate a listing preview — full metadata is collected later in a real onboarding flow.</p>
+      <h3 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:4px;">${t('wizBasics.title')}</h3>
+      <p class="prose" style="margin-bottom:18px;">${t('wizBasics.subtitle')}</p>
       <div class="form-grid">
-        <div class="field"><label>Title</label><input type="text" id="fTitle" value="${d.title}" placeholder="e.g. Glass Horizon"></div>
-        <div class="field"><label>Artist / act name</label><input type="text" id="fArtist" value="${d.artistName}" placeholder="e.g. Cerchio Blu"></div>
-        <div class="field"><label>Genre</label>
-          <select id="fGenre">${['Indie Pop','Electronic','Alt R&B','Lo-fi / Ambient','Cinematic / Orchestral','Rock','Hip-Hop','Other'].map(g=>`<option ${d.genre===g?'selected':''}>${g}</option>`).join('')}</select>
+        <div class="field"><label>${t('wizBasics.titleLabel')}</label><input type="text" id="fTitle" value="${d.title}" placeholder="${t('wizBasics.titlePlaceholder')}"></div>
+        <div class="field"><label>${t('wizBasics.artistLabel')}</label><input type="text" id="fArtist" value="${d.artistName}" placeholder="${t('wizBasics.artistPlaceholder')}"></div>
+        <div class="field"><label>${t('wizBasics.genreLabel')}</label>
+          <select id="fGenre">${genres.map(([g,lk])=>`<option value="${g}" ${d.genre===g?'selected':''}>${t(lk)}</option>`).join('')}</select>
         </div>
-        <div class="field" style="grid-column:1/-1;"><label>Short description</label><textarea id="fDesc" placeholder="What makes this catalogue or track worth financing?">${d.description}</textarea></div>
+        <div class="field" style="grid-column:1/-1;"><label>${t('wizBasics.descLabel')}</label><textarea id="fDesc" placeholder="${t('wizBasics.descPlaceholder')}">${d.description}</textarea></div>
       </div>`;
   }
   if (key === 'model'){
     return `
-      <h3 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:4px;">Which model fits this campaign?</h3>
-      <p class="prose" style="margin-bottom:18px;">This is the single biggest fork in the road — it changes the risk profile, the pitch to investors, and the compliance path.</p>
+      <h3 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:4px;">${t('wizModel.title')}</h3>
+      <p class="prose" style="margin-bottom:18px;">${t('wizModel.subtitle')}</p>
       <div class="choice-cards">
         <button class="choice-card ${d.model==='catalogue'?'selected':''}" data-model="catalogue">
           <div class="icon">${icon('coins')}</div>
-          <h4>Tokenize an existing catalogue</h4>
-          <p>Bond-like. Your track is already released and earning. Investors buy a share of known, reported income.</p>
+          <h4>${t('wizModel.catalogueTitle')}</h4>
+          <p>${t('wizModel.catalogueBody')}</p>
         </button>
         <button class="choice-card ${d.model==='preproduction'?'selected':''}" data-model="preproduction">
           <div class="icon">${icon('sparkles')}</div>
-          <h4>Pre-production financing</h4>
-          <p>Venture-like. Raise to finish an unreleased draft — session musicians, studio time, mix &amp; master — before it exists.</p>
+          <h4>${t('wizModel.preprodTitle')}</h4>
+          <p>${t('wizModel.preprodBody')}</p>
         </button>
       </div>`;
   }
@@ -1760,44 +2517,44 @@ function renderWizardStep(key, w){
       const b = d.preprod;
       const total = b.studio + b.session + b.mix + b.extra;
       return `
-        <h3 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:4px;">Production budget</h3>
-        <p class="prose" style="margin-bottom:18px;">This becomes your milestone escrow — each line releases as a tranche once confirmed.</p>
-        <div class="budget-row"><label>Studio time</label><input type="number" id="bStudio" min="0" step="100" class="mono" value="${b.studio}"></div>
-        <div class="budget-row"><label>Session musicians / vocalist</label><input type="number" id="bSession" min="0" step="100" class="mono" value="${b.session}"></div>
-        <div class="budget-row"><label>Mixing &amp; mastering</label><input type="number" id="bMix" min="0" step="100" class="mono" value="${b.mix}"></div>
-        <div class="budget-row"><label>Release / marketing</label><input type="number" id="bExtra" min="0" step="100" class="mono" value="${b.extra}"></div>
-        <div class="budget-total"><span>Total funding goal</span><span class="mono">${fmtUSD(total)}</span></div>
-        <p class="prose" style="margin-top:14px; font-size:12.5px;">Tokens will be priced at $10 — that's ${Math.ceil(total/10).toLocaleString()} tokens at this goal.</p>
+        <h3 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:4px;">${t('wizSource.preprodTitle')}</h3>
+        <p class="prose" style="margin-bottom:18px;">${t('wizSource.preprodSubtitle')}</p>
+        <div class="budget-row"><label>${t('wizSource.studioLabel')}</label><input type="number" id="bStudio" min="0" step="100" class="mono" value="${b.studio}"></div>
+        <div class="budget-row"><label>${t('wizSource.sessionLabel')}</label><input type="number" id="bSession" min="0" step="100" class="mono" value="${b.session}"></div>
+        <div class="budget-row"><label>${t('wizSource.mixLabel')}</label><input type="number" id="bMix" min="0" step="100" class="mono" value="${b.mix}"></div>
+        <div class="budget-row"><label>${t('wizSource.extraLabel')}</label><input type="number" id="bExtra" min="0" step="100" class="mono" value="${b.extra}"></div>
+        <div class="budget-total"><span>${t('wizSource.totalLabel')}</span><span class="mono">${fmtUSD(total)}</span></div>
+        <p class="prose" style="margin-top:14px; font-size:12.5px;">${t('wizSource.tokenNote', { n: Math.ceil(total/10).toLocaleString() })}</p>
       `;
     }
     const c = d.catalogue;
     return `
-      <h3 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:4px;">Royalty verification</h3>
-      <p class="prose" style="margin-bottom:18px;">In a real flow this is a human-in-the-loop diligence process against PRO and distributor statements. Here, a quick mock of what we'd collect.</p>
+      <h3 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:4px;">${t('wizSource.catalogueTitle')}</h3>
+      <p class="prose" style="margin-bottom:18px;">${t('wizSource.catalogueSubtitle')}</p>
       <div class="form-grid">
-        <div class="field"><label>Primary distributor / PRO</label>
+        <div class="field"><label>${t('wizSource.distributorLabel')}</label>
           <select id="cDsp">${['Spotify for Artists','Apple Music for Artists','DistroKid','Believe','SIAE'].map(x=>`<option ${c.dsp===x?'selected':''}>${x}</option>`).join('')}</select>
         </div>
-        <div class="field"><label>Months of reported history</label><input type="number" id="cMonths" min="1" class="mono" value="${c.months}"></div>
+        <div class="field"><label>${t('wizSource.monthsLabel')}</label><input type="number" id="cMonths" min="1" class="mono" value="${c.months}"></div>
       </div>
       <div class="field" style="margin-top:14px;">
-        <label>Royalty statement</label>
-        <div class="doc-row" style="cursor:pointer;" id="mockUpload">${icon('upload')}<span class="name">${c.history || 'Click to attach a statement (mock)'}</span></div>
-        <span class="hint">PDF or CSV export from your distributor/PRO dashboard.</span>
+        <label>${t('wizSource.statementLabel')}</label>
+        <div class="doc-row" style="cursor:pointer;" id="mockUpload">${icon('upload')}<span class="name">${c.history || t('wizSource.statementPlaceholder')}</span></div>
+        <span class="hint">${t('wizSource.statementHint')}</span>
       </div>
     `;
   }
   if (key === 'disclosure'){
-    const rows = [['vocals','Vocals'],['instrumentation','Instrumentation'],['composition','Composition'],['postProduction','Post-production'],['lyrics','Lyrics']];
+    const rows = [['vocals',t('disclosure.vocals')],['instrumentation',t('disclosure.instrumentation')],['composition',t('disclosure.composition')],['postProduction',t('disclosure.postProduction')],['lyrics',t('disclosure.lyrics')]];
     return `
-      <h3 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:4px;">AI-content disclosure</h3>
-      <p class="prose" style="margin-bottom:18px;">Recorded once, reused everywhere: as DDEX metadata for DSPs, and as the evidence file if a classification is ever disputed.</p>
+      <h3 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:4px;">${t('wizDisclosure.title')}</h3>
+      <p class="prose" style="margin-bottom:18px;">${t('wizDisclosure.subtitle')}</p>
       <div class="disclosure-form">
         ${rows.map(([k,label]) => `
           <div class="disclosure-row">
             <span class="name">${label}</span>
             <div class="seg-3" data-key="${k}">
-              ${[['human','Human'],['ai-assisted','AI-assisted'],['ai','AI-generated']].map(([v,l]) => `<button data-val="${v}" class="${d.disclosure[k]===v?'active':''}">${l}</button>`).join('')}
+              ${[['human',t('disclosure.human')],['ai-assisted',t('disclosure.aiAssisted')],['ai',t('disclosure.ai')]].map(([v,l]) => `<button data-val="${v}" class="${d.disclosure[k]===v?'active':''}">${l}</button>`).join('')}
             </div>
           </div>`).join('')}
       </div>`;
@@ -1806,17 +2563,17 @@ function renderWizardStep(key, w){
     const isPre = d.model === 'preproduction';
     const total = isPre ? (d.preprod.studio+d.preprod.session+d.preprod.mix+d.preprod.extra) : null;
     return `
-      <h3 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:4px;">Review &amp; launch</h3>
+      <h3 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:4px;">${t('wizReview.title')}</h3>
       <div class="stat-row" style="margin:18px 0;">
-        <div class="card stat-tile"><div class="label">Title</div><div class="value" style="font-size:15px; font-family:'IBM Plex Sans',sans-serif;">${d.title || '—'}</div></div>
-        <div class="card stat-tile"><div class="label">Model</div><div class="value" style="font-size:15px; font-family:'IBM Plex Sans',sans-serif;">${isPre?'Pre-production':'Catalogue'}</div></div>
-        ${isPre ? `<div class="card stat-tile"><div class="label">Funding goal</div><div class="value">${fmtUSD(total)}</div></div>`
-                : `<div class="card stat-tile"><div class="label">History</div><div class="value">${d.catalogue.months} mo.</div></div>`}
+        <div class="card stat-tile"><div class="label">${t('wizReview.titleField')}</div><div class="value" style="font-size:15px; font-family:'IBM Plex Sans',sans-serif;">${d.title || '—'}</div></div>
+        <div class="card stat-tile"><div class="label">${t('wizReview.modelField')}</div><div class="value" style="font-size:15px; font-family:'IBM Plex Sans',sans-serif;">${isPre?t('wizReview.modelPreprod'):t('wizReview.modelCatalogue')}</div></div>
+        ${isPre ? `<div class="card stat-tile"><div class="label">${t('wizReview.fundingGoalField')}</div><div class="value">${fmtUSD(total)}</div></div>`
+                : `<div class="card stat-tile"><div class="label">${t('wizReview.historyField')}</div><div class="value">${t('detail.moSuffix', { n: d.catalogue.months })}</div></div>`}
       </div>
-      <div class="prose" style="margin-bottom:16px;">Launching creates a listing visible in the marketplace with mock data seeded from what you entered. In a real launch this step would trigger SPV setup and legal review — nothing here is a real offering.</div>
+      <div class="prose" style="margin-bottom:16px;">${t('wizReview.launchNote')}</div>
       <label class="check-row">
         <input type="checkbox" id="wizAck" ${d.ack?'checked':''}>
-        <span>I understand this is a prototype: no real funds, tokens or legal entity are created.</span>
+        <span>${t('wizReview.ackLabel')}</span>
       </label>
     `;
   }
@@ -1848,7 +2605,7 @@ function wireOnboardingEvents(){
   });
   const cDsp = app.querySelector('#cDsp'); if (cDsp) cDsp.addEventListener('change', () => d.catalogue.dsp = cDsp.value);
   const cMonths = app.querySelector('#cMonths'); if (cMonths) cMonths.addEventListener('input', () => d.catalogue.months = cMonths.value);
-  const mockUpload = app.querySelector('#mockUpload'); if (mockUpload) mockUpload.addEventListener('click', () => { d.catalogue.history = 'royalty-statement-2026.pdf'; showToast('Statement attached (mock).', {icon:'file'}); render(); });
+  const mockUpload = app.querySelector('#mockUpload'); if (mockUpload) mockUpload.addEventListener('click', () => { d.catalogue.history = 'royalty-statement-2026.pdf'; showToast(t('toast.statementAttached'), {icon:'file'}); render(); });
 
   app.querySelectorAll('.seg-3').forEach(seg => {
     seg.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => { d.disclosure[seg.dataset.key] = btn.dataset.val; render(); }));
@@ -1858,7 +2615,7 @@ function wireOnboardingEvents(){
 
   const back = app.querySelector('#wizBack'); if (back) back.addEventListener('click', () => { w.step = Math.max(0, w.step-1); render(); });
   const next = app.querySelector('#wizNext'); if (next) next.addEventListener('click', () => {
-    if (!canAdvance(w)){ showToast('Fill in the required fields first.', {icon:'alert'}); return; }
+    if (!canAdvance(w)){ showToast(t('wizard.fillRequired'), {icon:'alert'}); return; }
     w.step = Math.min(WIZARD_STEPS.length-1, w.step+1); render();
   });
   const submit = app.querySelector('#wizSubmit'); if (submit) submit.addEventListener('click', submitCampaign);
@@ -1902,7 +2659,7 @@ function submitCampaign(){
     disclosure:{ vocals:'human', instrumentation:'human', composition:'human', postProduction:'human', lyrics:'human' },
     ack:false } };
 
-  showToast('Campaign launched — now listed in the marketplace.', {icon:'sparkles'});
+  showToast(t('toast.campaignLaunched'), {icon:'sparkles'});
   navigate('#/artist/dashboard');
 }
 
@@ -1928,14 +2685,14 @@ function campaignCard(c){
     <div>
       <div class="meter"><span style="width:${pct}%"></span></div>
       <div class="asset-meta-row" style="margin-top:6px;">
-        <span>${fmtUSDShort(fundingRaised(a))} of ${fmtUSDShort(fundingGoal(a))}</span>
+        <span>${t('asset.ofGoal', { raised: fmtUSDShort(fundingRaised(a)), goal: fmtUSDShort(fundingGoal(a)) })}</span>
         <span class="value">${pct}%</span>
       </div>
     </div>
     ${a.milestones ? milestoneTrack(a.milestones) : ''}
     <div style="display:flex; justify-content:space-between; align-items:center; padding-top:4px;">
-      <span style="font-size:12.5px; color:var(--text-secondary); display:flex; align-items:center; gap:6px;">${icon('users')} ${c.holders} token holders</span>
-      <a class="btn btn-secondary btn-sm" href="#/asset/${a.id}">View listing ${icon('arrowRight')}</a>
+      <span style="font-size:12.5px; color:var(--text-secondary); display:flex; align-items:center; gap:6px;">${icon('users')} ${t('campaignCard.tokenHolders', { n: c.holders })}</span>
+      <a class="btn btn-secondary btn-sm" href="#/asset/${a.id}">${t('campaignCard.viewListing')} ${icon('arrowRight')}</a>
     </div>
   </div>`;
 }
@@ -1944,20 +2701,20 @@ function renderArtistDashboard(){
   const campaigns = store.state.campaigns;
   if (!campaigns.length){
     return `
-      <div class="page-head"><div><span class="page-kicker">Artist dashboard</span><h1>My campaigns</h1></div></div>
-      <div class="empty-state card">${icon('music')}<h3>No campaigns yet</h3><p>Launch your first campaign to see it here. <a href="#/artist/onboarding">Start a campaign</a></p></div>`;
+      <div class="page-head"><div><span class="page-kicker">${t('artistDash.kicker')}</span><h1>${t('artistDash.title')}</h1></div></div>
+      <div class="empty-state card">${icon('music')}<h3>${t('artistDash.emptyTitle')}</h3><p>${t('artistDash.emptyBody')} <a href="#/artist/onboarding">${t('artistDash.startCampaign')}</a></p></div>`;
   }
   const totalRaised = campaigns.reduce((s,c)=>s+fundingRaised(assetById(c.assetId)),0);
   const totalHolders = campaigns.reduce((s,c)=>s+c.holders,0);
   return `
     <div class="page-head">
-      <div><span class="page-kicker">Artist dashboard</span><h1>My campaigns</h1></div>
-      <a class="btn btn-primary" href="#/artist/onboarding">${icon('sparkles')} New campaign</a>
+      <div><span class="page-kicker">${t('artistDash.kicker')}</span><h1>${t('artistDash.title')}</h1></div>
+      <a class="btn btn-primary" href="#/artist/onboarding">${icon('sparkles')} ${t('artistDash.newCampaign')}</a>
     </div>
     <div class="stat-grid">
-      <div class="card stat-tile"><div class="label">Active campaigns</div><div class="value">${campaigns.length}</div></div>
-      <div class="card stat-tile"><div class="label">Total raised</div><div class="value">${fmtUSDShort(totalRaised)}</div></div>
-      <div class="card stat-tile"><div class="label">Token holders</div><div class="value">${totalHolders}</div></div>
+      <div class="card stat-tile"><div class="label">${t('artistDash.activeCampaigns')}</div><div class="value">${campaigns.length}</div></div>
+      <div class="card stat-tile"><div class="label">${t('artistDash.totalRaised')}</div><div class="value">${fmtUSDShort(totalRaised)}</div></div>
+      <div class="card stat-tile"><div class="label">${t('artistDash.tokenHolders')}</div><div class="value">${totalHolders}</div></div>
     </div>
     <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(340px,1fr));">
       ${campaigns.map(campaignCard).join('')}
@@ -1968,6 +2725,7 @@ function renderArtistDashboard(){
 /* ===================================================================
    INIT
 =================================================================== */
+document.documentElement.lang = store.state.locale;
 render();
 wireWalletProviderEvents();
 silentWalletSync();
