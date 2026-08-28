@@ -1,0 +1,13 @@
+{
+  "name": "humfiverse-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Mock backend for the Humfiverse frontend prototype (SQLite-backed, zero npm dependencies).",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  }
+}
