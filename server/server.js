@@ -16,6 +16,7 @@ const http = require("node:http");
 const path = require("node:path");
 const { DatabaseSync } = require("node:sqlite");
 const { ASSETS, CAMPAIGNS, PORTFOLIO } = require("./seed-data");
+const { CONTRACT_TEMPLATE } = require("./contract-template");
 
 const PORT = process.env.PORT || 3001;
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, "humfiverse.db");
@@ -27,6 +28,16 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS campaigns (id TEXT PRIMARY KEY, data TEXT NOT NULL);
   CREATE TABLE IF NOT EXISTS holdings (assetId TEXT PRIMARY KEY, tokens REAL, costBasis REAL, unclaimed REAL);
   CREATE TABLE IF NOT EXISTS distributions (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, assetId TEXT, amount REAL);
+  CREATE TABLE IF NOT EXISTS contract_acceptances (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    template_version TEXT,
+    artist_name TEXT,
+    track_title TEXT,
+    general_accepted INTEGER,
+    vessatoria_accepted TEXT,
+    receipt_hash TEXT,
+    accepted_at TEXT
+  );
 `);
 
 function seedIfEmpty() {
@@ -93,6 +104,41 @@ function redeem(assetId) {
   return { amount, txHash: fakeTxHash(), portfolio: getPortfolio() };
 }
 
+const VESSATORIA_CLAUSE_IDS = CONTRACT_TEMPLATE.clauses.filter(c => c.vessatoria).map(c => c.id);
+
+/* Server-side re-validation: never trust the client's checkbox state alone
+   for a document with clauses that (per art. 1341 co.2 c.c.) need specific,
+   individual acceptance — the general "I accept" checkbox is not enough on
+   its own for those clauses. */
+function validateContractAcceptance(body) {
+  const missing = [];
+  if (body.generalAccepted !== true) missing.push("generalAccepted");
+  const va = body.vessatoriaAccepted || {};
+  for (const clauseId of VESSATORIA_CLAUSE_IDS) {
+    if (va[clauseId] !== true) missing.push(clauseId);
+  }
+  return missing;
+}
+
+function recordContractAcceptance(body) {
+  const receiptHash = fakeTxHash();
+  const acceptedAt = new Date().toISOString();
+  db.prepare(`
+    INSERT INTO contract_acceptances
+      (template_version, artist_name, track_title, general_accepted, vessatoria_accepted, receipt_hash, accepted_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    CONTRACT_TEMPLATE.version,
+    body.artistName || "",
+    body.trackTitle || "",
+    1,
+    JSON.stringify(body.vessatoriaAccepted || {}),
+    receiptHash,
+    acceptedAt
+  );
+  return { receiptHash, acceptedAt, templateVersion: CONTRACT_TEMPLATE.version };
+}
+
 function sendJson(res, status, body) {
   const json = JSON.stringify(body);
   res.writeHead(status, {
@@ -130,6 +176,26 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === "GET" && url.pathname === "/api/data") {
     sendJson(res, 200, { assets: getAssets(), campaigns: getCampaigns(), portfolio: getPortfolio() });
+    return;
+  }
+
+  if (req.method === "GET" && url.pathname === "/api/contract-template") {
+    sendJson(res, 200, CONTRACT_TEMPLATE);
+    return;
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/contract-acceptance") {
+    try {
+      const body = await readBody(req);
+      const missing = validateContractAcceptance(body);
+      if (missing.length) {
+        sendJson(res, 400, { error: "missing required acceptances", missing });
+        return;
+      }
+      sendJson(res, 200, recordContractAcceptance(body));
+    } catch (e) {
+      sendJson(res, 400, { error: "invalid request body" });
+    }
     return;
   }
 

@@ -721,6 +721,13 @@ async function hydrateFromBackend(){
     console.warn('Humfiverse backend unavailable — using bundled mock data.', err);
     backendAvailable = false;
   }
+  try {
+    const res = await fetch(API_BASE + '/api/contract-template');
+    if (res.ok){
+      const tpl = await res.json();
+      if (tpl && Array.isArray(tpl.clauses) && tpl.clauses.length) CONTRACT_TEMPLATE = tpl;
+    }
+  } catch (err){ /* keep bundled fallback template */ }
 }
 
 async function redeemViaBackend(assetId){
@@ -730,6 +737,16 @@ async function redeemViaBackend(assetId){
     body: JSON.stringify({ assetId })
   });
   if (!res.ok) throw new Error('redeem failed: ' + res.status);
+  return res.json();
+}
+
+async function submitContractAcceptance(payload){
+  const res = await fetch(API_BASE + '/api/contract-acceptance', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) throw new Error('contract acceptance failed: ' + res.status);
   return res.json();
 }
 
@@ -744,6 +761,44 @@ const CAMPAIGNS = [
     holders:184, milestones: ASSETS.find(a=>a.id==='glass-horizon').milestones,
   }
 ];
+
+/* ===================================================================
+   CONTRACT TEMPLATE — fallback copy, mirrors server/contract-template.js.
+   Replaced by the backend's version at hydration time when reachable
+   (same pattern as ASSETS/CAMPAIGNS/portfolio). Draft prototype text,
+   not reviewed by counsel — see the file this mirrors for the full note.
+   Clauses flagged vessatoria:true are the ones that most plausibly need
+   separate acceptance under art. 1341, comma 2, c.c.
+=================================================================== */
+let CONTRACT_TEMPLATE = {
+  version: 'v0.1-draft',
+  title: 'Accordo di Cessione Royalty e Escrow a Milestone',
+  note: 'Bozza per il prototipo — non validata da un legale, non costituisce un contratto vincolante.',
+  clauses: [
+    { id:'assignment', title:'Cessione dei proventi royalty alla SPV', vessatoria:false,
+      body:"L'Artista cede alla SPV titolare del catalogo/brano il diritto di incassare i proventi royalty relativi al brano caricato, per la durata e alle condizioni descritte nella documentazione di offerta. La cessione non trasferisce il copyright, che resta in capo all'Artista." },
+    { id:'milestones', title:'Piano milestone e calendario di rilascio delle tranche', vessatoria:false,
+      body:"I fondi raccolti sono custoditi in un conto di escrow a milestone. Ogni tranche è rilasciata all'Artista solo al raggiungimento della milestone corrispondente, secondo il calendario indicato nella pagina della campagna." },
+    { id:'manager-discretion', title:"Potere di conferma e sospensione dell'SPV Manager", vessatoria:true,
+      vessatoriaCategory:"facoltà di sospendere l'esecuzione del contratto (art. 1341, comma 2, c.c.)",
+      body:"L'SPV Manager ha la facoltà discrezionale di confermare o meno il raggiungimento di una milestone e, in caso di dubbio, di sospendere il rilascio della tranche corrispondente fino a chiarimento. Tale sospensione non costituisce inadempimento della SPV." },
+    { id:'refund', title:'Formula di rimborso pro-rata e decadenza sulle tranche non rilasciate', vessatoria:true,
+      vessatoriaCategory:"decadenze a carico dell'Artista (art. 1341, comma 2, c.c.)",
+      body:"In caso di mancato raggiungimento dell'obiettivo di raccolta o mancata consegna di una milestone entro i termini, gli importi non ancora rilasciati come tranche sono restituiti pro-rata ai token holder secondo la formula: importo rimborsabile = totale raccolto − Σ(tranche già rilasciate per milestone confermate). L'Artista non ha diritto a percepire le tranche relative a milestone non raggiunte." },
+    { id:'liability', title:'Limitazione di responsabilità della piattaforma e della SPV', vessatoria:true,
+      vessatoriaCategory:'limitazione di responsabilità (art. 1341, comma 2, c.c.)',
+      body:"Salvo dolo o colpa grave, la responsabilità della piattaforma e della SPV per ritardi, sospensioni o mancato rilascio delle tranche è esclusa o limitata all'importo effettivamente trattenuto in escrow relativo alla campagna interessata." },
+    { id:'exclusivity', title:'Esclusiva sui diritti royalty per la durata della campagna', vessatoria:true,
+      vessatoriaCategory:"restrizione alla libertà contrattuale dell'Artista nei rapporti con terzi (art. 1341, comma 2, c.c.)",
+      body:"Per la durata della campagna e fino al completamento delle milestone, l'Artista si impegna a non cedere, impegnare o concedere in garanzia a terzi gli stessi proventi royalty oggetto della cessione alla SPV." },
+    { id:'jurisdiction', title:'Legge applicabile e foro competente', vessatoria:true,
+      vessatoriaCategory:"deroga alla competenza dell'autorità giudiziaria (art. 1341, comma 2, c.c.)",
+      body:"Il presente accordo è regolato dalla legge italiana. Per ogni controversia è competente in via esclusiva il foro della sede legale della SPV, salva la giurisdizione inderogabile del consumatore ove applicabile." },
+    { id:'ai-disclosure', title:"Dichiarazioni sull'uso di intelligenza artificiale in produzione", vessatoria:false,
+      body:"L'Artista dichiara e garantisce l'accuratezza delle informazioni fornite nella sezione di disclosure AI relative al brano caricato, impegnandosi ad aggiornarle in caso di modifiche rilevanti prima del rilascio." },
+  ]
+};
+function vessatoriaClauseIds(){ return CONTRACT_TEMPLATE.clauses.filter(c => c.vessatoria).map(c => c.id); }
 
 /* ===================================================================
    I18N — UI-chrome translations only. Mock asset/campaign/portfolio
@@ -884,6 +939,18 @@ const I18N = {
     'wizReview.fundingGoalField':'Funding goal', 'wizReview.historyField':'History', 'wizReview.modelPreprod':'Pre-production', 'wizReview.modelCatalogue':'Catalogue',
     'wizReview.launchNote':'Launching creates a listing visible in the marketplace with mock data seeded from what you entered. In a real launch this step would trigger SPV setup and legal review — nothing here is a real offering.',
     'wizReview.ackLabel':'I understand this is a prototype: no real funds, tokens or legal entity are created.',
+    'wizStep.contract':'Milestone contract',
+    'wizContract.title':'Milestone escrow & royalty assignment agreement',
+    'wizContract.subtitle':'A standard template every artist accepts at upload — drafted in Italian, since the agreement is governed by Italian law. Read the summary below (shown in your interface language); the clauses themselves stay in Italian, the language of the actual agreement.',
+    'wizContract.languageNote':'Clause text is shown in Italian only — this is a real legal document, not interface copy, and machine-translating it would risk changing its meaning.',
+    'wizContract.generalLabel':'I have read and accept this Milestone Escrow & Royalty Assignment Agreement in full.',
+    'wizContract.vessatoriaIntro':'The clauses below are the ones most likely to qualify as "clausole vessatorie" under art. 1341, comma 2, of the Italian Civil Code — they need your separate, specific acceptance, not just the general checkbox above.',
+    'wizContract.vessatoriaBadge':'Requires separate acceptance',
+    'wizContract.acceptClause':'I specifically accept this clause.',
+    'wizContract.draftNote':'Draft prototype text, not reviewed by counsel — not a binding contract.',
+    'wizContract.requiredNote':'Accept the agreement and every flagged clause to continue.',
+    'toast.contractAccepted':'Contract accepted — receipt {receipt}',
+    'toast.contractFailed':'Could not record contract acceptance — check the flagged clauses.',
 
     'artistDash.kicker':'Artist dashboard', 'artistDash.title':'My campaigns', 'artistDash.newCampaign':'New campaign',
     'artistDash.activeCampaigns':'Active campaigns', 'artistDash.totalRaised':'Total raised', 'artistDash.tokenHolders':'Token holders',
@@ -1025,6 +1092,18 @@ const I18N = {
     'wizReview.fundingGoalField':'Obiettivo di raccolta', 'wizReview.historyField':'Storico', 'wizReview.modelPreprod':'Pre-produzione', 'wizReview.modelCatalogue':'Catalogo',
     'wizReview.launchNote':'L’avvio crea un listing visibile nel marketplace con dati fittizi generati da quanto inserito. In un lancio reale questo passo attiverebbe la costituzione della SPV e la revisione legale — nulla qui è un’offerta reale.',
     'wizReview.ackLabel':'Comprendo che si tratta di un prototipo: non vengono creati fondi, token o entità legali reali.',
+    'wizStep.contract':'Contratto milestone',
+    'wizContract.title':'Accordo di cessione royalty ed escrow a milestone',
+    'wizContract.subtitle':'Un template standard che ogni artista accetta al momento del caricamento — redatto in italiano, poiché l’accordo è regolato dalla legge italiana. Leggi la sintesi qui sotto (mostrata nella lingua della tua interfaccia); il testo delle clausole resta in italiano, la lingua dell’accordo vero e proprio.',
+    'wizContract.languageNote':'Il testo delle clausole è mostrato solo in italiano — è un documento legale reale, non un testo di interfaccia, e una traduzione automatica rischierebbe di alterarne il significato.',
+    'wizContract.generalLabel':'Ho letto e accetto integralmente questo Accordo di Cessione Royalty ed Escrow a Milestone.',
+    'wizContract.vessatoriaIntro':'Le clausole seguenti sono quelle più plausibilmente qualificabili come "clausole vessatorie" ai sensi dell’art. 1341, comma 2, del Codice Civile — richiedono una tua accettazione separata e specifica, non solo la casella generale sopra.',
+    'wizContract.vessatoriaBadge':'Richiede accettazione separata',
+    'wizContract.acceptClause':'Accetto specificamente questa clausola.',
+    'wizContract.draftNote':'Testo di bozza per il prototipo, non validato da un legale — non è un contratto vincolante.',
+    'wizContract.requiredNote':'Accetta l’accordo e ogni clausola contrassegnata per continuare.',
+    'toast.contractAccepted':'Contratto accettato — ricevuta {receipt}',
+    'toast.contractFailed':'Impossibile registrare l’accettazione del contratto — controlla le clausole contrassegnate.',
 
     'artistDash.kicker':'Dashboard artista', 'artistDash.title':'Le mie campagne', 'artistDash.newCampaign':'Nuova campagna',
     'artistDash.activeCampaigns':'Campagne attive', 'artistDash.totalRaised':'Totale raccolto', 'artistDash.tokenHolders':'Token holder',
@@ -1166,6 +1245,18 @@ const I18N = {
     'wizReview.fundingGoalField':'Objetivo de financiación', 'wizReview.historyField':'Historial', 'wizReview.modelPreprod':'Preproducción', 'wizReview.modelCatalogue':'Catálogo',
     'wizReview.launchNote':'Lanzar crea un listado visible en el mercado con datos ficticios generados a partir de lo que introdujiste. En un lanzamiento real este paso activaría la constitución de la SPV y la revisión legal — nada aquí es una oferta real.',
     'wizReview.ackLabel':'Entiendo que esto es un prototipo: no se crean fondos, tokens ni entidades legales reales.',
+    'wizStep.contract':'Contrato de hitos',
+    'wizContract.title':'Acuerdo de cesión de regalías y garantía en depósito por hitos',
+    'wizContract.subtitle':'Una plantilla estándar que cada artista acepta al subir su tema — redactada en italiano, ya que el acuerdo se rige por la ley italiana. Lee el resumen a continuación (mostrado en el idioma de tu interfaz); el texto de las cláusulas permanece en italiano, el idioma del acuerdo real.',
+    'wizContract.languageNote':'El texto de las cláusulas se muestra solo en italiano — es un documento legal real, no texto de interfaz, y traducirlo automáticamente podría alterar su significado.',
+    'wizContract.generalLabel':'He leído y acepto en su totalidad este Acuerdo de Cesión de Regalías y Garantía en Depósito por Hitos.',
+    'wizContract.vessatoriaIntro':'Las siguientes cláusulas son las que más probablemente califiquen como "cláusulas abusivas" bajo el art. 1341, párrafo 2, del Código Civil italiano — requieren tu aceptación separada y específica, no solo la casilla general de arriba.',
+    'wizContract.vessatoriaBadge':'Requiere aceptación separada',
+    'wizContract.acceptClause':'Acepto específicamente esta cláusula.',
+    'wizContract.draftNote':'Texto borrador para el prototipo, no revisado por un abogado — no es un contrato vinculante.',
+    'wizContract.requiredNote':'Acepta el acuerdo y cada cláusula marcada para continuar.',
+    'toast.contractAccepted':'Contrato aceptado — recibo {receipt}',
+    'toast.contractFailed':'No se pudo registrar la aceptación del contrato — revisa las cláusulas marcadas.',
 
     'artistDash.kicker':'Panel de artista', 'artistDash.title':'Mis campañas', 'artistDash.newCampaign':'Nueva campaña',
     'artistDash.activeCampaigns':'Campañas activas', 'artistDash.totalRaised':'Total recaudado', 'artistDash.tokenHolders':'Poseedores de tokens',
@@ -1307,6 +1398,18 @@ const I18N = {
     'wizReview.fundingGoalField':'Objectif de financement', 'wizReview.historyField':'Historique', 'wizReview.modelPreprod':'Préproduction', 'wizReview.modelCatalogue':'Catalogue',
     'wizReview.launchNote':'Le lancement crée une annonce visible sur le marché avec des données fictives générées à partir de ce que vous avez saisi. Lors d’un lancement réel, cette étape déclencherait la constitution de la SPV et une revue juridique — rien ici n’est une offre réelle.',
     'wizReview.ackLabel':'Je comprends qu’il s’agit d’un prototype : aucun fonds, token ou entité juridique réel n’est créé.',
+    'wizStep.contract':'Contrat de jalons',
+    'wizContract.title':'Accord de cession de redevances et séquestre par jalons',
+    'wizContract.subtitle':'Un modèle standard que chaque artiste accepte au moment du dépôt — rédigé en italien, l’accord étant régi par le droit italien. Lisez le résumé ci-dessous (affiché dans la langue de votre interface) ; le texte des clauses reste en italien, la langue de l’accord réel.',
+    'wizContract.languageNote':'Le texte des clauses n’est affiché qu’en italien — il s’agit d’un document juridique réel, pas d’un texte d’interface, et une traduction automatique risquerait d’en altérer le sens.',
+    'wizContract.generalLabel':'J’ai lu et j’accepte intégralement cet Accord de cession de redevances et séquestre par jalons.',
+    'wizContract.vessatoriaIntro':'Les clauses ci-dessous sont celles les plus susceptibles d’être qualifiées de « clausole vessatorie » au sens de l’art. 1341, alinéa 2, du Code civil italien — elles nécessitent votre acceptation séparée et spécifique, pas seulement la case générale ci-dessus.',
+    'wizContract.vessatoriaBadge':'Nécessite une acceptation séparée',
+    'wizContract.acceptClause':'J’accepte spécifiquement cette clause.',
+    'wizContract.draftNote':'Texte provisoire pour le prototype, non validé par un juriste — ce n’est pas un contrat contraignant.',
+    'wizContract.requiredNote':'Acceptez l’accord et chaque clause signalée pour continuer.',
+    'toast.contractAccepted':'Contrat accepté — reçu {receipt}',
+    'toast.contractFailed':'Impossible d’enregistrer l’acceptation du contrat — vérifiez les clauses signalées.',
 
     'artistDash.kicker':'Tableau de bord artiste', 'artistDash.title':'Mes campagnes', 'artistDash.newCampaign':'Nouvelle campagne',
     'artistDash.activeCampaigns':'Campagnes actives', 'artistDash.totalRaised':'Total levé', 'artistDash.tokenHolders':'Détenteurs de tokens',
@@ -1448,6 +1551,18 @@ const I18N = {
     'wizReview.fundingGoalField':'Finanzierungsziel', 'wizReview.historyField':'Historie', 'wizReview.modelPreprod':'Vorproduktion', 'wizReview.modelCatalogue':'Katalog',
     'wizReview.launchNote':'Der Start erstellt ein im Marktplatz sichtbares Listing mit fiktiven Daten aus Ihren Eingaben. Bei einem echten Start würde dieser Schritt die SPV-Gründung und die Rechtsprüfung auslösen — nichts hier ist ein reales Angebot.',
     'wizReview.ackLabel':'Mir ist bewusst, dass dies ein Prototyp ist: Es werden keine echten Mittel, Tokens oder Rechtseinheiten geschaffen.',
+    'wizStep.contract':'Meilenstein-Vertrag',
+    'wizContract.title':'Vereinbarung über Tantiemenabtretung und Meilenstein-Treuhand',
+    'wizContract.subtitle':'Eine Standardvorlage, die jeder Künstler beim Hochladen akzeptiert — auf Italienisch verfasst, da die Vereinbarung italienischem Recht unterliegt. Lesen Sie die Zusammenfassung unten (in Ihrer Interfacesprache angezeigt); der Klauseltext selbst bleibt auf Italienisch, der Sprache der eigentlichen Vereinbarung.',
+    'wizContract.languageNote':'Der Klauseltext wird nur auf Italienisch angezeigt — es handelt sich um ein echtes Rechtsdokument, keinen Interface-Text, und eine automatische Übersetzung könnte die Bedeutung verändern.',
+    'wizContract.generalLabel':'Ich habe diese Vereinbarung über Tantiemenabtretung und Meilenstein-Treuhand gelesen und akzeptiere sie vollständig.',
+    'wizContract.vessatoriaIntro':'Die folgenden Klauseln könnten am ehesten als „clausole vessatorie" im Sinne von Art. 1341, Abs. 2, des italienischen Zivilgesetzbuchs gelten — sie erfordern Ihre gesonderte, spezifische Zustimmung, nicht nur das allgemeine Kästchen oben.',
+    'wizContract.vessatoriaBadge':'Erfordert gesonderte Zustimmung',
+    'wizContract.acceptClause':'Ich akzeptiere diese Klausel ausdrücklich.',
+    'wizContract.draftNote':'Entwurfstext für den Prototyp, nicht anwaltlich geprüft — kein bindender Vertrag.',
+    'wizContract.requiredNote':'Akzeptieren Sie die Vereinbarung und jede markierte Klausel, um fortzufahren.',
+    'toast.contractAccepted':'Vertrag akzeptiert — Beleg {receipt}',
+    'toast.contractFailed':'Vertragsannahme konnte nicht erfasst werden — markierte Klauseln prüfen.',
 
     'artistDash.kicker':'Künstler-Dashboard', 'artistDash.title':'Meine Kampagnen', 'artistDash.newCampaign':'Neue Kampagne',
     'artistDash.activeCampaigns':'Aktive Kampagnen', 'artistDash.totalRaised':'Gesamt eingesammelt', 'artistDash.tokenHolders':'Token-Inhaber',
@@ -1510,6 +1625,7 @@ const store = {
       catalogue:{ dsp:'Spotify for Artists', months:'12', history:'' },
       preprod:{ studio:5000, session:4000, mix:3000, extra:1000 },
       disclosure:{ vocals:'human', instrumentation:'human', composition:'human', postProduction:'human', lyrics:'human' },
+      contract:{ generalAccepted:false, vessatoriaAccepted:{} },
       ack:false } },
   },
   listeners: [],
@@ -2448,6 +2564,7 @@ const WIZARD_STEPS = [
   { key:'model', labelKey:'wizStep.model' },
   { key:'source', labelKey:'wizStep.source' },
   { key:'disclosure', labelKey:'wizStep.disclosure' },
+  { key:'contract', labelKey:'wizStep.contract' },
   { key:'review', labelKey:'wizStep.review' },
 ];
 
@@ -2472,7 +2589,7 @@ function renderOnboarding(){
           <button class="btn btn-ghost" id="wizBack" ${w.step===0?'disabled':''}>${icon('chevronLeft')} ${t('wizard.back')}</button>
           ${w.step < WIZARD_STEPS.length-1
             ? `<button class="btn btn-primary" id="wizNext">${t('wizard.continueBtn')} ${icon('arrowRight')}</button>`
-            : `<button class="btn btn-primary" id="wizSubmit" ${w.data.ack?'':'disabled'}>${icon('sparkles')} ${t('wizard.launchCampaign')}</button>`}
+            : `<button class="btn btn-primary" id="wizSubmit" ${(w.data.ack && isContractComplete(w.data))?'':'disabled'}>${icon('sparkles')} ${t('wizard.launchCampaign')}</button>`}
         </div>
       </div>
     </div>
@@ -2559,6 +2676,46 @@ function renderWizardStep(key, w){
           </div>`).join('')}
       </div>`;
   }
+  if (key === 'contract'){
+    const c = d.contract;
+    const vClauses = CONTRACT_TEMPLATE.clauses.filter(cl => cl.vessatoria);
+    const plainClauses = CONTRACT_TEMPLATE.clauses.filter(cl => !cl.vessatoria);
+    return `
+      <h3 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:4px;">${t('wizContract.title')}</h3>
+      <p class="prose" style="margin-bottom:8px;">${t('wizContract.subtitle')}</p>
+      <p class="prose" style="margin-bottom:18px; font-size:12.5px; color:var(--text-muted);">${t('wizContract.languageNote')}</p>
+      <div class="doc-list" style="margin-bottom:18px;">
+        ${plainClauses.map(cl => `
+          <div class="risk-item" style="align-items:flex-start;">
+            <div>
+              <div style="font-weight:600; margin-bottom:4px;">${cl.title}</div>
+              <div style="color:var(--text-secondary); font-size:13px;">${cl.body}</div>
+            </div>
+          </div>`).join('')}
+      </div>
+      <p class="prose" style="margin-bottom:14px; font-weight:600; color:var(--text);">${t('wizContract.vessatoriaIntro')}</p>
+      <div class="disclosure-form" style="margin-bottom:18px;">
+        ${vClauses.map(cl => `
+          <div class="disclosure-row" style="flex-direction:column; align-items:stretch;">
+            <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+              <span class="name">${cl.title}</span>
+              <span class="chip chip-warning">${icon('alert')} ${t('wizContract.vessatoriaBadge')}</span>
+            </div>
+            <div class="desc" style="flex-basis:100%; margin:6px 0;">${cl.body}</div>
+            <div class="desc" style="flex-basis:100%; margin-bottom:8px; font-style:italic;">${cl.vessatoriaCategory || ''}</div>
+            <label class="check-row">
+              <input type="checkbox" data-vessatoria="${cl.id}" ${c.vessatoriaAccepted[cl.id]?'checked':''}>
+              <span>${t('wizContract.acceptClause')}</span>
+            </label>
+          </div>`).join('')}
+      </div>
+      <label class="check-row" style="margin-bottom:8px;">
+        <input type="checkbox" id="wizContractGeneral" ${c.generalAccepted?'checked':''}>
+        <span>${t('wizContract.generalLabel')}</span>
+      </label>
+      <p class="prose" style="font-size:11.5px; color:var(--text-muted);">${t('wizContract.draftNote')}</p>
+    `;
+  }
   if (key === 'review'){
     const isPre = d.model === 'preproduction';
     const total = isPre ? (d.preprod.studio+d.preprod.session+d.preprod.mix+d.preprod.extra) : null;
@@ -2580,11 +2737,17 @@ function renderWizardStep(key, w){
   return '';
 }
 
+function isContractComplete(d){
+  if (!d.contract.generalAccepted) return false;
+  return vessatoriaClauseIds().every(id => d.contract.vessatoriaAccepted[id] === true);
+}
+
 function canAdvance(w){
   const d = w.data;
   const key = WIZARD_STEPS[w.step].key;
   if (key === 'basics') return d.title.trim() && d.artistName.trim();
   if (key === 'model') return !!d.model;
+  if (key === 'contract') return isContractComplete(d);
   return true;
 }
 
@@ -2613,16 +2776,40 @@ function wireOnboardingEvents(){
 
   const wizAck = app.querySelector('#wizAck'); if (wizAck) wizAck.addEventListener('change', () => { d.ack = wizAck.checked; render(); });
 
+  const wizContractGeneral = app.querySelector('#wizContractGeneral');
+  if (wizContractGeneral) wizContractGeneral.addEventListener('change', () => { d.contract.generalAccepted = wizContractGeneral.checked; render(); });
+  app.querySelectorAll('[data-vessatoria]').forEach(cb => cb.addEventListener('change', () => {
+    d.contract.vessatoriaAccepted[cb.dataset.vessatoria] = cb.checked; render();
+  }));
+
   const back = app.querySelector('#wizBack'); if (back) back.addEventListener('click', () => { w.step = Math.max(0, w.step-1); render(); });
   const next = app.querySelector('#wizNext'); if (next) next.addEventListener('click', () => {
-    if (!canAdvance(w)){ showToast(t('wizard.fillRequired'), {icon:'alert'}); return; }
+    if (!canAdvance(w)){
+      const msg = WIZARD_STEPS[w.step].key === 'contract' ? t('wizContract.requiredNote') : t('wizard.fillRequired');
+      showToast(msg, {icon:'alert'}); return;
+    }
     w.step = Math.min(WIZARD_STEPS.length-1, w.step+1); render();
   });
   const submit = app.querySelector('#wizSubmit'); if (submit) submit.addEventListener('click', submitCampaign);
 }
 
-function submitCampaign(){
+async function submitCampaign(){
   const d = store.state.wizard.data;
+  if (backendAvailable){
+    try {
+      const receipt = await submitContractAcceptance({
+        artistName: d.artistName, trackTitle: d.title,
+        templateVersion: CONTRACT_TEMPLATE.version,
+        generalAccepted: d.contract.generalAccepted,
+        vessatoriaAccepted: d.contract.vessatoriaAccepted
+      });
+      showToast(t('toast.contractAccepted', { receipt: receipt.receiptHash.slice(0,10) + '…' }), { icon:'checkCircle' });
+    } catch (err){
+      console.warn('Contract acceptance rejected by backend.', err);
+      showToast(t('toast.contractFailed'), { icon:'alert' });
+      return;
+    }
+  }
   const isPre = d.model === 'preproduction';
   const id = (d.title || 'untitled').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') + '-' + Math.floor(Math.random()*900+100);
   const total = isPre ? (d.preprod.studio+d.preprod.session+d.preprod.mix+d.preprod.extra) : 30000;
@@ -2657,6 +2844,7 @@ function submitCampaign(){
     catalogue:{ dsp:'Spotify for Artists', months:'12', history:'' },
     preprod:{ studio:5000, session:4000, mix:3000, extra:1000 },
     disclosure:{ vocals:'human', instrumentation:'human', composition:'human', postProduction:'human', lyrics:'human' },
+    contract:{ generalAccepted:false, vessatoriaAccepted:{} },
     ack:false } };
 
   showToast(t('toast.campaignLaunched'), {icon:'sparkles'});
