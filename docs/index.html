@@ -750,6 +750,30 @@ async function submitContractAcceptance(payload){
   return res.json();
 }
 
+async function submitKyc(payload){
+  const res = await fetch(API_BASE + '/api/kyc', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) throw new Error('kyc submission failed: ' + res.status);
+  return res.json();
+}
+
+/* Client-side fallback scoring, mirrors server/server.js scoreAppropriateness()
+   — used only when the backend is unreachable, so the flow still works
+   as a pure static demo. */
+function scoreAppropriatenessLocal(answers){
+  answers = answers || {};
+  let score = 0;
+  if (answers.priorComplexInvestments === true) score += 1;
+  if (answers.familiarWithIlliquidInstruments === true) score += 1;
+  if (answers.understandsCapitalLossRisk === true) score += 1;
+  if (answers.yearsExperience === '3+') score += 1;
+  else if (answers.yearsExperience === '1-3') score += 0.5;
+  return { score, result: score >= 3 ? 'appropriate' : 'warning' };
+}
+
 function assetById(id){ return ASSETS.find(a => a.id === id); }
 function fundingRaised(a){ return a.tokenPrice * a.tokensSold; }
 function fundingGoal(a){ return a.tokenPrice * a.tokensTotal; }
@@ -949,6 +973,36 @@ const I18N = {
     'buy.ackLabel':'I understand this is a pilot structure, not investment advice, and I’ve reviewed the risk factors.',
     'buy.fundCampaign':'Fund this campaign', 'buy.buyTokens':'Buy tokens',
     'buy.kycNote':'KYC/AML verification (simulated) is required before funds settle. No crypto wallet needed — fiat on-ramp shown as a mock step.',
+    'buy.kycRequired':'Identity verification and a MiFID II investor-appropriateness check are required before buying.',
+    'buy.completeVerification':'Complete investor verification',
+
+    'kyc.kicker':'Investor verification', 'kyc.title':'Identity & investor profile',
+    'kyc.subtitle':'A one-time check before you can buy: identity verification and a MiFID II appropriateness assessment for this type of instrument. Simulated — no documents are actually collected or checked.',
+    'kyc.identityTitle':'Identity',
+    'kyc.fullNameLabel':'Full legal name', 'kyc.dobLabel':'Date of birth', 'kyc.nationalityLabel':'Nationality',
+    'kyc.classificationTitle':'Investor classification',
+    'kyc.retailTitle':'Retail investor', 'kyc.retailBody':'Most individual investors. Gets the full set of MiFID II protections, including this appropriateness check.',
+    'kyc.professionalTitle':'Professional investor', 'kyc.professionalBody':'Meets MiFID II Annex II criteria (e.g. large portfolio, financial-sector experience). Fewer protections apply, but this pilot still runs the same check.',
+    'kyc.appropriatenessTitle':'Appropriateness assessment',
+    'kyc.appropriatenessSubtitle':'Required under MiFID II Art. 25(3) before selling a complex, non-standard instrument like a royalty-participation note without advice. If your answers suggest the product may not be appropriate for you, we\'ll warn you — you can still choose to proceed.',
+    'kyc.q1':'Have you previously invested in financial instruments beyond savings accounts or deposits (e.g. stocks, bonds, funds)?',
+    'kyc.q2':'Are you familiar with illiquid or non-listed financial instruments?',
+    'kyc.q3':'Do you understand you could lose your entire investment, and that no secondary market is guaranteed?',
+    'kyc.q4':'Years of experience investing in financial instruments',
+    'kyc.years0':'None', 'kyc.years1to3':'1–3 years', 'kyc.years3plus':'3+ years',
+    'kyc.yes':'Yes', 'kyc.no':'No',
+    'kyc.amlTitle':'Source of funds',
+    'kyc.sourceOfFundsLabel':'Primary source of the funds you\'ll invest',
+    'kyc.sourceSalary':'Salary / employment income', 'kyc.sourceSavings':'Personal savings', 'kyc.sourceBusiness':'Business income', 'kyc.sourceOther':'Other',
+    'kyc.pepLabel':'I am a politically exposed person (PEP), or a family member/close associate of one.',
+    'kyc.submitBtn':'Run assessment',
+    'kyc.appropriateResult':'Based on your answers, this type of instrument appears appropriate for your experience level.',
+    'kyc.warningResult':'Based on your answers, this instrument may not be appropriate for your experience level — it is complex and illiquid, with no guaranteed secondary market. You may still choose to proceed.',
+    'kyc.warningAckLabel':'I understand this product may not be appropriate for me, and I choose to proceed anyway.',
+    'kyc.continueBtn':'Continue',
+    'kyc.alreadyVerifiedTitle':'You\'re already verified',
+    'kyc.alreadyVerifiedBody':'Investor classification: {classification}. You can proceed to buy.',
+    'toast.kycVerified':'Investor verification complete.',
 
     'success.contributionConfirmed':'Contribution confirmed', 'success.purchaseConfirmed':'Purchase confirmed',
     'success.body':'You now hold <strong>{qty}</strong> of <strong>{title}</strong>, for a total of {total}.',
@@ -1102,6 +1156,36 @@ const I18N = {
     'buy.ackLabel':'Comprendo che si tratta di una struttura pilota, non di consulenza di investimento, e ho letto i fattori di rischio.',
     'buy.fundCampaign':'Finanzia questa campagna', 'buy.buyTokens':'Acquista token',
     'buy.kycNote':'La verifica KYC/AML (simulata) è richiesta prima del regolamento dei fondi. Nessun wallet crypto necessario — l’on-ramp fiat è mostrato come passaggio fittizio.',
+    'buy.kycRequired':'Prima di acquistare sono richieste la verifica d’identità e una valutazione di appropriatezza MiFID II.',
+    'buy.completeVerification':'Completa la verifica investitore',
+
+    'kyc.kicker':'Verifica investitore', 'kyc.title':'Identità e profilo investitore',
+    'kyc.subtitle':'Un controllo una tantum prima di poter acquistare: verifica d’identità e valutazione di appropriatezza MiFID II per questo tipo di strumento. Simulato — nessun documento viene realmente raccolto o verificato.',
+    'kyc.identityTitle':'Identità',
+    'kyc.fullNameLabel':'Nome e cognome', 'kyc.dobLabel':'Data di nascita', 'kyc.nationalityLabel':'Nazionalità',
+    'kyc.classificationTitle':'Classificazione investitore',
+    'kyc.retailTitle':'Investitore al dettaglio', 'kyc.retailBody':'La maggior parte degli investitori individuali. Riceve tutte le tutele MiFID II, incluso questo controllo di appropriatezza.',
+    'kyc.professionalTitle':'Investitore professionale', 'kyc.professionalBody':'Soddisfa i criteri dell’Allegato II MiFID II (es. portafoglio rilevante, esperienza nel settore finanziario). Si applicano meno tutele, ma questo pilota esegue comunque lo stesso controllo.',
+    'kyc.appropriatenessTitle':'Valutazione di appropriatezza',
+    'kyc.appropriatenessSubtitle':'Richiesta ai sensi dell’art. 25(3) MiFID II prima di vendere, senza consulenza, uno strumento complesso e non standardizzato come una nota di partecipazione ai proventi. Se le tue risposte suggeriscono che il prodotto potrebbe non essere appropriato, ti avviseremo — potrai comunque scegliere di procedere.',
+    'kyc.q1':'Hai già investito in strumenti finanziari diversi da conti di risparmio o depositi (es. azioni, obbligazioni, fondi)?',
+    'kyc.q2':'Hai familiarità con strumenti finanziari illiquidi o non quotati?',
+    'kyc.q3':'Comprendi che potresti perdere l’intero capitale investito e che non è garantito alcun mercato secondario?',
+    'kyc.q4':'Anni di esperienza in investimenti in strumenti finanziari',
+    'kyc.years0':'Nessuna', 'kyc.years1to3':'1–3 anni', 'kyc.years3plus':'3+ anni',
+    'kyc.yes':'Sì', 'kyc.no':'No',
+    'kyc.amlTitle':'Provenienza dei fondi',
+    'kyc.sourceOfFundsLabel':'Fonte principale dei fondi che investirai',
+    'kyc.sourceSalary':'Stipendio / reddito da lavoro', 'kyc.sourceSavings':'Risparmi personali', 'kyc.sourceBusiness':'Reddito d’impresa', 'kyc.sourceOther':'Altro',
+    'kyc.pepLabel':'Sono una persona politicamente esposta (PEP), o familiare/stretto collaboratore di una PEP.',
+    'kyc.submitBtn':'Esegui valutazione',
+    'kyc.appropriateResult':'In base alle tue risposte, questo tipo di strumento appare appropriato per il tuo livello di esperienza.',
+    'kyc.warningResult':'In base alle tue risposte, questo strumento potrebbe non essere appropriato per il tuo livello di esperienza — è complesso e illiquido, senza un mercato secondario garantito. Puoi comunque scegliere di procedere.',
+    'kyc.warningAckLabel':'Comprendo che questo prodotto potrebbe non essere appropriato per me e scelgo comunque di procedere.',
+    'kyc.continueBtn':'Continua',
+    'kyc.alreadyVerifiedTitle':'Sei già verificato',
+    'kyc.alreadyVerifiedBody':'Classificazione investitore: {classification}. Puoi procedere all’acquisto.',
+    'toast.kycVerified':'Verifica investitore completata.',
 
     'success.contributionConfirmed':'Contributo confermato', 'success.purchaseConfirmed':'Acquisto confermato',
     'success.body':'Ora possiedi <strong>{qty}</strong> di <strong>{title}</strong>, per un totale di {total}.',
@@ -1255,6 +1339,36 @@ const I18N = {
     'buy.ackLabel':'Entiendo que se trata de una estructura piloto, no de asesoramiento de inversión, y que he revisado los factores de riesgo.',
     'buy.fundCampaign':'Financiar esta campaña', 'buy.buyTokens':'Comprar tokens',
     'buy.kycNote':'Se requiere verificación KYC/AML (simulada) antes de liquidar los fondos. No se necesita wallet cripto — la rampa fiat se muestra como paso simulado.',
+    'buy.kycRequired':'Antes de comprar se requiere verificación de identidad y una evaluación de idoneidad MiFID II.',
+    'buy.completeVerification':'Completar verificación de inversor',
+
+    'kyc.kicker':'Verificación del inversor', 'kyc.title':'Identidad y perfil de inversor',
+    'kyc.subtitle':'Una comprobación única antes de poder comprar: verificación de identidad y evaluación de idoneidad MiFID II para este tipo de instrumento. Simulado — no se recopila ni verifica ningún documento real.',
+    'kyc.identityTitle':'Identidad',
+    'kyc.fullNameLabel':'Nombre completo', 'kyc.dobLabel':'Fecha de nacimiento', 'kyc.nationalityLabel':'Nacionalidad',
+    'kyc.classificationTitle':'Clasificación del inversor',
+    'kyc.retailTitle':'Inversor minorista', 'kyc.retailBody':'La mayoría de los inversores particulares. Recibe todas las protecciones de MiFID II, incluida esta comprobación de idoneidad.',
+    'kyc.professionalTitle':'Inversor profesional', 'kyc.professionalBody':'Cumple los criterios del Anexo II de MiFID II (p. ej. cartera relevante, experiencia en el sector financiero). Se aplican menos protecciones, pero este piloto ejecuta igualmente la misma comprobación.',
+    'kyc.appropriatenessTitle':'Evaluación de idoneidad',
+    'kyc.appropriatenessSubtitle':'Requerida por el art. 25(3) de MiFID II antes de vender, sin asesoramiento, un instrumento complejo y no estandarizado como una nota de participación en regalías. Si tus respuestas sugieren que el producto podría no ser adecuado, te avisaremos — aun así podrás optar por continuar.',
+    'kyc.q1':'¿Has invertido antes en instrumentos financieros distintos de cuentas de ahorro o depósitos (p. ej. acciones, bonos, fondos)?',
+    'kyc.q2':'¿Estás familiarizado con instrumentos financieros ilíquidos o no cotizados?',
+    'kyc.q3':'¿Entiendes que podrías perder toda tu inversión y que no hay ningún mercado secundario garantizado?',
+    'kyc.q4':'Años de experiencia invirtiendo en instrumentos financieros',
+    'kyc.years0':'Ninguna', 'kyc.years1to3':'1–3 años', 'kyc.years3plus':'3+ años',
+    'kyc.yes':'Sí', 'kyc.no':'No',
+    'kyc.amlTitle':'Origen de los fondos',
+    'kyc.sourceOfFundsLabel':'Fuente principal de los fondos que invertirás',
+    'kyc.sourceSalary':'Salario / ingresos laborales', 'kyc.sourceSavings':'Ahorros personales', 'kyc.sourceBusiness':'Ingresos empresariales', 'kyc.sourceOther':'Otro',
+    'kyc.pepLabel':'Soy una persona políticamente expuesta (PEP), o familiar/allegado cercano de una.',
+    'kyc.submitBtn':'Realizar evaluación',
+    'kyc.appropriateResult':'Según tus respuestas, este tipo de instrumento parece adecuado para tu nivel de experiencia.',
+    'kyc.warningResult':'Según tus respuestas, este instrumento podría no ser adecuado para tu nivel de experiencia — es complejo e ilíquido, sin mercado secundario garantizado. Aun así puedes optar por continuar.',
+    'kyc.warningAckLabel':'Entiendo que este producto podría no ser adecuado para mí y elijo continuar de todos modos.',
+    'kyc.continueBtn':'Continuar',
+    'kyc.alreadyVerifiedTitle':'Ya estás verificado',
+    'kyc.alreadyVerifiedBody':'Clasificación de inversor: {classification}. Puedes proceder a comprar.',
+    'toast.kycVerified':'Verificación de inversor completada.',
 
     'success.contributionConfirmed':'Contribución confirmada', 'success.purchaseConfirmed':'Compra confirmada',
     'success.body':'Ahora posees <strong>{qty}</strong> de <strong>{title}</strong>, por un total de {total}.',
@@ -1408,6 +1522,36 @@ const I18N = {
     'buy.ackLabel':'Je comprends qu’il s’agit d’une structure pilote, pas d’un conseil en investissement, et j’ai pris connaissance des facteurs de risque.',
     'buy.fundCampaign':'Financer cette campagne', 'buy.buyTokens':'Acheter des tokens',
     'buy.kycNote':'Une vérification KYC/AML (simulée) est requise avant le règlement des fonds. Aucun wallet crypto requis — la rampe fiat est présentée comme une étape fictive.',
+    'buy.kycRequired':'Une vérification d’identité et une évaluation du caractère approprié MiFID II sont requises avant l’achat.',
+    'buy.completeVerification':'Compléter la vérification investisseur',
+
+    'kyc.kicker':'Vérification investisseur', 'kyc.title':'Identité et profil investisseur',
+    'kyc.subtitle':'Une vérification unique avant de pouvoir acheter : vérification d’identité et évaluation du caractère approprié MiFID II pour ce type d’instrument. Simulé — aucun document n’est réellement collecté ni vérifié.',
+    'kyc.identityTitle':'Identité',
+    'kyc.fullNameLabel':'Nom complet', 'kyc.dobLabel':'Date de naissance', 'kyc.nationalityLabel':'Nationalité',
+    'kyc.classificationTitle':'Classification de l’investisseur',
+    'kyc.retailTitle':'Investisseur particulier', 'kyc.retailBody':'La plupart des investisseurs individuels. Bénéficie de toutes les protections MiFID II, y compris cette évaluation du caractère approprié.',
+    'kyc.professionalTitle':'Investisseur professionnel', 'kyc.professionalBody':'Répond aux critères de l’Annexe II de MiFID II (ex. portefeuille important, expérience du secteur financier). Moins de protections s’appliquent, mais ce pilote effectue tout de même le même contrôle.',
+    'kyc.appropriatenessTitle':'Évaluation du caractère approprié',
+    'kyc.appropriatenessSubtitle':'Requise en vertu de l’art. 25(3) de MiFID II avant de vendre, sans conseil, un instrument complexe et non standardisé tel qu’un titre de participation aux redevances. Si vos réponses suggèrent que le produit pourrait ne pas vous être approprié, nous vous avertirons — vous pourrez tout de même choisir de continuer.',
+    'kyc.q1':'Avez-vous déjà investi dans des instruments financiers autres que des comptes d’épargne ou des dépôts (ex. actions, obligations, fonds) ?',
+    'kyc.q2':'Êtes-vous familier avec les instruments financiers illiquides ou non cotés ?',
+    'kyc.q3':'Comprenez-vous que vous pourriez perdre la totalité de votre investissement et qu’aucun marché secondaire n’est garanti ?',
+    'kyc.q4':'Années d’expérience en investissement dans des instruments financiers',
+    'kyc.years0':'Aucune', 'kyc.years1to3':'1 à 3 ans', 'kyc.years3plus':'3 ans et plus',
+    'kyc.yes':'Oui', 'kyc.no':'Non',
+    'kyc.amlTitle':'Origine des fonds',
+    'kyc.sourceOfFundsLabel':'Source principale des fonds que vous investirez',
+    'kyc.sourceSalary':'Salaire / revenu d’emploi', 'kyc.sourceSavings':'Épargne personnelle', 'kyc.sourceBusiness':'Revenu d’entreprise', 'kyc.sourceOther':'Autre',
+    'kyc.pepLabel':'Je suis une personne politiquement exposée (PPE), ou un proche/membre de la famille d’une PPE.',
+    'kyc.submitBtn':'Lancer l’évaluation',
+    'kyc.appropriateResult':'D’après vos réponses, ce type d’instrument semble approprié à votre niveau d’expérience.',
+    'kyc.warningResult':'D’après vos réponses, cet instrument pourrait ne pas être approprié à votre niveau d’expérience — il est complexe et illiquide, sans marché secondaire garanti. Vous pouvez tout de même choisir de continuer.',
+    'kyc.warningAckLabel':'Je comprends que ce produit pourrait ne pas m’être approprié et je choisis de continuer malgré tout.',
+    'kyc.continueBtn':'Continuer',
+    'kyc.alreadyVerifiedTitle':'Vous êtes déjà vérifié',
+    'kyc.alreadyVerifiedBody':'Classification investisseur : {classification}. Vous pouvez procéder à l’achat.',
+    'toast.kycVerified':'Vérification investisseur terminée.',
 
     'success.contributionConfirmed':'Contribution confirmée', 'success.purchaseConfirmed':'Achat confirmé',
     'success.body':'Vous détenez désormais <strong>{qty}</strong> de <strong>{title}</strong>, pour un total de {total}.',
@@ -1561,6 +1705,36 @@ const I18N = {
     'buy.ackLabel':'Mir ist bewusst, dass dies eine Pilotstruktur und keine Anlageberatung ist, und ich habe die Risikofaktoren geprüft.',
     'buy.fundCampaign':'Diese Kampagne finanzieren', 'buy.buyTokens':'Tokens kaufen',
     'buy.kycNote':'Vor der Abwicklung der Mittel ist eine (simulierte) KYC/AML-Prüfung erforderlich. Keine Krypto-Wallet nötig — die Fiat-Anbindung wird als simulierter Schritt gezeigt.',
+    'buy.kycRequired':'Vor dem Kauf sind eine Identitätsprüfung und eine MiFID-II-Angemessenheitsprüfung erforderlich.',
+    'buy.completeVerification':'Anlegerverifizierung abschließen',
+
+    'kyc.kicker':'Anlegerverifizierung', 'kyc.title':'Identität & Anlegerprofil',
+    'kyc.subtitle':'Eine einmalige Prüfung vor dem Kauf: Identitätsprüfung und eine MiFID-II-Angemessenheitsprüfung für diese Art von Instrument. Simuliert — es werden keine echten Dokumente erfasst oder geprüft.',
+    'kyc.identityTitle':'Identität',
+    'kyc.fullNameLabel':'Vollständiger Name', 'kyc.dobLabel':'Geburtsdatum', 'kyc.nationalityLabel':'Staatsangehörigkeit',
+    'kyc.classificationTitle':'Anlegerklassifizierung',
+    'kyc.retailTitle':'Kleinanleger', 'kyc.retailBody':'Die meisten Privatanleger. Erhält den vollen MiFID-II-Schutz, einschließlich dieser Angemessenheitsprüfung.',
+    'kyc.professionalTitle':'Professioneller Anleger', 'kyc.professionalBody':'Erfüllt die Kriterien von MiFID-II Anhang II (z. B. größeres Portfolio, Erfahrung im Finanzsektor). Es gelten weniger Schutzmaßnahmen, aber dieser Pilot führt dennoch dieselbe Prüfung durch.',
+    'kyc.appropriatenessTitle':'Angemessenheitsprüfung',
+    'kyc.appropriatenessSubtitle':'Erforderlich nach Art. 25(3) MiFID II vor dem beratungsfreien Verkauf eines komplexen, nicht standardisierten Instruments wie einer Tantiemen-Beteiligungsnote. Wenn Ihre Antworten darauf hindeuten, dass das Produkt für Sie ungeeignet sein könnte, warnen wir Sie — Sie können trotzdem fortfahren.',
+    'kyc.q1':'Haben Sie zuvor in Finanzinstrumente jenseits von Sparkonten oder Einlagen investiert (z. B. Aktien, Anleihen, Fonds)?',
+    'kyc.q2':'Sind Sie mit illiquiden oder nicht börsennotierten Finanzinstrumenten vertraut?',
+    'kyc.q3':'Verstehen Sie, dass Sie Ihre gesamte Investition verlieren könnten und kein Sekundärmarkt garantiert ist?',
+    'kyc.q4':'Jahre an Erfahrung mit Investitionen in Finanzinstrumente',
+    'kyc.years0':'Keine', 'kyc.years1to3':'1–3 Jahre', 'kyc.years3plus':'3+ Jahre',
+    'kyc.yes':'Ja', 'kyc.no':'Nein',
+    'kyc.amlTitle':'Herkunft der Mittel',
+    'kyc.sourceOfFundsLabel':'Hauptquelle der Mittel, die Sie investieren werden',
+    'kyc.sourceSalary':'Gehalt / Erwerbseinkommen', 'kyc.sourceSavings':'Persönliche Ersparnisse', 'kyc.sourceBusiness':'Unternehmenseinkommen', 'kyc.sourceOther':'Sonstiges',
+    'kyc.pepLabel':'Ich bin eine politisch exponierte Person (PEP) oder ein Familienmitglied/enger Verbundener einer solchen.',
+    'kyc.submitBtn':'Prüfung durchführen',
+    'kyc.appropriateResult':'Basierend auf Ihren Antworten erscheint diese Art von Instrument für Ihr Erfahrungsniveau angemessen.',
+    'kyc.warningResult':'Basierend auf Ihren Antworten könnte dieses Instrument für Ihr Erfahrungsniveau ungeeignet sein — es ist komplex und illiquide, ohne garantierten Sekundärmarkt. Sie können dennoch fortfahren.',
+    'kyc.warningAckLabel':'Ich verstehe, dass dieses Produkt für mich ungeeignet sein könnte, und entscheide mich trotzdem fortzufahren.',
+    'kyc.continueBtn':'Weiter',
+    'kyc.alreadyVerifiedTitle':'Sie sind bereits verifiziert',
+    'kyc.alreadyVerifiedBody':'Anlegerklassifizierung: {classification}. Sie können mit dem Kauf fortfahren.',
+    'toast.kycVerified':'Anlegerverifizierung abgeschlossen.',
 
     'success.contributionConfirmed':'Beitrag bestätigt', 'success.purchaseConfirmed':'Kauf bestätigt',
     'success.body':'Sie besitzen jetzt <strong>{qty}</strong> von <strong>{title}</strong>, für insgesamt {total}.',
@@ -1695,6 +1869,7 @@ const store = {
     perspective: 'investor', // 'investor' | 'artist'
     bannerDismissed: false,
     wallet: { address: null, chainId: null, connecting: false },
+    investor: { verified:false, classification:null, appropriatenessResult:null, score:null, receiptHash:null },
     portfolio: {
       holdings: [
         { assetId:'midnight-static', tokens:40, costBasis:1000, unclaimed:38.40 },
@@ -1994,6 +2169,7 @@ function renderRoute(){
   if (p[0] === 'artist' && p[1] === 'onboarding') return renderOnboarding();
   if (p[0] === 'artist' && p[1] === 'dashboard') return renderArtistDashboard();
   if (p[0] === 'redeem') return renderRedeem();
+  if (p[0] === 'kyc') return renderKyc(p[1]);
   return renderMarketplace();
 }
 
@@ -2270,6 +2446,7 @@ function milestoneTrack(milestones){
 
 function renderBuyPanel(a, ui, remaining, soldOut){
   const total = (ui.qty * a.tokenPrice);
+  const verified = store.state.investor.verified;
   return `
   <div class="card buy-panel">
     <div class="buy-price">
@@ -2283,6 +2460,9 @@ function renderBuyPanel(a, ui, remaining, soldOut){
 
     ${soldOut ? `
       <div class="chip chip-neutral" style="justify-content:center; padding:10px;">${icon('checkCircle')} ${t('buy.fullySubscribed')}</div>
+    ` : !verified ? `
+      <div class="risk-item">${icon('shield')}<div>${t('buy.kycRequired')}</div></div>
+      <a class="btn btn-primary btn-block btn-lg" href="#/kyc/${a.id}">${icon('shield')} ${t('buy.completeVerification')}</a>
     ` : `
       <div class="qty-row">
         <label style="font-size:13px; font-weight:600;">${t('buy.tokensLabel')}</label>
@@ -2305,6 +2485,190 @@ function renderBuyPanel(a, ui, remaining, soldOut){
     `}
     <div class="prose" style="font-size:11.5px;">${t('buy.kycNote')}</div>
   </div>`;
+}
+
+/* ===================================================================
+   VIEW — Investor KYC / MiFID II appropriateness assessment
+   Gates the buy flow (renderBuyPanel above). Simulated: no documents are
+   actually collected or checked, and this is not a validated MiFID II
+   methodology — see planning/legal-regulatory-notes.md.
+=================================================================== */
+const kycUI = {
+  fullName:'', dob:'', nationality:'', classification:'retail',
+  priorComplexInvestments:null, familiarWithIlliquidInstruments:null, understandsCapitalLossRisk:null, yearsExperience:null,
+  sourceOfFunds:'', pep:false, warningAck:false, submitting:false, result:null
+};
+
+function kycFormComplete(){
+  return kycUI.fullName.trim() && kycUI.dob.trim() && kycUI.nationality.trim() &&
+    kycUI.priorComplexInvestments !== null && kycUI.familiarWithIlliquidInstruments !== null &&
+    kycUI.understandsCapitalLossRisk !== null && !!kycUI.yearsExperience && !!kycUI.sourceOfFunds;
+}
+
+function renderKyc(returnAssetId){
+  postRenderHooks.push(() => wireKycEvents(returnAssetId));
+  const continueHref = returnAssetId ? '#/asset/' + returnAssetId : '#/marketplace';
+
+  if (store.state.investor.verified){
+    const inv = store.state.investor;
+    return `
+      <div class="page-head"><div><span class="page-kicker">${t('kyc.kicker')}</span><h1>${t('kyc.alreadyVerifiedTitle')}</h1></div></div>
+      <div class="container narrow" style="padding:0;">
+        <div class="card panel" style="padding:28px; display:flex; flex-direction:column; gap:14px;">
+          <div class="risk-item" style="background:var(--good-soft); border-color:transparent;">${icon('checkCircle')}<div>${t('kyc.alreadyVerifiedBody', { classification: t('kyc.'+inv.classification+'Title') })}</div></div>
+          <a class="btn btn-primary btn-lg" href="${continueHref}">${icon('arrowRight')} ${t('kyc.continueBtn')}</a>
+        </div>
+      </div>`;
+  }
+
+  const yesNo = (key, label) => `
+    <div class="field" style="margin-bottom:10px;">
+      <label>${label}</label>
+      <div class="seg-3" data-kyc-bool="${key}">
+        <button data-val="true" class="${kycUI[key]===true?'active':''}">${t('kyc.yes')}</button>
+        <button data-val="false" class="${kycUI[key]===false?'active':''}">${t('kyc.no')}</button>
+      </div>
+    </div>`;
+
+  return `
+    <div class="page-head"><div><span class="page-kicker">${t('kyc.kicker')}</span><h1>${t('kyc.title')}</h1><p class="page-sub">${t('kyc.subtitle')}</p></div></div>
+    <div class="container narrow" style="padding:0;">
+      <div class="card panel" style="padding:28px; display:flex; flex-direction:column; gap:22px;">
+        <div>
+          <h3 style="font-family:'Fraunces',serif; font-size:17px; margin-bottom:12px;">${t('kyc.identityTitle')}</h3>
+          <div class="form-grid">
+            <div class="field"><label>${t('kyc.fullNameLabel')}</label><input type="text" id="kycFullName" value="${kycUI.fullName}"></div>
+            <div class="field"><label>${t('kyc.dobLabel')}</label><input type="text" id="kycDob" placeholder="YYYY-MM-DD" value="${kycUI.dob}"></div>
+            <div class="field" style="grid-column:1/-1;"><label>${t('kyc.nationalityLabel')}</label><input type="text" id="kycNationality" value="${kycUI.nationality}"></div>
+          </div>
+        </div>
+
+        <div>
+          <h3 style="font-family:'Fraunces',serif; font-size:17px; margin-bottom:12px;">${t('kyc.classificationTitle')}</h3>
+          <div class="choice-cards">
+            <button class="choice-card ${kycUI.classification==='retail'?'selected':''}" data-classification="retail">
+              <h4>${t('kyc.retailTitle')}</h4><p>${t('kyc.retailBody')}</p>
+            </button>
+            <button class="choice-card ${kycUI.classification==='professional'?'selected':''}" data-classification="professional">
+              <h4>${t('kyc.professionalTitle')}</h4><p>${t('kyc.professionalBody')}</p>
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <h3 style="font-family:'Fraunces',serif; font-size:17px; margin-bottom:4px;">${t('kyc.appropriatenessTitle')}</h3>
+          <p class="prose" style="margin-bottom:14px;">${t('kyc.appropriatenessSubtitle')}</p>
+          ${yesNo('priorComplexInvestments', t('kyc.q1'))}
+          ${yesNo('familiarWithIlliquidInstruments', t('kyc.q2'))}
+          ${yesNo('understandsCapitalLossRisk', t('kyc.q3'))}
+          <div class="field">
+            <label>${t('kyc.q4')}</label>
+            <select id="kycYears">
+              <option value="" ${!kycUI.yearsExperience?'selected':''}>—</option>
+              <option value="0" ${kycUI.yearsExperience==='0'?'selected':''}>${t('kyc.years0')}</option>
+              <option value="1-3" ${kycUI.yearsExperience==='1-3'?'selected':''}>${t('kyc.years1to3')}</option>
+              <option value="3+" ${kycUI.yearsExperience==='3+'?'selected':''}>${t('kyc.years3plus')}</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <h3 style="font-family:'Fraunces',serif; font-size:17px; margin-bottom:12px;">${t('kyc.amlTitle')}</h3>
+          <div class="field">
+            <label>${t('kyc.sourceOfFundsLabel')}</label>
+            <select id="kycSourceOfFunds">
+              <option value="" ${!kycUI.sourceOfFunds?'selected':''}>—</option>
+              <option value="salary" ${kycUI.sourceOfFunds==='salary'?'selected':''}>${t('kyc.sourceSalary')}</option>
+              <option value="savings" ${kycUI.sourceOfFunds==='savings'?'selected':''}>${t('kyc.sourceSavings')}</option>
+              <option value="business" ${kycUI.sourceOfFunds==='business'?'selected':''}>${t('kyc.sourceBusiness')}</option>
+              <option value="other" ${kycUI.sourceOfFunds==='other'?'selected':''}>${t('kyc.sourceOther')}</option>
+            </select>
+          </div>
+          <label class="check-row" style="margin-top:10px;">
+            <input type="checkbox" id="kycPep" ${kycUI.pep?'checked':''}>
+            <span>${t('kyc.pepLabel')}</span>
+          </label>
+        </div>
+
+        ${kycUI.result ? renderKycResult() : `<button class="btn btn-primary btn-lg" id="kycSubmitBtn" ${kycFormComplete() && !kycUI.submitting?'':'disabled'}>${icon('shield')} ${t('kyc.submitBtn')}</button>`}
+      </div>
+    </div>`;
+}
+
+function renderKycResult(){
+  const r = kycUI.result;
+  if (r.appropriatenessResult === 'appropriate'){
+    return `
+      <div class="risk-item" style="background:var(--good-soft); border-color:transparent;">${icon('checkCircle')}<div>${t('kyc.appropriateResult')}</div></div>
+      <button class="btn btn-primary btn-lg" id="kycFinishBtn">${icon('arrowRight')} ${t('kyc.continueBtn')}</button>
+    `;
+  }
+  return `
+    <div class="risk-item">${icon('alert')}<div>${t('kyc.warningResult')}</div></div>
+    <label class="check-row">
+      <input type="checkbox" id="kycWarningAck" ${kycUI.warningAck?'checked':''}>
+      <span>${t('kyc.warningAckLabel')}</span>
+    </label>
+    <button class="btn btn-primary btn-lg" id="kycFinishBtn" ${kycUI.warningAck?'':'disabled'}>${icon('arrowRight')} ${t('kyc.continueBtn')}</button>
+  `;
+}
+
+function wireKycEvents(returnAssetId){
+  const app = document.getElementById('app');
+  const bind = (id, key) => { const el = app.querySelector('#'+id); if (el) el.addEventListener('input', () => { kycUI[key] = el.value; render(); }); };
+  bind('kycFullName','fullName'); bind('kycDob','dob'); bind('kycNationality','nationality');
+
+  app.querySelectorAll('[data-classification]').forEach(btn => btn.addEventListener('click', () => { kycUI.classification = btn.dataset.classification; render(); }));
+
+  app.querySelectorAll('[data-kyc-bool]').forEach(seg => {
+    seg.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => {
+      kycUI[seg.dataset.kycBool] = btn.dataset.val === 'true'; render();
+    }));
+  });
+
+  const years = app.querySelector('#kycYears'); if (years) years.addEventListener('change', () => { kycUI.yearsExperience = years.value || null; render(); });
+  const sof = app.querySelector('#kycSourceOfFunds'); if (sof) sof.addEventListener('change', () => { kycUI.sourceOfFunds = sof.value; render(); });
+  const pep = app.querySelector('#kycPep'); if (pep) pep.addEventListener('change', () => { kycUI.pep = pep.checked; render(); });
+  const warnAck = app.querySelector('#kycWarningAck'); if (warnAck) warnAck.addEventListener('change', () => { kycUI.warningAck = warnAck.checked; render(); });
+
+  const submitBtn = app.querySelector('#kycSubmitBtn');
+  if (submitBtn) submitBtn.addEventListener('click', async () => {
+    kycUI.submitting = true; render();
+    const payload = {
+      fullName: kycUI.fullName, dob: kycUI.dob, nationality: kycUI.nationality, classification: kycUI.classification,
+      answers: {
+        priorComplexInvestments: kycUI.priorComplexInvestments,
+        familiarWithIlliquidInstruments: kycUI.familiarWithIlliquidInstruments,
+        understandsCapitalLossRisk: kycUI.understandsCapitalLossRisk,
+        yearsExperience: kycUI.yearsExperience
+      },
+      sourceOfFunds: kycUI.sourceOfFunds, pep: kycUI.pep
+    };
+    try {
+      if (!backendAvailable) throw new Error('backend unavailable');
+      kycUI.result = await submitKyc(payload);
+    } catch (err){
+      console.warn('KYC backend submission unavailable, using local fallback scoring.', err);
+      const local = scoreAppropriatenessLocal(payload.answers);
+      kycUI.result = { verified:true, classification: kycUI.classification, appropriatenessResult: local.result, score: local.score, receiptHash: fakeTxHash() };
+    }
+    kycUI.submitting = false;
+    render();
+  });
+
+  const finishBtn = app.querySelector('#kycFinishBtn');
+  if (finishBtn) finishBtn.addEventListener('click', () => {
+    const r = kycUI.result;
+    store.update(s => {
+      s.investor.verified = true;
+      s.investor.classification = r.classification;
+      s.investor.appropriatenessResult = r.appropriatenessResult;
+      s.investor.score = r.score;
+      s.investor.receiptHash = r.receiptHash;
+    });
+    showToast(t('toast.kycVerified'), {icon:'checkCircle'});
+    navigate(returnAssetId ? '#/asset/'+returnAssetId : '#/marketplace');
+  });
 }
 
 function renderSuccessModal(a, ui){

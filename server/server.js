@@ -38,6 +38,19 @@ db.exec(`
     receipt_hash TEXT,
     accepted_at TEXT
   );
+  CREATE TABLE IF NOT EXISTS kyc_records (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    full_name TEXT,
+    dob TEXT,
+    nationality TEXT,
+    classification TEXT,
+    score REAL,
+    appropriateness_result TEXT,
+    source_of_funds TEXT,
+    pep INTEGER,
+    receipt_hash TEXT,
+    created_at TEXT
+  );
 `);
 
 function seedIfEmpty() {
@@ -139,6 +152,51 @@ function recordContractAcceptance(body) {
   return { receiptHash, acceptedAt, templateVersion: CONTRACT_TEMPLATE.version };
 }
 
+/* MiFID II Art. 25(3) appropriateness assessment (execution-only regime):
+   for a complex, non-standard instrument like a royalty-participation
+   note, the firm must assess the client's knowledge/experience and warn
+   them if the product may not be appropriate — it does NOT have to
+   block the transaction outright (that's the suitability regime, which
+   applies to advice, not execution-only). Scoring here is a simple
+   illustrative heuristic, not a validated methodology. */
+const APPROPRIATENESS_THRESHOLD = 3; // out of a max of 4 points
+
+function scoreAppropriateness(answers) {
+  answers = answers || {};
+  let score = 0;
+  if (answers.priorComplexInvestments === true) score += 1;
+  if (answers.familiarWithIlliquidInstruments === true) score += 1;
+  if (answers.understandsCapitalLossRisk === true) score += 1;
+  if (answers.yearsExperience === "3+") score += 1;
+  else if (answers.yearsExperience === "1-3") score += 0.5;
+  const result = score >= APPROPRIATENESS_THRESHOLD ? "appropriate" : "warning";
+  return { score, result };
+}
+
+function recordKyc(body) {
+  const { score, result } = scoreAppropriateness(body.answers);
+  const receiptHash = fakeTxHash();
+  const createdAt = new Date().toISOString();
+  const classification = body.classification === "professional" ? "professional" : "retail";
+  db.prepare(`
+    INSERT INTO kyc_records
+      (full_name, dob, nationality, classification, score, appropriateness_result, source_of_funds, pep, receipt_hash, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    body.fullName || "",
+    body.dob || "",
+    body.nationality || "",
+    classification,
+    score,
+    result,
+    body.sourceOfFunds || "",
+    body.pep ? 1 : 0,
+    receiptHash,
+    createdAt
+  );
+  return { verified: true, classification, appropriatenessResult: result, score, receiptHash };
+}
+
 function sendJson(res, status, body) {
   const json = JSON.stringify(body);
   res.writeHead(status, {
@@ -193,6 +251,20 @@ const server = http.createServer(async (req, res) => {
         return;
       }
       sendJson(res, 200, recordContractAcceptance(body));
+    } catch (e) {
+      sendJson(res, 400, { error: "invalid request body" });
+    }
+    return;
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/kyc") {
+    try {
+      const body = await readBody(req);
+      if (!body.fullName || !body.dob) {
+        sendJson(res, 400, { error: "fullName and dob are required" });
+        return;
+      }
+      sendJson(res, 200, recordKyc(body));
     } catch (e) {
       sendJson(res, 400, { error: "invalid request body" });
     }
