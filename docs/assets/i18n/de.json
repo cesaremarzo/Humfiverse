@@ -298,5 +298,16 @@
   "landing.investorPanel.body": "Investieren Sie in Songs, die bereits Geld verdienen, oder helfen Sie mit, den nächsten zu finanzieren, bevor er existiert. Jedes Listing zeigt Ihnen genau, was Sie unterstützen, bevor Sie kaufen.",
   "landing.investorPanel.point1": "Fangen Sie klein an — Anteile schon ab 10 $",
   "landing.investorPanel.point2": "Werden Sie automatisch bezahlt, sobald Tantiemen eingehen",
-  "landing.investorPanel.point3": "Jeder Künstler und jeder Titel wird geprüft, bevor er gelistet wird"
+  "landing.investorPanel.point3": "Jeder Künstler und jeder Titel wird geprüft, bevor er gelistet wird",
+  "portfolio.sell": "Verkaufen",
+  "portfolio.sellModalTitle": "Token verkaufen",
+  "portfolio.sellQtyLabel": "Zu verkaufende Token",
+  "portfolio.sellAvailable": "{{n}} verfügbar",
+  "portfolio.sellProceedsLabel": "Sie erhalten",
+  "portfolio.sellFeeLabel": "Plattformgebühr (Token)",
+  "portfolio.sellFeeNote": "Die Plattform behält automatisch 1 % der Token bei jedem Zweitverkauf ein — nie bei Ihrem ersten Kauf aus dem Plattform-Pool. Sie werden trotzdem vollständig für das bezahlt, was Sie verkaufen.",
+  "portfolio.sellCancelBtn": "Abbrechen",
+  "portfolio.sellConfirmBtn": "Verkauf bestätigen",
+  "portfolio.sellSuccessTitle": "Verkauf abgeschlossen",
+  "portfolio.sellSuccessBody": "Sie haben <strong>{{qty}}</strong> Token von {{title}} für {{proceeds}} verkauft. Plattformgebühr: {{fee}} Token."
 }

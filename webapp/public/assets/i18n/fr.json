@@ -298,5 +298,16 @@
   "landing.investorPanel.body": "Investissez dans des titres qui rapportent déjà, ou aidez à financer le prochain avant même qu'il existe. Chaque annonce vous montre exactement ce que vous soutenez, avant d'acheter.",
   "landing.investorPanel.point1": "Commencez petit — les parts démarrent à 10 $",
   "landing.investorPanel.point2": "Soyez payé automatiquement dès que les redevances arrivent",
-  "landing.investorPanel.point3": "Chaque artiste et chaque titre sont vérifiés avant d'être publiés"
+  "landing.investorPanel.point3": "Chaque artiste et chaque titre sont vérifiés avant d'être publiés",
+  "portfolio.sell": "Vendre",
+  "portfolio.sellModalTitle": "Vendre des jetons",
+  "portfolio.sellQtyLabel": "Jetons à vendre",
+  "portfolio.sellAvailable": "{{n}} disponibles",
+  "portfolio.sellProceedsLabel": "Vous recevrez",
+  "portfolio.sellFeeLabel": "Frais de plateforme (jetons)",
+  "portfolio.sellFeeNote": "La plateforme retient automatiquement 1 % des jetons sur chaque vente secondaire — jamais sur votre premier achat auprès du pool de la plateforme. Vous êtes tout de même payé intégralement pour ce que vous vendez.",
+  "portfolio.sellCancelBtn": "Annuler",
+  "portfolio.sellConfirmBtn": "Confirmer la vente",
+  "portfolio.sellSuccessTitle": "Vente terminée",
+  "portfolio.sellSuccessBody": "Vous avez vendu <strong>{{qty}}</strong> jetons de {{title}} pour {{proceeds}}. Frais de plateforme : {{fee}} jeton(s)."
 }

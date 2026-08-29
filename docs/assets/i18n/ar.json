@@ -298,5 +298,16 @@
   "landing.investorPanel.body": "استثمر في أغانٍ تحقق أرباحًا بالفعل، أو ساعد في تمويل الأغنية القادمة قبل أن توجد أصلًا. يوضح لك كل عرض بالضبط ما تدعمه، قبل أن تشتري.",
   "landing.investorPanel.point1": "ابدأ بمبلغ صغير — الحصص تبدأ من 10 دولارات فقط",
   "landing.investorPanel.point2": "احصل على أموالك تلقائيًا كلما وردت الإتاوات",
-  "landing.investorPanel.point3": "يتم التحقق من كل فنان وكل أغنية قبل إدراجها"
+  "landing.investorPanel.point3": "يتم التحقق من كل فنان وكل أغنية قبل إدراجها",
+  "portfolio.sell": "بيع",
+  "portfolio.sellModalTitle": "بيع الرموز",
+  "portfolio.sellQtyLabel": "عدد الرموز المراد بيعها",
+  "portfolio.sellAvailable": "المتاح: {{n}}",
+  "portfolio.sellProceedsLabel": "ستحصل على",
+  "portfolio.sellFeeLabel": "رسوم المنصة (بالرموز)",
+  "portfolio.sellFeeNote": "تحتفظ المنصة تلقائيًا بنسبة 1٪ من الرموز في كل عملية بيع ثانوية — ولا يحدث ذلك أبدًا عند أول عملية شراء من مجمّع المنصة. ستحصل رغم ذلك على السعر كاملًا مقابل ما تبيعه.",
+  "portfolio.sellCancelBtn": "إلغاء",
+  "portfolio.sellConfirmBtn": "تأكيد البيع",
+  "portfolio.sellSuccessTitle": "اكتمل البيع",
+  "portfolio.sellSuccessBody": "لقد بعت <strong>{{qty}}</strong> رمزًا من {{title}} مقابل {{proceeds}}. رسوم المنصة: {{fee}} رمزًا."
 }

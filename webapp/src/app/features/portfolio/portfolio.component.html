@@ -56,13 +56,18 @@
               <td class="cell-num mono">{{ h.tokens }}</td>
               <td class="cell-num mono">{{ fmt(h.costBasis) }}</td>
               <td class="cell-num mono" [style.color]="h.unclaimed > 0 ? 'var(--accent-ink)' : null" [style.font-weight]="h.unclaimed > 0 ? 600 : null">{{ fmt(h.unclaimed) }}</td>
-              <td style="text-align:right;">
+              <td style="text-align:right; display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap;">
                 @if (h.unclaimed > 0) {
                   <button class="btn btn-secondary btn-sm" [disabled]="!!pending()" (click)="redeem(h.assetId)">
                     <app-icon name="wallet"></app-icon> {{ (pending() === h.assetId ? 'redeem.redeeming' : 'portfolio.redeem') | translate }}
                   </button>
                 } @else {
                   <span class="chip chip-neutral"><app-icon name="checkCircle"></app-icon> {{ 'portfolio.upToDate' | translate }}</span>
+                }
+                @if (h.tokens > 0) {
+                  <button class="btn btn-ghost btn-sm" (click)="openSell(h.assetId)">
+                    <app-icon name="coins"></app-icon> {{ 'portfolio.sell' | translate }}
+                  </button>
                 }
               </td>
             </tr>
@@ -110,6 +115,43 @@
         <div class="mono" style="word-break:break-all;">{{ s.txHash }}</div>
       </div>
       <button class="btn btn-primary btn-block" (click)="closeModal()">{{ 'redeem.done' | translate }}</button>
+    </div>
+  </div>
+}
+
+@if (sellDraft(); as d) {
+  <div class="modal-scrim" (click)="$event.target === $event.currentTarget && closeSellDraft()">
+    <div class="modal">
+      <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:18px;">{{ 'portfolio.sellModalTitle' | translate }}</h3>
+      <p style="font-size:13px; color:var(--text-secondary);">{{ assetTitle(d.assetId) }}</p>
+
+      <label style="display:flex; flex-direction:column; gap:6px; text-align:left; margin-top:8px;">
+        <span style="font-size:12px; color:var(--text-secondary);">{{ 'portfolio.sellQtyLabel' | translate }} — {{ 'portfolio.sellAvailable' | translate: { n: d.max } }}</span>
+        <input type="number" min="1" [max]="d.max" [value]="sellQty()" (input)="setSellQty($any($event.target).value)"
+               style="padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--text); font:inherit;" />
+      </label>
+
+      <div class="card panel" style="text-align:left; font-size:13px; margin-top:14px; display:flex; flex-direction:column; gap:6px;">
+        <div style="display:flex; justify-content:space-between;"><span>{{ 'portfolio.sellProceedsLabel' | translate }}</span><strong>{{ fmt(sellProceeds()) }}</strong></div>
+        <div style="display:flex; justify-content:space-between; color:var(--text-secondary);"><span>{{ 'portfolio.sellFeeLabel' | translate }}</span><span>{{ sellFeeTokens() }}</span></div>
+        <p style="font-size:11.5px; color:var(--text-secondary); margin:6px 0 0;">{{ 'portfolio.sellFeeNote' | translate }}</p>
+      </div>
+
+      <div style="display:flex; gap:10px; margin-top:16px;">
+        <button class="btn btn-ghost btn-block" (click)="closeSellDraft()">{{ 'portfolio.sellCancelBtn' | translate }}</button>
+        <button class="btn btn-primary btn-block" (click)="confirmSell()">{{ 'portfolio.sellConfirmBtn' | translate }}</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (sellResult(); as r) {
+  <div class="modal-scrim" (click)="$event.target === $event.currentTarget && closeSellResult()">
+    <div class="modal">
+      <div class="success-icon"><app-icon name="check"></app-icon></div>
+      <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:18px;">{{ 'portfolio.sellSuccessTitle' | translate }}</h3>
+      <p style="font-size:13.5px; color:var(--text-secondary);" [innerHTML]="'portfolio.sellSuccessBody' | translate: { qty: r.qty, title: assetTitle(r.assetId), proceeds: fmt(r.proceeds), fee: r.fee }"></p>
+      <button class="btn btn-primary btn-block" (click)="closeSellResult()">{{ 'redeem.done' | translate }}</button>
     </div>
   </div>
 }

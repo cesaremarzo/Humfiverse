@@ -298,5 +298,16 @@
   "landing.investorPanel.body": "すでに収益を上げている曲に投資するか、まだ存在しない次の曲の制作を支援しましょう。購入前に、何を支援しているのかが各リスティングでしっかりわかります。",
   "landing.investorPanel.point1": "少額から始められます — 10ドルから",
   "landing.investorPanel.point2": "ロイヤリティが入るたびに自動で受け取れます",
-  "landing.investorPanel.point3": "すべてのアーティストと楽曲は掲載前に確認済みです"
+  "landing.investorPanel.point3": "すべてのアーティストと楽曲は掲載前に確認済みです",
+  "portfolio.sell": "売却",
+  "portfolio.sellModalTitle": "トークンを売却",
+  "portfolio.sellQtyLabel": "売却するトークン数",
+  "portfolio.sellAvailable": "利用可能: {{n}}",
+  "portfolio.sellProceedsLabel": "受け取る金額",
+  "portfolio.sellFeeLabel": "プラットフォーム手数料（トークン）",
+  "portfolio.sellFeeNote": "プラットフォームは、二次売却のたびにトークンの1%を自動的に手数料として差し引きます — プラットフォームのプールからの最初の購入では発生しません。売却分の代金は全額お支払いします。",
+  "portfolio.sellCancelBtn": "キャンセル",
+  "portfolio.sellConfirmBtn": "売却を確定",
+  "portfolio.sellSuccessTitle": "売却完了",
+  "portfolio.sellSuccessBody": "{{title}} のトークンを <strong>{{qty}}</strong> 個、{{proceeds}} で売却しました。プラットフォーム手数料：{{fee}} トークン。"
 }

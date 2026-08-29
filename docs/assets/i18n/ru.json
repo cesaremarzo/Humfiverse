@@ -298,5 +298,16 @@
   "landing.investorPanel.body": "Инвестируйте в треки, которые уже приносят доход, либо помогите профинансировать следующий ещё до его создания. Каждый листинг точно показывает, во что вы вкладываетесь, ещё до покупки.",
   "landing.investorPanel.point1": "Начните с малого — доли от $10",
   "landing.investorPanel.point2": "Получайте деньги автоматически по мере поступления роялти",
-  "landing.investorPanel.point3": "Каждый артист и каждый трек проверяются перед публикацией"
+  "landing.investorPanel.point3": "Каждый артист и каждый трек проверяются перед публикацией",
+  "portfolio.sell": "Продать",
+  "portfolio.sellModalTitle": "Продать токены",
+  "portfolio.sellQtyLabel": "Токенов для продажи",
+  "portfolio.sellAvailable": "доступно: {{n}}",
+  "portfolio.sellProceedsLabel": "Вы получите",
+  "portfolio.sellFeeLabel": "Комиссия платформы (в токенах)",
+  "portfolio.sellFeeNote": "Платформа автоматически удерживает 1% токенов при каждой вторичной продаже — но никогда при вашей первой покупке из пула платформы. Вы всё равно получаете полную оплату за то, что продаёте.",
+  "portfolio.sellCancelBtn": "Отмена",
+  "portfolio.sellConfirmBtn": "Подтвердить продажу",
+  "portfolio.sellSuccessTitle": "Продажа завершена",
+  "portfolio.sellSuccessBody": "Вы продали <strong>{{qty}}</strong> токенов «{{title}}» за {{proceeds}}. Комиссия платформы: {{fee}} токен(ов)."
 }

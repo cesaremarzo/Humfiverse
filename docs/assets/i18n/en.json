@@ -298,5 +298,16 @@
   "landing.investorPanel.body": "Buy into songs that are already earning, or help fund the next one before it exists. Every listing shows you exactly what you're backing, before you buy.",
   "landing.investorPanel.point1": "Start small — shares begin at just $10",
   "landing.investorPanel.point2": "Get paid automatically as royalties come in",
-  "landing.investorPanel.point3": "Every artist and every track is checked before it's listed"
+  "landing.investorPanel.point3": "Every artist and every track is checked before it's listed",
+  "portfolio.sell": "Sell",
+  "portfolio.sellModalTitle": "Sell tokens",
+  "portfolio.sellQtyLabel": "Tokens to sell",
+  "portfolio.sellAvailable": "{{n}} available",
+  "portfolio.sellProceedsLabel": "You'll be paid",
+  "portfolio.sellFeeLabel": "Platform fee (tokens)",
+  "portfolio.sellFeeNote": "The platform automatically retains 1% of the tokens on every secondary sale — never on your first purchase from the platform pool. You're still paid in full for what you sell.",
+  "portfolio.sellCancelBtn": "Cancel",
+  "portfolio.sellConfirmBtn": "Confirm sale",
+  "portfolio.sellSuccessTitle": "Sale complete",
+  "portfolio.sellSuccessBody": "You sold <strong>{{qty}}</strong> tokens of {{title}} for {{proceeds}}. Platform fee: {{fee}} token(s)."
 }

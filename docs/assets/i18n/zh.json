@@ -298,5 +298,16 @@
   "landing.investorPanel.body": "投资已经在产生收益的歌曲，或者在新歌诞生之前就帮忙出资。购买前，每个项目都会清楚告诉你在支持什么。",
   "landing.investorPanel.point1": "从小额开始——最低10美元",
   "landing.investorPanel.point2": "版税到账时自动获得收益",
-  "landing.investorPanel.point3": "每位艺术家和每首曲目在上架前都经过核实"
+  "landing.investorPanel.point3": "每位艺术家和每首曲目在上架前都经过核实",
+  "portfolio.sell": "出售",
+  "portfolio.sellModalTitle": "出售代币",
+  "portfolio.sellQtyLabel": "出售数量",
+  "portfolio.sellAvailable": "可用 {{n}} 枚",
+  "portfolio.sellProceedsLabel": "您将获得",
+  "portfolio.sellFeeLabel": "平台费用（代币）",
+  "portfolio.sellFeeNote": "平台会在每笔二级市场出售中自动收取1%的代币作为费用——但在你从平台资金池首次购买时绝不收取。你出售的部分仍会获得全额付款。",
+  "portfolio.sellCancelBtn": "取消",
+  "portfolio.sellConfirmBtn": "确认出售",
+  "portfolio.sellSuccessTitle": "出售完成",
+  "portfolio.sellSuccessBody": "你已将 {{title}} 的 <strong>{{qty}}</strong> 枚代币以 {{proceeds}} 出售。平台费用：{{fee}} 枚代币。"
 }

@@ -298,5 +298,16 @@
   "landing.investorPanel.body": "Invierte en canciones que ya generan ingresos, o ayuda a financiar la próxima antes de que exista. Cada anuncio te muestra exactamente qué estás respaldando, antes de comprar.",
   "landing.investorPanel.point1": "Empieza con poco — las participaciones desde solo 10 $",
   "landing.investorPanel.point2": "Cobra automáticamente a medida que llegan las regalías",
-  "landing.investorPanel.point3": "Cada artista y cada tema se verifican antes de publicarse"
+  "landing.investorPanel.point3": "Cada artista y cada tema se verifican antes de publicarse",
+  "portfolio.sell": "Vender",
+  "portfolio.sellModalTitle": "Vender tokens",
+  "portfolio.sellQtyLabel": "Tokens a vender",
+  "portfolio.sellAvailable": "{{n}} disponibles",
+  "portfolio.sellProceedsLabel": "Recibirás",
+  "portfolio.sellFeeLabel": "Comisión de la plataforma (tokens)",
+  "portfolio.sellFeeNote": "La plataforma retiene automáticamente el 1% de los tokens en cada venta secundaria — nunca en tu primera compra del pool de la plataforma. Aun así recibes el pago completo por lo que vendes.",
+  "portfolio.sellCancelBtn": "Cancelar",
+  "portfolio.sellConfirmBtn": "Confirmar venta",
+  "portfolio.sellSuccessTitle": "Venta completada",
+  "portfolio.sellSuccessBody": "Vendiste <strong>{{qty}}</strong> tokens de {{title}} por {{proceeds}}. Comisión de la plataforma: {{fee}} token(s)."
 }

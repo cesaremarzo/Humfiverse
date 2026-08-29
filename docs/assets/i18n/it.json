@@ -298,5 +298,16 @@
   "landing.investorPanel.body": "Investi in brani che guadagnano già, oppure aiuta a finanziare il prossimo prima ancora che esista. Ogni annuncio ti mostra esattamente cosa stai sostenendo, prima di comprare.",
   "landing.investorPanel.point1": "Inizia in piccolo — le quote partono da soli 10$",
   "landing.investorPanel.point2": "Vieni pagato automaticamente man mano che arrivano le royalty",
-  "landing.investorPanel.point3": "Ogni artista e ogni brano vengono controllati prima di essere pubblicati"
+  "landing.investorPanel.point3": "Ogni artista e ogni brano vengono controllati prima di essere pubblicati",
+  "portfolio.sell": "Vendi",
+  "portfolio.sellModalTitle": "Vendi token",
+  "portfolio.sellQtyLabel": "Token da vendere",
+  "portfolio.sellAvailable": "{{n}} disponibili",
+  "portfolio.sellProceedsLabel": "Riceverai",
+  "portfolio.sellFeeLabel": "Commissione piattaforma (token)",
+  "portfolio.sellFeeNote": "La piattaforma trattiene automaticamente l'1% dei token su ogni vendita secondaria — mai sul tuo primo acquisto dal pool della piattaforma. Ricevi comunque il pagamento pieno per ciò che vendi.",
+  "portfolio.sellCancelBtn": "Annulla",
+  "portfolio.sellConfirmBtn": "Conferma vendita",
+  "portfolio.sellSuccessTitle": "Vendita completata",
+  "portfolio.sellSuccessBody": "Hai venduto <strong>{{qty}}</strong> token di {{title}} per {{proceeds}}. Commissione piattaforma: {{fee}} token."
 }
