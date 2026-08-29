@@ -16,7 +16,7 @@
 const { ethers } = require("ethers");
 
 const RPC_URL = process.env.CHAIN_RPC_URL || "https://sepolia.base.org";
-const CONTRACT_ADDRESS = process.env.CHAIN_CONTRACT_ADDRESS || "0xC1aFD3D24de2C344053bBe83aB412140C452146b";
+const CONTRACT_ADDRESS = process.env.CHAIN_CONTRACT_ADDRESS || "0xFa9CCBCAAbd08f8f189249A82B0808dcb05e99c2";
 const CHAIN_ID = 84532; // Base Sepolia
 const EXPLORER_BASE = "https://sepolia.basescan.org";
 
