@@ -39,7 +39,7 @@
   z-index: 0;
 }
 
-/* Dashed bidirectional arrow linking the two corner buttons */
+/* Sinuous dashed line linking the two choice buttons */
 .landing-arrow {
   position: absolute;
   inset: 0;
@@ -50,6 +50,7 @@
 }
 
 .landing-arrow-line {
+  fill: none;
   stroke: var(--accent-ink);
   stroke-width: 0.45;
   stroke-dasharray: 2.4 2.4;
@@ -92,73 +93,71 @@
 .landing-corner-btn {
   position: absolute;
   z-index: 3;
-  padding: 20px 34px;
-  font-size: 18px;
-  font-weight: 600;
-  border-radius: 16px;
-  box-shadow: 0 8px 28px color-mix(in srgb, var(--accent) 30%, transparent);
+  padding: 26px 46px;
+  font-size: 21px;
+  font-weight: 700;
+  border-radius: 18px;
+  box-shadow: 0 10px 32px color-mix(in srgb, var(--accent) 32%, transparent);
 }
 
 .landing-corner-btn--artist {
-  top: 8%;
-  left: 6%;
+  top: 17%;
+  left: 13%;
 }
 
 .landing-corner-btn--investor {
-  bottom: 8%;
-  right: 6%;
+  bottom: 17%;
+  right: 13%;
 }
 
-/* Scroll-reveal panels: opacity is driven from the component (distance from
- * viewport centre); hover adds an independent "illuminate" highlight. */
+/* Second screen: the two choices, side by side and equally weighted.
+ * Static and fully visible once scrolled into view — the only thing that
+ * changes on interaction is the hover "illuminate" highlight below. */
+.landing-panels {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  align-items: stretch;
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 100px 24px 120px;
+}
+
 .landing-panel {
   position: relative;
   isolation: isolate;
-  overflow: hidden;
-  min-height: 92vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 80px 24px;
-  transition: opacity 0.2s ease-out;
-}
-
-.landing-panel--artist {
-  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--accent) 12%, var(--bg)) 0%, var(--bg) 70%);
-}
-
-.landing-panel--investor {
-  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--accent-ink) 12%, var(--bg)) 0%, var(--bg) 70%);
-}
-
-.landing-panel-inner {
-  position: relative;
-  z-index: 2;
-  width: 100%;
-  max-width: 620px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 48px 44px;
+  padding: 44px 40px;
   border-radius: 24px;
   background: var(--surface);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
-  transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+  transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.25s ease, background 0.25s ease;
 }
 
-.landing-panel:hover .landing-panel-inner {
+.landing-panel:hover {
   border-color: var(--accent-ink);
   box-shadow: 0 24px 64px color-mix(in srgb, var(--accent) 32%, transparent);
   transform: translateY(-4px);
 }
 
-.landing-panel-inner h2 {
-  font-size: clamp(26px, 3.2vw, 38px);
+.landing-panel--artist:hover {
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+}
+
+.landing-panel--investor:hover {
+  background: color-mix(in srgb, var(--accent-ink) 6%, var(--surface));
+}
+
+.landing-panel h2 {
+  font-size: clamp(24px, 2.4vw, 32px);
   letter-spacing: -0.01em;
 }
 
-.landing-panel-inner p {
+.landing-panel p {
   font-size: 15.5px;
   color: var(--text-secondary);
   line-height: 1.6;
@@ -171,6 +170,7 @@
   list-style: none;
   padding: 0;
   margin: 4px 0;
+  flex: 1;
 }
 
 .landing-panel-points li {
@@ -186,9 +186,15 @@
   margin-top: 2px;
 }
 
-.landing-panel-inner .btn {
+.landing-panel .btn {
   align-self: flex-start;
   margin-top: 8px;
+}
+
+@media (max-width: 860px) {
+  .landing-panels {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 720px) {
@@ -222,7 +228,9 @@
   .landing-corner-btn {
     position: static;
     width: 100%;
-    max-width: 320px;
+    max-width: 340px;
+    padding: 20px 32px;
+    font-size: 18px;
   }
 
   .landing-stage > div.landing-buttons {
@@ -236,12 +244,11 @@
     margin-top: 28px;
   }
 
-  .landing-panel {
-    min-height: auto;
-    padding: 56px 16px;
+  .landing-panels {
+    padding: 56px 16px 72px;
   }
 
-  .landing-panel-inner {
+  .landing-panel {
     padding: 32px 24px;
   }
 }
