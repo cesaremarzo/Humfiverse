@@ -234,14 +234,14 @@
           <span>{{ 'buy.ackLabel' | translate }}</span>
         </label>
 
-        @if (onchainInfo()?.onchain && $any(onchainInfo()).priceWei !== '0') {
+        @if ((isPre(a) && escrowInfo()?.escrow && $any(escrowInfo()).status === 'active') || (!isPre(a) && onchainInfo()?.onchain && $any(onchainInfo()).priceWei !== '0')) {
           @if (wallet.state().address) {
-            <div class="chip chip-good" style="margin-bottom:10px;"><app-icon name="checkCircle"></app-icon> {{ 'buy.onchainReady' | translate }}</div>
+            <div class="chip chip-good" style="margin-bottom:10px;"><app-icon name="checkCircle"></app-icon> {{ (isPre(a) ? 'buy.escrowReady' : 'buy.onchainReady') | translate }}</div>
           } @else {
             <div class="risk-item" style="margin-bottom:10px;">
               <app-icon name="wallet"></app-icon>
               <div>
-                {{ 'buy.onchainConnectPrompt' | translate }}
+                {{ (isPre(a) ? 'buy.escrowConnectPrompt' : 'buy.onchainConnectPrompt') | translate }}
                 <button type="button" class="btn btn-ghost btn-sm" style="margin-top:6px;" [disabled]="wallet.state().connecting" (click)="wallet.connect()">
                   <app-icon name="wallet"></app-icon> {{ (wallet.state().connecting ? 'wallet.connecting' : 'wallet.connect') | translate }}
                 </button>

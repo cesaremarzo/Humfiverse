@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { IconComponent } from '../../shared/icon.component';
 import { StoreService } from '../../core/store.service';
+import { WalletService } from '../../core/wallet.service';
 import { ApiService } from '../../core/api.service';
 import { ToastService } from '../../core/toast.service';
 import { AiDisclosure, Asset, DisclosureLevel } from '../../core/models';
@@ -20,7 +21,7 @@ interface WizardData {
   genre: string;
   description: string;
   catalogue: { dsp: string; months: string; history: string };
-  preprod: { studio: number; session: number; mix: number; extra: number };
+  preprod: { studio: number; session: number; mix: number; extra: number; studioName: string; studioWallet: string };
   disclosure: AiDisclosure;
   contract: { generalAccepted: boolean; vessatoriaAccepted: Record<string, boolean> };
   ack: boolean;
@@ -43,7 +44,7 @@ function freshWizardData(): WizardData {
     genre: 'Indie Pop',
     description: '',
     catalogue: { dsp: 'Spotify for Artists', months: '12', history: '' },
-    preprod: { studio: 5000, session: 4000, mix: 3000, extra: 1000 },
+    preprod: { studio: 5000, session: 4000, mix: 3000, extra: 1000, studioName: '', studioWallet: '' },
     disclosure: { vocals: 'human', instrumentation: 'human', composition: 'human', postProduction: 'human', lyrics: 'human' },
     contract: { generalAccepted: false, vessatoriaAccepted: {} },
     ack: false
@@ -106,6 +107,7 @@ export class OnboardingComponent {
 
   constructor(
     public store: StoreService,
+    public wallet: WalletService,
     private api: ApiService,
     private toast: ToastService,
     private translate: TranslateService,
@@ -119,6 +121,14 @@ export class OnboardingComponent {
   updatePreprodField(field: 'studio' | 'session' | 'mix' | 'extra', value: string): void {
     const n = Math.max(0, parseInt(value || '0', 10) || 0);
     this.data.update((d) => ({ ...d, preprod: { ...d.preprod, [field]: n } }));
+  }
+
+  updatePreprodTextField(field: 'studioName' | 'studioWallet', value: string): void {
+    this.data.update((d) => ({ ...d, preprod: { ...d.preprod, [field]: value } }));
+  }
+
+  isValidWalletAddress(value: string): boolean {
+    return /^0x[a-fA-F0-9]{40}$/.test(value.trim());
   }
 
   setDisclosure(key: keyof AiDisclosure, value: DisclosureLevel): void {
@@ -160,6 +170,9 @@ export class OnboardingComponent {
     const key = this.stepKey();
     if (key === 'basics') return !!d.title.trim() && !!d.artistName.trim();
     if (key === 'model') return !!d.model;
+    if (key === 'source' && d.model === 'preproduction') {
+      return !!d.preprod.studioName.trim() && this.isValidWalletAddress(d.preprod.studioWallet);
+    }
     if (key === 'contract') return this.isContractComplete();
     return true;
   }
@@ -256,10 +269,10 @@ export class OnboardingComponent {
 
     // Every campaign gets an on-chain token at upload time, catalogue and
     // preproduction alike (unified 29 Aug 2026 — see
-    // planning/technical-architecture.md §2.14). For preproduction this is
-    // a simplification: the token stands in for the milestone-escrow
-    // instrument §2.7 describes, which isn't built — a real implementation
-    // would need that escrow controlling fund release, not just a token.
+    // planning/technical-architecture.md §2.14/§2.15). Preproduction
+    // campaigns additionally get a real milestone-escrow campaign below,
+    // which is what actually controls fund release — the token here is
+    // just the claim/quantity record, same role it plays for catalogues.
     if (this.store.backendAvailable()) {
       // Illustrative testnet-only USD→wei mapping (0.0001 ETH per $1 of the
       // mock display price) — no real peg, just keeps relative pricing
@@ -279,6 +292,41 @@ export class OnboardingComponent {
           console.warn('On-chain mint did not happen (campaign was still created normally).', err);
           this.toast.show(this.translate.instant('toast.onchainMintFailed'), 'alert');
         });
+
+      // Preproduction campaigns also get a real milestone escrow (§2.15) —
+      // needs the artist's own wallet connected, since that's where every
+      // non-studio milestone tranche pays out to. Best-effort: the
+      // campaign still exists without it, just without escrow protection
+      // until an artist wallet is set up.
+      if (isPre) {
+        const artistAddress = this.wallet.state().address;
+        if (!artistAddress) {
+          this.toast.show(this.translate.instant('toast.escrowNeedsWallet'), 'alert');
+        } else {
+          const fundingGoalWei = (BigInt(Math.round(total)) * 100_000_000_000_000n).toString();
+          this.api
+            .createEscrowCampaign({
+              assetId: id,
+              artistAddress,
+              fundingGoalWei,
+              studioName: d.preprod.studioName,
+              studioWallet: d.preprod.studioWallet,
+              milestones: [
+                { name: 'Funding goal reached', bps: 2000, payee: 'artist' },
+                { name: 'Studio & collaborators booked', bps: 4000, payee: 'studio' },
+                { name: 'Mix & master delivered', bps: 3000, payee: 'artist' },
+                { name: 'Release confirmed on DSPs', bps: 1000, payee: 'artist' }
+              ]
+            })
+            .then(() => {
+              this.toast.show(this.translate.instant('toast.escrowCreated'), 'checkCircle');
+            })
+            .catch((err) => {
+              console.warn('Escrow campaign creation did not happen (campaign was still created normally).', err);
+              this.toast.show(this.translate.instant('toast.escrowCreateFailed'), 'alert');
+            });
+        }
+      }
     }
 
     this.router.navigateByUrl('/artist/dashboard');

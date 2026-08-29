@@ -166,9 +166,10 @@ export interface BackendData {
   portfolio: Portfolio;
 }
 
-/** Live on-chain data for a catalogue-kind asset — see server/chain.js and
- * contracts/contracts/HumfiverseCatalogueToken.sol. `onchain: false` means
- * this asset has no on-chain token yet (preproduction assets never do). */
+/** Live on-chain data for an asset's HumfiverseCatalogueToken — see
+ * server/chain.js. `onchain: false` means this asset has no on-chain token
+ * yet (shouldn't normally happen post-§2.14: every asset gets one at
+ * creation, catalogue and preproduction alike). */
 export type OnchainInfo =
   | { onchain: false }
   | {
@@ -194,4 +195,44 @@ export interface OnchainMintResult {
   txHash: string;
   contractAddress: string;
   explorerUrl: string;
+}
+
+/** A single tranche of a preproduction campaign's milestone escrow — see
+ * contracts/contracts/HumfiverseMilestoneEscrow.sol and
+ * planning/technical-architecture.md §2.15. */
+export interface EscrowMilestone {
+  index: number;
+  name: string;
+  bps: number;
+  payee: 'artist' | 'studio';
+  released: boolean;
+  amountWei: string;
+}
+
+/** Live on-chain state for a preproduction asset's milestone escrow
+ * campaign. `escrow: false` means this asset has no escrow campaign yet. */
+export type EscrowCampaignInfo =
+  | { escrow: false }
+  | {
+      escrow: true;
+      assetId: string;
+      campaignId: number;
+      contractAddress: string;
+      network: string;
+      explorerUrl: string;
+      artist: string;
+      studioId: number;
+      studio: { name: string; wallet: string; active: boolean } | null;
+      fundingGoal: string;
+      raised: string;
+      deadline: number;
+      status: 'active' | 'cancelled';
+      releasedBps: number;
+      milestones: EscrowMilestone[];
+    };
+
+export interface EscrowCampaignCreateResult {
+  campaignId: number;
+  studioId: number;
+  txHash: string;
 }

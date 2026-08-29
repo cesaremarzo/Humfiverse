@@ -328,5 +328,17 @@
   "buy.onchainPending": "أكّد العملية في محفظتك…",
   "buy.onchainTxLabel": "بصمة المعاملة",
   "toast.onchainWrongNetwork": "تعذّر التبديل إلى Base Sepolia — تحقق من محفظتك.",
-  "toast.onchainBuyFailed": "فشلت عملية الشراء على السلسلة أو تم رفضها."
+  "toast.onchainBuyFailed": "فشلت عملية الشراء على السلسلة أو تم رفضها.",
+  "wizSource.studioNameLabel": "اسم الاستوديو",
+  "wizSource.studioNamePlaceholder": "مثال: Analog Sun Studio",
+  "wizSource.studioWalletLabel": "عنوان محفظة الاستوديو",
+  "wizSource.studioWalletHint": "تُدفع مرحلة \"حجز الاستوديو\" مباشرة إلى هذه المحفظة — وليس إليك. هذا ما يجعل الالتزام حقيقيًا، لا مجرد وعد.",
+  "wizSource.studioWalletInvalid": "أدخل عنوان محفظة صالحًا (0x…).",
+  "wizReview.escrowReady": "المحفظة متصلة — ستُحفظ أموال هذه الحملة في ضمان حقيقي مرتبط بالمراحل.",
+  "wizReview.escrowConnectPrompt": "اربط محفظتك حتى تدخل المساهمات في ضمان حقيقي مرتبط بالمراحل، حيث لا تُصرف الدفعات إلا عندما تؤكد Humfiverse كل مرحلة.",
+  "toast.escrowNeedsWallet": "تم إنشاء الحملة، لكن يرجى ربط محفظة لإعداد ضمان المراحل الخاص بها.",
+  "toast.escrowCreated": "تم إنشاء ضمان المراحل على السلسلة.",
+  "toast.escrowCreateFailed": "تم إنشاء الحملة، لكن تعذّر إعداد الضمان على السلسلة الآن.",
+  "buy.escrowReady": "المحفظة متصلة — ستكون هذه مساهمة حقيقية محفوظة في ضمان",
+  "buy.escrowConnectPrompt": "اربط محفظتك لجعل هذه مساهمة حقيقية محفوظة في ضمان (وإلا ستبقى محاكاة)."
 }

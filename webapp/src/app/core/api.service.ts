@@ -2,7 +2,17 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { BackendData, ContractAcceptanceResult, ContractTemplate, KycResult, OnchainInfo, OnchainMintResult, RedeemResult } from './models';
+import {
+  BackendData,
+  ContractAcceptanceResult,
+  ContractTemplate,
+  EscrowCampaignCreateResult,
+  EscrowCampaignInfo,
+  KycResult,
+  OnchainInfo,
+  OnchainMintResult,
+  RedeemResult
+} from './models';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -51,5 +61,30 @@ export class ApiService {
   /** Every assetId with a real, chain-verified token — see StoreService.onchainAssetIds. */
   getOnchainList(): Promise<{ source: 'chain' | 'local-table'; assetIds: string[] }> {
     return firstValueFrom(this.http.get<{ source: 'chain' | 'local-table'; assetIds: string[] }>(`${this.base}/api/onchain/list`));
+  }
+
+  getEscrowCampaign(assetId: string): Promise<EscrowCampaignInfo> {
+    return firstValueFrom(this.http.get<EscrowCampaignInfo>(`${this.base}/api/escrow/campaign/${encodeURIComponent(assetId)}`));
+  }
+
+  createEscrowCampaign(payload: {
+    assetId: string;
+    artistAddress: string;
+    fundingGoalWei: string;
+    studioName: string;
+    studioWallet: string;
+    milestones: { name: string; bps: number; payee: 'artist' | 'studio' }[];
+  }): Promise<EscrowCampaignCreateResult> {
+    return firstValueFrom(this.http.post<EscrowCampaignCreateResult>(`${this.base}/api/escrow/campaign`, payload));
+  }
+
+  /** Admin: every milestone-escrow campaign, for the confirm-milestone panel. */
+  getEscrowCampaigns(): Promise<{ campaigns: (EscrowCampaignInfo & { assetId: string })[] }> {
+    return firstValueFrom(this.http.get<{ campaigns: (EscrowCampaignInfo & { assetId: string })[] }>(`${this.base}/api/escrow/campaigns`));
+  }
+
+  /** Admin: Humfiverse confirms a milestone was met, releasing its tranche. */
+  confirmEscrowMilestone(campaignId: number, milestoneIndex: number): Promise<{ txHash: string; explorerUrl: string }> {
+    return firstValueFrom(this.http.post<{ txHash: string; explorerUrl: string }>(`${this.base}/api/escrow/confirm`, { campaignId, milestoneIndex }));
   }
 }

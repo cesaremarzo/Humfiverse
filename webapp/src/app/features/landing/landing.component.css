@@ -58,6 +58,41 @@
   vector-effect: non-scaling-stroke;
 }
 
+/* Financing/music icons riding the curve — plain HTML-positioned (not
+ * inside the non-uniformly-scaled .landing-arrow svg) so they stay perfect
+ * circles/squares at any viewport aspect ratio, never stretched ovals. */
+.landing-path-icon {
+  position: absolute;
+  z-index: 1;
+  width: clamp(30px, 3.4vw, 42px);
+  height: clamp(30px, 3.4vw, 42px);
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  backdrop-filter: blur(3px);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 20%, transparent);
+  animation: landing-icon-float 5s ease-in-out infinite;
+}
+
+.landing-path-icon--note {
+  animation-delay: -2.5s;
+}
+
+.landing-path-icon svg {
+  width: 62%;
+  height: 62%;
+  color: var(--accent-ink);
+  filter: drop-shadow(0 1px 1px color-mix(in srgb, var(--accent) 30%, transparent));
+}
+
+@keyframes landing-icon-float {
+  0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+  50% { transform: translate(-50%, -50%) translateY(-6px); }
+}
+
 .landing-tagline {
   position: relative;
   z-index: 2;
@@ -208,7 +243,8 @@
     padding: 32px 16px;
   }
 
-  .landing-arrow {
+  .landing-arrow,
+  .landing-path-icon {
     display: none;
   }
 

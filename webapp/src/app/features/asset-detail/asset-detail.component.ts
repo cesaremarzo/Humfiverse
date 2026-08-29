@@ -12,7 +12,7 @@ import { StoreService } from '../../core/store.service';
 import { ApiService } from '../../core/api.service';
 import { WalletService } from '../../core/wallet.service';
 import { ToastService } from '../../core/toast.service';
-import { Asset, DisclosureLevel, OnchainInfo, SecondaryListing } from '../../core/models';
+import { Asset, DisclosureLevel, EscrowCampaignInfo, OnchainInfo, SecondaryListing } from '../../core/models';
 import { fmtUSD, fmtUSDShort, fundingPct } from '../../core/format.util';
 import { computeYieldBreakdown } from '../../core/yield.util';
 import { platformFeeTokens } from '../../core/marketplace-fee.util';
@@ -39,6 +39,7 @@ export class AssetDetailComponent {
   onchainInfo = signal<OnchainInfo | null>(null);
   onchainLoading = signal(false);
   onchainBuyPending = signal(false);
+  escrowInfo = signal<EscrowCampaignInfo | null>(null);
 
   listings = computed(() => this.store.activeListingsFor(this.id()));
   marketPrice = computed(() => this.store.lowestAsk(this.id()));
@@ -69,6 +70,12 @@ export class AssetDetailComponent {
         .then((info) => this.onchainInfo.set(info))
         .catch(() => this.onchainInfo.set({ onchain: false }))
         .finally(() => this.onchainLoading.set(false));
+
+      this.escrowInfo.set(null);
+      this.api
+        .getEscrowCampaign(id)
+        .then((info) => this.escrowInfo.set(info))
+        .catch(() => this.escrowInfo.set({ escrow: false }));
     });
   }
 
@@ -139,32 +146,54 @@ export class AssetDetailComponent {
     return !!(info?.onchain && info.priceWei !== '0' && this.wallet.state().address);
   }
 
+  /** True once this preproduction asset has an active escrow campaign and a
+   * connected wallet — meaning `buy()` contributes real ETH into
+   * HumfiverseMilestoneEscrow instead of the simulated fallback. */
+  canContributeOnchain(): boolean {
+    const info = this.escrowInfo();
+    return !!(info?.escrow && info.status === 'active' && this.wallet.state().address);
+  }
+
   async buy(a: Asset): Promise<void> {
     const qty = this.qty();
     const total = qty * a.tokenPrice;
-    const info = this.onchainInfo();
+    const escrowInfo = this.escrowInfo();
+    const onchain = this.onchainInfo();
 
-    if (info?.onchain && info.priceWei !== '0' && this.wallet.state().address) {
+    if (this.isPre(a) && escrowInfo?.escrow && escrowInfo.status === 'active' && this.wallet.state().address) {
+      this.onchainBuyPending.set(true);
+      try {
+        const amountWei = (BigInt(Math.round(total)) * 100_000_000_000_000n).toString();
+        const result = await this.wallet.contributeOnchain({
+          contractAddress: escrowInfo.contractAddress,
+          campaignId: escrowInfo.campaignId,
+          amountWei
+        });
+        this.applyPurchase(a, qty, total);
+        this.success.set({ qty, total, txHash: result.txHash, explorerUrl: result.explorerUrl });
+      } catch (err: unknown) {
+        console.warn('On-chain contribution did not complete.', err);
+        this.toast.show(this.translate.instant(this.onchainErrorKey(err)), 'alert');
+      } finally {
+        this.onchainBuyPending.set(false);
+      }
+      return;
+    }
+
+    if (onchain?.onchain && onchain.priceWei !== '0' && this.wallet.state().address) {
       this.onchainBuyPending.set(true);
       try {
         const result = await this.wallet.buyOnchain({
-          contractAddress: info.contractAddress,
-          tokenId: info.tokenId,
+          contractAddress: onchain.contractAddress,
+          tokenId: onchain.tokenId,
           amount: qty,
-          priceWei: info.priceWei
+          priceWei: onchain.priceWei
         });
         this.applyPurchase(a, qty, total);
         this.success.set({ qty, total, txHash: result.txHash, explorerUrl: result.explorerUrl });
       } catch (err: unknown) {
         console.warn('On-chain purchase did not complete.', err);
-        const message = (err as { message?: string })?.message;
-        const key =
-          message === 'wrong-network'
-            ? 'toast.onchainWrongNetwork'
-            : message === 'no-wallet'
-              ? 'toast.noWalletDetected'
-              : 'toast.onchainBuyFailed';
-        this.toast.show(this.translate.instant(key), 'alert');
+        this.toast.show(this.translate.instant(this.onchainErrorKey(err)), 'alert');
       } finally {
         this.onchainBuyPending.set(false);
       }
@@ -173,6 +202,13 @@ export class AssetDetailComponent {
 
     this.applyPurchase(a, qty, total);
     this.success.set({ qty, total });
+  }
+
+  private onchainErrorKey(err: unknown): string {
+    const message = (err as { message?: string })?.message;
+    if (message === 'wrong-network') return 'toast.onchainWrongNetwork';
+    if (message === 'no-wallet') return 'toast.noWalletDetected';
+    return 'toast.onchainBuyFailed';
   }
 
   private applyPurchase(a: Asset, qty: number, total: number): void {

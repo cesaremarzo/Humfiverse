@@ -1,0 +1,76 @@
+<div class="page-head">
+  <div>
+    <span class="page-kicker">Internal · Humfiverse operator tool</span>
+    <h1>Milestone escrow — confirm tranches</h1>
+    <p class="page-sub">Not part of the public site. This is where Humfiverse confirms a preproduction campaign's milestone was genuinely met, releasing that tranche — straight to the studio's wallet for the studio-booking milestone, to the artist for the rest. See HumfiverseMilestoneEscrow.sol and planning/technical-architecture.md §2.15.</p>
+  </div>
+</div>
+
+@if (loading()) {
+  <p class="prose">Loading campaigns…</p>
+}
+
+@if (error()) {
+  <div class="card panel" style="border-color:var(--danger, #c0392b); margin-bottom:20px;">
+    <strong>Error:</strong> {{ error() }}
+  </div>
+}
+
+@if (lastResult(); as r) {
+  <div class="card panel" style="margin-bottom:20px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+    <div>Milestone confirmed and paid out. <span class="mono" style="font-size:12px;">{{ r.txHash }}</span></div>
+    <a [href]="r.explorerUrl" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">View on explorer</a>
+  </div>
+}
+
+@if (!loading() && campaigns().length === 0) {
+  <div class="empty-state card"><h3>No escrow campaigns yet</h3><p>Preproduction campaigns get one automatically when created with a connected artist wallet.</p></div>
+}
+
+@for (c of campaigns(); track c.campaignId) {
+  <div class="card" style="margin-bottom:24px; padding:20px;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:14px;">
+      <div>
+        <div class="cell-primary">{{ c.assetId }}</div>
+        <div style="font-size:12px; color:var(--text-secondary);">
+          Campaign #{{ c.campaignId }} · Artist {{ truncate(c.artist) }}
+          @if (c.studio) { · Studio "{{ c.studio.name }}" ({{ truncate(c.studio.wallet) }}) }
+        </div>
+      </div>
+      <span class="chip" [class.chip-good]="c.status === 'active'" [class.chip-neutral]="c.status === 'cancelled'">{{ c.status }}</span>
+    </div>
+
+    <div class="stat-row" style="margin-bottom:14px;">
+      <div class="card stat-tile"><div class="label">Goal</div><div class="value">{{ fmt(weiToUsd(c.fundingGoal)) }}</div></div>
+      <div class="card stat-tile"><div class="label">Raised</div><div class="value">{{ fmt(weiToUsd(c.raised)) }}</div></div>
+      <div class="card stat-tile"><div class="label">Released</div><div class="value">{{ c.releasedBps / 100 }}%</div></div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Milestone</th><th>Payee</th><th class="cell-num">Amount</th><th></th></tr></thead>
+        <tbody>
+          @for (m of c.milestones; track m.index) {
+            <tr>
+              <td>{{ m.name }}</td>
+              <td>{{ m.payee === 'studio' ? (c.studio?.name || 'Studio') : 'Artist' }}</td>
+              <td class="cell-num mono">{{ fmt(weiToUsd(m.amountWei)) }}</td>
+              <td style="text-align:right;">
+                @if (m.released) {
+                  <span class="chip chip-neutral">Released</span>
+                } @else {
+                  <button
+                    class="btn btn-primary btn-sm"
+                    [disabled]="confirming() === (c.campaignId + '-' + m.index) || !canConfirm(c.raised, m.amountWei)"
+                    (click)="confirm(c.campaignId, m.index)">
+                    {{ confirming() === (c.campaignId + '-' + m.index) ? 'Confirming…' : 'Confirm' }}
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}

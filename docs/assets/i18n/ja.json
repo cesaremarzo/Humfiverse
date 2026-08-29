@@ -328,5 +328,17 @@
   "buy.onchainPending": "ウォレットで確認してください…",
   "buy.onchainTxLabel": "トランザクションハッシュ",
   "toast.onchainWrongNetwork": "Base Sepoliaへの切り替えに失敗しました — ウォレットをご確認ください。",
-  "toast.onchainBuyFailed": "オンチェーン購入に失敗したか拒否されました。"
+  "toast.onchainBuyFailed": "オンチェーン購入に失敗したか拒否されました。",
+  "wizSource.studioNameLabel": "スタジオ名",
+  "wizSource.studioNamePlaceholder": "例：Analog Sun Studio",
+  "wizSource.studioWalletLabel": "スタジオのウォレットアドレス",
+  "wizSource.studioWalletHint": "「スタジオ予約」のマイルストーンは、このウォレットに直接支払われます — あなたにではありません。これにより、単なる約束ではなく、実際の契約になります。",
+  "wizSource.studioWalletInvalid": "有効なウォレットアドレスを入力してください（0x…）。",
+  "wizReview.escrowReady": "ウォレット接続済み — このキャンペーンの資金は実際のマイルストーンエスクローに保管されます。",
+  "wizReview.escrowConnectPrompt": "ウォレットを接続すると、出資金は実際のマイルストーンエスクローに入り、Humfiverseが各マイルストーンを確認した時にのみ資金が解放されます。",
+  "toast.escrowNeedsWallet": "キャンペーンは作成されましたが、マイルストーンエスクローを設定するにはウォレットを接続してください。",
+  "toast.escrowCreated": "マイルストーンエスクローがオンチェーンで作成されました。",
+  "toast.escrowCreateFailed": "キャンペーンは作成されましたが、現時点ではオンチェーンのエスクローを設定できませんでした。",
+  "buy.escrowReady": "ウォレット接続済み — これはエスクローに保管される実際の出資になります",
+  "buy.escrowConnectPrompt": "ウォレットを接続すると、これがエスクローに保管される実際の出資になります（接続しない場合はシミュレーションのままです）。"
 }

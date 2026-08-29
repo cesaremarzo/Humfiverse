@@ -24,6 +24,7 @@ const { DatabaseSync } = require("node:sqlite");
 const { ASSETS, CAMPAIGNS, PORTFOLIO } = require("./seed-data");
 const { CONTRACT_TEMPLATE } = require("./contract-template");
 const chain = require("./chain");
+const escrow = require("./chainEscrow");
 
 const PORT = process.env.PORT || 3001;
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, "humfiverse.db");
@@ -65,6 +66,22 @@ db.exec(`
     supply INTEGER NOT NULL,
     tx_hash TEXT,
     minted_at TEXT
+  );
+  CREATE TABLE IF NOT EXISTS escrow_campaigns (
+    campaign_id INTEGER PRIMARY KEY,
+    asset_id TEXT UNIQUE NOT NULL,
+    studio_id INTEGER,
+    studio_name TEXT,
+    studio_wallet TEXT,
+    tx_hash TEXT,
+    created_at TEXT
+  );
+  CREATE TABLE IF NOT EXISTS escrow_studios (
+    studio_id INTEGER PRIMARY KEY,
+    wallet TEXT UNIQUE NOT NULL,
+    name TEXT,
+    tx_hash TEXT,
+    created_at TEXT
   );
 `);
 
@@ -254,6 +271,44 @@ async function mintAssetOnchain(assetId, slug, supply, priceWei) {
   return result;
 }
 
+function getEscrowRecord(assetId) {
+  return db.prepare("SELECT campaign_id, asset_id, studio_id, studio_name, studio_wallet, tx_hash, created_at FROM escrow_campaigns WHERE asset_id = ?").get(assetId);
+}
+
+/** Creates the on-chain milestone escrow campaign for a preproduction asset:
+ * registers the studio (if not already registered — keyed by wallet
+ * address, since there's no studio-picker UI yet, only a name+wallet field
+ * on the onboarding wizard) and creates the campaign with the standard
+ * four-milestone template, "studio booked" routed to the studio's wallet.
+ * See planning/technical-architecture.md §2.15. */
+async function createEscrowCampaign(assetId, artistAddress, fundingGoalWei, studioName, studioWallet, milestones) {
+  const existing = getEscrowRecord(assetId);
+  if (existing) throw Object.assign(new Error("asset already has an escrow campaign"), { code: "already_created", record: existing });
+
+  let studioRow = db.prepare("SELECT studio_id FROM escrow_studios WHERE wallet = ?").get(studioWallet.toLowerCase());
+  let studioId;
+  if (studioRow) {
+    studioId = studioRow.studio_id;
+  } else {
+    const result = await escrow.registerStudioOnchain(studioWallet, studioName);
+    studioId = result.studioId;
+    db.prepare("INSERT INTO escrow_studios (studio_id, wallet, name, tx_hash, created_at) VALUES (?, ?, ?, ?, ?)").run(
+      studioId, studioWallet.toLowerCase(), studioName, result.txHash, new Date().toISOString()
+    );
+  }
+
+  const names = milestones.map((m) => m.name);
+  const bps = milestones.map((m) => m.bps);
+  const payees = milestones.map((m) => (m.payee === "studio" ? 1 : 0));
+  const created = await escrow.createCampaignOnchain(artistAddress, fundingGoalWei, studioId, 0, names, bps, payees);
+
+  db.prepare(
+    "INSERT INTO escrow_campaigns (campaign_id, asset_id, studio_id, studio_name, studio_wallet, tx_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+  ).run(created.campaignId, assetId, studioId, studioName, studioWallet.toLowerCase(), created.txHash, new Date().toISOString());
+
+  return { campaignId: created.campaignId, studioId, txHash: created.txHash };
+}
+
 function sendJson(res, status, body) {
   const json = JSON.stringify(body);
   res.writeHead(status, {
@@ -375,6 +430,77 @@ const server = http.createServer(async (req, res) => {
       } else {
         sendJson(res, 502, { error: "on-chain mint failed", detail: String(e.message || e) });
       }
+    }
+    return;
+  }
+
+  // --- milestone escrow (HumfiverseMilestoneEscrow.sol, §2.15) ---
+
+  if (req.method === "POST" && url.pathname === "/api/escrow/campaign") {
+    try {
+      const body = await readBody(req);
+      if (!body.assetId || !body.artistAddress || !body.fundingGoalWei || !body.studioName || !body.studioWallet || !Array.isArray(body.milestones)) {
+        sendJson(res, 400, { error: "assetId, artistAddress, fundingGoalWei, studioName, studioWallet and milestones are required" });
+        return;
+      }
+      if (!escrow.writeEnabled()) {
+        sendJson(res, 503, { error: "escrow admin actions are disabled on this server (no operator key configured)" });
+        return;
+      }
+      const result = await createEscrowCampaign(
+        body.assetId, body.artistAddress, body.fundingGoalWei, body.studioName, body.studioWallet, body.milestones
+      );
+      sendJson(res, 200, result);
+    } catch (e) {
+      if (e.code === "already_created") {
+        sendJson(res, 409, { error: "asset already has an escrow campaign", record: e.record });
+      } else {
+        sendJson(res, 502, { error: "escrow campaign creation failed", detail: String(e.message || e) });
+      }
+    }
+    return;
+  }
+
+  if (req.method === "GET" && url.pathname === "/api/escrow/campaigns") {
+    try {
+      const rows = db.prepare("SELECT campaign_id, asset_id FROM escrow_campaigns ORDER BY campaign_id").all();
+      const infos = await Promise.all(rows.map((r) => escrow.getCampaignInfo(r.campaign_id).then((info) => ({ assetId: r.asset_id, ...info }))));
+      sendJson(res, 200, { campaigns: infos });
+    } catch (e) {
+      sendJson(res, 502, { error: "could not read escrow campaigns", detail: String(e.message || e) });
+    }
+    return;
+  }
+
+  const escrowCampaignMatch = url.pathname.match(/^\/api\/escrow\/campaign\/([^/]+)$/);
+  if (req.method === "GET" && escrowCampaignMatch) {
+    try {
+      const assetId = decodeURIComponent(escrowCampaignMatch[1]);
+      const record = getEscrowRecord(assetId);
+      if (!record) { sendJson(res, 200, { escrow: false }); return; }
+      const info = await escrow.getCampaignInfo(record.campaign_id);
+      sendJson(res, 200, { escrow: true, assetId, ...info });
+    } catch (e) {
+      sendJson(res, 502, { error: "could not read escrow campaign", detail: String(e.message || e) });
+    }
+    return;
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/escrow/confirm") {
+    try {
+      const body = await readBody(req);
+      if (!body.campaignId || body.milestoneIndex === undefined) {
+        sendJson(res, 400, { error: "campaignId and milestoneIndex are required" });
+        return;
+      }
+      if (!escrow.writeEnabled()) {
+        sendJson(res, 503, { error: "escrow admin actions are disabled on this server (no operator key configured)" });
+        return;
+      }
+      const result = await escrow.confirmMilestoneOnchain(body.campaignId, body.milestoneIndex);
+      sendJson(res, 200, result);
+    } catch (e) {
+      sendJson(res, 502, { error: "milestone confirmation failed", detail: String(e.message || e) });
     }
     return;
   }

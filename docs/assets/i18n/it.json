@@ -328,5 +328,17 @@
   "buy.onchainPending": "Conferma nel wallet…",
   "buy.onchainTxLabel": "Hash della transazione",
   "toast.onchainWrongNetwork": "Impossibile passare a Base Sepolia — controlla il tuo wallet.",
-  "toast.onchainBuyFailed": "Acquisto on-chain non riuscito o rifiutato."
+  "toast.onchainBuyFailed": "Acquisto on-chain non riuscito o rifiutato.",
+  "wizSource.studioNameLabel": "Nome dello studio",
+  "wizSource.studioNamePlaceholder": "es. Analog Sun Studio",
+  "wizSource.studioWalletLabel": "Indirizzo wallet dello studio",
+  "wizSource.studioWalletHint": "La milestone di prenotazione studio paga direttamente questo wallet — non te. È questo che rende l'impegno reale, non solo una promessa.",
+  "wizSource.studioWalletInvalid": "Inserisci un indirizzo wallet valido (0x…).",
+  "wizReview.escrowReady": "Wallet connesso — i fondi di questa campagna saranno custoditi in un vero escrow a milestone.",
+  "wizReview.escrowConnectPrompt": "Connetti il tuo wallet perché i contributi finiscano in un vero escrow a milestone, con le tranche sbloccate solo quando Humfiverse conferma ogni milestone.",
+  "toast.escrowNeedsWallet": "Campagna creata, ma connetti un wallet per impostare il suo escrow a milestone.",
+  "toast.escrowCreated": "Escrow a milestone creato on-chain.",
+  "toast.escrowCreateFailed": "Campagna creata, ma non è stato possibile impostare l'escrow on-chain in questo momento.",
+  "buy.escrowReady": "Wallet connesso — questo sarà un contributo reale custodito in escrow",
+  "buy.escrowConnectPrompt": "Connetti il tuo wallet per rendere questo un contributo reale custodito in escrow (altrimenti resta simulato)."
 }

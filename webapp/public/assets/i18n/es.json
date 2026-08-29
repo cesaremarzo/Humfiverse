@@ -328,5 +328,17 @@
   "buy.onchainPending": "Confirma en tu wallet…",
   "buy.onchainTxLabel": "Hash de la transacción",
   "toast.onchainWrongNetwork": "No se pudo cambiar a Base Sepolia — revisa tu wallet.",
-  "toast.onchainBuyFailed": "La compra en cadena falló o fue rechazada."
+  "toast.onchainBuyFailed": "La compra en cadena falló o fue rechazada.",
+  "wizSource.studioNameLabel": "Nombre del estudio",
+  "wizSource.studioNamePlaceholder": "p. ej. Analog Sun Studio",
+  "wizSource.studioWalletLabel": "Dirección de wallet del estudio",
+  "wizSource.studioWalletHint": "El hito de reserva del estudio paga directamente a esta wallet, no a ti. Esto es lo que hace real el compromiso, no solo una promesa.",
+  "wizSource.studioWalletInvalid": "Introduce una dirección de wallet válida (0x…).",
+  "wizReview.escrowReady": "Wallet conectada — los fondos de esta campaña se guardarán en un depósito en garantía real por hitos.",
+  "wizReview.escrowConnectPrompt": "Conecta tu wallet para que las contribuciones vayan a un depósito en garantía real por hitos, con tramos liberados solo cuando Humfiverse confirme cada hito.",
+  "toast.escrowNeedsWallet": "Campaña creada, pero conecta una wallet para configurar su depósito en garantía por hitos.",
+  "toast.escrowCreated": "Depósito en garantía por hitos creado on-chain.",
+  "toast.escrowCreateFailed": "Campaña creada, pero no se pudo configurar el depósito en garantía on-chain en este momento.",
+  "buy.escrowReady": "Wallet conectada — esta será una contribución real retenida en depósito en garantía",
+  "buy.escrowConnectPrompt": "Conecta tu wallet para que esta sea una contribución real retenida en depósito en garantía (si no, seguirá siendo simulada)."
 }

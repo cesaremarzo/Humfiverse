@@ -33,6 +33,7 @@ const BASE_SEPOLIA_ADD_PARAMS = {
 };
 
 const BUY_ABI = ['function buy(uint256 tokenId, uint256 amount) external payable'];
+const CONTRIBUTE_ABI = ['function contribute(uint256 campaignId) external payable'];
 
 /** MetaMask / injected-provider connection. Identity checks (eth_accounts,
  * eth_requestAccounts, eth_chainId) never prompt for a signature. `buyOnchain`
@@ -137,6 +138,28 @@ export class WalletService {
     const value = BigInt(params.priceWei) * BigInt(params.amount);
 
     const tx = await contract['buy'](params.tokenId, params.amount, { value });
+    const receipt = await tx.wait();
+    if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
+
+    return { txHash: receipt.hash, explorerUrl: `https://sepolia.basescan.org/tx/${receipt.hash}` };
+  }
+
+  /** Real on-chain contribution to a preproduction campaign's milestone
+   * escrow — same pattern as `buyOnchain`, paying into
+   * HumfiverseMilestoneEscrow.contribute() instead of
+   * HumfiverseCatalogueToken.buy(). The ETH sits in escrow, not with the
+   * artist, until Humfiverse confirms each milestone (see
+   * planning/technical-architecture.md §2.15). */
+  async contributeOnchain(params: { contractAddress: string; campaignId: number; amountWei: string }): Promise<{ txHash: string; explorerUrl: string }> {
+    if (!window.ethereum) throw new Error('no-wallet');
+    const switched = await this.ensureBaseSepolia();
+    if (!switched) throw new Error('wrong-network');
+
+    const provider = new ethers.BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
+    const signer = await provider.getSigner();
+    const contract = new ethers.Contract(params.contractAddress, CONTRIBUTE_ABI, signer);
+
+    const tx = await contract['contribute'](params.campaignId, { value: BigInt(params.amountWei) });
     const receipt = await tx.wait();
     if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
 

@@ -328,5 +328,17 @@
   "buy.onchainPending": "请在钱包中确认…",
   "buy.onchainTxLabel": "交易哈希",
   "toast.onchainWrongNetwork": "无法切换到 Base Sepolia——请检查你的钱包。",
-  "toast.onchainBuyFailed": "链上购买失败或被拒绝。"
+  "toast.onchainBuyFailed": "链上购买失败或被拒绝。",
+  "wizSource.studioNameLabel": "录音室名称",
+  "wizSource.studioNamePlaceholder": "例如：Analog Sun Studio",
+  "wizSource.studioWalletLabel": "录音室钱包地址",
+  "wizSource.studioWalletHint": "「录音室预订」这一里程碑的资金会直接支付到这个钱包——而不是你。这正是让承诺变得真实，而不只是一句空话的原因。",
+  "wizSource.studioWalletInvalid": "请输入有效的钱包地址（0x…）。",
+  "wizReview.escrowReady": "钱包已连接——此项目的资金将保存在真实的里程碑托管中。",
+  "wizReview.escrowConnectPrompt": "连接你的钱包，即可让出资进入真实的里程碑托管——只有当 Humfiverse 确认每个里程碑后，相应资金才会释放。",
+  "toast.escrowNeedsWallet": "项目已创建，但请连接钱包以设置其里程碑托管。",
+  "toast.escrowCreated": "里程碑托管已在链上创建。",
+  "toast.escrowCreateFailed": "项目已创建，但目前无法设置链上托管。",
+  "buy.escrowReady": "钱包已连接——这将是保存在托管中的真实出资",
+  "buy.escrowConnectPrompt": "连接你的钱包，即可让这成为保存在托管中的真实出资（否则仍为模拟）。"
 }

@@ -328,5 +328,17 @@
   "buy.onchainPending": "In der Wallet bestätigen…",
   "buy.onchainTxLabel": "Transaktions-Hash",
   "toast.onchainWrongNetwork": "Wechsel zu Base Sepolia fehlgeschlagen — bitte Wallet prüfen.",
-  "toast.onchainBuyFailed": "On-Chain-Kauf fehlgeschlagen oder abgelehnt."
+  "toast.onchainBuyFailed": "On-Chain-Kauf fehlgeschlagen oder abgelehnt.",
+  "wizSource.studioNameLabel": "Studioname",
+  "wizSource.studioNamePlaceholder": "z. B. Analog Sun Studio",
+  "wizSource.studioWalletLabel": "Wallet-Adresse des Studios",
+  "wizSource.studioWalletHint": "Der Meilenstein „Studio gebucht“ zahlt direkt an diese Wallet — nicht an Sie. Das macht die Verpflichtung real, nicht nur ein Versprechen.",
+  "wizSource.studioWalletInvalid": "Geben Sie eine gültige Wallet-Adresse ein (0x…).",
+  "wizReview.escrowReady": "Wallet verbunden — die Mittel dieser Kampagne werden in einem echten Meilenstein-Treuhandkonto gehalten.",
+  "wizReview.escrowConnectPrompt": "Verbinden Sie Ihre Wallet, damit Beiträge in ein echtes Meilenstein-Treuhandkonto fließen, dessen Tranchen erst freigegeben werden, wenn Humfiverse jeden Meilenstein bestätigt.",
+  "toast.escrowNeedsWallet": "Kampagne erstellt, aber verbinden Sie eine Wallet, um das Meilenstein-Treuhandkonto einzurichten.",
+  "toast.escrowCreated": "Meilenstein-Treuhandkonto on-chain erstellt.",
+  "toast.escrowCreateFailed": "Kampagne erstellt, aber das On-Chain-Treuhandkonto konnte gerade nicht eingerichtet werden.",
+  "buy.escrowReady": "Wallet verbunden — dies wird ein echter, treuhänderisch verwahrter Beitrag",
+  "buy.escrowConnectPrompt": "Verbinden Sie Ihre Wallet, damit dies ein echter, treuhänderisch verwahrter Beitrag wird (sonst bleibt er simuliert)."
 }

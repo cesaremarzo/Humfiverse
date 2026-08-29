@@ -11,5 +11,7 @@ export const routes: Routes = [
   { path: 'for-artists', loadComponent: () => import('./features/for-artists/for-artists.component').then((m) => m.ForArtistsComponent) },
   { path: 'artist/onboarding', loadComponent: () => import('./features/onboarding/onboarding.component').then((m) => m.OnboardingComponent) },
   { path: 'artist/dashboard', loadComponent: () => import('./features/artist-dashboard/artist-dashboard.component').then((m) => m.ArtistDashboardComponent) },
+  // Internal operator tool (§2.15) — deliberately not linked from nav.
+  { path: 'admin/escrow', loadComponent: () => import('./features/admin-escrow/admin-escrow.component').then((m) => m.AdminEscrowComponent) },
   { path: '**', redirectTo: 'marketplace' }
 ];

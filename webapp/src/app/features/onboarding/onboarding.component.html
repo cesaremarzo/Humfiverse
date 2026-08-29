@@ -55,6 +55,20 @@
       @if (data().model === 'preproduction') {
         <h3 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:4px;">{{ 'wizSource.preprodTitle' | translate }}</h3>
         <p class="prose" style="margin-bottom:18px;">{{ 'wizSource.preprodSubtitle' | translate }}</p>
+
+        <div class="field"><label>{{ 'wizSource.studioNameLabel' | translate }}</label>
+          <input type="text" [value]="data().preprod.studioName" (input)="updatePreprodTextField('studioName', $any($event.target).value)" [placeholder]="'wizSource.studioNamePlaceholder' | translate">
+        </div>
+        <div class="field">
+          <label>{{ 'wizSource.studioWalletLabel' | translate }}</label>
+          <input type="text" class="mono" [value]="data().preprod.studioWallet" (input)="updatePreprodTextField('studioWallet', $any($event.target).value)" placeholder="0x…">
+          @if (data().preprod.studioWallet && !isValidWalletAddress(data().preprod.studioWallet)) {
+            <span class="hint" style="color:var(--warning-ink, #b45309);">{{ 'wizSource.studioWalletInvalid' | translate }}</span>
+          } @else {
+            <span class="hint">{{ 'wizSource.studioWalletHint' | translate }}</span>
+          }
+        </div>
+
         <div class="budget-row"><label>{{ 'wizSource.studioLabel' | translate }}</label><input type="number" min="0" step="100" class="mono" [value]="data().preprod.studio" (input)="updatePreprodField('studio', $any($event.target).value)"></div>
         <div class="budget-row"><label>{{ 'wizSource.sessionLabel' | translate }}</label><input type="number" min="0" step="100" class="mono" [value]="data().preprod.session" (input)="updatePreprodField('session', $any($event.target).value)"></div>
         <div class="budget-row"><label>{{ 'wizSource.mixLabel' | translate }}</label><input type="number" min="0" step="100" class="mono" [value]="data().preprod.mix" (input)="updatePreprodField('mix', $any($event.target).value)"></div>
@@ -154,6 +168,21 @@
           <div class="card stat-tile"><div class="label">{{ 'wizReview.historyField' | translate }}</div><div class="value">{{ 'detail.moSuffix' | translate: { n: data().catalogue.months } }}</div></div>
         }
       </div>
+      @if (data().model === 'preproduction') {
+        @if (wallet.state().address) {
+          <div class="chip chip-good" style="margin-bottom:16px;"><app-icon name="checkCircle"></app-icon> {{ 'wizReview.escrowReady' | translate }}</div>
+        } @else {
+          <div class="risk-item" style="margin-bottom:16px;">
+            <app-icon name="wallet"></app-icon>
+            <div>
+              {{ 'wizReview.escrowConnectPrompt' | translate }}
+              <button type="button" class="btn btn-ghost btn-sm" style="margin-top:6px;" [disabled]="wallet.state().connecting" (click)="wallet.connect()">
+                <app-icon name="wallet"></app-icon> {{ (wallet.state().connecting ? 'wallet.connecting' : 'wallet.connect') | translate }}
+              </button>
+            </div>
+          </div>
+        }
+      }
       <div class="prose" style="margin-bottom:16px;">{{ 'wizReview.launchNote' | translate }}</div>
       <label class="check-row">
         <input type="checkbox" [checked]="data().ack" (change)="updateData({ ack: $any($event.target).checked })">

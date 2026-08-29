@@ -328,5 +328,17 @@
   "buy.onchainPending": "Confirmez dans votre wallet…",
   "buy.onchainTxLabel": "Hash de la transaction",
   "toast.onchainWrongNetwork": "Impossible de basculer vers Base Sepolia — vérifiez votre wallet.",
-  "toast.onchainBuyFailed": "L'achat sur la blockchain a échoué ou a été refusé."
+  "toast.onchainBuyFailed": "L'achat sur la blockchain a échoué ou a été refusé.",
+  "wizSource.studioNameLabel": "Nom du studio",
+  "wizSource.studioNamePlaceholder": "ex. Analog Sun Studio",
+  "wizSource.studioWalletLabel": "Adresse du wallet du studio",
+  "wizSource.studioWalletHint": "Le jalon de réservation du studio paie directement ce wallet — pas vous. C'est ce qui rend l'engagement réel, pas juste une promesse.",
+  "wizSource.studioWalletInvalid": "Entrez une adresse de wallet valide (0x…).",
+  "wizReview.escrowReady": "Wallet connecté — les fonds de cette campagne seront détenus dans un véritable séquestre par jalons.",
+  "wizReview.escrowConnectPrompt": "Connectez votre wallet pour que les contributions aillent dans un véritable séquestre par jalons, les tranches n'étant débloquées que lorsque Humfiverse confirme chaque jalon.",
+  "toast.escrowNeedsWallet": "Campagne créée, mais connectez un wallet pour configurer son séquestre par jalons.",
+  "toast.escrowCreated": "Séquestre par jalons créé sur la blockchain.",
+  "toast.escrowCreateFailed": "Campagne créée, mais le séquestre on-chain n'a pas pu être configuré pour le moment.",
+  "buy.escrowReady": "Wallet connecté — ce sera une contribution réelle détenue en séquestre",
+  "buy.escrowConnectPrompt": "Connectez votre wallet pour que ceci soit une contribution réelle détenue en séquestre (sinon elle reste simulée)."
 }
