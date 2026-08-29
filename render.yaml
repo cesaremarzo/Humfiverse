@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: free
     rootDir: server
-    buildCommand: echo "no build step"
+    buildCommand: npm ci
     startCommand: node --experimental-sqlite server.js
     healthCheckPath: /api/health
     envVars:
