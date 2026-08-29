@@ -22,5 +22,15 @@ module.exports = {
       chainId: 84532,
       accounts
     }
+  },
+  // Sourcify verification needs no API key (unlike Etherscan/Basescan's own
+  // verify flow) — publishes the source so Basescan's UI shows it as
+  // verified too, which is what makes a deployed contract's actual
+  // governance logic readable at the explorer link, not just its bytecode.
+  sourcify: {
+    enabled: true
+  },
+  etherscan: {
+    enabled: false
   }
 };

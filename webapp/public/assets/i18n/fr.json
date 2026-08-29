@@ -340,5 +340,11 @@
   "toast.escrowCreated": "Séquestre par jalons créé sur la blockchain.",
   "toast.escrowCreateFailed": "Campagne créée, mais le séquestre on-chain n'a pas pu être configuré pour le moment.",
   "buy.escrowReady": "Wallet connecté — ce sera une contribution réelle détenue en séquestre",
-  "buy.escrowConnectPrompt": "Connectez votre wallet pour que ceci soit une contribution réelle détenue en séquestre (sinon elle reste simulée)."
+  "buy.escrowConnectPrompt": "Connectez votre wallet pour que ceci soit une contribution réelle détenue en séquestre (sinon elle reste simulée).",
+  "detail.viewSource": "Voir le code source",
+  "detail.escrowTitle": "Contrat de séquestre par jalons",
+  "detail.escrowExplainer": "Les contributions restent dans ce contrat, pas entre les mains de l'artiste, jusqu'à ce que Humfiverse confirme chaque jalon sur la blockchain — la tranche de réservation du studio paie directement le wallet du studio.",
+  "detail.escrowCampaignId": "ID de campagne",
+  "detail.escrowRaisedGoal": "Collecté / objectif",
+  "detail.escrowStudio": "Studio"
 }

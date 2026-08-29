@@ -340,5 +340,11 @@
   "toast.escrowCreated": "Milestone escrow created on-chain.",
   "toast.escrowCreateFailed": "Campaign created, but the on-chain escrow could not be set up right now.",
   "buy.escrowReady": "Wallet connected — this will be a real contribution held in escrow",
-  "buy.escrowConnectPrompt": "Connect your wallet to make this a real contribution held in escrow (otherwise it stays simulated)."
+  "buy.escrowConnectPrompt": "Connect your wallet to make this a real contribution held in escrow (otherwise it stays simulated).",
+  "detail.viewSource": "View source code",
+  "detail.escrowTitle": "Milestone escrow contract",
+  "detail.escrowExplainer": "Contributions sit in this contract, not with the artist, until Humfiverse confirms each milestone on-chain — the studio-booking tranche pays the studio's wallet directly.",
+  "detail.escrowCampaignId": "Campaign ID",
+  "detail.escrowRaisedGoal": "Raised / goal",
+  "detail.escrowStudio": "Studio"
 }

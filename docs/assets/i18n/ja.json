@@ -340,5 +340,11 @@
   "toast.escrowCreated": "マイルストーンエスクローがオンチェーンで作成されました。",
   "toast.escrowCreateFailed": "キャンペーンは作成されましたが、現時点ではオンチェーンのエスクローを設定できませんでした。",
   "buy.escrowReady": "ウォレット接続済み — これはエスクローに保管される実際の出資になります",
-  "buy.escrowConnectPrompt": "ウォレットを接続すると、これがエスクローに保管される実際の出資になります（接続しない場合はシミュレーションのままです）。"
+  "buy.escrowConnectPrompt": "ウォレットを接続すると、これがエスクローに保管される実際の出資になります（接続しない場合はシミュレーションのままです）。",
+  "detail.viewSource": "ソースコードを見る",
+  "detail.escrowTitle": "マイルストーンエスクロー契約",
+  "detail.escrowExplainer": "Humfiverseがオンチェーンで各マイルストーンを確認するまで、出資金はアーティストにではなくこの契約内にとどまります — スタジオ予約のトランシェはスタジオのウォレットに直接支払われます。",
+  "detail.escrowCampaignId": "キャンペーンID",
+  "detail.escrowRaisedGoal": "調達額 / 目標額",
+  "detail.escrowStudio": "スタジオ"
 }

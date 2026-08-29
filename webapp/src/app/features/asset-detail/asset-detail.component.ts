@@ -204,6 +204,12 @@ export class AssetDetailComponent {
     this.success.set({ qty, total });
   }
 
+  /** Inverse of the 0.0001 ETH-per-$1 illustrative mapping used at creation
+   * — for displaying escrow amounts (wei) back in the app's USD mock scale. */
+  weiToUsd(wei: string): number {
+    return Number(BigInt(wei) / 100_000_000_000_000n);
+  }
+
   private onchainErrorKey(err: unknown): string {
     const message = (err as { message?: string })?.message;
     if (message === 'wrong-network') return 'toast.onchainWrongNetwork';

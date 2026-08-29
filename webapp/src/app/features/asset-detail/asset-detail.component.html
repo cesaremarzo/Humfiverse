@@ -104,9 +104,39 @@
                 <div class="card stat-tile"><div class="label">{{ 'detail.onchainTokenId' | translate }}</div><div class="value mono">#{{ $any(onchainInfo()).tokenId }}</div></div>
                 <div class="card stat-tile"><div class="label">{{ 'detail.onchainPool' | translate }}</div><div class="value mono">{{ $any(onchainInfo()).poolBalance }} / {{ $any(onchainInfo()).totalSupply }}</div></div>
               </div>
-              <a [href]="$any(onchainInfo()).explorerUrl" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" style="margin-top:14px;">
-                <app-icon name="arrowRight"></app-icon> {{ 'detail.onchainExplorer' | translate }}
-              </a>
+              <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px;">
+                <a [href]="$any(onchainInfo()).explorerUrl" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
+                  <app-icon name="arrowRight"></app-icon> {{ 'detail.onchainExplorer' | translate }}
+                </a>
+                <a href="https://github.com/cesaremarzo/Humfiverse/blob/main/contracts/contracts/HumfiverseCatalogueToken.sol" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">
+                  <app-icon name="file"></app-icon> {{ 'detail.viewSource' | translate }}
+                </a>
+              </div>
+            </div>
+          }
+
+          @if (isPre(a) && escrowInfo()?.escrow) {
+            <div class="card panel">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+                <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:15px;">{{ 'detail.escrowTitle' | translate }}</h3>
+                <span class="chip chip-accent">{{ 'detail.onchainNetwork' | translate }}</span>
+              </div>
+              <p class="prose" style="font-size:12.5px; margin-top:8px;">{{ 'detail.escrowExplainer' | translate }}</p>
+              <div class="stat-row" style="margin-top:14px;">
+                <div class="card stat-tile"><div class="label">{{ 'detail.escrowCampaignId' | translate }}</div><div class="value mono">#{{ $any(escrowInfo()).campaignId }}</div></div>
+                <div class="card stat-tile"><div class="label">{{ 'detail.escrowRaisedGoal' | translate }}</div><div class="value mono" style="font-size:14px;">{{ weiToUsd($any(escrowInfo()).raised) }} / {{ weiToUsd($any(escrowInfo()).fundingGoal) }}</div></div>
+                @if ($any(escrowInfo()).studio) {
+                  <div class="card stat-tile"><div class="label">{{ 'detail.escrowStudio' | translate }}</div><div class="value" style="font-size:14px; font-family:'IBM Plex Sans',sans-serif;">{{ $any(escrowInfo()).studio.name }}</div></div>
+                }
+              </div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px;">
+                <a [href]="$any(escrowInfo()).explorerUrl" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
+                  <app-icon name="arrowRight"></app-icon> {{ 'detail.onchainExplorer' | translate }}
+                </a>
+                <a href="https://github.com/cesaremarzo/Humfiverse/blob/main/contracts/contracts/HumfiverseMilestoneEscrow.sol" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">
+                  <app-icon name="file"></app-icon> {{ 'detail.viewSource' | translate }}
+                </a>
+              </div>
             </div>
           }
 

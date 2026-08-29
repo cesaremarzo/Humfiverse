@@ -340,5 +340,11 @@
   "toast.escrowCreated": "Depósito en garantía por hitos creado on-chain.",
   "toast.escrowCreateFailed": "Campaña creada, pero no se pudo configurar el depósito en garantía on-chain en este momento.",
   "buy.escrowReady": "Wallet conectada — esta será una contribución real retenida en depósito en garantía",
-  "buy.escrowConnectPrompt": "Conecta tu wallet para que esta sea una contribución real retenida en depósito en garantía (si no, seguirá siendo simulada)."
+  "buy.escrowConnectPrompt": "Conecta tu wallet para que esta sea una contribución real retenida en depósito en garantía (si no, seguirá siendo simulada).",
+  "detail.viewSource": "Ver código fuente",
+  "detail.escrowTitle": "Contrato de depósito en garantía por hitos",
+  "detail.escrowExplainer": "Las contribuciones permanecen en este contrato, no con el artista, hasta que Humfiverse confirme cada hito on-chain — el tramo de reserva del estudio paga directamente a la wallet del estudio.",
+  "detail.escrowCampaignId": "ID de campaña",
+  "detail.escrowRaisedGoal": "Recaudado / objetivo",
+  "detail.escrowStudio": "Estudio"
 }

@@ -340,5 +340,11 @@
   "toast.escrowCreated": "تم إنشاء ضمان المراحل على السلسلة.",
   "toast.escrowCreateFailed": "تم إنشاء الحملة، لكن تعذّر إعداد الضمان على السلسلة الآن.",
   "buy.escrowReady": "المحفظة متصلة — ستكون هذه مساهمة حقيقية محفوظة في ضمان",
-  "buy.escrowConnectPrompt": "اربط محفظتك لجعل هذه مساهمة حقيقية محفوظة في ضمان (وإلا ستبقى محاكاة)."
+  "buy.escrowConnectPrompt": "اربط محفظتك لجعل هذه مساهمة حقيقية محفوظة في ضمان (وإلا ستبقى محاكاة).",
+  "detail.viewSource": "عرض الكود المصدري",
+  "detail.escrowTitle": "عقد ضمان المراحل",
+  "detail.escrowExplainer": "تبقى المساهمات في هذا العقد، وليس مع الفنان، إلى أن تؤكد Humfiverse كل مرحلة على السلسلة — تُدفع دفعة حجز الاستوديو مباشرة إلى محفظة الاستوديو.",
+  "detail.escrowCampaignId": "معرّف الحملة",
+  "detail.escrowRaisedGoal": "تم جمعه / الهدف",
+  "detail.escrowStudio": "الاستوديو"
 }

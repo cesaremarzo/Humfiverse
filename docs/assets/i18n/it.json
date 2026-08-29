@@ -340,5 +340,11 @@
   "toast.escrowCreated": "Escrow a milestone creato on-chain.",
   "toast.escrowCreateFailed": "Campagna creata, ma non è stato possibile impostare l'escrow on-chain in questo momento.",
   "buy.escrowReady": "Wallet connesso — questo sarà un contributo reale custodito in escrow",
-  "buy.escrowConnectPrompt": "Connetti il tuo wallet per rendere questo un contributo reale custodito in escrow (altrimenti resta simulato)."
+  "buy.escrowConnectPrompt": "Connetti il tuo wallet per rendere questo un contributo reale custodito in escrow (altrimenti resta simulato).",
+  "detail.viewSource": "Vedi codice sorgente",
+  "detail.escrowTitle": "Contratto escrow a milestone",
+  "detail.escrowExplainer": "I contributi restano in questo contratto, non nelle mani dell'artista, finché Humfiverse non conferma ogni milestone on-chain — la tranche di prenotazione studio paga direttamente il wallet dello studio.",
+  "detail.escrowCampaignId": "ID campagna",
+  "detail.escrowRaisedGoal": "Raccolto / obiettivo",
+  "detail.escrowStudio": "Studio"
 }

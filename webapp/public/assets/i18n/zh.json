@@ -340,5 +340,11 @@
   "toast.escrowCreated": "里程碑托管已在链上创建。",
   "toast.escrowCreateFailed": "项目已创建，但目前无法设置链上托管。",
   "buy.escrowReady": "钱包已连接——这将是保存在托管中的真实出资",
-  "buy.escrowConnectPrompt": "连接你的钱包，即可让这成为保存在托管中的真实出资（否则仍为模拟）。"
+  "buy.escrowConnectPrompt": "连接你的钱包，即可让这成为保存在托管中的真实出资（否则仍为模拟）。",
+  "detail.viewSource": "查看源代码",
+  "detail.escrowTitle": "里程碑托管合约",
+  "detail.escrowExplainer": "出资资金保存在此合约中，而非艺术家手中，直到 Humfiverse 在链上确认每个里程碑——录音室预订这一分批资金将直接支付到录音室的钱包。",
+  "detail.escrowCampaignId": "项目 ID",
+  "detail.escrowRaisedGoal": "已筹 / 目标",
+  "detail.escrowStudio": "录音室"
 }
