@@ -322,5 +322,11 @@
   "detail.resaleFeeNote": "La plataforma retiene automáticamente el 1% de los tokens en cada compra de reventa — nunca en la primera compra del pool de la plataforma.",
   "detail.resaleEmpty": "Ahora mismo nadie está revendiendo este token. Compra al precio primario de arriba, o pon a la venta tus posiciones desde tu portafolio.",
   "detail.resaleSuccessTitle": "Compra completada",
-  "detail.resaleSuccessBody": "Ahora tienes <strong>{{received}}</strong> tokens más de {{title}}, pagados {{paid}}. La comisión de reventa del 1% de la plataforma ({{fee}} token(s)) ya se dedujo antes de llegar a ti."
+  "detail.resaleSuccessBody": "Ahora tienes <strong>{{received}}</strong> tokens más de {{title}}, pagados {{paid}}. La comisión de reventa del 1% de la plataforma ({{fee}} token(s)) ya se dedujo antes de llegar a ti.",
+  "buy.onchainReady": "Wallet conectada — esta será una compra real en cadena",
+  "buy.onchainConnectPrompt": "Conecta tu wallet para que esta sea una compra real en cadena (si no, seguirá siendo simulada).",
+  "buy.onchainPending": "Confirma en tu wallet…",
+  "buy.onchainTxLabel": "Hash de la transacción",
+  "toast.onchainWrongNetwork": "No se pudo cambiar a Base Sepolia — revisa tu wallet.",
+  "toast.onchainBuyFailed": "La compra en cadena falló o fue rechazada."
 }

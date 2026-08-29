@@ -322,5 +322,11 @@
   "detail.resaleFeeNote": "Die Plattform behält automatisch 1 % der Token bei jedem Zweitmarktkauf ein — nie beim ersten Kauf aus dem Plattform-Pool.",
   "detail.resaleEmpty": "Aktuell verkauft niemand dieses Token weiter. Kaufen Sie oben zum Erstpreis, oder bieten Sie Ihre eigenen Bestände über Ihr Portfolio zum Verkauf an.",
   "detail.resaleSuccessTitle": "Kauf abgeschlossen",
-  "detail.resaleSuccessBody": "Sie besitzen jetzt <strong>{{received}}</strong> weitere Token von {{title}}, bezahlt {{paid}}. Die 1%ige Weiterverkaufsgebühr der Plattform ({{fee}} Token) wurde bereits abgezogen, bevor sie bei Ihnen ankamen."
+  "detail.resaleSuccessBody": "Sie besitzen jetzt <strong>{{received}}</strong> weitere Token von {{title}}, bezahlt {{paid}}. Die 1%ige Weiterverkaufsgebühr der Plattform ({{fee}} Token) wurde bereits abgezogen, bevor sie bei Ihnen ankamen.",
+  "buy.onchainReady": "Wallet verbunden — dies wird ein echter On-Chain-Kauf",
+  "buy.onchainConnectPrompt": "Verbinden Sie Ihre Wallet, damit dies ein echter On-Chain-Kauf wird (sonst bleibt er simuliert).",
+  "buy.onchainPending": "In der Wallet bestätigen…",
+  "buy.onchainTxLabel": "Transaktions-Hash",
+  "toast.onchainWrongNetwork": "Wechsel zu Base Sepolia fehlgeschlagen — bitte Wallet prüfen.",
+  "toast.onchainBuyFailed": "On-Chain-Kauf fehlgeschlagen oder abgelehnt."
 }

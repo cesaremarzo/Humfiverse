@@ -322,5 +322,11 @@
   "detail.resaleFeeNote": "La plateforme retient automatiquement 1 % des jetons sur chaque achat de revente — jamais sur le premier achat auprès du pool de la plateforme.",
   "detail.resaleEmpty": "Personne ne revend ce jeton pour le moment. Achetez au prix primaire ci-dessus, ou mettez vos jetons en vente depuis votre portefeuille.",
   "detail.resaleSuccessTitle": "Achat effectué",
-  "detail.resaleSuccessBody": "Vous détenez désormais <strong>{{received}}</strong> jetons de plus de {{title}}, payés {{paid}}. Les frais de revente de 1 % de la plateforme ({{fee}} jeton(s)) ont déjà été déduits avant de vous parvenir."
+  "detail.resaleSuccessBody": "Vous détenez désormais <strong>{{received}}</strong> jetons de plus de {{title}}, payés {{paid}}. Les frais de revente de 1 % de la plateforme ({{fee}} jeton(s)) ont déjà été déduits avant de vous parvenir.",
+  "buy.onchainReady": "Wallet connecté — ce sera un achat réel sur la blockchain",
+  "buy.onchainConnectPrompt": "Connectez votre wallet pour que cet achat soit réel sur la blockchain (sinon il reste simulé).",
+  "buy.onchainPending": "Confirmez dans votre wallet…",
+  "buy.onchainTxLabel": "Hash de la transaction",
+  "toast.onchainWrongNetwork": "Impossible de basculer vers Base Sepolia — vérifiez votre wallet.",
+  "toast.onchainBuyFailed": "L'achat sur la blockchain a échoué ou a été refusé."
 }

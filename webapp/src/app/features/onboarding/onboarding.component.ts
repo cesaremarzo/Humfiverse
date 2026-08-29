@@ -259,8 +259,12 @@ export class OnboardingComponent {
     // the scope of HumfiverseCatalogueToken (see contracts/ and
     // planning/technical-architecture.md §2.7/§2.10).
     if (!isPre && this.store.backendAvailable()) {
+      // Illustrative testnet-only USD→wei mapping (0.0001 ETH per $1 of the
+      // mock display price) — no real peg, just keeps relative pricing
+      // between catalogues sensible. Matches contracts/scripts/catalogues.js.
+      const priceWei = (BigInt(Math.round(asset.tokenPrice)) * 100_000_000_000_000n).toString();
       this.api
-        .mintOnchainToken({ assetId: id, slug: id, supply: asset.tokensTotal })
+        .mintOnchainToken({ assetId: id, slug: id, supply: asset.tokensTotal, priceWei })
         .then((result) => {
           this.toast.show(this.translate.instant('toast.onchainMinted', { tokenId: result.tokenId }), 'checkCircle');
         })

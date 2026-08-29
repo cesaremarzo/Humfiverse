@@ -242,12 +242,12 @@ async function nextFreeTokenId() {
   return candidate;
 }
 
-async function mintAssetOnchain(assetId, slug, supply) {
+async function mintAssetOnchain(assetId, slug, supply, priceWei) {
   const existing = getOnchainRecord(assetId);
   if (existing) throw Object.assign(new Error("asset already has an on-chain token"), { code: "already_minted", record: existing });
 
   const tokenId = await nextFreeTokenId();
-  const result = await chain.mintCatalogueOnchain(tokenId, slug, supply);
+  const result = await chain.mintCatalogueOnchain(tokenId, slug, supply, priceWei);
   db.prepare(
     "INSERT INTO onchain_tokens (token_id, asset_id, slug, supply, tx_hash, minted_at) VALUES (?, ?, ?, ?, ?, ?)"
   ).run(tokenId, assetId, slug, supply, result.txHash, new Date().toISOString());
@@ -353,7 +353,7 @@ const server = http.createServer(async (req, res) => {
         sendJson(res, 503, { error: "on-chain minting is disabled on this server (no operator key configured)" });
         return;
       }
-      const result = await mintAssetOnchain(body.assetId, body.slug, body.supply);
+      const result = await mintAssetOnchain(body.assetId, body.slug, body.supply, body.priceWei);
       sendJson(res, 200, result);
     } catch (e) {
       if (e.code === "already_minted") {

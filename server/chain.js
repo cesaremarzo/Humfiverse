@@ -21,11 +21,12 @@ const CHAIN_ID = 84532; // Base Sepolia
 const EXPLORER_BASE = "https://sepolia.basescan.org";
 
 const ABI = [
-  "function mintCatalogue(uint256 tokenId, string slug, uint256 supply)",
+  "function mintCatalogue(uint256 tokenId, string slug, uint256 supply, uint256 priceWeiPerToken)",
   "function poolBalance(uint256 tokenId) view returns (uint256)",
   "function totalSupplyOf(uint256) view returns (uint256)",
   "function releasedOf(uint256) view returns (uint256)",
-  "function catalogueSlug(uint256) view returns (string)"
+  "function catalogueSlug(uint256) view returns (string)",
+  "function pricePerToken(uint256) view returns (uint256)"
 ];
 
 const provider = new ethers.JsonRpcProvider(RPC_URL, CHAIN_ID);
@@ -45,10 +46,11 @@ function mintingEnabled() {
 }
 
 async function getPoolInfo(tokenId) {
-  const [poolBalance, totalSupply, released] = await Promise.all([
+  const [poolBalance, totalSupply, released, priceWei] = await Promise.all([
     readContract.poolBalance(tokenId),
     readContract.totalSupplyOf(tokenId),
-    readContract.releasedOf(tokenId)
+    readContract.releasedOf(tokenId),
+    readContract.pricePerToken(tokenId)
   ]);
   return {
     tokenId,
@@ -57,7 +59,8 @@ async function getPoolInfo(tokenId) {
     explorerUrl: `${EXPLORER_BASE}/token/${CONTRACT_ADDRESS}?a=${tokenId}`,
     poolBalance: poolBalance.toString(),
     totalSupply: totalSupply.toString(),
-    released: released.toString()
+    released: released.toString(),
+    priceWei: priceWei.toString()
   };
 }
 
@@ -72,9 +75,9 @@ async function isTokenIdFree(tokenId) {
   return supply === 0n;
 }
 
-async function mintCatalogueOnchain(tokenId, slug, supply) {
+async function mintCatalogueOnchain(tokenId, slug, supply, priceWei) {
   if (!writeContract) throw new Error("on-chain minting is disabled (no operator key configured)");
-  const tx = await writeContract.mintCatalogue(tokenId, slug, supply);
+  const tx = await writeContract.mintCatalogue(tokenId, slug, supply, priceWei || 0);
   const receipt = await tx.wait();
   return {
     tokenId,

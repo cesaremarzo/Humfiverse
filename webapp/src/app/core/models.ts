@@ -184,6 +184,9 @@ export type OnchainInfo =
       poolBalance: string;
       totalSupply: string;
       released: string;
+      /** Wei per token for the public HumfiverseCatalogueToken.buy() path —
+       * "0" means the catalogue isn't open for real on-chain purchase yet. */
+      priceWei: string;
     };
 
 export interface OnchainMintResult {

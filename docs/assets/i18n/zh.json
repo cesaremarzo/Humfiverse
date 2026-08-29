@@ -322,5 +322,11 @@
   "detail.resaleFeeNote": "平台会在每笔二级市场购买中自动收取1%的代币作为费用——但在从平台资金池首次购买时绝不收取。",
   "detail.resaleEmpty": "目前没有人转售此代币。可以按上方的一级价格购买，或从你的投资组合中挂单出售自己的持仓。",
   "detail.resaleSuccessTitle": "购买完成",
-  "detail.resaleSuccessBody": "你现在多持有 {{title}} 的 <strong>{{received}}</strong> 枚代币，已支付 {{paid}}。平台1%的转售费用（{{fee}} 枚代币）已在到达你之前扣除。"
+  "detail.resaleSuccessBody": "你现在多持有 {{title}} 的 <strong>{{received}}</strong> 枚代币，已支付 {{paid}}。平台1%的转售费用（{{fee}} 枚代币）已在到达你之前扣除。",
+  "buy.onchainReady": "钱包已连接 — 此次将是真实的链上购买",
+  "buy.onchainConnectPrompt": "连接你的钱包，即可让此次购买成为真实的链上交易（否则仍为模拟）。",
+  "buy.onchainPending": "请在钱包中确认…",
+  "buy.onchainTxLabel": "交易哈希",
+  "toast.onchainWrongNetwork": "无法切换到 Base Sepolia——请检查你的钱包。",
+  "toast.onchainBuyFailed": "链上购买失败或被拒绝。"
 }

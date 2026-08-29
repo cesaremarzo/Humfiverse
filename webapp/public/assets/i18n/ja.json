@@ -322,5 +322,11 @@
   "detail.resaleFeeNote": "プラットフォームは、二次販売での購入のたびにトークンの1%を自動的に手数料として差し引きます — プラットフォームのプールからの最初の購入では発生しません。",
   "detail.resaleEmpty": "現在このトークンを再出品している人はいません。上記のプライマリー価格で購入するか、ポートフォリオから自分の保有分を出品してください。",
   "detail.resaleSuccessTitle": "購入完了",
-  "detail.resaleSuccessBody": "{{title}} のトークンが <strong>{{received}}</strong> 個増え、{{paid}} をお支払いいただきました。プラットフォームの1%の転売手数料（{{fee}} トークン）は、お手元に届く前にすでに差し引かれています。"
+  "detail.resaleSuccessBody": "{{title}} のトークンが <strong>{{received}}</strong> 個増え、{{paid}} をお支払いいただきました。プラットフォームの1%の転売手数料（{{fee}} トークン）は、お手元に届く前にすでに差し引かれています。",
+  "buy.onchainReady": "ウォレット接続済み — これは実際のオンチェーン購入になります",
+  "buy.onchainConnectPrompt": "ウォレットを接続すると、この購入が実際のオンチェーン取引になります（接続しない場合はシミュレーションのままです）。",
+  "buy.onchainPending": "ウォレットで確認してください…",
+  "buy.onchainTxLabel": "トランザクションハッシュ",
+  "toast.onchainWrongNetwork": "Base Sepoliaへの切り替えに失敗しました — ウォレットをご確認ください。",
+  "toast.onchainBuyFailed": "オンチェーン購入に失敗したか拒否されました。"
 }

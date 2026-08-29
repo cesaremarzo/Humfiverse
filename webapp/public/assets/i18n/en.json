@@ -322,5 +322,11 @@
   "detail.resaleFeeNote": "The platform automatically retains 1% of the tokens on every resale purchase — never on the first purchase from the platform pool.",
   "detail.resaleEmpty": "No one is reselling this token right now. Buy at the primary price above, or list your own holdings for resale from your portfolio.",
   "detail.resaleSuccessTitle": "Purchase complete",
-  "detail.resaleSuccessBody": "You now hold <strong>{{received}}</strong> more tokens of {{title}}, paid {{paid}}. The platform's 1% resale fee ({{fee}} token(s)) was already deducted before it reached you."
+  "detail.resaleSuccessBody": "You now hold <strong>{{received}}</strong> more tokens of {{title}}, paid {{paid}}. The platform's 1% resale fee ({{fee}} token(s)) was already deducted before it reached you.",
+  "buy.onchainReady": "Wallet connected — this will be a real on-chain purchase",
+  "buy.onchainConnectPrompt": "Connect your wallet to make this a real on-chain purchase (otherwise it stays simulated).",
+  "buy.onchainPending": "Confirm in your wallet…",
+  "buy.onchainTxLabel": "Transaction hash",
+  "toast.onchainWrongNetwork": "Couldn't switch to Base Sepolia — check your wallet.",
+  "toast.onchainBuyFailed": "On-chain purchase failed or was rejected."
 }

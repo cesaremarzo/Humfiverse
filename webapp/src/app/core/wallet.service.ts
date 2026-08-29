@@ -1,4 +1,5 @@
 import { Injectable, signal } from '@angular/core';
+import { ethers } from 'ethers';
 import { WalletState } from './models';
 
 declare global {
@@ -16,15 +17,30 @@ const CHAIN_NAMES: Record<string, string> = {
   '0xa': 'Optimism',
   '0xa4b1': 'Arbitrum One',
   '0x2105': 'Base',
+  '0x14a34': 'Base Sepolia',
   '0xaa36a7': 'Sepolia Testnet',
   '0x5': 'Goerli Testnet',
   '0x38': 'BNB Chain'
 };
 
-/** MetaMask / injected-provider connection — identity-only (eth_accounts,
- * eth_requestAccounts, eth_chainId). No signature or transaction is ever
- * requested; redeeming is simulated, matching the original site's design
- * intent (see planning/legal-regulatory-notes.md). */
+const BASE_SEPOLIA_CHAIN_ID_HEX = '0x14a34'; // 84532
+const BASE_SEPOLIA_ADD_PARAMS = {
+  chainId: BASE_SEPOLIA_CHAIN_ID_HEX,
+  chainName: 'Base Sepolia',
+  nativeCurrency: { name: 'Sepolia Ether', symbol: 'ETH', decimals: 18 },
+  rpcUrls: ['https://sepolia.base.org'],
+  blockExplorerUrls: ['https://sepolia.basescan.org']
+};
+
+const BUY_ABI = ['function buy(uint256 tokenId, uint256 amount) external payable'];
+
+/** MetaMask / injected-provider connection. Identity checks (eth_accounts,
+ * eth_requestAccounts, eth_chainId) never prompt for a signature. `buyOnchain`
+ * is the one path in this app that does request a real signature and submits
+ * a real transaction — a fixed-price primary purchase against
+ * HumfiverseCatalogueToken.buy() (see contracts/), never an automatically
+ * priced/dynamic trade (see planning/legal-regulatory-notes.md §7.8).
+ * Everything else (redeeming, resale listings) stays simulated. */
 @Injectable({ providedIn: 'root' })
 export class WalletService {
   readonly state = signal<WalletState>({ address: null, chainId: null, connecting: false });
@@ -80,5 +96,50 @@ export class WalletService {
       const chainId = args[0] as string;
       this.state.update((s) => ({ ...s, chainId }));
     });
+  }
+
+  /** Switches the wallet to Base Sepolia, adding it first if the wallet
+   * doesn't know about it yet (error 4902). Returns false if the user
+   * rejects either prompt. */
+  async ensureBaseSepolia(): Promise<boolean> {
+    if (!window.ethereum) return false;
+    if (this.state().chainId?.toLowerCase() === BASE_SEPOLIA_CHAIN_ID_HEX) return true;
+    try {
+      await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: BASE_SEPOLIA_CHAIN_ID_HEX }] });
+      this.state.update((s) => ({ ...s, chainId: BASE_SEPOLIA_CHAIN_ID_HEX }));
+      return true;
+    } catch (err: unknown) {
+      const code = (err as { code?: number })?.code;
+      if (code !== 4902) return false;
+      try {
+        await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [BASE_SEPOLIA_ADD_PARAMS] });
+        this.state.update((s) => ({ ...s, chainId: BASE_SEPOLIA_CHAIN_ID_HEX }));
+        return true;
+      } catch {
+        return false;
+      }
+    }
+  }
+
+  /** Real on-chain purchase: switches to Base Sepolia if needed, then
+   * requests a signature for `buy(tokenId, amount)` against
+   * HumfiverseCatalogueToken, paying `amount * priceWei`. Throws on
+   * rejection, wrong network, or a reverted/failed transaction — callers
+   * are expected to catch and show the user what happened. */
+  async buyOnchain(params: { contractAddress: string; tokenId: number; amount: number; priceWei: string }): Promise<{ txHash: string; explorerUrl: string }> {
+    if (!window.ethereum) throw new Error('no-wallet');
+    const switched = await this.ensureBaseSepolia();
+    if (!switched) throw new Error('wrong-network');
+
+    const provider = new ethers.BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
+    const signer = await provider.getSigner();
+    const contract = new ethers.Contract(params.contractAddress, BUY_ABI, signer);
+    const value = BigInt(params.priceWei) * BigInt(params.amount);
+
+    const tx = await contract['buy'](params.tokenId, params.amount, { value });
+    const receipt = await tx.wait();
+    if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
+
+    return { txHash: receipt.hash, explorerUrl: `https://sepolia.basescan.org/tx/${receipt.hash}` };
   }
 }

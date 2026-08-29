@@ -12,7 +12,7 @@ describe("HumfiverseMarketplace", function () {
     const TokenFactory = await ethers.getContractFactory("HumfiverseCatalogueToken");
     const token = await TokenFactory.deploy();
     await token.waitForDeployment();
-    await token.mintCatalogue(TOKEN_ID, "midnight-static", SUPPLY);
+    await token.mintCatalogue(TOKEN_ID, "midnight-static", SUPPLY, 0);
     // Give the seller a first-purchase-equivalent holding via the fee-free pool release.
     await token.releaseFromPool(seller.address, TOKEN_ID, 500);
 

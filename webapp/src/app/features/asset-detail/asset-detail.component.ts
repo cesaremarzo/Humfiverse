@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { IconComponent } from '../../shared/icon.component';
 import { CoverComponent } from '../../shared/cover.component';
@@ -10,6 +10,8 @@ import { DisclosureChipComponent } from '../../shared/disclosure-chip.component'
 import { LineChartComponent } from '../../shared/line-chart.component';
 import { StoreService } from '../../core/store.service';
 import { ApiService } from '../../core/api.service';
+import { WalletService } from '../../core/wallet.service';
+import { ToastService } from '../../core/toast.service';
 import { Asset, DisclosureLevel, OnchainInfo, SecondaryListing } from '../../core/models';
 import { fmtUSD, fmtUSDShort, fundingPct } from '../../core/format.util';
 import { computeYieldBreakdown } from '../../core/yield.util';
@@ -32,10 +34,11 @@ export class AssetDetailComponent {
   tab = signal<TabKey>('overview');
   qty = signal(1);
   ack = signal(false);
-  success = signal<{ qty: number; total: number } | null>(null);
+  success = signal<{ qty: number; total: number; txHash?: string; explorerUrl?: string } | null>(null);
   yieldInfoOpen = signal(false);
   onchainInfo = signal<OnchainInfo | null>(null);
   onchainLoading = signal(false);
+  onchainBuyPending = signal(false);
 
   listings = computed(() => this.store.activeListingsFor(this.id()));
   marketPrice = computed(() => this.store.lowestAsk(this.id()));
@@ -51,7 +54,10 @@ export class AssetDetailComponent {
 
   constructor(
     public store: StoreService,
-    private api: ApiService
+    public wallet: WalletService,
+    private api: ApiService,
+    private toast: ToastService,
+    private translate: TranslateService
   ) {
     effect(() => {
       const id = this.id();
@@ -125,9 +131,51 @@ export class AssetDetailComponent {
     this.qty.set(Math.max(1, Math.min(this.remaining(a), n || 1)));
   }
 
-  buy(a: Asset): void {
+  /** True once this asset has a live on-chain price and a connected wallet —
+   * meaning `buy()` will submit a real, signed transaction instead of the
+   * simulated purchase every asset falls back to otherwise. */
+  canBuyOnchain(): boolean {
+    const info = this.onchainInfo();
+    return !!(info?.onchain && info.priceWei !== '0' && this.wallet.state().address);
+  }
+
+  async buy(a: Asset): Promise<void> {
     const qty = this.qty();
     const total = qty * a.tokenPrice;
+    const info = this.onchainInfo();
+
+    if (info?.onchain && info.priceWei !== '0' && this.wallet.state().address) {
+      this.onchainBuyPending.set(true);
+      try {
+        const result = await this.wallet.buyOnchain({
+          contractAddress: info.contractAddress,
+          tokenId: info.tokenId,
+          amount: qty,
+          priceWei: info.priceWei
+        });
+        this.applyPurchase(a, qty, total);
+        this.success.set({ qty, total, txHash: result.txHash, explorerUrl: result.explorerUrl });
+      } catch (err: unknown) {
+        console.warn('On-chain purchase did not complete.', err);
+        const message = (err as { message?: string })?.message;
+        const key =
+          message === 'wrong-network'
+            ? 'toast.onchainWrongNetwork'
+            : message === 'no-wallet'
+              ? 'toast.noWalletDetected'
+              : 'toast.onchainBuyFailed';
+        this.toast.show(this.translate.instant(key), 'alert');
+      } finally {
+        this.onchainBuyPending.set(false);
+      }
+      return;
+    }
+
+    this.applyPurchase(a, qty, total);
+    this.success.set({ qty, total });
+  }
+
+  private applyPurchase(a: Asset, qty: number, total: number): void {
     a.tokensSold += qty;
     this.store.portfolio.update((p) => {
       const existing = p.holdings.find((h) => h.assetId === a.id);
@@ -139,7 +187,6 @@ export class AssetDetailComponent {
       }
       return { ...p, holdings: [...p.holdings] };
     });
-    this.success.set({ qty, total });
     this.qty.set(1);
     this.ack.set(false);
   }
