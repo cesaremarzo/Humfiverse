@@ -14,8 +14,18 @@ export class MarketplaceComponent {
   filter = signal<'all' | 'catalogue' | 'preproduction'>('all');
   query = signal('');
 
+  /** Only assets with a real, chain-verified token (technical-architecture.md
+   * §2.14) — falls back to the full mock catalogue while the check is still
+   * loading or the backend is unreachable, matching this app's usual
+   * graceful-degradation pattern rather than showing an empty marketplace. */
+  chainVerifiedAssets = computed(() => {
+    const ids = this.store.onchainAssetIds();
+    const all = this.store.assets();
+    return ids ? all.filter((a) => ids.has(a.id)) : all;
+  });
+
   list = computed(() => {
-    let list = this.store.assets().slice();
+    let list = this.chainVerifiedAssets().slice();
     if (this.filter() === 'catalogue') list = list.filter((a) => a.kind === 'catalogue');
     if (this.filter() === 'preproduction') list = list.filter((a) => a.kind === 'preproduction');
     const q = this.query().trim().toLowerCase();
@@ -27,7 +37,7 @@ export class MarketplaceComponent {
     return list;
   });
 
-  totalCount = computed(() => this.store.assets().length);
+  totalCount = computed(() => this.chainVerifiedAssets().length);
 
   constructor(public store: StoreService) {}
 

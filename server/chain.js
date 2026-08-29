@@ -17,6 +17,11 @@ const { ethers } = require("ethers");
 
 const RPC_URL = process.env.CHAIN_RPC_URL || "https://sepolia.base.org";
 const CONTRACT_ADDRESS = process.env.CHAIN_CONTRACT_ADDRESS || "0xFa9CCBCAAbd08f8f189249A82B0808dcb05e99c2";
+// Block this contract was deployed at — starting event queries here instead
+// of block 0 keeps each eth_getLogs call well under public RPCs' ~10,000-
+// block range limit even as the chain grows. Update after any redeploy.
+const CONTRACT_DEPLOY_BLOCK = Number(process.env.CHAIN_CONTRACT_DEPLOY_BLOCK || 46124580);
+const EVENT_QUERY_CHUNK = 9000;
 const CHAIN_ID = 84532; // Base Sepolia
 const EXPLORER_BASE = "https://sepolia.basescan.org";
 
@@ -26,7 +31,8 @@ const ABI = [
   "function totalSupplyOf(uint256) view returns (uint256)",
   "function releasedOf(uint256) view returns (uint256)",
   "function catalogueSlug(uint256) view returns (string)",
-  "function pricePerToken(uint256) view returns (uint256)"
+  "function pricePerToken(uint256) view returns (uint256)",
+  "event CatalogueMinted(uint256 indexed tokenId, string slug, uint256 supply, uint256 priceWeiPerToken)"
 ];
 
 const provider = new ethers.JsonRpcProvider(RPC_URL, CHAIN_ID);
@@ -75,6 +81,35 @@ async function isTokenIdFree(tokenId) {
   return supply === 0n;
 }
 
+/** The genuinely chain-native listing check (planning doc §2.14): rather
+ * than trusting the local onchain_tokens table, read every CatalogueMinted
+ * event straight off the contract. Cheap for a testnet contract this young
+ * — if this ever needs to scale, cache the result and/or start the query
+ * from the deployment block instead of "earliest". Falls back to null on
+ * an RPC error so callers can fall back to the local table, matching this
+ * backend's usual graceful-degradation pattern. */
+async function listMintedSlugsFromChain() {
+  try {
+    const latest = await provider.getBlockNumber();
+    const filter = readContract.filters.CatalogueMinted();
+    const events = [];
+    for (let from = CONTRACT_DEPLOY_BLOCK; from <= latest; from += EVENT_QUERY_CHUNK + 1) {
+      const to = Math.min(from + EVENT_QUERY_CHUNK, latest);
+      const chunk = await readContract.queryFilter(filter, from, to);
+      events.push(...chunk);
+    }
+    return events.map((e) => ({
+      tokenId: Number(e.args.tokenId),
+      slug: e.args.slug,
+      supply: e.args.supply.toString(),
+      priceWei: e.args.priceWeiPerToken.toString()
+    }));
+  } catch (err) {
+    console.warn("Could not read CatalogueMinted events from chain.", err.message || err);
+    return null;
+  }
+}
+
 async function mintCatalogueOnchain(tokenId, slug, supply, priceWei) {
   if (!writeContract) throw new Error("on-chain minting is disabled (no operator key configured)");
   const tx = await writeContract.mintCatalogue(tokenId, slug, supply, priceWei || 0);
@@ -87,4 +122,12 @@ async function mintCatalogueOnchain(tokenId, slug, supply, priceWei) {
   };
 }
 
-module.exports = { mintingEnabled, getPoolInfo, mintCatalogueOnchain, isTokenIdFree, CONTRACT_ADDRESS, EXPLORER_BASE };
+module.exports = {
+  mintingEnabled,
+  getPoolInfo,
+  mintCatalogueOnchain,
+  isTokenIdFree,
+  listMintedSlugsFromChain,
+  CONTRACT_ADDRESS,
+  EXPLORER_BASE
+};

@@ -34,6 +34,14 @@ export class StoreService {
   readonly secondaryListings = signal<SecondaryListing[]>(secondaryListingsJson as unknown as SecondaryListing[]);
   readonly backendAvailable = signal(false);
 
+  /** Every assetId with a real, chain-verified token (technical-architecture.md
+   * §2.14) — null while unresolved/unreachable, in which case callers should
+   * show the full mock catalogue rather than hide everything (this backend's
+   * usual graceful-degradation pattern). Marketplace listings are filtered
+   * to this set once it resolves, so an asset only ever appears once it
+   * genuinely exists on the testnet. */
+  readonly onchainAssetIds = signal<Set<string> | null>(null);
+
   readonly locale = signal<Locale>(detectInitialLocale());
   readonly theme = signal<'light' | 'dark' | null>(null); // null = follow system
   readonly bannerDismissed = signal(false);
@@ -107,6 +115,13 @@ export class StoreService {
       if (tpl && Array.isArray(tpl.clauses) && tpl.clauses.length) this.contractTemplate.set(tpl);
     } catch {
       /* keep bundled fallback template */
+    }
+    try {
+      const list = await this.api.getOnchainList();
+      this.onchainAssetIds.set(new Set(list.assetIds));
+    } catch (err) {
+      console.warn('Could not load the on-chain listing check — showing the full catalogue unfiltered.', err);
+      this.onchainAssetIds.set(null);
     }
   }
 }

@@ -47,4 +47,9 @@ export class ApiService {
   mintOnchainToken(payload: { assetId: string; slug: string; supply: number; priceWei?: string }): Promise<OnchainMintResult> {
     return firstValueFrom(this.http.post<OnchainMintResult>(`${this.base}/api/onchain/mint`, payload));
   }
+
+  /** Every assetId with a real, chain-verified token — see StoreService.onchainAssetIds. */
+  getOnchainList(): Promise<{ source: 'chain' | 'local-table'; assetIds: string[] }> {
+    return firstValueFrom(this.http.get<{ source: 'chain' | 'local-table'; assetIds: string[] }>(`${this.base}/api/onchain/list`));
+  }
 }

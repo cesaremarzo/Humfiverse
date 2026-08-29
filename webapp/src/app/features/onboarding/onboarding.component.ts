@@ -254,11 +254,13 @@ export class OnboardingComponent {
 
     this.toast.show(this.translate.instant('toast.campaignLaunched'), 'sparkles');
 
-    // Only catalogue-kind assets get an on-chain token — preproduction
-    // (milestone-escrow) campaigns use a different mechanism, matching
-    // the scope of HumfiverseCatalogueToken (see contracts/ and
-    // planning/technical-architecture.md §2.7/§2.10).
-    if (!isPre && this.store.backendAvailable()) {
+    // Every campaign gets an on-chain token at upload time, catalogue and
+    // preproduction alike (unified 29 Aug 2026 — see
+    // planning/technical-architecture.md §2.14). For preproduction this is
+    // a simplification: the token stands in for the milestone-escrow
+    // instrument §2.7 describes, which isn't built — a real implementation
+    // would need that escrow controlling fund release, not just a token.
+    if (this.store.backendAvailable()) {
       // Illustrative testnet-only USD→wei mapping (0.0001 ETH per $1 of the
       // mock display price) — no real peg, just keeps relative pricing
       // between catalogues sensible. Matches contracts/scripts/catalogues.js.
@@ -267,6 +269,11 @@ export class OnboardingComponent {
         .mintOnchainToken({ assetId: id, slug: id, supply: asset.tokensTotal, priceWei })
         .then((result) => {
           this.toast.show(this.translate.instant('toast.onchainMinted', { tokenId: result.tokenId }), 'checkCircle');
+          // The marketplace only lists chain-verified assets (§2.14) — add
+          // this one to that set now rather than waiting for a reload,
+          // otherwise the campaign would vanish from its own listing right
+          // after being created.
+          this.store.onchainAssetIds.update((ids) => (ids ? new Set(ids).add(id) : ids));
         })
         .catch((err) => {
           console.warn('On-chain mint did not happen (campaign was still created normally).', err);

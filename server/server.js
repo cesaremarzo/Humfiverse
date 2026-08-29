@@ -328,6 +328,20 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (req.method === "GET" && url.pathname === "/api/onchain/list") {
+    // Chain-native listing check (technical-architecture.md §2.14): try
+    // the contract's own event log first — the real source of truth —
+    // and only fall back to the local table mirror if that read fails.
+    const fromChain = await chain.listMintedSlugsFromChain();
+    if (fromChain) {
+      sendJson(res, 200, { source: "chain", assetIds: fromChain.map((m) => m.slug) });
+      return;
+    }
+    const rows = db.prepare("SELECT asset_id FROM onchain_tokens").all();
+    sendJson(res, 200, { source: "local-table", assetIds: rows.map((r) => r.asset_id) });
+    return;
+  }
+
   const onchainMatch = url.pathname.match(/^\/api\/onchain\/([^/]+)$/);
   if (req.method === "GET" && onchainMatch) {
     try {
