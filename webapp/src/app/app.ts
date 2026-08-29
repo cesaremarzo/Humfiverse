@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, OnInit, signal } from '@angular/core';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { filter } from 'rxjs';
 import { TopbarComponent } from './layout/topbar.component';
 import { PilotBannerComponent } from './layout/pilot-banner.component';
 import { FooterComponent } from './layout/footer.component';
@@ -14,10 +15,18 @@ import { WalletService } from './core/wallet.service';
   templateUrl: './app.html'
 })
 export class App implements OnInit {
+  isLanding = signal(true);
+
   constructor(
     private store: StoreService,
-    private wallet: WalletService
-  ) {}
+    private wallet: WalletService,
+    private router: Router
+  ) {
+    this.isLanding.set(this.router.url === '/');
+    this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe((e) => {
+      this.isLanding.set(e.urlAfterRedirects === '/');
+    });
+  }
 
   ngOnInit(): void {
     document.documentElement.lang = this.store.locale();

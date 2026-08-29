@@ -1,11 +1,15 @@
 <div id="app">
-  <app-topbar></app-topbar>
-  <main>
-    <div class="container wide">
-      <app-pilot-banner></app-pilot-banner>
-      <router-outlet></router-outlet>
-    </div>
-  </main>
-  <app-footer></app-footer>
+  @if (!isLanding()) {
+    <app-topbar></app-topbar>
+    <main>
+      <div class="container wide">
+        <app-pilot-banner></app-pilot-banner>
+        <router-outlet></router-outlet>
+      </div>
+    </main>
+    <app-footer></app-footer>
+  } @else {
+    <router-outlet></router-outlet>
+  }
 </div>
 <app-toast-wrap></app-toast-wrap>

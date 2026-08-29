@@ -6,9 +6,7 @@ import { StoreService } from '../core/store.service';
 import { WalletService } from '../core/wallet.service';
 import { ToastService } from '../core/toast.service';
 import { Locale } from '../core/models';
-
-const SUPPORTED_LOCALES: Locale[] = ['en', 'it', 'es', 'fr', 'de'];
-const LOCALE_LABEL: Record<Locale, string> = { en: 'EN', it: 'IT', es: 'ES', fr: 'FR', de: 'DE' };
+import { SUPPORTED_LOCALES, LOCALE_LABEL } from '../core/locales';
 
 @Component({
   selector: 'app-topbar',
@@ -45,7 +43,7 @@ export class TopbarComponent {
     if (role === 'artist' && !['for-artists', 'artist'].includes(seg)) {
       this.router.navigateByUrl('/for-artists');
     }
-    if (role === 'investor' && !['marketplace', 'asset', 'portfolio', 'redeem'].includes(seg)) {
+    if (role === 'investor' && !['marketplace', 'asset', 'portfolio'].includes(seg)) {
       this.router.navigateByUrl('/marketplace');
     }
   }

@@ -19,7 +19,6 @@
     @if (store.perspective() === 'investor') {
       <a routerLink="/marketplace" routerLinkActive="active" [routerLinkActiveOptions]="{exact:false}">{{ 'nav.marketplace' | translate }}</a>
       <a routerLink="/portfolio" routerLinkActive="active">{{ 'nav.portfolio' | translate }}</a>
-      <a routerLink="/redeem" routerLinkActive="active">{{ 'nav.redeem' | translate }}</a>
     } @else {
       <a routerLink="/for-artists" routerLinkActive="active">{{ 'nav.overview' | translate }}</a>
       <a routerLink="/artist/dashboard" routerLinkActive="active">{{ 'nav.myCampaigns' | translate }}</a>
@@ -29,10 +28,12 @@
 
   <div class="side-spacer"></div>
 
-  <div class="role-switch" role="group" [attr.aria-label]="'lang.label' | translate">
-    @for (l of locales; track l) {
-      <button type="button" [class.active]="store.locale() === l" (click)="setLocale(l)">{{ localeLabel[l] }}</button>
-    }
+  <div class="lang-select">
+    <select [attr.aria-label]="'lang.label' | translate" [value]="store.locale()" (change)="setLocale($any($event.target).value)">
+      @for (l of locales; track l) {
+        <option [value]="l">{{ localeLabel[l] }}</option>
+      }
+    </select>
   </div>
 
   <div class="role-switch" role="tablist" [attr.aria-label]="'role.perspective' | translate">
@@ -41,7 +42,7 @@
   </div>
 
   @if (wallet.state().address) {
-    <a class="btn btn-secondary btn-sm mono" routerLink="/redeem" [title]="'wallet.connectedTitle' | translate">
+    <a class="btn btn-secondary btn-sm mono" [routerLink]="store.perspective() === 'artist' ? '/artist/dashboard' : '/portfolio'" [title]="'wallet.connectedTitle' | translate">
       <app-icon name="wallet"></app-icon> {{ wallet.truncateAddr(wallet.state().address) }}
     </a>
   } @else {

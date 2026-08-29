@@ -2,13 +2,12 @@ import { Injectable, signal } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { ApiService } from './api.service';
 import { Asset, Campaign, ContractTemplate, InvestorState, Locale, Portfolio } from './models';
+import { SUPPORTED_LOCALES, RTL_LOCALES } from './locales';
 
 import assetsJson from './mock-data/assets.json';
 import campaignsJson from './mock-data/campaigns.json';
 import portfolioJson from './mock-data/portfolio.json';
 import contractTemplateJson from './mock-data/contract-template.json';
-
-const SUPPORTED_LOCALES: Locale[] = ['en', 'it', 'es', 'fr', 'de'];
 
 function detectInitialLocale(): Locale {
   try {
@@ -52,6 +51,7 @@ export class StoreService {
   ) {
     translate.addLangs(SUPPORTED_LOCALES);
     translate.use(this.locale());
+    this.updateDocumentDirection(this.locale());
   }
 
   setLocale(locale: Locale): void {
@@ -63,6 +63,11 @@ export class StoreService {
       /* ignore */
     }
     document.documentElement.lang = locale;
+    this.updateDocumentDirection(locale);
+  }
+
+  private updateDocumentDirection(locale: Locale): void {
+    document.documentElement.dir = RTL_LOCALES.includes(locale) ? 'rtl' : 'ltr';
   }
 
   assetById(id: string): Asset | undefined {

@@ -6,6 +6,33 @@
     <div><span class="page-kicker">{{ 'portfolio.kicker' | translate }}</span><h1>{{ 'portfolio.title' | translate }}</h1><p class="page-sub">{{ 'portfolio.subtitle' | translate }}</p></div>
   </div>
 
+  @if (!wallet.state().address) {
+    <div class="card panel" style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:14px; padding:44px 24px; margin-bottom:26px;">
+      <div style="width:44px; height:44px; border-radius:12px; background:var(--accent-soft); color:var(--accent-ink); display:flex; align-items:center; justify-content:center;"><app-icon name="wallet"></app-icon></div>
+      <div>
+        <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:17px; margin-bottom:6px;">{{ 'redeem.connectPrompt' | translate }}</h3>
+        <p class="prose" style="max-width:46ch; margin:0 auto;">{{ 'redeem.connectBody' | translate }}</p>
+      </div>
+      <button class="btn btn-primary btn-lg" [disabled]="wallet.state().connecting" (click)="connect()">
+        <app-icon name="wallet"></app-icon> {{ (wallet.state().connecting ? 'wallet.connecting' : 'redeem.connectBtn') | translate }}
+      </button>
+      @if (!hasInjectedWallet) {
+        <p class="prose" style="font-size:12px;" [innerHTML]="'redeem.noWalletNote' | translate"></p>
+      }
+    </div>
+  } @else {
+    <div class="card panel" style="display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:26px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:36px; height:36px; border-radius:999px; background:var(--good-soft); color:var(--good); display:flex; align-items:center; justify-content:center; flex:none;"><app-icon name="checkCircle"></app-icon></div>
+        <div>
+          <div class="cell-primary mono">{{ wallet.truncateAddr(wallet.state().address) }}</div>
+          <div style="font-size:12px; color:var(--text-secondary);">{{ 'redeem.connectedNetwork' | translate: { chain: chainLabel() } }}</div>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm" (click)="disconnect()">{{ 'wallet.disconnect' | translate }}</button>
+    </div>
+  }
+
   <div class="stat-grid">
     <div class="card stat-tile"><div class="label">{{ 'portfolio.tokensHeld' | translate }}</div><div class="value">{{ totalTokens().toLocaleString() }}</div></div>
     <div class="card stat-tile"><div class="label">{{ 'portfolio.costBasis' | translate }}</div><div class="value">{{ fmt(totalCost()) }}</div></div>
@@ -31,7 +58,9 @@
               <td class="cell-num mono" [style.color]="h.unclaimed > 0 ? 'var(--accent-ink)' : null" [style.font-weight]="h.unclaimed > 0 ? 600 : null">{{ fmt(h.unclaimed) }}</td>
               <td style="text-align:right;">
                 @if (h.unclaimed > 0) {
-                  <a class="btn btn-secondary btn-sm" routerLink="/redeem"><app-icon name="wallet"></app-icon> {{ 'portfolio.redeem' | translate }}</a>
+                  <button class="btn btn-secondary btn-sm" [disabled]="!!pending()" (click)="redeem(h.assetId)">
+                    <app-icon name="wallet"></app-icon> {{ (pending() === h.assetId ? 'redeem.redeeming' : 'portfolio.redeem') | translate }}
+                  </button>
                 } @else {
                   <span class="chip chip-neutral"><app-icon name="checkCircle"></app-icon> {{ 'portfolio.upToDate' | translate }}</span>
                 }
@@ -46,7 +75,10 @@
   <div class="page-head" style="margin-bottom:14px;">
     <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:17px;">{{ 'portfolio.distributionHistory' | translate }}</h3>
     @if (totalUnclaimed() > 0) {
-      <a class="btn btn-primary btn-sm" routerLink="/redeem"><app-icon name="wallet"></app-icon> {{ 'portfolio.redeemVia' | translate: { amount: fmt(totalUnclaimed()) } }}</a>
+      <button class="btn btn-primary btn-sm" [disabled]="!!pending()" (click)="redeem('all')">
+        <app-icon name="wallet"></app-icon>
+        {{ (pending() === 'all' ? 'redeem.redeeming' : 'portfolio.redeemVia') | translate: { amount: fmt(totalUnclaimed()) } }}
+      </button>
     }
   </div>
   <div class="card">
@@ -63,6 +95,21 @@
           }
         </tbody>
       </table>
+    </div>
+  </div>
+}
+
+@if (success(); as s) {
+  <div class="modal-scrim" (click)="$event.target === $event.currentTarget && closeModal()">
+    <div class="modal">
+      <div class="success-icon"><app-icon name="check"></app-icon></div>
+      <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:18px;">{{ 'redeem.successTitle' | translate }}</h3>
+      <p style="font-size:13.5px; color:var(--text-secondary);" [innerHTML]="'redeem.successBody' | translate: { amount: fmt(s.amount), addr: '<span class=\'mono\'>' + wallet.truncateAddr(wallet.state().address) + '</span>' }"></p>
+      <div class="card panel" style="text-align:left; font-size:12px;">
+        <div style="color:var(--text-secondary); margin-bottom:4px;">{{ 'redeem.txHashLabel' | translate }}</div>
+        <div class="mono" style="word-break:break-all;">{{ s.txHash }}</div>
+      </div>
+      <button class="btn btn-primary btn-block" (click)="closeModal()">{{ 'redeem.done' | translate }}</button>
     </div>
   </div>
 }

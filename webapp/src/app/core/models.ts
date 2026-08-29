@@ -81,15 +81,9 @@ export interface YieldBreakdown {
   months: number;
 }
 
-export type Locale = 'en' | 'it' | 'es' | 'fr' | 'de';
+export type Locale = 'en' | 'it' | 'es' | 'fr' | 'de' | 'ru' | 'ja' | 'zh' | 'ar';
 
-export interface LocalizedText {
-  it: string;
-  en: string;
-  es: string;
-  fr: string;
-  de: string;
-}
+export type LocalizedText = Partial<Record<Locale, string>>;
 
 export interface ContractClauseI18n {
   title: string;
