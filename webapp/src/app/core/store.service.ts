@@ -1,13 +1,14 @@
 import { Injectable, signal } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { ApiService } from './api.service';
-import { Asset, Campaign, ContractTemplate, InvestorState, Locale, Portfolio } from './models';
+import { Asset, Campaign, ContractTemplate, InvestorState, Locale, Portfolio, SecondaryListing } from './models';
 import { SUPPORTED_LOCALES, RTL_LOCALES } from './locales';
 
 import assetsJson from './mock-data/assets.json';
 import campaignsJson from './mock-data/campaigns.json';
 import portfolioJson from './mock-data/portfolio.json';
 import contractTemplateJson from './mock-data/contract-template.json';
+import secondaryListingsJson from './mock-data/secondary-listings.json';
 
 function detectInitialLocale(): Locale {
   try {
@@ -30,6 +31,7 @@ export class StoreService {
   readonly campaigns = signal<Campaign[]>(campaignsJson as unknown as Campaign[]);
   readonly portfolio = signal<Portfolio>(portfolioJson as unknown as Portfolio);
   readonly contractTemplate = signal<ContractTemplate>(contractTemplateJson as unknown as ContractTemplate);
+  readonly secondaryListings = signal<SecondaryListing[]>(secondaryListingsJson as unknown as SecondaryListing[]);
   readonly backendAvailable = signal(false);
 
   readonly locale = signal<Locale>(detectInitialLocale());
@@ -72,6 +74,21 @@ export class StoreService {
 
   assetById(id: string): Asset | undefined {
     return this.assets().find((a) => a.id === id);
+  }
+
+  /** Active resale listings for an asset, cheapest first. */
+  activeListingsFor(assetId: string): SecondaryListing[] {
+    return this.secondaryListings()
+      .filter((l) => l.assetId === assetId && l.qty > 0)
+      .sort((a, b) => a.pricePerToken - b.pricePerToken);
+  }
+
+  /** The platform's displayed "current market price" for an asset: the
+   * cheapest active resale listing, or null if nobody is reselling — never
+   * an automatically-matched/algorithmic price (see planning doc §7.8). */
+  lowestAsk(assetId: string): number | null {
+    const listings = this.activeListingsFor(assetId);
+    return listings.length ? listings[0].pricePerToken : null;
   }
 
   async hydrateFromBackend(): Promise<void> {

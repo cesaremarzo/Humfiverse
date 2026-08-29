@@ -1,0 +1,1 @@
+function e(o){return Math.floor(o*100/1e4)}export{e as t};

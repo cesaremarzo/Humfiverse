@@ -1,0 +1,5 @@
+[
+  { "id": "resale-1", "assetId": "midnight-static", "seller": "0x71C1…9e3f", "qty": 25, "pricePerToken": 23 },
+  { "id": "resale-2", "assetId": "midnight-static", "seller": "0x4a2B…88b1", "qty": 10, "pricePerToken": 27 },
+  { "id": "resale-3", "assetId": "ember-choir", "seller": "0x9Fd3…12aa", "qty": 8, "pricePerToken": 46 }
+]

@@ -74,6 +74,19 @@ export interface Portfolio {
   distributions: Distribution[];
 }
 
+/** A resale (secondary-market) listing — the display/state-management
+ * counterpart of HumfiverseMarketplace.sol's on-chain Listing struct. The
+ * platform's "current market price" for an asset is the lowest active
+ * listing's pricePerToken (see StoreService.lowestAsk), not an
+ * automatically-updating/matched price. */
+export interface SecondaryListing {
+  id: string;
+  assetId: string;
+  seller: string;
+  qty: number;
+  pricePerToken: number;
+}
+
 export interface YieldBreakdown {
   pct: number;
   trailingRoyalty: number;

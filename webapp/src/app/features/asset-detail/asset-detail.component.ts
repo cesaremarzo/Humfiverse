@@ -10,9 +10,10 @@ import { DisclosureChipComponent } from '../../shared/disclosure-chip.component'
 import { LineChartComponent } from '../../shared/line-chart.component';
 import { StoreService } from '../../core/store.service';
 import { ApiService } from '../../core/api.service';
-import { Asset, DisclosureLevel, OnchainInfo } from '../../core/models';
+import { Asset, DisclosureLevel, OnchainInfo, SecondaryListing } from '../../core/models';
 import { fmtUSD, fmtUSDShort, fundingPct } from '../../core/format.util';
 import { computeYieldBreakdown } from '../../core/yield.util';
+import { platformFeeTokens } from '../../core/marketplace-fee.util';
 
 type TabKey = 'overview' | 'royalty' | 'milestones' | 'disclosure' | 'documents' | 'risk';
 
@@ -35,6 +36,10 @@ export class AssetDetailComponent {
   yieldInfoOpen = signal(false);
   onchainInfo = signal<OnchainInfo | null>(null);
   onchainLoading = signal(false);
+
+  listings = computed(() => this.store.activeListingsFor(this.id()));
+  marketPrice = computed(() => this.store.lowestAsk(this.id()));
+  resaleResult = signal<{ listing: SecondaryListing; received: number; fee: number; paid: number } | null>(null);
 
   disclosureRows: [keyof Asset['aiDisclosure'], string][] = [
     ['vocals', 'disclosure.vocals'],
@@ -146,5 +151,30 @@ export class AssetDetailComponent {
   successQtyKey(): string {
     const s = this.success();
     return s && s.qty > 1 ? 'success.tokens' : 'success.token';
+  }
+
+  // --- buy from a resale listing (secondary purchase, 1% platform token fee) ---
+  buyFromListing(listing: SecondaryListing): void {
+    const fee = platformFeeTokens(listing.qty);
+    const received = listing.qty - fee;
+    const paid = listing.qty * listing.pricePerToken;
+
+    this.store.portfolio.update((p) => {
+      const existing = p.holdings.find((h) => h.assetId === listing.assetId);
+      if (existing) {
+        existing.tokens += received;
+        existing.costBasis += paid;
+      } else {
+        p.holdings.push({ assetId: listing.assetId, tokens: received, costBasis: paid, unclaimed: 0 });
+      }
+      return { ...p, holdings: [...p.holdings] };
+    });
+
+    this.store.secondaryListings.update((listings) => listings.filter((l) => l.id !== listing.id));
+    this.resaleResult.set({ listing, received, fee, paid });
+  }
+
+  closeResaleResult(): void {
+    this.resaleResult.set(null);
   }
 }

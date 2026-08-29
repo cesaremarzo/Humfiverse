@@ -9,13 +9,8 @@ import { ToastService } from '../../core/toast.service';
 import { fakeTxHash } from '../../core/yield.util';
 import { fmtUSD } from '../../core/format.util';
 import { coverBackground } from '../../core/cover.util';
-
-/** Secondary-sale platform fee: 1% of the tokens traded (not the proceeds),
- * matching HumfiverseMarketplace.sol's PLATFORM_FEE_BPS. Only ever applies
- * here — selling a holding is by definition a secondary sale, since a
- * holding only exists after a (fee-free) first purchase. */
-const PLATFORM_FEE_BPS = 100;
-const BPS_DENOMINATOR = 10_000;
+import { SecondaryListing } from '../../core/models';
+import { platformFeeTokens } from '../../core/marketplace-fee.util';
 
 @Component({
   selector: 'app-portfolio',
@@ -30,7 +25,16 @@ export class PortfolioComponent {
 
   sellDraft = signal<{ assetId: string; max: number } | null>(null);
   sellQty = signal(1);
-  sellResult = signal<{ assetId: string; qty: number; fee: number; proceeds: number } | null>(null);
+  sellPrice = signal(1);
+  sellResult = signal<{ assetId: string; qty: number; price: number } | null>(null);
+  /** costBasis reserved per listing this session created, so cancelling one
+   * can restore the exact cost basis it was carved out of. Local to this
+   * component — a listing's on-chain/store counterpart has no notion of
+   * "cost basis", only price/qty (see SecondaryListing). */
+  private reservedCostBasis = new Map<string, number>();
+
+  mySellerLabel = 'you';
+  myListings = computed(() => this.store.secondaryListings().filter((l) => l.seller === this.mySellerLabel && l.qty > 0));
 
   holdings = computed(() => this.store.portfolio().holdings);
   distributionsReversed = computed(() => this.store.portfolio().distributions.slice().reverse());
@@ -125,12 +129,13 @@ export class PortfolioComponent {
     this.success.set(null);
   }
 
-  // --- secondary sale (platform-mediated, 1% token fee) ---
+  // --- list tokens for resale (platform-mediated, 1% token fee on purchase) ---
   openSell(assetId: string): void {
     const holding = this.holdings().find((h) => h.assetId === assetId);
     if (!holding || holding.tokens <= 0) return;
     this.sellDraft.set({ assetId, max: holding.tokens });
     this.sellQty.set(1);
+    this.sellPrice.set(this.store.lowestAsk(assetId) ?? this.store.assetById(assetId)?.tokenPrice ?? 1);
   }
 
   closeSellDraft(): void {
@@ -144,39 +149,65 @@ export class PortfolioComponent {
     this.sellQty.set(Math.max(1, Math.min(draft.max, n || 1)));
   }
 
-  sellFeeTokens(): number {
-    return Math.floor((this.sellQty() * PLATFORM_FEE_BPS) / BPS_DENOMINATOR);
+  setSellPrice(value: string): void {
+    const n = parseFloat(value.replace(/[^0-9.]/g, ''));
+    this.sellPrice.set(n > 0 ? n : 0.01);
   }
 
-  sellProceeds(): number {
-    const draft = this.sellDraft();
-    if (!draft) return 0;
-    const price = this.store.assetById(draft.assetId)?.tokenPrice || 0;
-    return this.sellQty() * price;
+  sellFeePreview(): number {
+    return platformFeeTokens(this.sellQty());
   }
 
   confirmSell(): void {
     const draft = this.sellDraft();
     if (!draft) return;
     const qty = this.sellQty();
-    const fee = this.sellFeeTokens();
-    const proceeds = this.sellProceeds();
+    const price = this.sellPrice();
+    let reservedCost = 0;
 
     this.store.portfolio.update((p) => {
       const h = p.holdings.find((x) => x.assetId === draft.assetId);
       if (h) {
         const costPerToken = h.tokens > 0 ? h.costBasis / h.tokens : 0;
+        reservedCost = costPerToken * qty;
         h.tokens -= qty;
-        h.costBasis = Math.max(0, h.costBasis - costPerToken * qty);
+        h.costBasis = Math.max(0, h.costBasis - reservedCost);
       }
       return { holdings: [...p.holdings], distributions: p.distributions };
     });
 
+    const listingId = `you-${draft.assetId}-${Date.now()}`;
+    this.reservedCostBasis.set(listingId, reservedCost);
+    this.store.secondaryListings.update((listings) => [
+      ...listings,
+      { id: listingId, assetId: draft.assetId, seller: this.mySellerLabel, qty, pricePerToken: price } as SecondaryListing
+    ]);
+
     this.sellDraft.set(null);
-    this.sellResult.set({ assetId: draft.assetId, qty, fee, proceeds });
+    this.sellResult.set({ assetId: draft.assetId, qty, price });
   }
 
   closeSellResult(): void {
     this.sellResult.set(null);
+  }
+
+  cancelListing(listingId: string): void {
+    const listing = this.store.secondaryListings().find((l) => l.id === listingId);
+    if (!listing) return;
+    const reservedCost = this.reservedCostBasis.get(listingId) ?? 0;
+
+    this.store.portfolio.update((p) => {
+      const h = p.holdings.find((x) => x.assetId === listing.assetId);
+      if (h) {
+        h.tokens += listing.qty;
+        h.costBasis += reservedCost;
+      } else {
+        p.holdings.push({ assetId: listing.assetId, tokens: listing.qty, costBasis: reservedCost, unclaimed: 0 });
+      }
+      return { holdings: [...p.holdings], distributions: p.distributions };
+    });
+
+    this.store.secondaryListings.update((listings) => listings.filter((l) => l.id !== listingId));
+    this.reservedCostBasis.delete(listingId);
   }
 }
