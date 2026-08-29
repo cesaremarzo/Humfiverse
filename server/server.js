@@ -401,7 +401,26 @@ const server = http.createServer(async (req, res) => {
   if (req.method === "GET" && onchainMatch) {
     try {
       const assetId = decodeURIComponent(onchainMatch[1]);
-      const record = getOnchainRecord(assetId);
+      let record = getOnchainRecord(assetId);
+      if (!record) {
+        // Local table is only a cache, not the source of truth (§2.14) —
+        // it's also the thing most exposed to Render's free-tier ephemeral
+        // disk wiping it on every redeploy, so a miss here doesn't mean the
+        // token doesn't exist, only that this cache doesn't know about it
+        // yet. Fall back to the chain's own event log, and re-seed the
+        // cache from it so subsequent lookups are fast again.
+        const fromChain = await chain.listMintedSlugsFromChain();
+        const match = fromChain && fromChain.find((m) => m.slug === assetId);
+        if (match) {
+          const mintedAt = new Date().toISOString();
+          try {
+            db.prepare(
+              "INSERT OR IGNORE INTO onchain_tokens (token_id, asset_id, slug, supply, tx_hash, minted_at) VALUES (?, ?, ?, ?, ?, ?)"
+            ).run(match.tokenId, assetId, match.slug, Number(match.supply), match.txHash, mintedAt);
+          } catch { /* best-effort cache re-seed */ }
+          record = { token_id: match.tokenId, slug: match.slug, tx_hash: match.txHash, minted_at: mintedAt };
+        }
+      }
       if (!record) { sendJson(res, 200, { onchain: false }); return; }
       const poolInfo = await chain.getPoolInfo(record.token_id);
       sendJson(res, 200, { onchain: true, assetId, slug: record.slug, mintTxHash: record.tx_hash, mintedAt: record.minted_at, ...poolInfo });

@@ -102,7 +102,9 @@ async function listMintedSlugsFromChain() {
       tokenId: Number(e.args.tokenId),
       slug: e.args.slug,
       supply: e.args.supply.toString(),
-      priceWei: e.args.priceWeiPerToken.toString()
+      priceWei: e.args.priceWeiPerToken.toString(),
+      txHash: e.transactionHash,
+      blockNumber: e.blockNumber
     }));
   } catch (err) {
     console.warn("Could not read CatalogueMinted events from chain.", err.message || err);
