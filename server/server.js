@@ -327,7 +327,7 @@ function sendJson(res, status, body) {
   res.writeHead(status, {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+    "Access-Control-Allow-Methods": "GET,POST,DELETE,OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, X-Admin-Key"
   });
   res.end(json);
@@ -392,6 +392,23 @@ const server = http.createServer(async (req, res) => {
     } catch (e) {
       sendJson(res, 502, { error: "could not save asset", detail: String(e.message || e) });
     }
+    return;
+  }
+
+  const assetIdMatch = url.pathname.match(/^\/api\/assets\/([^/]+)$/);
+  if (req.method === "DELETE" && assetIdMatch) {
+    // Admin-only cleanup (§2.22) — removes the *local* asset/campaign
+    // record only. Cannot un-mint an on-chain token or delete a
+    // CatalogueMinted event; this is for clearing test/mistaken rows out
+    // of the public marketplace listing, not a real "delist" mechanism.
+    if (!isAdminAuthorized(req)) {
+      sendJson(res, 401, { error: "missing or invalid X-Admin-Key header" });
+      return;
+    }
+    const assetId = decodeURIComponent(assetIdMatch[1]);
+    const result = db.prepare("DELETE FROM assets WHERE id = ?").run(assetId);
+    db.prepare("DELETE FROM campaigns WHERE id = ?").run(assetId);
+    sendJson(res, 200, { ok: true, deleted: result.changes > 0 });
     return;
   }
 
