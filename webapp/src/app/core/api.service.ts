@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
@@ -91,8 +91,13 @@ export class ApiService {
     return firstValueFrom(this.http.get<{ campaigns: (EscrowCampaignInfo & { assetId: string })[] }>(`${this.base}/api/escrow/campaigns`));
   }
 
-  /** Admin: Humfiverse confirms a milestone was met, releasing its tranche. */
-  confirmEscrowMilestone(campaignId: number, milestoneIndex: number): Promise<{ txHash: string; explorerUrl: string }> {
-    return firstValueFrom(this.http.post<{ txHash: string; explorerUrl: string }>(`${this.base}/api/escrow/confirm`, { campaignId, milestoneIndex }));
+  /** Admin: Humfiverse confirms a milestone was met, releasing its tranche.
+   * Requires the operator's admin key — see AdminEscrowComponent, which
+   * prompts for it and never persists it outside sessionStorage. */
+  confirmEscrowMilestone(campaignId: number, milestoneIndex: number, adminKey: string): Promise<{ txHash: string; explorerUrl: string }> {
+    const headers = new HttpHeaders({ 'X-Admin-Key': adminKey });
+    return firstValueFrom(
+      this.http.post<{ txHash: string; explorerUrl: string }>(`${this.base}/api/escrow/confirm`, { campaignId, milestoneIndex }, { headers })
+    );
   }
 }

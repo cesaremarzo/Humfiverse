@@ -28,6 +28,11 @@ const escrow = require("./chainEscrow");
 
 const PORT = process.env.PORT || 3001;
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, "humfiverse.db");
+// Gates POST /api/escrow/confirm — the one endpoint only Humfiverse should be
+// able to call (releases real escrowed funds). Every other write endpoint is
+// a normal user action triggered by the onboarding wizard and stays open;
+// see planning/technical-architecture.md §2.21.
+const ADMIN_API_KEY = process.env.ADMIN_API_KEY || "";
 
 const db = new DatabaseSync(DB_PATH);
 
@@ -312,13 +317,18 @@ async function createEscrowCampaign(assetId, artistAddress, fundingGoalWei, stud
   return { campaignId: created.campaignId, studioId, txHash: created.txHash };
 }
 
+function isAdminAuthorized(req) {
+  if (!ADMIN_API_KEY) return false; // fail closed: unconfigured means disabled, not open
+  return req.headers["x-admin-key"] === ADMIN_API_KEY;
+}
+
 function sendJson(res, status, body) {
   const json = JSON.stringify(body);
   res.writeHead(status, {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type"
+    "Access-Control-Allow-Headers": "Content-Type, X-Admin-Key"
   });
   res.end(json);
 }
@@ -548,6 +558,10 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === "POST" && url.pathname === "/api/escrow/confirm") {
     try {
+      if (!isAdminAuthorized(req)) {
+        sendJson(res, 401, { error: "missing or invalid X-Admin-Key header" });
+        return;
+      }
       const body = await readBody(req);
       if (!body.campaignId || body.milestoneIndex === undefined) {
         sendJson(res, 400, { error: "campaignId and milestoneIndex are required" });

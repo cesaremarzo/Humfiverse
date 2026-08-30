@@ -25,6 +25,9 @@ export class AdminEscrowComponent {
   error = signal<string | null>(null);
   confirming = signal<string | null>(null); // `${campaignId}-${milestoneIndex}`
   lastResult = signal<{ txHash: string; explorerUrl: string } | null>(null);
+  // Held only in this tab's sessionStorage, never sent anywhere but the
+  // X-Admin-Key header on the one endpoint that needs it — see api.service.ts.
+  adminKey = signal<string>(sessionStorage.getItem('humfiverse.adminKey') || '');
 
   fmt = fmtUSD;
   weiToUsd(wei: string): number {
@@ -54,12 +57,17 @@ export class AdminEscrowComponent {
     return BigInt(raisedWei) >= BigInt(amountWei);
   }
 
+  setAdminKey(value: string): void {
+    this.adminKey.set(value);
+    sessionStorage.setItem('humfiverse.adminKey', value);
+  }
+
   async confirm(campaignId: number, milestoneIndex: number): Promise<void> {
     const key = `${campaignId}-${milestoneIndex}`;
     this.confirming.set(key);
     this.error.set(null);
     try {
-      const result = await this.api.confirmEscrowMilestone(campaignId, milestoneIndex);
+      const result = await this.api.confirmEscrowMilestone(campaignId, milestoneIndex, this.adminKey());
       this.lastResult.set(result);
       this.load();
     } catch (err: unknown) {
