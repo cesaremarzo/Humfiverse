@@ -10,6 +10,7 @@
    TESTNET ONLY. */
 
 const { ethers } = require("ethers");
+const { withRetry } = require("./chainRetry");
 
 const RPC_URL = process.env.CHAIN_RPC_URL || "https://sepolia.base.org";
 const ESCROW_ADDRESS = process.env.CHAIN_ESCROW_ADDRESS || "0xbc220eB1234749a2127aad3deB69c689DC74C1a1";
@@ -50,7 +51,7 @@ function writeEnabled() {
 
 async function registerStudioOnchain(walletAddress, name) {
   if (!writeContract) throw new Error("escrow admin actions are disabled (no operator key configured)");
-  const tx = await writeContract.registerStudio(walletAddress, name);
+  const tx = await withRetry(() => writeContract.registerStudio(walletAddress, name));
   const receipt = await tx.wait();
   const parsed = receipt.logs.map((l) => { try { return readContract.interface.parseLog(l); } catch { return null; } }).find((e) => e && e.name === "StudioRegistered");
   return { studioId: Number(parsed.args.studioId), txHash: receipt.hash };
@@ -58,7 +59,9 @@ async function registerStudioOnchain(walletAddress, name) {
 
 async function createCampaignOnchain(artist, fundingGoalWei, studioId, deadline, assetId, milestoneNames, milestoneBps, milestonePayees) {
   if (!writeContract) throw new Error("escrow admin actions are disabled (no operator key configured)");
-  const tx = await writeContract.createCampaign(artist, fundingGoalWei, studioId, deadline, assetId, milestoneNames, milestoneBps, milestonePayees);
+  const tx = await withRetry(() =>
+    writeContract.createCampaign(artist, fundingGoalWei, studioId, deadline, assetId, milestoneNames, milestoneBps, milestonePayees)
+  );
   const receipt = await tx.wait();
   const parsed = receipt.logs.map((l) => { try { return readContract.interface.parseLog(l); } catch { return null; } }).find((e) => e && e.name === "CampaignCreated");
   return { campaignId: Number(parsed.args.campaignId), txHash: receipt.hash };
@@ -66,7 +69,7 @@ async function createCampaignOnchain(artist, fundingGoalWei, studioId, deadline,
 
 async function confirmMilestoneOnchain(campaignId, milestoneIndex) {
   if (!writeContract) throw new Error("escrow admin actions are disabled (no operator key configured)");
-  const tx = await writeContract.confirmMilestone(campaignId, milestoneIndex);
+  const tx = await withRetry(() => writeContract.confirmMilestone(campaignId, milestoneIndex));
   const receipt = await tx.wait();
   return { txHash: receipt.hash, explorerUrl: `${EXPLORER_BASE}/tx/${receipt.hash}` };
 }
@@ -127,7 +130,7 @@ async function listCampaignAssetIdsFromChain() {
     const events = [];
     for (let from = ESCROW_DEPLOY_BLOCK; from <= latest; from += EVENT_QUERY_CHUNK + 1) {
       const to = Math.min(from + EVENT_QUERY_CHUNK, latest);
-      const chunk = await readContract.queryFilter(filter, from, to);
+      const chunk = await withRetry(() => readContract.queryFilter(filter, from, to));
       events.push(...chunk);
     }
     return events.map((e) => e.args.assetId);

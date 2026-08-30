@@ -14,6 +14,7 @@
    TESTNET ONLY. The operator key here should never hold real funds. */
 
 const { ethers } = require("ethers");
+const { withRetry } = require("./chainRetry");
 
 const RPC_URL = process.env.CHAIN_RPC_URL || "https://sepolia.base.org";
 const CONTRACT_ADDRESS = process.env.CHAIN_CONTRACT_ADDRESS || "0xFa9CCBCAAbd08f8f189249A82B0808dcb05e99c2";
@@ -95,7 +96,7 @@ async function listMintedSlugsFromChain() {
     const events = [];
     for (let from = CONTRACT_DEPLOY_BLOCK; from <= latest; from += EVENT_QUERY_CHUNK + 1) {
       const to = Math.min(from + EVENT_QUERY_CHUNK, latest);
-      const chunk = await readContract.queryFilter(filter, from, to);
+      const chunk = await withRetry(() => readContract.queryFilter(filter, from, to));
       events.push(...chunk);
     }
     return events.map((e) => ({
@@ -114,7 +115,10 @@ async function listMintedSlugsFromChain() {
 
 async function mintCatalogueOnchain(tokenId, slug, supply, priceWei) {
   if (!writeContract) throw new Error("on-chain minting is disabled (no operator key configured)");
-  const tx = await writeContract.mintCatalogue(tokenId, slug, supply, priceWei || 0);
+  // Wrapped in withRetry (chainRetry.js) — the free public RPC rate-limits
+  // under bursts, and a failure here used to silently drop the campaign
+  // from the marketplace even though it had been created (§2.22).
+  const tx = await withRetry(() => writeContract.mintCatalogue(tokenId, slug, supply, priceWei || 0));
   const receipt = await tx.wait();
   return {
     tokenId,
