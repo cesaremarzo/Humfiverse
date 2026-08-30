@@ -1,16 +1,17 @@
 "use strict";
 /* Humfiverse mock backend.
    Replaces the frontend's hardcoded ASSETS/CAMPAIGNS/portfolio arrays with
-   a real HTTP API backed by SQLite. Most of it is still simulated (no
-   real money, KYC, or SPV) — see planning/technical-architecture.md for
-   what a full production backend would actually require. The one piece
-   that IS real: the on-chain integration in chain.js talks to a deployed
-   ERC-1155 contract on the Base Sepolia testnet (§2.10 of that doc).
+   a real HTTP API backed by a database (see db.js — a local SQLite file by
+   default, a real Turso/libSQL database when TURSO_DATABASE_URL is set;
+   §2.23). Most of it is still simulated (no real money, KYC, or SPV) — see
+   planning/technical-architecture.md for what a full production backend
+   would actually require. The one piece that IS real: the on-chain
+   integration in chain.js talks to a deployed ERC-1155 contract on the
+   Base Sepolia testnet (§2.10 of that doc).
 
-   Uses node's built-in http module and node:sqlite (stable in the Node
-   version this was built against), plus one real dependency — ethers,
-   for the on-chain integration (see chain.js; not reasonable to hand-roll
-   transaction signing). Run with:
+   Uses node's built-in http module, plus two real dependencies —
+   @libsql/client for storage and ethers for the on-chain integration (see
+   chain.js; not reasonable to hand-roll transaction signing). Run with:
      node server.js
    Configure the port via PORT env var (defaults to 3001). On-chain
    minting needs CHAIN_OPERATOR_PRIVATE_KEY set (see chain.js) — without
@@ -19,96 +20,94 @@
 
 require("dotenv").config();
 const http = require("node:http");
-const path = require("node:path");
-const { DatabaseSync } = require("node:sqlite");
+const db = require("./db");
 const { ASSETS, CAMPAIGNS, PORTFOLIO } = require("./seed-data");
 const { CONTRACT_TEMPLATE } = require("./contract-template");
 const chain = require("./chain");
 const escrow = require("./chainEscrow");
 
 const PORT = process.env.PORT || 3001;
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, "humfiverse.db");
 // Gates POST /api/escrow/confirm — the one endpoint only Humfiverse should be
 // able to call (releases real escrowed funds). Every other write endpoint is
 // a normal user action triggered by the onboarding wizard and stays open;
 // see planning/technical-architecture.md §2.21.
 const ADMIN_API_KEY = process.env.ADMIN_API_KEY || "";
 
-const db = new DatabaseSync(DB_PATH);
+async function initSchema() {
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS assets (id TEXT PRIMARY KEY, data TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS campaigns (id TEXT PRIMARY KEY, data TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS holdings (assetId TEXT PRIMARY KEY, tokens REAL, costBasis REAL, unclaimed REAL);
+    CREATE TABLE IF NOT EXISTS distributions (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, assetId TEXT, amount REAL);
+    CREATE TABLE IF NOT EXISTS contract_acceptances (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      template_version TEXT,
+      artist_name TEXT,
+      track_title TEXT,
+      general_accepted INTEGER,
+      vessatoria_accepted TEXT,
+      receipt_hash TEXT,
+      accepted_at TEXT
+    );
+    CREATE TABLE IF NOT EXISTS kyc_records (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      full_name TEXT,
+      dob TEXT,
+      nationality TEXT,
+      classification TEXT,
+      score REAL,
+      appropriateness_result TEXT,
+      source_of_funds TEXT,
+      pep INTEGER,
+      receipt_hash TEXT,
+      created_at TEXT
+    );
+    CREATE TABLE IF NOT EXISTS onchain_tokens (
+      token_id INTEGER PRIMARY KEY,
+      asset_id TEXT UNIQUE NOT NULL,
+      slug TEXT NOT NULL,
+      supply INTEGER NOT NULL,
+      tx_hash TEXT,
+      minted_at TEXT
+    );
+    CREATE TABLE IF NOT EXISTS escrow_campaigns (
+      campaign_id INTEGER PRIMARY KEY,
+      asset_id TEXT UNIQUE NOT NULL,
+      studio_id INTEGER,
+      studio_name TEXT,
+      studio_wallet TEXT,
+      tx_hash TEXT,
+      created_at TEXT
+    );
+    CREATE TABLE IF NOT EXISTS escrow_studios (
+      studio_id INTEGER PRIMARY KEY,
+      wallet TEXT UNIQUE NOT NULL,
+      name TEXT,
+      tx_hash TEXT,
+      created_at TEXT
+    );
+  `);
+}
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS assets (id TEXT PRIMARY KEY, data TEXT NOT NULL);
-  CREATE TABLE IF NOT EXISTS campaigns (id TEXT PRIMARY KEY, data TEXT NOT NULL);
-  CREATE TABLE IF NOT EXISTS holdings (assetId TEXT PRIMARY KEY, tokens REAL, costBasis REAL, unclaimed REAL);
-  CREATE TABLE IF NOT EXISTS distributions (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, assetId TEXT, amount REAL);
-  CREATE TABLE IF NOT EXISTS contract_acceptances (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    template_version TEXT,
-    artist_name TEXT,
-    track_title TEXT,
-    general_accepted INTEGER,
-    vessatoria_accepted TEXT,
-    receipt_hash TEXT,
-    accepted_at TEXT
-  );
-  CREATE TABLE IF NOT EXISTS kyc_records (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    full_name TEXT,
-    dob TEXT,
-    nationality TEXT,
-    classification TEXT,
-    score REAL,
-    appropriateness_result TEXT,
-    source_of_funds TEXT,
-    pep INTEGER,
-    receipt_hash TEXT,
-    created_at TEXT
-  );
-  CREATE TABLE IF NOT EXISTS onchain_tokens (
-    token_id INTEGER PRIMARY KEY,
-    asset_id TEXT UNIQUE NOT NULL,
-    slug TEXT NOT NULL,
-    supply INTEGER NOT NULL,
-    tx_hash TEXT,
-    minted_at TEXT
-  );
-  CREATE TABLE IF NOT EXISTS escrow_campaigns (
-    campaign_id INTEGER PRIMARY KEY,
-    asset_id TEXT UNIQUE NOT NULL,
-    studio_id INTEGER,
-    studio_name TEXT,
-    studio_wallet TEXT,
-    tx_hash TEXT,
-    created_at TEXT
-  );
-  CREATE TABLE IF NOT EXISTS escrow_studios (
-    studio_id INTEGER PRIMARY KEY,
-    wallet TEXT UNIQUE NOT NULL,
-    name TEXT,
-    tx_hash TEXT,
-    created_at TEXT
-  );
-`);
-
-function seedIfEmpty() {
-  const assetCount = db.prepare("SELECT COUNT(*) AS n FROM assets").get().n;
+async function seedIfEmpty() {
+  const assetCount = (await db.prepare("SELECT COUNT(*) AS n FROM assets").get()).n;
   if (assetCount === 0) {
     const insertAsset = db.prepare("INSERT INTO assets (id, data) VALUES (?, ?)");
-    for (const a of ASSETS) insertAsset.run(a.id, JSON.stringify(a));
+    for (const a of ASSETS) await insertAsset.run(a.id, JSON.stringify(a));
   }
-  const campaignCount = db.prepare("SELECT COUNT(*) AS n FROM campaigns").get().n;
+  const campaignCount = (await db.prepare("SELECT COUNT(*) AS n FROM campaigns").get()).n;
   if (campaignCount === 0) {
     const insertCampaign = db.prepare("INSERT INTO campaigns (id, data) VALUES (?, ?)");
-    for (const c of CAMPAIGNS) insertCampaign.run(c.id, JSON.stringify(c));
+    for (const c of CAMPAIGNS) await insertCampaign.run(c.id, JSON.stringify(c));
   }
-  const holdingCount = db.prepare("SELECT COUNT(*) AS n FROM holdings").get().n;
+  const holdingCount = (await db.prepare("SELECT COUNT(*) AS n FROM holdings").get()).n;
   if (holdingCount === 0) {
     const insertHolding = db.prepare("INSERT INTO holdings (assetId, tokens, costBasis, unclaimed) VALUES (?, ?, ?, ?)");
-    for (const h of PORTFOLIO.holdings) insertHolding.run(h.assetId, h.tokens, h.costBasis, h.unclaimed);
+    for (const h of PORTFOLIO.holdings) await insertHolding.run(h.assetId, h.tokens, h.costBasis, h.unclaimed);
     const insertDist = db.prepare("INSERT INTO distributions (date, assetId, amount) VALUES (?, ?, ?)");
-    for (const d of PORTFOLIO.distributions) insertDist.run(d.date, d.assetId, d.amount);
+    for (const d of PORTFOLIO.distributions) await insertDist.run(d.date, d.assetId, d.amount);
   }
-  const onchainCount = db.prepare("SELECT COUNT(*) AS n FROM onchain_tokens").get().n;
+  const onchainCount = (await db.prepare("SELECT COUNT(*) AS n FROM onchain_tokens").get()).n;
   if (onchainCount === 0) {
     // The four seed catalogues were already minted directly via
     // contracts/scripts/mintCatalogues.js before this endpoint existed —
@@ -118,30 +117,31 @@ function seedIfEmpty() {
       "INSERT INTO onchain_tokens (token_id, asset_id, slug, supply, tx_hash, minted_at) VALUES (?, ?, ?, ?, ?, ?)"
     );
     const mintedAt = "2026-08-28T22:30:00.000Z";
-    insertOnchain.run(1, "midnight-static", "midnight-static", 4000, "0x897079c54dba4b5531802fe7cd2454f1a8fe2032a50a159dc39589a218dfbff5", mintedAt);
-    insertOnchain.run(2, "ember-choir", "ember-choir", 2500, "0x6673060bf68e4d9f026e81fd2843d00868ab73648ae7e1aa08594fee758d2628", mintedAt);
-    insertOnchain.run(3, "paper-cranes", "paper-cranes", 5000, "0x31249c0f4c0a8654232b531d3321e681545a25c240920455e2ae7df5dd984272", mintedAt);
-    insertOnchain.run(4, "copper-radio", "copper-radio", 3200, "0x1a11a8e5cb2d938796c8ed49f5bdaad34a0c8fd999739afacab6cc80ab8a3047", mintedAt);
+    await insertOnchain.run(1, "midnight-static", "midnight-static", 4000, "0x897079c54dba4b5531802fe7cd2454f1a8fe2032a50a159dc39589a218dfbff5", mintedAt);
+    await insertOnchain.run(2, "ember-choir", "ember-choir", 2500, "0x6673060bf68e4d9f026e81fd2843d00868ab73648ae7e1aa08594fee758d2628", mintedAt);
+    await insertOnchain.run(3, "paper-cranes", "paper-cranes", 5000, "0x31249c0f4c0a8654232b531d3321e681545a25c240920455e2ae7df5dd984272", mintedAt);
+    await insertOnchain.run(4, "copper-radio", "copper-radio", 3200, "0x1a11a8e5cb2d938796c8ed49f5bdaad34a0c8fd999739afacab6cc80ab8a3047", mintedAt);
   }
 }
-seedIfEmpty();
 
-function getAssets() {
-  return db.prepare("SELECT data FROM assets").all().map(r => JSON.parse(r.data));
+async function getAssets() {
+  const rows = await db.prepare("SELECT data FROM assets").all();
+  return rows.map(r => JSON.parse(r.data));
 }
-function getAssetById(id) {
-  const row = db.prepare("SELECT data FROM assets WHERE id = ?").get(id);
+async function getAssetById(id) {
+  const row = await db.prepare("SELECT data FROM assets WHERE id = ?").get(id);
   return row ? JSON.parse(row.data) : null;
 }
-function getCampaigns() {
-  const rows = db.prepare("SELECT data FROM campaigns").all().map(r => JSON.parse(r.data));
-  const assets = getAssets();
+async function getCampaigns() {
+  const rows = await db.prepare("SELECT data FROM campaigns").all();
+  const campaigns = rows.map(r => JSON.parse(r.data));
+  const assets = await getAssets();
   // milestones live on the asset record; join them in like the original mock did
-  return rows.map(c => ({ ...c, milestones: (assets.find(a => a.id === c.assetId) || {}).milestones || [] }));
+  return campaigns.map(c => ({ ...c, milestones: (assets.find(a => a.id === c.assetId) || {}).milestones || [] }));
 }
-function getPortfolio() {
-  const holdings = db.prepare("SELECT assetId, tokens, costBasis, unclaimed FROM holdings").all();
-  const distributions = db.prepare("SELECT date, assetId, amount FROM distributions ORDER BY id DESC").all();
+async function getPortfolio() {
+  const holdings = await db.prepare("SELECT assetId, tokens, costBasis, unclaimed FROM holdings").all();
+  const distributions = await db.prepare("SELECT date, assetId, amount FROM distributions ORDER BY id DESC").all();
   return { holdings, distributions };
 }
 
@@ -155,9 +155,9 @@ function currentMonthLabel() {
   return new Date().toLocaleString("en", { month: "short", year: "2-digit" });
 }
 
-function redeem(assetId) {
+async function redeem(assetId) {
   let amount = 0;
-  const holdings = db.prepare("SELECT assetId, unclaimed FROM holdings").all();
+  const holdings = await db.prepare("SELECT assetId, unclaimed FROM holdings").all();
   const updateHolding = db.prepare("UPDATE holdings SET unclaimed = 0 WHERE assetId = ?");
   const insertDist = db.prepare("INSERT INTO distributions (date, assetId, amount) VALUES (?, ?, ?)");
   const month = currentMonthLabel();
@@ -166,11 +166,11 @@ function redeem(assetId) {
   for (const h of targets) {
     if (h.unclaimed > 0) {
       amount += h.unclaimed;
-      insertDist.run(month, h.assetId, h.unclaimed);
-      updateHolding.run(h.assetId);
+      await insertDist.run(month, h.assetId, h.unclaimed);
+      await updateHolding.run(h.assetId);
     }
   }
-  return { amount, txHash: fakeTxHash(), portfolio: getPortfolio() };
+  return { amount, txHash: fakeTxHash(), portfolio: await getPortfolio() };
 }
 
 const VESSATORIA_CLAUSE_IDS = CONTRACT_TEMPLATE.clauses.filter(c => c.vessatoria).map(c => c.id);
@@ -189,10 +189,10 @@ function validateContractAcceptance(body) {
   return missing;
 }
 
-function recordContractAcceptance(body) {
+async function recordContractAcceptance(body) {
   const receiptHash = fakeTxHash();
   const acceptedAt = new Date().toISOString();
-  db.prepare(`
+  await db.prepare(`
     INSERT INTO contract_acceptances
       (template_version, artist_name, track_title, general_accepted, vessatoria_accepted, receipt_hash, accepted_at)
     VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -229,12 +229,12 @@ function scoreAppropriateness(answers) {
   return { score, result };
 }
 
-function recordKyc(body) {
+async function recordKyc(body) {
   const { score, result } = scoreAppropriateness(body.answers);
   const receiptHash = fakeTxHash();
   const createdAt = new Date().toISOString();
   const classification = body.classification === "professional" ? "professional" : "retail";
-  db.prepare(`
+  await db.prepare(`
     INSERT INTO kyc_records
       (full_name, dob, nationality, classification, score, appropriateness_result, source_of_funds, pep, receipt_hash, created_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -253,7 +253,7 @@ function recordKyc(body) {
   return { verified: true, classification, appropriatenessResult: result, score, receiptHash };
 }
 
-function getOnchainRecord(assetId) {
+async function getOnchainRecord(assetId) {
   return db.prepare("SELECT token_id, asset_id, slug, supply, tx_hash, minted_at FROM onchain_tokens WHERE asset_id = ?").get(assetId);
 }
 
@@ -262,19 +262,19 @@ function getOnchainRecord(assetId) {
    on-chain before committing to a token id, rather than trusting the
    local MAX(token_id)+1 alone. */
 async function nextFreeTokenId() {
-  const row = db.prepare("SELECT MAX(token_id) AS maxId FROM onchain_tokens").get();
+  const row = await db.prepare("SELECT MAX(token_id) AS maxId FROM onchain_tokens").get();
   let candidate = (row.maxId || 0) + 1;
   while (!(await chain.isTokenIdFree(candidate))) candidate += 1;
   return candidate;
 }
 
 async function mintAssetOnchain(assetId, slug, supply, priceWei) {
-  const existing = getOnchainRecord(assetId);
+  const existing = await getOnchainRecord(assetId);
   if (existing) throw Object.assign(new Error("asset already has an on-chain token"), { code: "already_minted", record: existing });
 
   const tokenId = await nextFreeTokenId();
   const result = await chain.mintCatalogueOnchain(tokenId, slug, supply, priceWei);
-  db.prepare(
+  await db.prepare(
     "INSERT INTO onchain_tokens (token_id, asset_id, slug, supply, tx_hash, minted_at) VALUES (?, ?, ?, ?, ?, ?)"
   ).run(tokenId, assetId, slug, supply, result.txHash, new Date().toISOString());
   return result;
@@ -293,14 +293,14 @@ async function createEscrowCampaign(assetId, artistAddress, fundingGoalWei, stud
   const existingOnchain = await escrow.getCampaignInfoByAssetId(assetId);
   if (existingOnchain) throw Object.assign(new Error("asset already has an escrow campaign"), { code: "already_created", record: existingOnchain });
 
-  let studioRow = db.prepare("SELECT studio_id FROM escrow_studios WHERE wallet = ?").get(studioWallet.toLowerCase());
+  let studioRow = await db.prepare("SELECT studio_id FROM escrow_studios WHERE wallet = ?").get(studioWallet.toLowerCase());
   let studioId;
   if (studioRow) {
     studioId = studioRow.studio_id;
   } else {
     const result = await escrow.registerStudioOnchain(studioWallet, studioName);
     studioId = result.studioId;
-    db.prepare("INSERT INTO escrow_studios (studio_id, wallet, name, tx_hash, created_at) VALUES (?, ?, ?, ?, ?)").run(
+    await db.prepare("INSERT INTO escrow_studios (studio_id, wallet, name, tx_hash, created_at) VALUES (?, ?, ?, ?, ?)").run(
       studioId, studioWallet.toLowerCase(), studioName, result.txHash, new Date().toISOString()
     );
   }
@@ -310,7 +310,7 @@ async function createEscrowCampaign(assetId, artistAddress, fundingGoalWei, stud
   const payees = milestones.map((m) => (m.payee === "studio" ? 1 : 0));
   const created = await escrow.createCampaignOnchain(artistAddress, fundingGoalWei, studioId, 0, assetId, names, bps, payees);
 
-  db.prepare(
+  await db.prepare(
     "INSERT INTO escrow_campaigns (campaign_id, asset_id, studio_id, studio_name, studio_wallet, tx_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
   ).run(created.campaignId, assetId, studioId, studioName, studioWallet.toLowerCase(), created.txHash, new Date().toISOString());
 
@@ -358,7 +358,8 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === "GET" && url.pathname === "/api/data") {
-    sendJson(res, 200, { assets: getAssets(), campaigns: getCampaigns(), portfolio: getPortfolio() });
+    const [assets, campaigns, portfolio] = await Promise.all([getAssets(), getCampaigns(), getPortfolio()]);
+    sendJson(res, 200, { assets, campaigns, portfolio });
     return;
   }
 
@@ -380,13 +381,13 @@ const server = http.createServer(async (req, res) => {
         sendJson(res, 400, { error: "asset.id, asset.title and asset.kind are required" });
         return;
       }
-      if (getAssetById(asset.id)) {
+      if (await getAssetById(asset.id)) {
         sendJson(res, 409, { error: "an asset with this id already exists" });
         return;
       }
-      db.prepare("INSERT INTO assets (id, data) VALUES (?, ?)").run(asset.id, JSON.stringify(asset));
+      await db.prepare("INSERT INTO assets (id, data) VALUES (?, ?)").run(asset.id, JSON.stringify(asset));
       if (body.campaign && body.campaign.id) {
-        db.prepare("INSERT OR IGNORE INTO campaigns (id, data) VALUES (?, ?)").run(body.campaign.id, JSON.stringify(body.campaign));
+        await db.prepare("INSERT OR IGNORE INTO campaigns (id, data) VALUES (?, ?)").run(body.campaign.id, JSON.stringify(body.campaign));
       }
       sendJson(res, 200, { ok: true, id: asset.id });
     } catch (e) {
@@ -406,8 +407,8 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     const assetId = decodeURIComponent(assetIdMatch[1]);
-    const result = db.prepare("DELETE FROM assets WHERE id = ?").run(assetId);
-    db.prepare("DELETE FROM campaigns WHERE id = ?").run(assetId);
+    const result = await db.prepare("DELETE FROM assets WHERE id = ?").run(assetId);
+    await db.prepare("DELETE FROM campaigns WHERE id = ?").run(assetId);
     sendJson(res, 200, { ok: true, deleted: result.changes > 0 });
     return;
   }
@@ -425,7 +426,7 @@ const server = http.createServer(async (req, res) => {
         sendJson(res, 400, { error: "missing required acceptances", missing });
         return;
       }
-      sendJson(res, 200, recordContractAcceptance(body));
+      sendJson(res, 200, await recordContractAcceptance(body));
     } catch (e) {
       sendJson(res, 400, { error: "invalid request body" });
     }
@@ -439,7 +440,7 @@ const server = http.createServer(async (req, res) => {
         sendJson(res, 400, { error: "fullName and dob are required" });
         return;
       }
-      sendJson(res, 200, recordKyc(body));
+      sendJson(res, 200, await recordKyc(body));
     } catch (e) {
       sendJson(res, 400, { error: "invalid request body" });
     }
@@ -455,7 +456,7 @@ const server = http.createServer(async (req, res) => {
       sendJson(res, 200, { source: "chain", assetIds: fromChain.map((m) => m.slug) });
       return;
     }
-    const rows = db.prepare("SELECT asset_id FROM onchain_tokens").all();
+    const rows = await db.prepare("SELECT asset_id FROM onchain_tokens").all();
     sendJson(res, 200, { source: "local-table", assetIds: rows.map((r) => r.asset_id) });
     return;
   }
@@ -464,20 +465,19 @@ const server = http.createServer(async (req, res) => {
   if (req.method === "GET" && onchainMatch) {
     try {
       const assetId = decodeURIComponent(onchainMatch[1]);
-      let record = getOnchainRecord(assetId);
+      let record = await getOnchainRecord(assetId);
       if (!record) {
         // Local table is only a cache, not the source of truth (§2.14) —
-        // it's also the thing most exposed to Render's free-tier ephemeral
-        // disk wiping it on every redeploy, so a miss here doesn't mean the
-        // token doesn't exist, only that this cache doesn't know about it
-        // yet. Fall back to the chain's own event log, and re-seed the
-        // cache from it so subsequent lookups are fast again.
+        // a miss here doesn't mean the token doesn't exist, only that this
+        // cache doesn't know about it yet. Fall back to the chain's own
+        // event log, and re-seed the cache from it so subsequent lookups
+        // are fast again.
         const fromChain = await chain.listMintedSlugsFromChain();
         const match = fromChain && fromChain.find((m) => m.slug === assetId);
         if (match) {
           const mintedAt = new Date().toISOString();
           try {
-            db.prepare(
+            await db.prepare(
               "INSERT OR IGNORE INTO onchain_tokens (token_id, asset_id, slug, supply, tx_hash, minted_at) VALUES (?, ?, ?, ?, ?, ?)"
             ).run(match.tokenId, assetId, match.slug, Number(match.supply), match.txHash, mintedAt);
           } catch { /* best-effort cache re-seed */ }
@@ -546,7 +546,7 @@ const server = http.createServer(async (req, res) => {
   if (req.method === "GET" && url.pathname === "/api/escrow/campaigns") {
     try {
       const fromChain = await escrow.listCampaignAssetIdsFromChain();
-      const assetIds = fromChain || db.prepare("SELECT asset_id FROM escrow_campaigns ORDER BY campaign_id").all().map((r) => r.asset_id);
+      const assetIds = fromChain || (await db.prepare("SELECT asset_id FROM escrow_campaigns ORDER BY campaign_id").all()).map((r) => r.asset_id);
       const infos = await Promise.all(
         assetIds.map((assetId) => escrow.getCampaignInfoByAssetId(assetId).then((info) => info && { assetId, ...info }))
       );
@@ -601,7 +601,7 @@ const server = http.createServer(async (req, res) => {
       const body = await readBody(req);
       const assetId = body.assetId;
       if (!assetId) { sendJson(res, 400, { error: "assetId is required" }); return; }
-      sendJson(res, 200, redeem(assetId));
+      sendJson(res, 200, await redeem(assetId));
     } catch (e) {
       sendJson(res, 400, { error: "invalid request body" });
     }
@@ -611,6 +611,14 @@ const server = http.createServer(async (req, res) => {
   sendJson(res, 404, { error: "not found" });
 });
 
-server.listen(PORT, () => {
-  console.log(`Humfiverse mock backend listening on http://localhost:${PORT}`);
-});
+initSchema()
+  .then(seedIfEmpty)
+  .then(() => {
+    server.listen(PORT, () => {
+      console.log(`Humfiverse mock backend listening on http://localhost:${PORT} (storage: ${db.usingTurso ? "Turso" : "local file"})`);
+    });
+  })
+  .catch((err) => {
+    console.error("Failed to initialize database", err);
+    process.exit(1);
+  });

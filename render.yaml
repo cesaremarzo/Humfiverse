@@ -5,7 +5,7 @@ services:
     plan: free
     rootDir: server
     buildCommand: npm ci
-    startCommand: node --experimental-sqlite server.js
+    startCommand: node server.js
     healthCheckPath: /api/health
     envVars:
       - key: NODE_VERSION
