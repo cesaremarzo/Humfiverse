@@ -50,6 +50,12 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         uint256 deadline; // unix timestamp; 0 = no deadline
         CampaignStatus status;
         uint256 releasedBps; // cumulative bps released so far
+        string assetId; // the platform's asset id (e.g. "glass-horizon") this
+        // campaign belongs to — stored on-chain, not just in the backend's
+        // local index, so the asset<->campaign link survives even if that
+        // index is lost (see planning/technical-architecture.md §2.18: the
+        // backend's SQLite mirror isn't guaranteed to persist across a
+        // redeploy on the current hosting plan, the chain always is).
     }
 
     struct Studio {
@@ -65,10 +71,15 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     mapping(uint256 => Milestone[]) private campaignMilestones;
     mapping(uint256 => mapping(address => uint256)) public contributions; // campaignId => contributor => wei contributed
     mapping(uint256 => Studio) public studios;
+    /// @notice O(1) on-chain lookup from the platform's asset id straight to
+    ///         its campaign id — the piece that makes this contract itself
+    ///         the source of truth for the asset<->campaign link, not just
+    ///         an off-chain index of it. 0 = no campaign for this asset id.
+    mapping(string => uint256) public campaignIdByAssetId;
 
     event StudioRegistered(uint256 indexed studioId, address indexed wallet, string name);
     event StudioActiveSet(uint256 indexed studioId, bool active);
-    event CampaignCreated(uint256 indexed campaignId, address indexed artist, uint256 fundingGoal, uint256 studioId, uint256 deadline);
+    event CampaignCreated(uint256 indexed campaignId, address indexed artist, uint256 fundingGoal, uint256 studioId, uint256 deadline, string assetId);
     event Contributed(uint256 indexed campaignId, address indexed contributor, uint256 amount, uint256 totalRaised);
     event MilestoneConfirmed(uint256 indexed campaignId, uint256 indexed milestoneIndex, address indexed payee, uint256 amount);
     event CampaignCancelled(uint256 indexed campaignId);
@@ -98,12 +109,15 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         uint256 fundingGoal,
         uint256 studioId,
         uint256 deadline,
+        string calldata assetId,
         string[] calldata milestoneNames,
         uint16[] calldata milestoneBps,
         Payee[] calldata milestonePayees
     ) external onlyOwner returns (uint256 campaignId) {
         require(artist != address(0), "HumfiverseMilestoneEscrow: zero artist");
         require(fundingGoal > 0, "HumfiverseMilestoneEscrow: goal must be > 0");
+        require(bytes(assetId).length > 0, "HumfiverseMilestoneEscrow: assetId required");
+        require(campaignIdByAssetId[assetId] == 0, "HumfiverseMilestoneEscrow: asset already has a campaign");
         require(
             milestoneNames.length == milestoneBps.length && milestoneNames.length == milestonePayees.length,
             "HumfiverseMilestoneEscrow: length mismatch"
@@ -130,14 +144,16 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
             raised: 0,
             deadline: deadline,
             status: CampaignStatus.ACTIVE,
-            releasedBps: 0
+            releasedBps: 0,
+            assetId: assetId
         });
+        campaignIdByAssetId[assetId] = campaignId;
         for (uint256 i = 0; i < milestoneNames.length; i++) {
             campaignMilestones[campaignId].push(
                 Milestone({name: milestoneNames[i], bps: milestoneBps[i], payee: milestonePayees[i], released: false})
             );
         }
-        emit CampaignCreated(campaignId, artist, fundingGoal, studioId, deadline);
+        emit CampaignCreated(campaignId, artist, fundingGoal, studioId, deadline, assetId);
     }
 
     function contribute(uint256 campaignId) external payable nonReentrant {

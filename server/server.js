@@ -271,19 +271,18 @@ async function mintAssetOnchain(assetId, slug, supply, priceWei) {
   return result;
 }
 
-function getEscrowRecord(assetId) {
-  return db.prepare("SELECT campaign_id, asset_id, studio_id, studio_name, studio_wallet, tx_hash, created_at FROM escrow_campaigns WHERE asset_id = ?").get(assetId);
-}
-
 /** Creates the on-chain milestone escrow campaign for a preproduction asset:
  * registers the studio (if not already registered — keyed by wallet
  * address, since there's no studio-picker UI yet, only a name+wallet field
  * on the onboarding wizard) and creates the campaign with the standard
  * four-milestone template, "studio booked" routed to the studio's wallet.
- * See planning/technical-architecture.md §2.15. */
+ * The contract itself is the source of truth on "does this asset already
+ * have a campaign" (§2.18's campaignIdByAssetId) — the local table below is
+ * only a fast-lookup cache for the admin listing endpoint, which has no
+ * on-chain equivalent of "list every campaign". */
 async function createEscrowCampaign(assetId, artistAddress, fundingGoalWei, studioName, studioWallet, milestones) {
-  const existing = getEscrowRecord(assetId);
-  if (existing) throw Object.assign(new Error("asset already has an escrow campaign"), { code: "already_created", record: existing });
+  const existingOnchain = await escrow.getCampaignInfoByAssetId(assetId);
+  if (existingOnchain) throw Object.assign(new Error("asset already has an escrow campaign"), { code: "already_created", record: existingOnchain });
 
   let studioRow = db.prepare("SELECT studio_id FROM escrow_studios WHERE wallet = ?").get(studioWallet.toLowerCase());
   let studioId;
@@ -300,7 +299,7 @@ async function createEscrowCampaign(assetId, artistAddress, fundingGoalWei, stud
   const names = milestones.map((m) => m.name);
   const bps = milestones.map((m) => m.bps);
   const payees = milestones.map((m) => (m.payee === "studio" ? 1 : 0));
-  const created = await escrow.createCampaignOnchain(artistAddress, fundingGoalWei, studioId, 0, names, bps, payees);
+  const created = await escrow.createCampaignOnchain(artistAddress, fundingGoalWei, studioId, 0, assetId, names, bps, payees);
 
   db.prepare(
     "INSERT INTO escrow_campaigns (campaign_id, asset_id, studio_id, studio_name, studio_wallet, tx_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
@@ -482,9 +481,12 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === "GET" && url.pathname === "/api/escrow/campaigns") {
     try {
-      const rows = db.prepare("SELECT campaign_id, asset_id FROM escrow_campaigns ORDER BY campaign_id").all();
-      const infos = await Promise.all(rows.map((r) => escrow.getCampaignInfo(r.campaign_id).then((info) => ({ assetId: r.asset_id, ...info }))));
-      sendJson(res, 200, { campaigns: infos });
+      const fromChain = await escrow.listCampaignAssetIdsFromChain();
+      const assetIds = fromChain || db.prepare("SELECT asset_id FROM escrow_campaigns ORDER BY campaign_id").all().map((r) => r.asset_id);
+      const infos = await Promise.all(
+        assetIds.map((assetId) => escrow.getCampaignInfoByAssetId(assetId).then((info) => info && { assetId, ...info }))
+      );
+      sendJson(res, 200, { campaigns: infos.filter(Boolean) });
     } catch (e) {
       sendJson(res, 502, { error: "could not read escrow campaigns", detail: String(e.message || e) });
     }
@@ -495,9 +497,11 @@ const server = http.createServer(async (req, res) => {
   if (req.method === "GET" && escrowCampaignMatch) {
     try {
       const assetId = decodeURIComponent(escrowCampaignMatch[1]);
-      const record = getEscrowRecord(assetId);
-      if (!record) { sendJson(res, 200, { escrow: false }); return; }
-      const info = await escrow.getCampaignInfo(record.campaign_id);
+      // Chain-native (§2.18): the contract's own campaignIdByAssetId is the
+      // lookup, not the local table — this survives the local DB being
+      // wiped on a redeploy (see the analogous fix for the token side).
+      const info = await escrow.getCampaignInfoByAssetId(assetId);
+      if (!info) { sendJson(res, 200, { escrow: false }); return; }
       sendJson(res, 200, { escrow: true, assetId, ...info });
     } catch (e) {
       sendJson(res, 502, { error: "could not read escrow campaign", detail: String(e.message || e) });

@@ -31,6 +31,7 @@ describe("HumfiverseMilestoneEscrow", function () {
       GOAL,
       studioId,
       0,
+      "glass-horizon-test",
       ["Funding goal reached", "Studio & collaborators booked", "Mix & master delivered", "Release confirmed on DSPs"],
       [ARTIST_BPS, STUDIO_BPS, MIX_BPS, RELEASE_BPS],
       [0, 1, 0, 0] // Payee.ARTIST = 0, Payee.STUDIO = 1
@@ -65,7 +66,7 @@ describe("HumfiverseMilestoneEscrow", function () {
       await escrow.registerStudio(studioWallet.address, "Analog Sun Studio");
       await escrow.setStudioActive(1, false);
       await expect(
-        escrow.createCampaign(artist.address, GOAL, 1, 0, ["a"], [10_000], [1])
+        escrow.createCampaign(artist.address, GOAL, 1, 0, "asset-a", ["a"], [10_000], [1])
       ).to.be.revertedWith("HumfiverseMilestoneEscrow: studio not active");
     });
   });
@@ -74,21 +75,21 @@ describe("HumfiverseMilestoneEscrow", function () {
     it("requires milestone bps to total exactly 10000", async function () {
       const { escrow, artist } = await deployFixture();
       await expect(
-        escrow.createCampaign(artist.address, GOAL, 0, 0, ["a", "b"], [5_000, 4_000], [0, 0])
+        escrow.createCampaign(artist.address, GOAL, 0, 0, "asset-b", ["a", "b"], [5_000, 4_000], [0, 0])
       ).to.be.revertedWith("HumfiverseMilestoneEscrow: bps must total 10000");
     });
 
     it("requires a studio when a milestone pays the studio", async function () {
       const { escrow, artist } = await deployFixture();
       await expect(
-        escrow.createCampaign(artist.address, GOAL, 0, 0, ["studio milestone"], [10_000], [1])
+        escrow.createCampaign(artist.address, GOAL, 0, 0, "asset-c", ["studio milestone"], [10_000], [1])
       ).to.be.revertedWith("HumfiverseMilestoneEscrow: studio milestone needs a studio");
     });
 
     it("only the owner can create a campaign", async function () {
       const { escrow, artist, other } = await deployFixture();
       await expect(
-        escrow.connect(other).createCampaign(artist.address, GOAL, 0, 0, ["a"], [10_000], [0])
+        escrow.connect(other).createCampaign(artist.address, GOAL, 0, 0, "asset-d", ["a"], [10_000], [0])
       ).to.be.revertedWithCustomError(escrow, "OwnableUnauthorizedAccount");
     });
 
@@ -99,6 +100,27 @@ describe("HumfiverseMilestoneEscrow", function () {
       expect(milestones[1].name).to.equal("Studio & collaborators booked");
       expect(milestones[1].bps).to.equal(STUDIO_BPS);
       expect(milestones[1].payee).to.equal(1); // STUDIO
+    });
+
+    it("requires a non-empty assetId", async function () {
+      const { escrow, artist } = await deployFixture();
+      await expect(
+        escrow.createCampaign(artist.address, GOAL, 0, 0, "", ["a"], [10_000], [0])
+      ).to.be.revertedWith("HumfiverseMilestoneEscrow: assetId required");
+    });
+
+    it("refuses to create a second campaign for the same assetId", async function () {
+      const { escrow, artist } = await campaignFixture();
+      await expect(
+        escrow.createCampaign(artist.address, GOAL, 0, 0, "glass-horizon-test", ["a"], [10_000], [0])
+      ).to.be.revertedWith("HumfiverseMilestoneEscrow: asset already has a campaign");
+    });
+
+    it("looks up the campaign id straight from the asset id on-chain", async function () {
+      const { escrow, campaignId } = await campaignFixture();
+      expect(await escrow.campaignIdByAssetId("glass-horizon-test")).to.equal(campaignId);
+      const c = await escrow.campaigns(await escrow.campaignIdByAssetId("glass-horizon-test"));
+      expect(c.assetId).to.equal("glass-horizon-test");
     });
   });
 
@@ -135,6 +157,7 @@ describe("HumfiverseMilestoneEscrow", function () {
         GOAL,
         studioId,
         latestBlock.timestamp - 1, // already past
+        "asset-past-deadline",
         ["a"],
         [10_000],
         [0]
