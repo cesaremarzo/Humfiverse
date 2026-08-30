@@ -6,7 +6,7 @@ import { StoreService } from '../../core/store.service';
 import { WalletService } from '../../core/wallet.service';
 import { ApiService } from '../../core/api.service';
 import { ToastService } from '../../core/toast.service';
-import { AiDisclosure, Asset, DisclosureLevel } from '../../core/models';
+import { AiDisclosure, Asset, Campaign, DisclosureLevel } from '../../core/models';
 import { fmtUSD } from '../../core/format.util';
 import { buildRoyaltyHistory } from '../../core/royalty-history.util';
 import { clauseCategory, clauseText, contractLegalBasisNote, vessatoriaClauseIds } from '../../core/contract-text.util';
@@ -256,16 +256,28 @@ export class OnboardingComponent {
       asset.royaltyHistory = buildRoyaltyHistory(Math.max(3, parseInt(d.catalogue.months, 10) || 6), 1800, 1.01, 0.18, id.length * 7);
     }
 
+    const campaign: Campaign = { id, assetId: id, title: asset.title, artistName: asset.artistName, holders: 0, milestones: asset.milestones };
     this.store.assets.update((assets) => [asset, ...assets]);
-    this.store.campaigns.update((campaigns) => [
-      { id, assetId: id, title: asset.title, artistName: asset.artistName, holders: 0, milestones: asset.milestones },
-      ...campaigns
-    ]);
+    this.store.campaigns.update((campaigns) => [campaign, ...campaigns]);
 
     this.stepIndex.set(0);
     this.data.set(freshWizardData());
 
     this.toast.show(this.translate.instant('toast.campaignLaunched'), 'sparkles');
+
+    // Persist to the backend so this campaign shows up for every visitor,
+    // not just this browser tab — previously the campaign only ever lived
+    // in this tab's local signal and vanished on refresh, even though its
+    // on-chain token/escrow (below) are real and permanent. See
+    // planning/technical-architecture.md §2.20. Best-effort, same
+    // graceful-degradation pattern as the on-chain calls below: the local
+    // UI already reflects the campaign either way.
+    if (this.store.backendAvailable()) {
+      this.api.createAsset({ asset, campaign }).catch((err) => {
+        console.warn('Could not persist campaign to the backend (it still exists locally in this tab).', err);
+        this.toast.show(this.translate.instant('toast.assetSaveFailed'), 'alert');
+      });
+    }
 
     // Every campaign gets an on-chain token at upload time, catalogue and
     // preproduction alike (unified 29 Aug 2026 — see

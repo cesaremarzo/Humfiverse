@@ -346,5 +346,6 @@
   "detail.escrowExplainer": "Beiträge verbleiben in diesem Vertrag, nicht beim Künstler, bis Humfiverse jeden Meilenstein on-chain bestätigt — die Studio-Buchungs-Tranche zahlt direkt an die Wallet des Studios.",
   "detail.escrowCampaignId": "Kampagnen-ID",
   "detail.escrowRaisedGoal": "Gesammelt / Ziel",
-  "detail.escrowStudio": "Studio"
+  "detail.escrowStudio": "Studio",
+  "toast.assetSaveFailed": "Kampagne erstellt, konnte aber nicht auf dem Server gespeichert werden — sie ist für andere Besucher möglicherweise noch nicht sichtbar."
 }

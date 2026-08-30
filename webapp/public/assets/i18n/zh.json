@@ -346,5 +346,6 @@
   "detail.escrowExplainer": "出资资金保存在此合约中，而非艺术家手中，直到 Humfiverse 在链上确认每个里程碑——录音室预订这一分批资金将直接支付到录音室的钱包。",
   "detail.escrowCampaignId": "项目 ID",
   "detail.escrowRaisedGoal": "已筹 / 目标",
-  "detail.escrowStudio": "录音室"
+  "detail.escrowStudio": "录音室",
+  "toast.assetSaveFailed": "项目已创建，但未能保存到服务器——其他访客可能暂时还看不到它。"
 }

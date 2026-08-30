@@ -346,5 +346,6 @@
   "detail.escrowExplainer": "I contributi restano in questo contratto, non nelle mani dell'artista, finché Humfiverse non conferma ogni milestone on-chain — la tranche di prenotazione studio paga direttamente il wallet dello studio.",
   "detail.escrowCampaignId": "ID campagna",
   "detail.escrowRaisedGoal": "Raccolto / obiettivo",
-  "detail.escrowStudio": "Studio"
+  "detail.escrowStudio": "Studio",
+  "toast.assetSaveFailed": "Campagna creata, ma non è stato possibile salvarla sul server — potrebbe non essere visibile ad altri visitatori."
 }

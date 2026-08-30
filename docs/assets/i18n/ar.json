@@ -346,5 +346,6 @@
   "detail.escrowExplainer": "تبقى المساهمات في هذا العقد، وليس مع الفنان، إلى أن تؤكد Humfiverse كل مرحلة على السلسلة — تُدفع دفعة حجز الاستوديو مباشرة إلى محفظة الاستوديو.",
   "detail.escrowCampaignId": "معرّف الحملة",
   "detail.escrowRaisedGoal": "تم جمعه / الهدف",
-  "detail.escrowStudio": "الاستوديو"
+  "detail.escrowStudio": "الاستوديو",
+  "toast.assetSaveFailed": "تم إنشاء الحملة، لكن تعذّر حفظها على الخادم — قد لا تكون مرئية بعد لزوار آخرين."
 }

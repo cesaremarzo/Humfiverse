@@ -346,5 +346,6 @@
   "detail.escrowExplainer": "Las contribuciones permanecen en este contrato, no con el artista, hasta que Humfiverse confirme cada hito on-chain — el tramo de reserva del estudio paga directamente a la wallet del estudio.",
   "detail.escrowCampaignId": "ID de campaña",
   "detail.escrowRaisedGoal": "Recaudado / objetivo",
-  "detail.escrowStudio": "Estudio"
+  "detail.escrowStudio": "Estudio",
+  "toast.assetSaveFailed": "Campaña creada, pero no se pudo guardar en el servidor — puede que aún no sea visible para otros visitantes."
 }

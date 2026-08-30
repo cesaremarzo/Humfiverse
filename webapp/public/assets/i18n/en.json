@@ -346,5 +346,6 @@
   "detail.escrowExplainer": "Contributions sit in this contract, not with the artist, until Humfiverse confirms each milestone on-chain — the studio-booking tranche pays the studio's wallet directly.",
   "detail.escrowCampaignId": "Campaign ID",
   "detail.escrowRaisedGoal": "Raised / goal",
-  "detail.escrowStudio": "Studio"
+  "detail.escrowStudio": "Studio",
+  "toast.assetSaveFailed": "Campaign created, but it couldn't be saved to the server — it may not be visible to other visitors yet."
 }

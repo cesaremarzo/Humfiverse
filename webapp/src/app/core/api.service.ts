@@ -3,7 +3,9 @@ import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
+  Asset,
   BackendData,
+  Campaign,
   ContractAcceptanceResult,
   ContractTemplate,
   EscrowCampaignCreateResult,
@@ -26,6 +28,12 @@ export class ApiService {
 
   getContractTemplate(): Promise<ContractTemplate> {
     return firstValueFrom(this.http.get<ContractTemplate>(`${this.base}/api/contract-template`));
+  }
+
+  /** Persists a campaign the onboarding wizard just created, so it's in
+   * GET /api/data for every visitor, not just the tab that created it. */
+  createAsset(payload: { asset: Asset; campaign?: Campaign }): Promise<{ ok: true; id: string }> {
+    return firstValueFrom(this.http.post<{ ok: true; id: string }>(`${this.base}/api/assets`, payload));
   }
 
   redeem(assetId: string): Promise<RedeemResult> {

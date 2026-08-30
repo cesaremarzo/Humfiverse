@@ -124,6 +124,10 @@ seedIfEmpty();
 function getAssets() {
   return db.prepare("SELECT data FROM assets").all().map(r => JSON.parse(r.data));
 }
+function getAssetById(id) {
+  const row = db.prepare("SELECT data FROM assets WHERE id = ?").get(id);
+  return row ? JSON.parse(row.data) : null;
+}
 function getCampaigns() {
   const rows = db.prepare("SELECT data FROM campaigns").all().map(r => JSON.parse(r.data));
   const assets = getAssets();
@@ -345,6 +349,39 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === "GET" && url.pathname === "/api/data") {
     sendJson(res, 200, { assets: getAssets(), campaigns: getCampaigns(), portfolio: getPortfolio() });
+    return;
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/assets") {
+    // Persists a campaign the onboarding wizard just created, so it shows
+    // up in GET /api/data for every visitor, not just the browser tab that
+    // created it — previously this only ever updated that one tab's local
+    // signal, so a new campaign vanished on refresh even though its
+    // on-chain token/escrow are real and permanent. See
+    // planning/technical-architecture.md §2.20. No auth here, consistent
+    // with every other write endpoint in this prototype backend (KYC,
+    // contract acceptance, on-chain mint/escrow all have the same trust
+    // model) — a real launch would need to gate this behind whatever
+    // authenticates "artist" sessions.
+    try {
+      const body = await readBody(req);
+      const asset = body.asset;
+      if (!asset || !asset.id || !asset.title || !asset.kind) {
+        sendJson(res, 400, { error: "asset.id, asset.title and asset.kind are required" });
+        return;
+      }
+      if (getAssetById(asset.id)) {
+        sendJson(res, 409, { error: "an asset with this id already exists" });
+        return;
+      }
+      db.prepare("INSERT INTO assets (id, data) VALUES (?, ?)").run(asset.id, JSON.stringify(asset));
+      if (body.campaign && body.campaign.id) {
+        db.prepare("INSERT OR IGNORE INTO campaigns (id, data) VALUES (?, ?)").run(body.campaign.id, JSON.stringify(body.campaign));
+      }
+      sendJson(res, 200, { ok: true, id: asset.id });
+    } catch (e) {
+      sendJson(res, 502, { error: "could not save asset", detail: String(e.message || e) });
+    }
     return;
   }
 
