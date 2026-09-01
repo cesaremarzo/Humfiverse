@@ -64,19 +64,37 @@ export class AssetDetailComponent {
       const id = this.id();
       if (!id) return;
       this.onchainInfo.set(null);
-      this.onchainLoading.set(true);
-      this.api
-        .getOnchainInfo(id)
-        .then((info) => this.onchainInfo.set(info))
-        .catch(() => this.onchainInfo.set({ onchain: false }))
-        .finally(() => this.onchainLoading.set(false));
-
       this.escrowInfo.set(null);
-      this.api
-        .getEscrowCampaign(id)
-        .then((info) => this.escrowInfo.set(info))
-        .catch(() => this.escrowInfo.set({ escrow: false }));
+      this.refreshOnchainState(id);
     });
+  }
+
+  /** Re-fetches both on-chain panels from the contracts — used on initial
+   * load and again right after a real purchase/contribution, so the pool
+   * balance / raised amount shown actually reflects the tx that was just
+   * signed instead of sitting stale until the next full page load. */
+  /** Refreshes right away, then again after a short delay — the public
+   * Base Sepolia RPC has repeatedly shown a few seconds of read lag right
+   * after a transaction confirms elsewhere in this app (see
+   * planning/technical-architecture.md §2.13/§2.22), so an immediate-only
+   * refresh can still show the pre-purchase pool balance for a moment. */
+  private scheduleOnchainRefresh(id: string): void {
+    this.refreshOnchainState(id);
+    setTimeout(() => this.refreshOnchainState(id), 4000);
+  }
+
+  private refreshOnchainState(id: string): void {
+    this.onchainLoading.set(true);
+    this.api
+      .getOnchainInfo(id)
+      .then((info) => this.onchainInfo.set(info))
+      .catch(() => this.onchainInfo.set({ onchain: false }))
+      .finally(() => this.onchainLoading.set(false));
+
+    this.api
+      .getEscrowCampaign(id)
+      .then((info) => this.escrowInfo.set(info))
+      .catch(() => this.escrowInfo.set({ escrow: false }));
   }
 
   isPre(a: Asset): boolean {
@@ -171,6 +189,7 @@ export class AssetDetailComponent {
         });
         this.applyPurchase(a, qty, total);
         this.success.set({ qty, total, txHash: result.txHash, explorerUrl: result.explorerUrl });
+        this.scheduleOnchainRefresh(a.id);
       } catch (err: unknown) {
         console.warn('On-chain contribution did not complete.', err);
         this.toast.show(this.translate.instant(this.onchainErrorKey(err)), 'alert');
@@ -191,6 +210,7 @@ export class AssetDetailComponent {
         });
         this.applyPurchase(a, qty, total);
         this.success.set({ qty, total, txHash: result.txHash, explorerUrl: result.explorerUrl });
+        this.scheduleOnchainRefresh(a.id);
       } catch (err: unknown) {
         console.warn('On-chain purchase did not complete.', err);
         this.toast.show(this.translate.instant(this.onchainErrorKey(err)), 'alert');
