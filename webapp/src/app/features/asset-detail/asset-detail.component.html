@@ -104,6 +104,12 @@
                 <div class="card stat-tile"><div class="label">{{ 'detail.onchainTokenId' | translate }}</div><div class="value mono">#{{ $any(onchainInfo()).tokenId }}</div></div>
                 <div class="card stat-tile"><div class="label">{{ 'detail.onchainPool' | translate }}</div><div class="value mono">{{ $any(onchainInfo()).poolBalance }} / {{ $any(onchainInfo()).totalSupply }}</div></div>
               </div>
+              @if ($any(onchainInfo()).onchainTitle) {
+                <div class="card panel" style="margin-top:10px; font-size:12.5px; color:var(--text-secondary);">
+                  {{ 'detail.onchainRecordNote' | translate }}
+                  <span class="mono" style="color:var(--text);">&ldquo;{{ $any(onchainInfo()).onchainTitle }}&rdquo; — {{ $any(onchainInfo()).onchainArtist }}</span>
+                </div>
+              }
               <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px;">
                 <a [href]="$any(onchainInfo()).explorerUrl" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
                   <app-icon name="arrowRight"></app-icon> {{ 'detail.onchainExplorer' | translate }}

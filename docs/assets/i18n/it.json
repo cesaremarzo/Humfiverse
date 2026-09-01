@@ -347,5 +347,6 @@
   "detail.escrowCampaignId": "ID campagna",
   "detail.escrowRaisedGoal": "Raccolto / obiettivo",
   "detail.escrowStudio": "Studio",
-  "toast.assetSaveFailed": "Campagna creata, ma non è stato possibile salvarla sul server — potrebbe non essere visibile ad altri visitatori."
+  "toast.assetSaveFailed": "Campagna creata, ma non è stato possibile salvarla sul server — potrebbe non essere visibile ad altri visitatori.",
+  "detail.onchainRecordNote": "Titolo e artista letti direttamente dal contratto:"
 }

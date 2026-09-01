@@ -291,7 +291,7 @@ export class OnboardingComponent {
       // between catalogues sensible. Matches contracts/scripts/catalogues.js.
       const priceWei = (BigInt(Math.round(asset.tokenPrice)) * 100_000_000_000_000n).toString();
       this.api
-        .mintOnchainToken({ assetId: id, slug: id, supply: asset.tokensTotal, priceWei })
+        .mintOnchainToken({ assetId: id, slug: id, supply: asset.tokensTotal, priceWei, title: asset.title, artist: asset.artistName })
         .then((result) => {
           this.toast.show(this.translate.instant('toast.onchainMinted', { tokenId: result.tokenId }), 'checkCircle');
           // The marketplace only lists chain-verified assets (§2.14) — add

@@ -9,8 +9,8 @@
 const { ethers } = require("ethers");
 
 module.exports = [
-  { tokenId: 1, slug: "midnight-static", supply: 4000, priceWei: ethers.parseEther("0.0025") }, // $25 mock price
-  { tokenId: 2, slug: "ember-choir", supply: 2500, priceWei: ethers.parseEther("0.004") }, // $40 mock price
-  { tokenId: 3, slug: "paper-cranes", supply: 5000, priceWei: ethers.parseEther("0.0015") }, // $15 mock price
-  { tokenId: 4, slug: "copper-radio", supply: 3200, priceWei: ethers.parseEther("0.003") } // $30 mock price
+  { tokenId: 1, slug: "midnight-static", supply: 4000, priceWei: ethers.parseEther("0.0025"), title: "Midnight Static", artist: "Nova Reyes" }, // $25 mock price
+  { tokenId: 2, slug: "ember-choir", supply: 2500, priceWei: ethers.parseEther("0.004"), title: "Ember Choir", artist: "Sasha Wren" }, // $40 mock price
+  { tokenId: 3, slug: "paper-cranes", supply: 5000, priceWei: ethers.parseEther("0.0015"), title: "Paper Cranes", artist: "Kobo Lindqvist" }, // $15 mock price
+  { tokenId: 4, slug: "copper-radio", supply: 3200, priceWei: ethers.parseEther("0.003"), title: "Copper Radio", artist: "The Aftertaste" } // $30 mock price
 ];

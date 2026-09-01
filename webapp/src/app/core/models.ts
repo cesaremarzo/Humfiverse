@@ -188,6 +188,11 @@ export type OnchainInfo =
       /** Wei per token for the public HumfiverseCatalogueToken.buy() path —
        * "0" means the catalogue isn't open for real on-chain purchase yet. */
       priceWei: string;
+      /** Title/artist read straight from the contract's own trackTitle()/
+       * artistName() view functions (§2.24) — proof this isn't just the
+       * off-chain database's copy of the name. */
+      onchainTitle: string;
+      onchainArtist: string;
     };
 
 export interface OnchainMintResult {

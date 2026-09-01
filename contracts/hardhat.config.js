@@ -23,14 +23,16 @@ module.exports = {
       accounts
     }
   },
-  // Sourcify verification needs no API key (unlike Etherscan/Basescan's own
-  // verify flow) — publishes the source so Basescan's UI shows it as
-  // verified too, which is what makes a deployed contract's actual
-  // governance logic readable at the explorer link, not just its bytecode.
+  // Sourcify verification needs no API key but its Sourcify-side
+  // check-all-by-addresses endpoint returned 404 against this hardhat-verify
+  // version — left enabled for whenever that's fixed upstream, but the
+  // actual verification path used is Etherscan's unified V2 API below
+  // (one key covers Basescan too, natively supported by chain id 84532 —
+  // see planning/technical-architecture.md §2.24).
   sourcify: {
     enabled: true
   },
   etherscan: {
-    enabled: false
+    apiKey: process.env.ETHERSCAN_API_KEY
   }
 };

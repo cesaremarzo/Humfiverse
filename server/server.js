@@ -113,14 +113,16 @@ async function seedIfEmpty() {
     // contracts/scripts/mintCatalogues.js before this endpoint existed —
     // seeded here with their real Base Sepolia tx hashes so the API
     // reflects what's actually on-chain, not just what this server minted.
+    // Re-minted 1 Sep 2026 against the redeployed contract that also stores
+    // title/artist on-chain (§2.24) — these are that mint's real tx hashes.
     const insertOnchain = db.prepare(
       "INSERT INTO onchain_tokens (token_id, asset_id, slug, supply, tx_hash, minted_at) VALUES (?, ?, ?, ?, ?, ?)"
     );
-    const mintedAt = "2026-08-28T22:30:00.000Z";
-    await insertOnchain.run(1, "midnight-static", "midnight-static", 4000, "0x897079c54dba4b5531802fe7cd2454f1a8fe2032a50a159dc39589a218dfbff5", mintedAt);
-    await insertOnchain.run(2, "ember-choir", "ember-choir", 2500, "0x6673060bf68e4d9f026e81fd2843d00868ab73648ae7e1aa08594fee758d2628", mintedAt);
-    await insertOnchain.run(3, "paper-cranes", "paper-cranes", 5000, "0x31249c0f4c0a8654232b531d3321e681545a25c240920455e2ae7df5dd984272", mintedAt);
-    await insertOnchain.run(4, "copper-radio", "copper-radio", 3200, "0x1a11a8e5cb2d938796c8ed49f5bdaad34a0c8fd999739afacab6cc80ab8a3047", mintedAt);
+    const mintedAt = "2026-09-01T00:00:00.000Z";
+    await insertOnchain.run(1, "midnight-static", "midnight-static", 4000, "0x788b25df12a6d3fe5e2879f7f65f0837891c1b1fda7e7c95e79f291f62ba4bbe", mintedAt);
+    await insertOnchain.run(2, "ember-choir", "ember-choir", 2500, "0x86b97d435f351ca4f824ebc0b3557b6e318065d1ba3aaf427c177cd7690e5e93", mintedAt);
+    await insertOnchain.run(3, "paper-cranes", "paper-cranes", 5000, "0x9f0194fbc5fe68a532e32f2bcbcaca0977e86a9bb37de9fa930964062d8b6e40", mintedAt);
+    await insertOnchain.run(4, "copper-radio", "copper-radio", 3200, "0x2cf8d8d85784ade62cb95246e0d451d3fecbc709d69d3d270d5588b13c41cdfc", mintedAt);
   }
 }
 
@@ -268,12 +270,12 @@ async function nextFreeTokenId() {
   return candidate;
 }
 
-async function mintAssetOnchain(assetId, slug, supply, priceWei) {
+async function mintAssetOnchain(assetId, slug, supply, priceWei, title, artist) {
   const existing = await getOnchainRecord(assetId);
   if (existing) throw Object.assign(new Error("asset already has an on-chain token"), { code: "already_minted", record: existing });
 
   const tokenId = await nextFreeTokenId();
-  const result = await chain.mintCatalogueOnchain(tokenId, slug, supply, priceWei);
+  const result = await chain.mintCatalogueOnchain(tokenId, slug, supply, priceWei, title, artist);
   await db.prepare(
     "INSERT INTO onchain_tokens (token_id, asset_id, slug, supply, tx_hash, minted_at) VALUES (?, ?, ?, ?, ?, ?)"
   ).run(tokenId, assetId, slug, supply, result.txHash, new Date().toISOString());
@@ -504,7 +506,7 @@ const server = http.createServer(async (req, res) => {
         sendJson(res, 503, { error: "on-chain minting is disabled on this server (no operator key configured)" });
         return;
       }
-      const result = await mintAssetOnchain(body.assetId, body.slug, body.supply, body.priceWei);
+      const result = await mintAssetOnchain(body.assetId, body.slug, body.supply, body.priceWei, body.title, body.artist);
       sendJson(res, 200, result);
     } catch (e) {
       if (e.code === "already_minted") {

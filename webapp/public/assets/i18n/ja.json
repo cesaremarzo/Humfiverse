@@ -347,5 +347,6 @@
   "detail.escrowCampaignId": "キャンペーンID",
   "detail.escrowRaisedGoal": "調達額 / 目標額",
   "detail.escrowStudio": "スタジオ",
-  "toast.assetSaveFailed": "キャンペーンは作成されましたが、サーバーへの保存に失敗しました — 他の訪問者にはまだ表示されない可能性があります。"
+  "toast.assetSaveFailed": "キャンペーンは作成されましたが、サーバーへの保存に失敗しました — 他の訪問者にはまだ表示されない可能性があります。",
+  "detail.onchainRecordNote": "タイトルとアーティスト名はコントラクトから直接読み取られています："
 }

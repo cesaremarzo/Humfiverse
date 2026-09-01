@@ -347,5 +347,6 @@
   "detail.escrowCampaignId": "Kampagnen-ID",
   "detail.escrowRaisedGoal": "Gesammelt / Ziel",
   "detail.escrowStudio": "Studio",
-  "toast.assetSaveFailed": "Kampagne erstellt, konnte aber nicht auf dem Server gespeichert werden — sie ist für andere Besucher möglicherweise noch nicht sichtbar."
+  "toast.assetSaveFailed": "Kampagne erstellt, konnte aber nicht auf dem Server gespeichert werden — sie ist für andere Besucher möglicherweise noch nicht sichtbar.",
+  "detail.onchainRecordNote": "Titel und Künstler direkt aus dem Vertrag gelesen:"
 }

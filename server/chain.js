@@ -17,23 +17,25 @@ const { ethers } = require("ethers");
 const { withRetry } = require("./chainRetry");
 
 const RPC_URL = process.env.CHAIN_RPC_URL || "https://sepolia.base.org";
-const CONTRACT_ADDRESS = process.env.CHAIN_CONTRACT_ADDRESS || "0xFa9CCBCAAbd08f8f189249A82B0808dcb05e99c2";
+const CONTRACT_ADDRESS = process.env.CHAIN_CONTRACT_ADDRESS || "0x71FcCA4a27e251377A53Cda8A5c2D8494Fc85cba";
 // Block this contract was deployed at — starting event queries here instead
 // of block 0 keeps each eth_getLogs call well under public RPCs' ~10,000-
 // block range limit even as the chain grows. Update after any redeploy.
-const CONTRACT_DEPLOY_BLOCK = Number(process.env.CHAIN_CONTRACT_DEPLOY_BLOCK || 46124580);
+const CONTRACT_DEPLOY_BLOCK = Number(process.env.CHAIN_CONTRACT_DEPLOY_BLOCK || 46242799);
 const EVENT_QUERY_CHUNK = 9000;
 const CHAIN_ID = 84532; // Base Sepolia
 const EXPLORER_BASE = "https://sepolia.basescan.org";
 
 const ABI = [
-  "function mintCatalogue(uint256 tokenId, string slug, uint256 supply, uint256 priceWeiPerToken)",
+  "function mintCatalogue(uint256 tokenId, string slug, uint256 supply, uint256 priceWeiPerToken, string title, string artist)",
   "function poolBalance(uint256 tokenId) view returns (uint256)",
   "function totalSupplyOf(uint256) view returns (uint256)",
   "function releasedOf(uint256) view returns (uint256)",
   "function catalogueSlug(uint256) view returns (string)",
   "function pricePerToken(uint256) view returns (uint256)",
-  "event CatalogueMinted(uint256 indexed tokenId, string slug, uint256 supply, uint256 priceWeiPerToken)"
+  "function trackTitle(uint256) view returns (string)",
+  "function artistName(uint256) view returns (string)",
+  "event CatalogueMinted(uint256 indexed tokenId, string slug, uint256 supply, uint256 priceWeiPerToken, string title, string artist)"
 ];
 
 const provider = new ethers.JsonRpcProvider(RPC_URL, CHAIN_ID);
@@ -53,11 +55,13 @@ function mintingEnabled() {
 }
 
 async function getPoolInfo(tokenId) {
-  const [poolBalance, totalSupply, released, priceWei] = await Promise.all([
+  const [poolBalance, totalSupply, released, priceWei, title, artist] = await Promise.all([
     readContract.poolBalance(tokenId),
     readContract.totalSupplyOf(tokenId),
     readContract.releasedOf(tokenId),
-    readContract.pricePerToken(tokenId)
+    readContract.pricePerToken(tokenId),
+    readContract.trackTitle(tokenId),
+    readContract.artistName(tokenId)
   ]);
   return {
     tokenId,
@@ -67,7 +71,9 @@ async function getPoolInfo(tokenId) {
     poolBalance: poolBalance.toString(),
     totalSupply: totalSupply.toString(),
     released: released.toString(),
-    priceWei: priceWei.toString()
+    priceWei: priceWei.toString(),
+    onchainTitle: title,
+    onchainArtist: artist
   };
 }
 
@@ -104,6 +110,8 @@ async function listMintedSlugsFromChain() {
       slug: e.args.slug,
       supply: e.args.supply.toString(),
       priceWei: e.args.priceWeiPerToken.toString(),
+      title: e.args.title,
+      artist: e.args.artist,
       txHash: e.transactionHash,
       blockNumber: e.blockNumber
     }));
@@ -113,12 +121,12 @@ async function listMintedSlugsFromChain() {
   }
 }
 
-async function mintCatalogueOnchain(tokenId, slug, supply, priceWei) {
+async function mintCatalogueOnchain(tokenId, slug, supply, priceWei, title, artist) {
   if (!writeContract) throw new Error("on-chain minting is disabled (no operator key configured)");
   // Wrapped in withRetry (chainRetry.js) — the free public RPC rate-limits
   // under bursts, and a failure here used to silently drop the campaign
   // from the marketplace even though it had been created (§2.22).
-  const tx = await withRetry(() => writeContract.mintCatalogue(tokenId, slug, supply, priceWei || 0));
+  const tx = await withRetry(() => writeContract.mintCatalogue(tokenId, slug, supply, priceWei || 0, title || "", artist || ""));
   const receipt = await tx.wait();
   return {
     tokenId,

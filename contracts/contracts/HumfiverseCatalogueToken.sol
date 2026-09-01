@@ -28,6 +28,13 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
 
     /// @notice catalogue slug (matches the id used in docs/index.html ASSETS / server/seed-data.js)
     mapping(uint256 => string) public catalogueSlug;
+    /// @notice track title and artist name, written on mint so they're
+    ///         readable directly on-chain (a verified explorer decodes both
+    ///         the CatalogueMinted event and these view functions), not
+    ///         only in the off-chain database — see
+    ///         planning/technical-architecture.md §2.24.
+    mapping(uint256 => string) public trackTitle;
+    mapping(uint256 => string) public artistName;
     /// @notice total minted supply for a given token id
     mapping(uint256 => uint256) public totalSupplyOf;
     /// @notice cumulative amount released from the pool for a given token id
@@ -44,7 +51,7 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
     /// @notice where primary-sale ETH proceeds go. Defaults to the deployer.
     address public payoutRecipient;
 
-    event CatalogueMinted(uint256 indexed tokenId, string slug, uint256 supply, uint256 priceWeiPerToken);
+    event CatalogueMinted(uint256 indexed tokenId, string slug, uint256 supply, uint256 priceWeiPerToken, string title, string artist);
     event TokensReleased(uint256 indexed tokenId, address indexed to, uint256 amount);
     event TokensPurchased(uint256 indexed tokenId, address indexed buyer, uint256 amount, uint256 paidWei);
     event PriceUpdated(uint256 indexed tokenId, uint256 previousPriceWei, uint256 newPriceWei);
@@ -62,14 +69,23 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
     ///         Can only be called once per id. `priceWeiPerToken == 0` mints
     ///         the catalogue without opening public sale — releaseFromPool
     ///         remains available regardless.
-    function mintCatalogue(uint256 tokenId, string calldata slug, uint256 supply, uint256 priceWeiPerToken) external onlyOwner {
+    function mintCatalogue(
+        uint256 tokenId,
+        string calldata slug,
+        uint256 supply,
+        uint256 priceWeiPerToken,
+        string calldata title,
+        string calldata artist
+    ) external onlyOwner {
         require(totalSupplyOf[tokenId] == 0, "HumfiverseCatalogueToken: already minted");
         require(supply > 0, "HumfiverseCatalogueToken: supply must be > 0");
         totalSupplyOf[tokenId] = supply;
         catalogueSlug[tokenId] = slug;
         pricePerToken[tokenId] = priceWeiPerToken;
+        trackTitle[tokenId] = title;
+        artistName[tokenId] = artist;
         _mint(address(this), tokenId, supply, "");
-        emit CatalogueMinted(tokenId, slug, supply, priceWeiPerToken);
+        emit CatalogueMinted(tokenId, slug, supply, priceWeiPerToken, title, artist);
     }
 
     /// @notice Releases `amount` tokens of `tokenId` from the platform pool

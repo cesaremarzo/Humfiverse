@@ -9,14 +9,14 @@ async function main() {
 
   const token = await hre.ethers.getContractAt("HumfiverseCatalogueToken", address);
 
-  for (const { tokenId, slug, supply, priceWei } of catalogues) {
+  for (const { tokenId, slug, supply, priceWei, title, artist } of catalogues) {
     const already = await token.totalSupplyOf(tokenId);
     if (already > 0n) {
       console.log(`Token id ${tokenId} (${slug}) already minted (supply ${already}) — skipping.`);
       continue;
     }
-    console.log(`Minting token id ${tokenId} (${slug}), supply ${supply}, price ${priceWei} wei/token...`);
-    const tx = await token.mintCatalogue(tokenId, slug, supply, priceWei);
+    console.log(`Minting token id ${tokenId} (${slug} — "${title}" by ${artist}), supply ${supply}, price ${priceWei} wei/token...`);
+    const tx = await token.mintCatalogue(tokenId, slug, supply, priceWei, title, artist);
     const receipt = await tx.wait();
     console.log(`  done — tx ${receipt.hash}`);
   }

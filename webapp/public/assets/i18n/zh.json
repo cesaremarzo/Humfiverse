@@ -347,5 +347,6 @@
   "detail.escrowCampaignId": "项目 ID",
   "detail.escrowRaisedGoal": "已筹 / 目标",
   "detail.escrowStudio": "录音室",
-  "toast.assetSaveFailed": "项目已创建，但未能保存到服务器——其他访客可能暂时还看不到它。"
+  "toast.assetSaveFailed": "项目已创建，但未能保存到服务器——其他访客可能暂时还看不到它。",
+  "detail.onchainRecordNote": "标题和艺术家信息直接从合约中读取："
 }
