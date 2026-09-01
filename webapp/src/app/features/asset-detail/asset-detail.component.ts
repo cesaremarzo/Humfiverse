@@ -238,7 +238,13 @@ export class AssetDetailComponent {
   }
 
   private applyPurchase(a: Asset, qty: number, total: number): void {
-    a.tokensSold += qty;
+    // Goes through the assets signal (not a naked `a.tokensSold += qty`,
+    // which was a real bug — mutating a nested object in place doesn't
+    // notify anything reading the assets signal, so "tokens remaining"
+    // silently never updated after a real preproduction contribution
+    // until an unrelated re-render happened to expose the same-reference
+    // mutation) so every view reading this asset re-renders correctly.
+    this.store.assets.update((assets) => assets.map((x) => (x.id === a.id ? { ...x, tokensSold: x.tokensSold + qty } : x)));
     this.store.portfolio.update((p) => {
       const existing = p.holdings.find((h) => h.assetId === a.id);
       if (existing) {
