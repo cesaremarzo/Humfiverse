@@ -23,13 +23,15 @@ const CHAIN_NAMES: Record<string, string> = {
   '0x38': 'BNB Chain'
 };
 
-const BASE_SEPOLIA_CHAIN_ID_HEX = '0x14a34'; // 84532
-const BASE_SEPOLIA_ADD_PARAMS = {
-  chainId: BASE_SEPOLIA_CHAIN_ID_HEX,
-  chainName: 'Base Sepolia',
+// Switched from Base Sepolia to real Ethereum Sepolia (§2.35) — easier to
+// get testnet ETH from faucets there.
+const SEPOLIA_CHAIN_ID_HEX = '0xaa36a7'; // 11155111
+const SEPOLIA_ADD_PARAMS = {
+  chainId: SEPOLIA_CHAIN_ID_HEX,
+  chainName: 'Sepolia',
   nativeCurrency: { name: 'Sepolia Ether', symbol: 'ETH', decimals: 18 },
-  rpcUrls: ['https://sepolia.base.org'],
-  blockExplorerUrls: ['https://sepolia.basescan.org']
+  rpcUrls: ['https://ethereum-sepolia-rpc.publicnode.com'],
+  blockExplorerUrls: ['https://sepolia.etherscan.io']
 };
 
 const BUY_ABI = ['function buy(uint256 tokenId, uint256 amount) external payable'];
@@ -103,22 +105,22 @@ export class WalletService {
     });
   }
 
-  /** Switches the wallet to Base Sepolia, adding it first if the wallet
-   * doesn't know about it yet (error 4902). Returns false if the user
-   * rejects either prompt. */
-  async ensureBaseSepolia(): Promise<boolean> {
+  /** Switches the wallet to Sepolia, adding it first if the wallet doesn't
+   * know about it yet (error 4902). Returns false if the user rejects
+   * either prompt. */
+  async ensureSepolia(): Promise<boolean> {
     if (!window.ethereum) return false;
-    if (this.state().chainId?.toLowerCase() === BASE_SEPOLIA_CHAIN_ID_HEX) return true;
+    if (this.state().chainId?.toLowerCase() === SEPOLIA_CHAIN_ID_HEX) return true;
     try {
-      await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: BASE_SEPOLIA_CHAIN_ID_HEX }] });
-      this.state.update((s) => ({ ...s, chainId: BASE_SEPOLIA_CHAIN_ID_HEX }));
+      await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: SEPOLIA_CHAIN_ID_HEX }] });
+      this.state.update((s) => ({ ...s, chainId: SEPOLIA_CHAIN_ID_HEX }));
       return true;
     } catch (err: unknown) {
       const code = (err as { code?: number })?.code;
       if (code !== 4902) return false;
       try {
-        await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [BASE_SEPOLIA_ADD_PARAMS] });
-        this.state.update((s) => ({ ...s, chainId: BASE_SEPOLIA_CHAIN_ID_HEX }));
+        await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [SEPOLIA_ADD_PARAMS] });
+        this.state.update((s) => ({ ...s, chainId: SEPOLIA_CHAIN_ID_HEX }));
         return true;
       } catch {
         return false;
@@ -126,14 +128,14 @@ export class WalletService {
     }
   }
 
-  /** Real on-chain purchase: switches to Base Sepolia if needed, then
+  /** Real on-chain purchase: switches to Sepolia if needed, then
    * requests a signature for `buy(tokenId, amount)` against
    * HumfiverseCatalogueToken, paying `amount * priceWei`. Throws on
    * rejection, wrong network, or a reverted/failed transaction — callers
    * are expected to catch and show the user what happened. */
   async buyOnchain(params: { contractAddress: string; tokenId: number; amount: number; priceWei: string }): Promise<{ txHash: string; explorerUrl: string }> {
     if (!window.ethereum) throw new Error('no-wallet');
-    const switched = await this.ensureBaseSepolia();
+    const switched = await this.ensureSepolia();
     if (!switched) throw new Error('wrong-network');
 
     const provider = new ethers.BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
@@ -145,7 +147,7 @@ export class WalletService {
     const receipt = await tx.wait();
     if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
 
-    return { txHash: receipt.hash, explorerUrl: `https://sepolia.basescan.org/tx/${receipt.hash}` };
+    return { txHash: receipt.hash, explorerUrl: `https://sepolia.etherscan.io/tx/${receipt.hash}` };
   }
 
   /** Real on-chain contribution to a preproduction campaign's milestone
@@ -156,7 +158,7 @@ export class WalletService {
    * planning/technical-architecture.md §2.15). */
   async contributeOnchain(params: { contractAddress: string; campaignId: number; amountWei: string }): Promise<{ txHash: string; explorerUrl: string }> {
     if (!window.ethereum) throw new Error('no-wallet');
-    const switched = await this.ensureBaseSepolia();
+    const switched = await this.ensureSepolia();
     if (!switched) throw new Error('wrong-network');
 
     const provider = new ethers.BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
@@ -167,7 +169,7 @@ export class WalletService {
     const receipt = await tx.wait();
     if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
 
-    return { txHash: receipt.hash, explorerUrl: `https://sepolia.basescan.org/tx/${receipt.hash}` };
+    return { txHash: receipt.hash, explorerUrl: `https://sepolia.etherscan.io/tx/${receipt.hash}` };
   }
 
   /** Real on-chain milestone attestation (§2.27) — the artist's own wallet
@@ -176,7 +178,7 @@ export class WalletService {
    * same milestone; Humfiverse has no equivalent function of its own. */
   async confirmMilestoneAsArtist(params: { contractAddress: string; campaignId: number; milestoneIndex: number }): Promise<{ txHash: string; explorerUrl: string }> {
     if (!window.ethereum) throw new Error('no-wallet');
-    const switched = await this.ensureBaseSepolia();
+    const switched = await this.ensureSepolia();
     if (!switched) throw new Error('wrong-network');
 
     const provider = new ethers.BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
@@ -187,7 +189,7 @@ export class WalletService {
     const receipt = await tx.wait();
     if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
 
-    return { txHash: receipt.hash, explorerUrl: `https://sepolia.basescan.org/tx/${receipt.hash}` };
+    return { txHash: receipt.hash, explorerUrl: `https://sepolia.etherscan.io/tx/${receipt.hash}` };
   }
 
   /** Same as confirmMilestoneAsArtist, but called from the studio's own
@@ -195,7 +197,7 @@ export class WalletService {
    * HumfiverseMilestoneEscrow.sol on why this exists (§2.27). */
   async confirmMilestoneAsStudio(params: { contractAddress: string; campaignId: number; milestoneIndex: number }): Promise<{ txHash: string; explorerUrl: string }> {
     if (!window.ethereum) throw new Error('no-wallet');
-    const switched = await this.ensureBaseSepolia();
+    const switched = await this.ensureSepolia();
     if (!switched) throw new Error('wrong-network');
 
     const provider = new ethers.BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
@@ -206,6 +208,6 @@ export class WalletService {
     const receipt = await tx.wait();
     if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
 
-    return { txHash: receipt.hash, explorerUrl: `https://sepolia.basescan.org/tx/${receipt.hash}` };
+    return { txHash: receipt.hash, explorerUrl: `https://sepolia.etherscan.io/tx/${receipt.hash}` };
   }
 }

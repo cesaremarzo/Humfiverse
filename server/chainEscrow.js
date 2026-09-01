@@ -12,12 +12,13 @@
 const { ethers } = require("ethers");
 const { withRetry } = require("./chainRetry");
 
-const RPC_URL = process.env.CHAIN_RPC_URL || "https://sepolia.base.org";
-const ESCROW_ADDRESS = process.env.CHAIN_ESCROW_ADDRESS || "0x447c8F2b3039497E7BFc6C16B715EBf5DB4E3F35";
-const ESCROW_DEPLOY_BLOCK = Number(process.env.CHAIN_ESCROW_DEPLOY_BLOCK || 46245982);
+// Switched from Base Sepolia to real Ethereum Sepolia (§2.35).
+const RPC_URL = process.env.CHAIN_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com";
+const ESCROW_ADDRESS = process.env.CHAIN_ESCROW_ADDRESS || "0x3Bac66168748798ec174BDEd855376c4e7012Dba";
+const ESCROW_DEPLOY_BLOCK = Number(process.env.CHAIN_ESCROW_DEPLOY_BLOCK || 11612769);
 const EVENT_QUERY_CHUNK = 9000; // public RPCs cap eth_getLogs at ~10,000 blocks
-const CHAIN_ID = 84532; // Base Sepolia
-const EXPLORER_BASE = "https://sepolia.basescan.org";
+const CHAIN_ID = 11155111; // Sepolia
+const EXPLORER_BASE = "https://sepolia.etherscan.io";
 
 const ABI = [
   "function registerStudio(address wallet, string name) returns (uint256)",
@@ -136,7 +137,7 @@ async function getCampaignInfo(campaignId) {
     campaignId,
     assetId: c.assetId,
     contractAddress: ESCROW_ADDRESS,
-    network: "base-sepolia",
+    network: "sepolia",
     explorerUrl: `${EXPLORER_BASE}/address/${ESCROW_ADDRESS}`,
     artist: c.artist,
     studioId: Number(c.studioId),

@@ -14,12 +14,16 @@ module.exports = {
     }
   },
   networks: {
-    // Base Sepolia — EVM-compatible L2 testnet, consistent with the
-    // "low-fee L2" recommendation in planning/technical-architecture.md §2.4.
-    // Faucet: https://docs.base.org/tools/network-faucets/
-    baseSepolia: {
-      url: process.env.BASE_SEPOLIA_RPC_URL || "https://sepolia.base.org",
-      chainId: 84532,
+    // Ethereum Sepolia — switched from Base Sepolia (§2.35) because
+    // testnet ETH faucets for the real Sepolia network are far easier to
+    // get than Base's own, and it's still a fine EVM testnet for this
+    // prototype; the "low-fee L2" reasoning in
+    // planning/technical-architecture.md §2.4 was about a real mainnet
+    // choice, not this testnet one. Faucet: https://sepoliafaucet.com or
+    // https://www.alchemy.com/faucets/ethereum-sepolia
+    sepolia: {
+      url: process.env.SEPOLIA_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com",
+      chainId: 11155111,
       accounts
     }
   },
@@ -27,8 +31,8 @@ module.exports = {
   // check-all-by-addresses endpoint returned 404 against this hardhat-verify
   // version — left enabled for whenever that's fixed upstream, but the
   // actual verification path used is Etherscan's unified V2 API below
-  // (one key covers Basescan too, natively supported by chain id 84532 —
-  // see planning/technical-architecture.md §2.24).
+  // (one key, natively supported by chain id 11155111 —
+  // see planning/technical-architecture.md §2.24/§2.35).
   sourcify: {
     enabled: true
   },

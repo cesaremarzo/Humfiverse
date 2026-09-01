@@ -1,5 +1,5 @@
 "use strict";
-/* On-chain integration — talks to HumfiverseCatalogueToken on Base Sepolia
+/* On-chain integration — talks to HumfiverseCatalogueToken on Sepolia
    (see contracts/contracts/HumfiverseCatalogueToken.sol and
    planning/technical-architecture.md §2.10). This is the one place this
    backend needs a real dependency (ethers) instead of hand-rolling
@@ -16,15 +16,17 @@
 const { ethers } = require("ethers");
 const { withRetry } = require("./chainRetry");
 
-const RPC_URL = process.env.CHAIN_RPC_URL || "https://sepolia.base.org";
-const CONTRACT_ADDRESS = process.env.CHAIN_CONTRACT_ADDRESS || "0x71FcCA4a27e251377A53Cda8A5c2D8494Fc85cba";
+// Switched from Base Sepolia to real Ethereum Sepolia (§2.35) — easier to
+// get testnet ETH from faucets there.
+const RPC_URL = process.env.CHAIN_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com";
+const CONTRACT_ADDRESS = process.env.CHAIN_CONTRACT_ADDRESS || "0xC1aFD3D24de2C344053bBe83aB412140C452146b";
 // Block this contract was deployed at — starting event queries here instead
 // of block 0 keeps each eth_getLogs call well under public RPCs' ~10,000-
 // block range limit even as the chain grows. Update after any redeploy.
-const CONTRACT_DEPLOY_BLOCK = Number(process.env.CHAIN_CONTRACT_DEPLOY_BLOCK || 46242799);
+const CONTRACT_DEPLOY_BLOCK = Number(process.env.CHAIN_CONTRACT_DEPLOY_BLOCK || 11612768);
 const EVENT_QUERY_CHUNK = 9000;
-const CHAIN_ID = 84532; // Base Sepolia
-const EXPLORER_BASE = "https://sepolia.basescan.org";
+const CHAIN_ID = 11155111; // Sepolia
+const EXPLORER_BASE = "https://sepolia.etherscan.io";
 
 const ABI = [
   "function mintCatalogue(uint256 tokenId, string slug, uint256 supply, uint256 priceWeiPerToken, string title, string artist)",
@@ -67,7 +69,7 @@ async function getPoolInfo(tokenId) {
   return {
     tokenId,
     contractAddress: CONTRACT_ADDRESS,
-    network: "base-sepolia",
+    network: "sepolia",
     explorerUrl: `${EXPLORER_BASE}/token/${CONTRACT_ADDRESS}?a=${tokenId}`,
     poolBalance: poolBalance.toString(),
     totalSupply: totalSupply.toString(),
