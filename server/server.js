@@ -537,7 +537,7 @@ const server = http.createServer(async (req, res) => {
       const fromChain = await escrow.listCampaignAssetIdsFromChain();
       const assetIds = fromChain || (await db.prepare("SELECT asset_id FROM escrow_campaigns ORDER BY campaign_id").all()).map((r) => r.asset_id);
       const infos = await Promise.all(
-        assetIds.map((assetId) => escrow.getCampaignInfoByAssetId(assetId).then((info) => info && { assetId, ...info }))
+        assetIds.map((assetId) => escrow.getCampaignInfoByAssetId(assetId).then((info) => info && { escrow: true, assetId, ...info }))
       );
       sendJson(res, 200, { campaigns: infos.filter(Boolean) });
     } catch (e) {
