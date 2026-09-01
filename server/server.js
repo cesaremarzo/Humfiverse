@@ -50,6 +50,7 @@ async function initSchema() {
     );
     CREATE TABLE IF NOT EXISTS kyc_records (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      wallet_address TEXT,
       full_name TEXT,
       dob TEXT,
       nationality TEXT,
@@ -86,6 +87,14 @@ async function initSchema() {
       created_at TEXT
     );
   `);
+  // Migration for a kyc_records table that already existed before
+  // wallet_address was added (§2.30) — CREATE TABLE IF NOT EXISTS above
+  // only sets the new schema for a table that doesn't exist yet.
+  try {
+    await db.exec("ALTER TABLE kyc_records ADD COLUMN wallet_address TEXT;");
+  } catch {
+    /* column already exists — fine */
+  }
 }
 
 /** Deliberately does nothing (§2.25) — this used to seed 6 fictional demo
@@ -209,11 +218,13 @@ async function recordKyc(body) {
   const receiptHash = fakeTxHash();
   const createdAt = new Date().toISOString();
   const classification = body.classification === "professional" ? "professional" : "retail";
+  const walletAddress = body.walletAddress ? String(body.walletAddress).toLowerCase() : null;
   await db.prepare(`
     INSERT INTO kyc_records
-      (full_name, dob, nationality, classification, score, appropriateness_result, source_of_funds, pep, receipt_hash, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (wallet_address, full_name, dob, nationality, classification, score, appropriateness_result, source_of_funds, pep, receipt_hash, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
+    walletAddress,
     body.fullName || "",
     body.dob || "",
     body.nationality || "",
@@ -226,6 +237,25 @@ async function recordKyc(body) {
     createdAt
   );
   return { verified: true, classification, appropriatenessResult: result, score, receiptHash };
+}
+
+/** A wallet that has already completed KYC/appropriateness shouldn't be
+ * asked again on a later visit or purchase (§2.30, fixing a real gap the
+ * user caught — this check previously didn't exist at all, so every
+ * session re-required KYC regardless of wallet). Looks up the most recent
+ * record for this wallet; null if it has never completed one. */
+async function getKycStatusForWallet(walletAddress) {
+  const row = await db.prepare(
+    "SELECT classification, score, appropriateness_result, receipt_hash FROM kyc_records WHERE wallet_address = ? ORDER BY id DESC LIMIT 1"
+  ).get(String(walletAddress).toLowerCase());
+  if (!row) return { verified: false };
+  return {
+    verified: true,
+    classification: row.classification,
+    appropriatenessResult: row.appropriateness_result,
+    score: row.score,
+    receiptHash: row.receipt_hash
+  };
 }
 
 async function getOnchainRecord(assetId) {
@@ -432,6 +462,17 @@ const server = http.createServer(async (req, res) => {
       sendJson(res, 200, await recordKyc(body));
     } catch (e) {
       sendJson(res, 400, { error: "invalid request body" });
+    }
+    return;
+  }
+
+  const kycStatusMatch = url.pathname.match(/^\/api\/kyc\/status\/([^/]+)$/);
+  if (req.method === "GET" && kycStatusMatch) {
+    try {
+      const wallet = decodeURIComponent(kycStatusMatch[1]);
+      sendJson(res, 200, await getKycStatusForWallet(wallet));
+    } catch (e) {
+      sendJson(res, 502, { error: "could not read KYC status", detail: String(e.message || e) });
     }
     return;
   }

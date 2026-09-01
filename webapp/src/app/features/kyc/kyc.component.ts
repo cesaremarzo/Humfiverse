@@ -5,6 +5,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { IconComponent } from '../../shared/icon.component';
 import { StoreService } from '../../core/store.service';
 import { ApiService } from '../../core/api.service';
+import { WalletService } from '../../core/wallet.service';
 import { ToastService } from '../../core/toast.service';
 import { fakeTxHash, scoreAppropriatenessLocal } from '../../core/yield.util';
 import { KycResult } from '../../core/models';
@@ -52,6 +53,7 @@ export class KycComponent {
   constructor(
     private router: Router,
     public store: StoreService,
+    public wallet: WalletService,
     private api: ApiService,
     private toast: ToastService,
     private translate: TranslateService
@@ -60,6 +62,10 @@ export class KycComponent {
   async submit(): Promise<void> {
     this.submitting.set(true);
     const payload = {
+      // Ties this record to the connected wallet (§2.30) so a returning
+      // wallet is recognized and never asked to redo KYC — see
+      // StoreService.syncKycForWallet(), which checks this on connect.
+      walletAddress: this.wallet.state().address,
       fullName: this.fullName(),
       dob: this.dob(),
       nationality: this.nationality(),
@@ -95,10 +101,10 @@ export class KycComponent {
     if (!r) return;
     this.store.investor.set({
       verified: true,
-      classification: r.classification,
-      appropriatenessResult: r.appropriatenessResult,
-      score: r.score,
-      receiptHash: r.receiptHash
+      classification: r.classification ?? null,
+      appropriatenessResult: r.appropriatenessResult ?? null,
+      score: r.score ?? null,
+      receiptHash: r.receiptHash ?? null
     });
     this.toast.show(this.translate.instant('toast.kycVerified'), 'checkCircle');
     this.router.navigate(this.continuePath());

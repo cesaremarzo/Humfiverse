@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, effect, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { TopbarComponent } from './layout/topbar.component';
@@ -25,6 +25,18 @@ export class App implements OnInit {
     this.isLanding.set(this.router.url === '/');
     this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe((e) => {
       this.isLanding.set(e.urlAfterRedirects === '/');
+    });
+
+    // Re-checks KYC status every time the connected wallet changes (§2.30)
+    // — a wallet that already completed it shouldn't be asked again, and
+    // switching to a different, never-verified wallet shouldn't inherit
+    // the previous one's verification.
+    let lastSyncedAddress: string | null | undefined = undefined;
+    effect(() => {
+      const address = this.wallet.state().address;
+      if (address === lastSyncedAddress) return;
+      lastSyncedAddress = address;
+      this.store.syncKycForWallet(address);
     });
   }
 

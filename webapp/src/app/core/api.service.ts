@@ -54,6 +54,13 @@ export class ApiService {
     return firstValueFrom(this.http.post<KycResult>(`${this.base}/api/kyc`, payload));
   }
 
+  /** Whether this wallet has already completed KYC/appropriateness on a
+   * past visit — a wallet that already has, shouldn't have to redo it
+   * (§2.30). `{ verified: false }` if it never has. */
+  getKycStatus(walletAddress: string): Promise<KycResult> {
+    return firstValueFrom(this.http.get<KycResult>(`${this.base}/api/kyc/status/${encodeURIComponent(walletAddress)}`));
+  }
+
   health(): Promise<{ ok: boolean }> {
     return firstValueFrom(this.http.get<{ ok: boolean }>(`${this.base}/api/health`));
   }

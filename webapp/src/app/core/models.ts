@@ -142,10 +142,12 @@ export interface KycAnswers {
 
 export interface KycResult {
   verified: boolean;
-  classification: 'retail' | 'professional';
-  appropriatenessResult: 'appropriate' | 'warning';
-  score: number;
-  receiptHash: string;
+  /** Absent when `verified` is false — e.g. GET /api/kyc/status/:wallet for
+   * a wallet that has never completed KYC (§2.30). */
+  classification?: 'retail' | 'professional';
+  appropriatenessResult?: 'appropriate' | 'warning';
+  score?: number;
+  receiptHash?: string;
 }
 
 export interface ContractAcceptanceResult {

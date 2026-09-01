@@ -64,6 +64,36 @@ export class StoreService {
     this.updateDocumentDirection(this.locale());
   }
 
+  /** Checks the backend for an existing KYC/appropriateness record for this
+   * wallet and, if one exists, marks the investor as verified without
+   * making them redo the form (§2.30 — this previously didn't exist at
+   * all, so KYC was re-required every session regardless of wallet).
+   * Called from app.ts whenever WalletService's connected address changes;
+   * `null` (disconnect) resets to unverified rather than leaving a stale
+   * verification from a *different* wallet in place. */
+  async syncKycForWallet(walletAddress: string | null): Promise<void> {
+    if (!walletAddress) {
+      this.investor.set({ verified: false, classification: null, appropriatenessResult: null, score: null, receiptHash: null });
+      return;
+    }
+    try {
+      const status = await this.api.getKycStatus(walletAddress);
+      if (status.verified) {
+        this.investor.set({
+          verified: true,
+          classification: status.classification ?? null,
+          appropriatenessResult: status.appropriatenessResult ?? null,
+          score: status.score ?? null,
+          receiptHash: status.receiptHash ?? null
+        });
+      } else {
+        this.investor.set({ verified: false, classification: null, appropriatenessResult: null, score: null, receiptHash: null });
+      }
+    } catch {
+      /* backend unreachable — leave whatever local state already exists */
+    }
+  }
+
   setLocale(locale: Locale): void {
     this.locale.set(locale);
     this.translate.use(locale);
