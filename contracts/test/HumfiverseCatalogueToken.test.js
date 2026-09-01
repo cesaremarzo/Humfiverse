@@ -196,5 +196,19 @@ describe("HumfiverseCatalogueToken", function () {
         "OwnableUnauthorizedAccount"
       );
     });
+
+    it("lets the owner repoint the metadata URI, and every wallet substitutes {id} into it", async function () {
+      const { token } = await deployFixture();
+      await token.setURI("https://example.org/meta/{id}.json");
+      expect(await token.uri(MIDNIGHT_STATIC_ID)).to.equal("https://example.org/meta/{id}.json");
+    });
+
+    it("only the owner can set the metadata URI", async function () {
+      const { token, other } = await deployFixture();
+      await expect(token.connect(other).setURI("https://example.org/meta/{id}.json")).to.be.revertedWithCustomError(
+        token,
+        "OwnableUnauthorizedAccount"
+      );
+    });
   });
 });

@@ -57,11 +57,26 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
     event PriceUpdated(uint256 indexed tokenId, uint256 previousPriceWei, uint256 newPriceWei);
     event PayoutRecipientUpdated(address indexed previous, address indexed next);
 
+    /// @dev The original deploy used a placeholder `.example` domain here —
+    ///      a reserved TLD (RFC 2606) that never resolves — so wallets could
+    ///      never actually load a token's name/image/balance display. This
+    ///      constructor now points at the real backend endpoint from the
+    ///      start (§2.36); `setURI` below exists for future corrections
+    ///      without needing another redeploy.
     constructor()
-        ERC1155("https://humfiverse.example/api/token-metadata/{id}.json")
+        ERC1155("https://humfiverse-api.onrender.com/api/token-metadata/{id}.json")
         Ownable(msg.sender)
     {
         payoutRecipient = msg.sender;
+    }
+
+    /// @notice Owner-only: repoints the ERC-1155 metadata base URI (the
+    ///         template every wallet substitutes {id} into to fetch a
+    ///         token's name/image/description) — e.g. if the backend's own
+    ///         URL ever changes. See the constructor note above for why
+    ///         this exists.
+    function setURI(string calldata newuri) external onlyOwner {
+        _setURI(newuri);
     }
 
     /// @notice Mints the full supply for a catalogue into the platform pool

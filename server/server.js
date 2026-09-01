@@ -31,6 +31,10 @@ const PORT = process.env.PORT || 3001;
 // a normal user action triggered by the onboarding wizard and stays open;
 // see planning/technical-architecture.md §2.21.
 const ADMIN_API_KEY = process.env.ADMIN_API_KEY || "";
+// §2.36 — must match the domain baked into HumfiverseCatalogueToken's own
+// metadata URI (see the contract's constructor/setURI), since the image
+// field inside each token's metadata JSON links back here.
+const TOKEN_METADATA_BASE = process.env.TOKEN_METADATA_BASE || "https://humfiverse-api.onrender.com";
 
 async function initSchema() {
   await db.exec(`
@@ -135,6 +139,31 @@ async function getPortfolio() {
   const holdings = await db.prepare("SELECT assetId, tokens, costBasis, unclaimed FROM holdings").all();
   const distributions = await db.prepare("SELECT date, assetId, amount FROM distributions ORDER BY id DESC").all();
   return { holdings, distributions };
+}
+
+function xmlEscape(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+/** Self-hosted NFT card image (§2.36) — no external asset dependency, no
+ * artwork to source per track; a small, deterministic, on-brand SVG (same
+ * purple/cream palette as the site itself) beats the blank/broken image
+ * every wallet was showing before this endpoint existed at all. */
+function tokenImageSvg(title, artist) {
+  const t = xmlEscape(title);
+  const a = xmlEscape(artist);
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6B3FA0"/>
+      <stop offset="100%" stop-color="#2A1B3D"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="600" fill="url(#g)"/>
+  <text x="48" y="520" font-family="Georgia, serif" font-size="40" font-weight="600" fill="#F7F4EE">${t}</text>
+  <text x="48" y="558" font-family="Helvetica, Arial, sans-serif" font-size="20" fill="#DAC2EE">${a}</text>
+  <text x="48" y="64" font-family="Helvetica, Arial, sans-serif" font-size="14" letter-spacing="2" fill="#DAC2EE">HUMFIVERSE · TESTNET</text>
+</svg>`;
 }
 
 function fakeTxHash() {
@@ -440,6 +469,11 @@ function sendJson(res, status, body) {
   res.end(json);
 }
 
+function sendRaw(res, status, contentType, body) {
+  res.writeHead(status, { "Content-Type": contentType, "Access-Control-Allow-Origin": "*" });
+  res.end(body);
+}
+
 function readBody(req) {
   return new Promise((resolve, reject) => {
     let raw = "";
@@ -589,6 +623,46 @@ const server = http.createServer(async (req, res) => {
       sendJson(res, 200, { onchain: true, assetId, slug: record.slug, mintTxHash: record.tx_hash, mintedAt: record.minted_at, ...poolInfo });
     } catch (e) {
       sendJson(res, 502, { error: "could not read on-chain data", detail: String(e.message || e) });
+    }
+    return;
+  }
+
+  // ERC-1155 metadata (§2.36) — HumfiverseCatalogueToken.uri() points here
+  // with a {id} template every wallet substitutes for a 64-hex-char,
+  // zero-padded, lowercase token id (EIP-1155's own convention, not
+  // something this backend chose). The original deploy pointed at a
+  // reserved, never-resolving `.example` domain, so no wallet could ever
+  // load a token's name/image/balance display — this is the fix.
+  const tokenMetadataMatch = url.pathname.match(/^\/api\/token-metadata\/([0-9a-f]{64})\.json$/);
+  if (req.method === "GET" && tokenMetadataMatch) {
+    try {
+      const tokenId = parseInt(tokenMetadataMatch[1], 16);
+      const info = await chain.getPoolInfo(tokenId);
+      if (!info.onchainTitle) { sendJson(res, 404, { error: "no token minted at this id" }); return; }
+      sendJson(res, 200, {
+        name: info.onchainTitle,
+        description: `"${info.onchainTitle}" by ${info.onchainArtist} — a Humfiverse catalogue token on Sepolia. Testnet prototype, not a real financial instrument.`,
+        image: `${TOKEN_METADATA_BASE}/api/token-metadata/${tokenId}/image.svg`,
+        attributes: [
+          { trait_type: "Artist", value: info.onchainArtist },
+          { trait_type: "Total supply", value: Number(info.totalSupply) },
+          { trait_type: "Network", value: "Sepolia (testnet)" }
+        ]
+      });
+    } catch (e) {
+      sendJson(res, 502, { error: "could not read token metadata", detail: String(e.message || e) });
+    }
+    return;
+  }
+
+  const tokenImageMatch = url.pathname.match(/^\/api\/token-metadata\/(\d+)\/image\.svg$/);
+  if (req.method === "GET" && tokenImageMatch) {
+    try {
+      const tokenId = Number(tokenImageMatch[1]);
+      const info = await chain.getPoolInfo(tokenId);
+      sendRaw(res, 200, "image/svg+xml", tokenImageSvg(info.onchainTitle || `Token #${tokenId}`, info.onchainArtist || ""));
+    } catch (e) {
+      sendRaw(res, 502, "text/plain", "could not render token image");
     }
     return;
   }

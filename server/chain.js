@@ -19,11 +19,11 @@ const { withRetry } = require("./chainRetry");
 // Switched from Base Sepolia to real Ethereum Sepolia (§2.35) — easier to
 // get testnet ETH from faucets there.
 const RPC_URL = process.env.CHAIN_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com";
-const CONTRACT_ADDRESS = process.env.CHAIN_CONTRACT_ADDRESS || "0xC1aFD3D24de2C344053bBe83aB412140C452146b";
+const CONTRACT_ADDRESS = process.env.CHAIN_CONTRACT_ADDRESS || "0x51090e5767F67aFc52725B2267f409811d59d03d";
 // Block this contract was deployed at — starting event queries here instead
 // of block 0 keeps each eth_getLogs call well under public RPCs' ~10,000-
 // block range limit even as the chain grows. Update after any redeploy.
-const CONTRACT_DEPLOY_BLOCK = Number(process.env.CHAIN_CONTRACT_DEPLOY_BLOCK || 11612768);
+const CONTRACT_DEPLOY_BLOCK = Number(process.env.CHAIN_CONTRACT_DEPLOY_BLOCK || 11612893);
 const EVENT_QUERY_CHUNK = 9000;
 const CHAIN_ID = 11155111; // Sepolia
 const EXPLORER_BASE = "https://sepolia.etherscan.io";
