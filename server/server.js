@@ -70,6 +70,14 @@ async function initSchema() {
       tx_hash TEXT,
       minted_at TEXT
     );
+    CREATE TABLE IF NOT EXISTS onchain_releases (
+      contribution_tx_hash TEXT PRIMARY KEY,
+      asset_id TEXT NOT NULL,
+      contributor TEXT NOT NULL,
+      qty INTEGER NOT NULL,
+      release_tx_hash TEXT,
+      created_at TEXT
+    );
     CREATE TABLE IF NOT EXISTS escrow_campaigns (
       campaign_id INTEGER PRIMARY KEY,
       asset_id TEXT UNIQUE NOT NULL,
@@ -262,6 +270,29 @@ async function getOnchainRecord(assetId) {
   return db.prepare("SELECT token_id, asset_id, slug, supply, tx_hash, minted_at FROM onchain_tokens WHERE asset_id = ?").get(assetId);
 }
 
+/** Local table is only a cache, not the source of truth (§2.14) — a miss
+ * here doesn't mean the token doesn't exist, only that this cache doesn't
+ * know about it yet (e.g. after a redeploy wiped it, §2.18). Falls back to
+ * scanning the chain's own event log and re-seeds the cache so subsequent
+ * lookups are fast again. Shared by GET /api/onchain/:assetId and
+ * releaseForContribution (§2.34) — both used to only check the local
+ * table directly, which meant a cold cache could wrongly report "no
+ * token" for an asset that's actually minted. */
+async function getOnchainRecordWithFallback(assetId) {
+  let record = await getOnchainRecord(assetId);
+  if (record) return record;
+  const fromChain = await chain.listMintedSlugsFromChain();
+  const match = fromChain && fromChain.find((m) => m.slug === assetId);
+  if (!match) return null;
+  const mintedAt = new Date().toISOString();
+  try {
+    await db.prepare(
+      "INSERT OR IGNORE INTO onchain_tokens (token_id, asset_id, slug, supply, tx_hash, minted_at) VALUES (?, ?, ?, ?, ?, ?)"
+    ).run(match.tokenId, assetId, match.slug, Number(match.supply), match.txHash, mintedAt);
+  } catch { /* best-effort cache re-seed */ }
+  return { token_id: match.tokenId, slug: match.slug, tx_hash: match.txHash, minted_at: mintedAt };
+}
+
 /* The local table is a hint for where to start looking, not the source of
    truth — see chain.js isTokenIdFree() for why this actually verifies
    on-chain before committing to a token id, rather than trusting the
@@ -283,6 +314,63 @@ async function mintAssetOnchain(assetId, slug, supply, priceWei, title, artist) 
     "INSERT INTO onchain_tokens (token_id, asset_id, slug, supply, tx_hash, minted_at) VALUES (?, ?, ?, ?, ?, ?)"
   ).run(tokenId, assetId, slug, supply, result.txHash, new Date().toISOString());
   return result;
+}
+
+/** §2.34 — HumfiverseMilestoneEscrow.contribute() never touches
+ * HumfiverseCatalogueToken on its own (they're independent contracts), so
+ * a real preproduction contribution never moved the token pool the way a
+ * real catalogue buy() does — the pool sat frozen at its minted value
+ * forever for preproduction assets. This releases the contributor's
+ * matching share of tokens from that same pool right after a contribution,
+ * verified against the contribution's own on-chain event rather than
+ * trusting whatever a client claims — a caller can't just POST an
+ * arbitrary amount and get free tokens released.
+ *
+ * Known limitation, accepted rather than solved here: if a campaign is
+ * later cancelled and refunded, this doesn't claw back tokens already
+ * released for that contribution — the contributor could end up with both
+ * a partial refund and the tokens. Flagged, not fixed; see
+ * planning/technical-architecture.md §2.34. */
+async function releaseForContribution(assetId, contributionTxHash) {
+  const already = await db.prepare("SELECT * FROM onchain_releases WHERE contribution_tx_hash = ?").get(contributionTxHash);
+  if (already) {
+    // Must also match assetId — otherwise a request for the wrong asset
+    // against a tx that was legitimately processed for a *different*
+    // asset would incorrectly short-circuit to that other asset's result
+    // instead of being rejected as a mismatch (a real bug caught while
+    // testing this very endpoint).
+    if (already.asset_id !== assetId) {
+      throw Object.assign(new Error("this transaction's campaign does not match assetId"), { code: "campaign_mismatch" });
+    }
+    return { released: already.qty > 0, qty: already.qty, releaseTxHash: already.release_tx_hash, alreadyProcessed: true };
+  }
+
+  const contribution = await escrow.getContributionFromTx(contributionTxHash);
+  if (!contribution) throw Object.assign(new Error("no Contributed event found on that transaction"), { code: "not_a_contribution" });
+
+  const campaignInfo = await escrow.getCampaignInfoByAssetId(assetId);
+  if (!campaignInfo || campaignInfo.campaignId !== contribution.campaignId) {
+    throw Object.assign(new Error("this transaction's campaign does not match assetId"), { code: "campaign_mismatch" });
+  }
+
+  const onchainRecord = await getOnchainRecordWithFallback(assetId);
+  if (!onchainRecord) throw Object.assign(new Error("asset has no on-chain token to release from"), { code: "no_token" });
+
+  const poolInfo = await chain.getPoolInfo(onchainRecord.token_id);
+  const priceWei = BigInt(poolInfo.priceWei);
+  const qty = priceWei > 0n ? Number(BigInt(contribution.amountWei) / priceWei) : 0;
+
+  let releaseTxHash = null;
+  if (qty > 0) {
+    const result = await chain.releaseFromPoolOnchain(onchainRecord.token_id, contribution.contributor, qty);
+    releaseTxHash = result.txHash;
+  }
+
+  await db.prepare(
+    "INSERT INTO onchain_releases (contribution_tx_hash, asset_id, contributor, qty, release_tx_hash, created_at) VALUES (?, ?, ?, ?, ?, ?)"
+  ).run(contributionTxHash, assetId, contribution.contributor, qty, releaseTxHash, new Date().toISOString());
+
+  return { released: qty > 0, qty, releaseTxHash };
 }
 
 /** Creates the on-chain milestone escrow campaign for a preproduction asset:
@@ -495,25 +583,7 @@ const server = http.createServer(async (req, res) => {
   if (req.method === "GET" && onchainMatch) {
     try {
       const assetId = decodeURIComponent(onchainMatch[1]);
-      let record = await getOnchainRecord(assetId);
-      if (!record) {
-        // Local table is only a cache, not the source of truth (§2.14) —
-        // a miss here doesn't mean the token doesn't exist, only that this
-        // cache doesn't know about it yet. Fall back to the chain's own
-        // event log, and re-seed the cache from it so subsequent lookups
-        // are fast again.
-        const fromChain = await chain.listMintedSlugsFromChain();
-        const match = fromChain && fromChain.find((m) => m.slug === assetId);
-        if (match) {
-          const mintedAt = new Date().toISOString();
-          try {
-            await db.prepare(
-              "INSERT OR IGNORE INTO onchain_tokens (token_id, asset_id, slug, supply, tx_hash, minted_at) VALUES (?, ?, ?, ?, ?, ?)"
-            ).run(match.tokenId, assetId, match.slug, Number(match.supply), match.txHash, mintedAt);
-          } catch { /* best-effort cache re-seed */ }
-          record = { token_id: match.tokenId, slug: match.slug, tx_hash: match.txHash, minted_at: mintedAt };
-        }
-      }
+      const record = await getOnchainRecordWithFallback(assetId);
       if (!record) { sendJson(res, 200, { onchain: false }); return; }
       const poolInfo = await chain.getPoolInfo(record.token_id);
       sendJson(res, 200, { onchain: true, assetId, slug: record.slug, mintTxHash: record.tx_hash, mintedAt: record.minted_at, ...poolInfo });
@@ -541,6 +611,29 @@ const server = http.createServer(async (req, res) => {
         sendJson(res, 409, { error: "asset already has an on-chain token", record: e.record });
       } else {
         sendJson(res, 502, { error: "on-chain mint failed", detail: String(e.message || e) });
+      }
+    }
+    return;
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/onchain/release-for-contribution") {
+    try {
+      const body = await readBody(req);
+      if (!body.assetId || !body.txHash) {
+        sendJson(res, 400, { error: "assetId and txHash are required" });
+        return;
+      }
+      if (!chain.mintingEnabled()) {
+        sendJson(res, 503, { error: "on-chain actions are disabled on this server (no operator key configured)" });
+        return;
+      }
+      const result = await releaseForContribution(body.assetId, body.txHash);
+      sendJson(res, 200, result);
+    } catch (e) {
+      if (e.code === "not_a_contribution" || e.code === "campaign_mismatch" || e.code === "no_token") {
+        sendJson(res, 400, { error: e.message });
+      } else {
+        sendJson(res, 502, { error: "could not release tokens for this contribution", detail: String(e.message || e) });
       }
     }
     return;

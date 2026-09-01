@@ -241,6 +241,16 @@ export class AssetDetailComponent {
         this.applyPurchase(a, qty, total);
         this.success.set({ qty, total, txHash: result.txHash, explorerUrl: result.explorerUrl });
         this.scheduleOnchainRefresh(a.id);
+        // Best-effort (§2.34): contribute() on the escrow contract never
+        // touches the token pool on its own, so without this the pool
+        // shown in the "On-chain token" panel stays frozen at its minted
+        // value forever for a preproduction asset. Refresh again once the
+        // release itself confirms, since scheduleOnchainRefresh's own
+        // timing above won't have seen it yet.
+        this.api
+          .releaseForContribution(a.id, result.txHash)
+          .then(() => this.scheduleOnchainRefresh(a.id))
+          .catch((err) => console.warn('Could not release matching tokens for this contribution.', err));
       } catch (err: unknown) {
         console.warn('On-chain contribution did not complete.', err);
         this.toast.show(this.translate.instant(this.onchainErrorKey(err)), 'alert');

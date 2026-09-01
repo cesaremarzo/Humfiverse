@@ -354,6 +354,8 @@
   .risk-list{ display:flex; flex-direction:column; gap:10px; }
   .risk-item{ display:flex; gap:10px; padding:12px 14px; border-radius:12px; background: var(--surface-2); border:1px solid var(--border); font-size:13.5px; }
   .risk-item svg{ flex:none; color: var(--warning); margin-top:1px; }
+  .risk-item.good{ background: var(--good-soft); border-color: transparent; }
+  .risk-item.good svg{ color: var(--good); }
 
   .disclosure-grid{ display:grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap:12px; }
   .disclosure-item{ padding:12px 14px; border-radius:12px; background:var(--surface-2); border:1px solid var(--border); }

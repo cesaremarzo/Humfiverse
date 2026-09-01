@@ -36,7 +36,8 @@ const ABI = [
   "function getMilestones(uint256 campaignId) view returns (tuple(string name, uint16 bps, uint8 payee, bool released)[])",
   "function campaignIdByAssetId(string) view returns (uint256)",
   "event StudioRegistered(uint256 indexed studioId, address indexed wallet, string name)",
-  "event CampaignCreated(uint256 indexed campaignId, address indexed artist, uint256 fundingGoal, uint256 studioId, uint256 deadline, string assetId)"
+  "event CampaignCreated(uint256 indexed campaignId, address indexed artist, uint256 fundingGoal, uint256 studioId, uint256 deadline, string assetId)",
+  "event Contributed(uint256 indexed campaignId, address indexed contributor, uint256 amount, uint256 totalRaised)"
 ];
 
 const provider = new ethers.JsonRpcProvider(RPC_URL, CHAIN_ID);
@@ -51,6 +52,26 @@ if (operatorKey) {
 
 function writeEnabled() {
   return writeContract !== null;
+}
+
+/** Reads a real Contributed event straight off a transaction receipt
+ * (§2.34) — the verification step before releaseForContribution in
+ * server.js will release any tokens, so a caller can't just POST an
+ * arbitrary amount/address and get tokens released; the request has to
+ * point at a transaction that genuinely emitted this event. Returns null
+ * if the tx doesn't exist yet or isn't actually a contribution. */
+async function getContributionFromTx(txHash) {
+  const receipt = await provider.getTransactionReceipt(txHash);
+  if (!receipt) return null;
+  const parsed = receipt.logs
+    .map((l) => { try { return readContract.interface.parseLog(l); } catch { return null; } })
+    .find((e) => e && e.name === "Contributed");
+  if (!parsed) return null;
+  return {
+    campaignId: Number(parsed.args.campaignId),
+    contributor: parsed.args.contributor,
+    amountWei: parsed.args.amount.toString()
+  };
 }
 
 async function registerStudioOnchain(walletAddress, name) {
@@ -165,6 +186,7 @@ async function listCampaignAssetIdsFromChain() {
 
 module.exports = {
   writeEnabled,
+  getContributionFromTx,
   registerStudioOnchain,
   renameStudioOnchain,
   createCampaignOnchain,

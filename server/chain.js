@@ -35,6 +35,7 @@ const ABI = [
   "function pricePerToken(uint256) view returns (uint256)",
   "function trackTitle(uint256) view returns (string)",
   "function artistName(uint256) view returns (string)",
+  "function releaseFromPool(address to, uint256 tokenId, uint256 amount)",
   "event CatalogueMinted(uint256 indexed tokenId, string slug, uint256 supply, uint256 priceWeiPerToken, string title, string artist)"
 ];
 
@@ -136,10 +137,26 @@ async function mintCatalogueOnchain(tokenId, slug, supply, priceWei, title, arti
   };
 }
 
+/** Releases `amount` tokens from tokenId's pool straight to `to` — used
+ * (§2.34) right after a real, verified escrow contribution, so a
+ * preproduction investor's contribution actually moves the same on-chain
+ * pool a catalogue purchase does, instead of that pool staying frozen at
+ * its minted value forever for preproduction assets (contribute() on
+ * HumfiverseMilestoneEscrow never touches this contract on its own — see
+ * server.js's releaseForContribution, which is what calls this after
+ * verifying the contribution really happened). */
+async function releaseFromPoolOnchain(tokenId, to, amount) {
+  if (!writeContract) throw new Error("on-chain minting is disabled (no operator key configured)");
+  const tx = await withRetry(() => writeContract.releaseFromPool(to, tokenId, amount));
+  const receipt = await tx.wait();
+  return { txHash: receipt.hash, explorerUrl: `${EXPLORER_BASE}/tx/${receipt.hash}` };
+}
+
 module.exports = {
   mintingEnabled,
   getPoolInfo,
   mintCatalogueOnchain,
+  releaseFromPoolOnchain,
   isTokenIdFree,
   listMintedSlugsFromChain,
   CONTRACT_ADDRESS,

@@ -272,7 +272,10 @@
 
         @if ((isPre(a) && escrowInfo()?.escrow && $any(escrowInfo()).status === 'active') || (!isPre(a) && onchainInfo()?.onchain && $any(onchainInfo()).priceWei !== '0')) {
           @if (wallet.state().address) {
-            <div class="chip chip-good" style="margin-bottom:10px;"><app-icon name="checkCircle"></app-icon> {{ (isPre(a) ? 'buy.escrowReady' : 'buy.onchainReady') | translate }}</div>
+            <div class="risk-item good" style="margin-bottom:10px;">
+              <app-icon name="checkCircle"></app-icon>
+              <div>{{ (isPre(a) ? 'buy.escrowReady' : 'buy.onchainReady') | translate }}</div>
+            </div>
           } @else {
             <div class="risk-item" style="margin-bottom:10px;">
               <app-icon name="wallet"></app-icon>
