@@ -127,6 +127,15 @@ export class AssetDetailComponent {
   soldOut(a: Asset): boolean {
     return this.remaining(a) <= 0;
   }
+  /** The "X/Y tokens" stat tile — same chain-aware logic as remaining()
+   * above (§2.32), just the complement. This was the other spot on the
+   * page still reading the mock a.tokensSold directly (§2.33 — caught by
+   * the user looking at Black Sail specifically), which is why it kept
+   * showing the pre-purchase count even after remaining()/fundingPct()
+   * were fixed to read from the chain. */
+  tokensSold(a: Asset): number {
+    return a.tokensTotal - this.remaining(a);
+  }
   fundingPct(a: Asset): number {
     const escrow = this.escrowInfo();
     if (this.isPre(a) && escrow?.escrow) {

@@ -48,7 +48,7 @@
                 <div class="value" [style.color]="mp < a.tokenPrice ? 'var(--good)' : 'var(--accent-ink)'">{{ fmt(mp) }}</div>
               </div>
             }
-            <div class="card stat-tile"><div class="label">{{ 'detail.tokens' | translate }}</div><div class="value">{{ a.tokensSold.toLocaleString() }}/{{ a.tokensTotal.toLocaleString() }}</div></div>
+            <div class="card stat-tile"><div class="label">{{ 'detail.tokens' | translate }}</div><div class="value">{{ tokensSold(a).toLocaleString() }}/{{ a.tokensTotal.toLocaleString() }}</div></div>
             @if (isPre(a)) {
               <div class="card stat-tile"><div class="label">{{ 'detail.useOfFunds' | translate }}</div><div class="value" style="font-size:13px; font-family:'IBM Plex Sans',sans-serif;">{{ a.targetRaiseUse }}</div></div>
             } @else {
