@@ -21,7 +21,6 @@
 require("dotenv").config();
 const http = require("node:http");
 const db = require("./db");
-const { ASSETS, CAMPAIGNS, PORTFOLIO } = require("./seed-data");
 const { CONTRACT_TEMPLATE } = require("./contract-template");
 const chain = require("./chain");
 const escrow = require("./chainEscrow");
@@ -89,42 +88,16 @@ async function initSchema() {
   `);
 }
 
-async function seedIfEmpty() {
-  const assetCount = (await db.prepare("SELECT COUNT(*) AS n FROM assets").get()).n;
-  if (assetCount === 0) {
-    const insertAsset = db.prepare("INSERT INTO assets (id, data) VALUES (?, ?)");
-    for (const a of ASSETS) await insertAsset.run(a.id, JSON.stringify(a));
-  }
-  const campaignCount = (await db.prepare("SELECT COUNT(*) AS n FROM campaigns").get()).n;
-  if (campaignCount === 0) {
-    const insertCampaign = db.prepare("INSERT INTO campaigns (id, data) VALUES (?, ?)");
-    for (const c of CAMPAIGNS) await insertCampaign.run(c.id, JSON.stringify(c));
-  }
-  const holdingCount = (await db.prepare("SELECT COUNT(*) AS n FROM holdings").get()).n;
-  if (holdingCount === 0) {
-    const insertHolding = db.prepare("INSERT INTO holdings (assetId, tokens, costBasis, unclaimed) VALUES (?, ?, ?, ?)");
-    for (const h of PORTFOLIO.holdings) await insertHolding.run(h.assetId, h.tokens, h.costBasis, h.unclaimed);
-    const insertDist = db.prepare("INSERT INTO distributions (date, assetId, amount) VALUES (?, ?, ?)");
-    for (const d of PORTFOLIO.distributions) await insertDist.run(d.date, d.assetId, d.amount);
-  }
-  const onchainCount = (await db.prepare("SELECT COUNT(*) AS n FROM onchain_tokens").get()).n;
-  if (onchainCount === 0) {
-    // The four seed catalogues were already minted directly via
-    // contracts/scripts/mintCatalogues.js before this endpoint existed —
-    // seeded here with their real Base Sepolia tx hashes so the API
-    // reflects what's actually on-chain, not just what this server minted.
-    // Re-minted 1 Sep 2026 against the redeployed contract that also stores
-    // title/artist on-chain (§2.24) — these are that mint's real tx hashes.
-    const insertOnchain = db.prepare(
-      "INSERT INTO onchain_tokens (token_id, asset_id, slug, supply, tx_hash, minted_at) VALUES (?, ?, ?, ?, ?, ?)"
-    );
-    const mintedAt = "2026-09-01T00:00:00.000Z";
-    await insertOnchain.run(1, "midnight-static", "midnight-static", 4000, "0x788b25df12a6d3fe5e2879f7f65f0837891c1b1fda7e7c95e79f291f62ba4bbe", mintedAt);
-    await insertOnchain.run(2, "ember-choir", "ember-choir", 2500, "0x86b97d435f351ca4f824ebc0b3557b6e318065d1ba3aaf427c177cd7690e5e93", mintedAt);
-    await insertOnchain.run(3, "paper-cranes", "paper-cranes", 5000, "0x9f0194fbc5fe68a532e32f2bcbcaca0977e86a9bb37de9fa930964062d8b6e40", mintedAt);
-    await insertOnchain.run(4, "copper-radio", "copper-radio", 3200, "0x2cf8d8d85784ade62cb95246e0d451d3fecbc709d69d3d270d5588b13c41cdfc", mintedAt);
-  }
-}
+/** Deliberately does nothing (§2.25) — this used to seed 6 fictional demo
+ * catalogues/campaigns plus matching mock portfolio holdings on an empty
+ * database. Once real users could genuinely create and buy tracks (§2.20,
+ * §2.13), the user explicitly asked for the site to show only real,
+ * user-created data going forward — fictional placeholder content, even
+ * though it did have a real on-chain token (§2.10/§2.24), doesn't belong
+ * next to it. Left as a no-op hook (not deleted) in case a future non-
+ * production environment (a demo/staging deploy) wants seed data back —
+ * see seed-data.js, still present and unused for that purpose. */
+async function seedIfEmpty() {}
 
 async function getAssets() {
   const rows = await db.prepare("SELECT data FROM assets").all();
