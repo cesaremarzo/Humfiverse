@@ -378,5 +378,10 @@
   "escrowStatus.studio.waitingOnBoth": "Ожидает вас и артиста",
   "escrowStatus.artist.waitingOnYou": "Ожидает вас — студия уже подтвердила",
   "escrowStatus.artist.waitingOnStudio": "Вы подтвердили — ожидает студию",
-  "escrowStatus.artist.waitingOnBoth": "Ожидает вас и студию"
+  "escrowStatus.artist.waitingOnBoth": "Ожидает вас и студию",
+  "portfolio.subtitleReal": "Реальные балансы токенов, считанные напрямую из блокчейна для подключённого кошелька — не фиктивный демо-портфель.",
+  "portfolio.loadingReal": "Чтение балансов из блокчейна…",
+  "portfolio.emptyTitleReal": "На этом кошельке пока нет токенов",
+  "portfolio.emptyBodyReal": "Просмотрите <a href=\"#/marketplace\">маркетплейс</a> и профинансируйте кампанию, чтобы получить свой первый реальный токен.",
+  "portfolio.value": "Стоимость"
 }

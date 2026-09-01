@@ -378,5 +378,10 @@
   "escrowStatus.studio.waitingOnBoth": "بانتظارك وبانتظار الفنان",
   "escrowStatus.artist.waitingOnYou": "بانتظارك — الاستوديو أكّد بالفعل",
   "escrowStatus.artist.waitingOnStudio": "لقد أكّدت — بانتظار الاستوديو",
-  "escrowStatus.artist.waitingOnBoth": "بانتظارك وبانتظار الاستوديو"
+  "escrowStatus.artist.waitingOnBoth": "بانتظارك وبانتظار الاستوديو",
+  "portfolio.subtitleReal": "أرصدة رموز حقيقية، تُقرأ مباشرة من البلوكتشين لمحفظتك المتصلة — وليست محفظة تجريبية وهمية.",
+  "portfolio.loadingReal": "جارٍ قراءة أرصدتك من البلوكتشين…",
+  "portfolio.emptyTitleReal": "لا تحتوي هذه المحفظة على أي رموز بعد",
+  "portfolio.emptyBodyReal": "تصفّح <a href=\"#/marketplace\">السوق</a> وموّل حملة للحصول على أول رمز حقيقي لك.",
+  "portfolio.value": "القيمة"
 }

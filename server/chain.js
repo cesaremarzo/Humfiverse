@@ -38,6 +38,7 @@ const ABI = [
   "function trackTitle(uint256) view returns (string)",
   "function artistName(uint256) view returns (string)",
   "function releaseFromPool(address to, uint256 tokenId, uint256 amount)",
+  "function balanceOf(address account, uint256 id) view returns (uint256)",
   "event CatalogueMinted(uint256 indexed tokenId, string slug, uint256 supply, uint256 priceWeiPerToken, string title, string artist)"
 ];
 
@@ -154,7 +155,17 @@ async function releaseFromPoolOnchain(tokenId, to, amount) {
   return { txHash: receipt.hash, explorerUrl: `${EXPLORER_BASE}/tx/${receipt.hash}` };
 }
 
+/** Real ERC-1155 balance for one holder/token — the actual source of
+ * truth for "how many tokens does this wallet hold" (§2.37), unlike the
+ * mock Portfolio.holdings this replaced, which was seeded fictional data
+ * never tied to a real wallet at all. */
+async function getBalance(tokenId, address) {
+  const bal = await readContract.balanceOf(address, tokenId);
+  return Number(bal);
+}
+
 module.exports = {
+  getBalance,
   mintingEnabled,
   getPoolInfo,
   mintCatalogueOnchain,

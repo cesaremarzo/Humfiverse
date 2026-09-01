@@ -378,5 +378,10 @@
   "escrowStatus.studio.waitingOnBoth": "等待你和艺术家确认",
   "escrowStatus.artist.waitingOnYou": "等待你确认——录音室已确认",
   "escrowStatus.artist.waitingOnStudio": "你已确认——等待录音室",
-  "escrowStatus.artist.waitingOnBoth": "等待你和录音室确认"
+  "escrowStatus.artist.waitingOnBoth": "等待你和录音室确认",
+  "portfolio.subtitleReal": "针对已连接钱包，从区块链实时读取的真实代币余额——并非虚构的演示投资组合。",
+  "portfolio.loadingReal": "正在从链上读取余额……",
+  "portfolio.emptyTitleReal": "该钱包尚未持有任何代币",
+  "portfolio.emptyBodyReal": "浏览<a href=\"#/marketplace\">市场</a>并资助一个活动，获得你的第一枚真实代币。",
+  "portfolio.value": "价值"
 }

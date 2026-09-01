@@ -378,5 +378,10 @@
   "escrowStatus.studio.waitingOnBoth": "Wartet auf Sie und den Künstler",
   "escrowStatus.artist.waitingOnYou": "Wartet auf Sie — das Studio hat bereits bestätigt",
   "escrowStatus.artist.waitingOnStudio": "Sie haben bestätigt — wartet auf das Studio",
-  "escrowStatus.artist.waitingOnBoth": "Wartet auf Sie und das Studio"
+  "escrowStatus.artist.waitingOnBoth": "Wartet auf Sie und das Studio",
+  "portfolio.subtitleReal": "Echte Token-Salden, live von der Blockchain für Ihr verbundenes Wallet gelesen — kein fiktives Demo-Portfolio.",
+  "portfolio.loadingReal": "Salden werden von der Blockchain gelesen…",
+  "portfolio.emptyTitleReal": "Dieses Wallet hält noch keine Token",
+  "portfolio.emptyBodyReal": "Durchsuchen Sie den <a href=\"#/marketplace\">Marktplatz</a> und finanzieren Sie eine Kampagne, um Ihren ersten echten Token zu erhalten.",
+  "portfolio.value": "Wert"
 }

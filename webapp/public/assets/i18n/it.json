@@ -378,5 +378,10 @@
   "escrowStatus.studio.waitingOnBoth": "In attesa di te e dell'artista",
   "escrowStatus.artist.waitingOnYou": "In attesa di te — lo studio ha già confermato",
   "escrowStatus.artist.waitingOnStudio": "Hai confermato — in attesa dello studio",
-  "escrowStatus.artist.waitingOnBoth": "In attesa di te e dello studio"
+  "escrowStatus.artist.waitingOnBoth": "In attesa di te e dello studio",
+  "portfolio.subtitleReal": "Saldi reali dei token, letti dal vivo dalla blockchain per il wallet collegato — non un portafoglio demo fittizio.",
+  "portfolio.loadingReal": "Lettura dei saldi dalla blockchain…",
+  "portfolio.emptyTitleReal": "Questo wallet non possiede ancora token",
+  "portfolio.emptyBodyReal": "Sfoglia il <a href=\"#/marketplace\">marketplace</a> e finanzia una campagna per ottenere il tuo primo token reale.",
+  "portfolio.value": "Valore"
 }

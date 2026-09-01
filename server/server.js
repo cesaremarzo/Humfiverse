@@ -613,6 +613,39 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // §2.37 — real holdings for a wallet, replacing the fictional
+  // Portfolio.holdings mock data (which was never tied to any actual
+  // wallet at all). Scans every minted token's balanceOf for this
+  // address directly — small, cheap set for a testnet contract this
+  // young; would need indexing to scale, same caveat as
+  // listMintedSlugsFromChain already carries.
+  const portfolioMatch = url.pathname.match(/^\/api\/portfolio\/([^/]+)$/);
+  if (req.method === "GET" && portfolioMatch) {
+    try {
+      const wallet = decodeURIComponent(portfolioMatch[1]);
+      if (!/^0x[0-9a-fA-F]{40}$/.test(wallet)) {
+        // Without this check, ethers treats anything that isn't a valid
+        // address as an ENS name and tries to resolve it — a malformed
+        // address then surfaces as an opaque "ResolverNotFound" 502
+        // instead of a clear 400 (caught testing this route by hand).
+        sendJson(res, 400, { error: "not a valid wallet address" });
+        return;
+      }
+      const minted = await chain.listMintedSlugsFromChain();
+      if (!minted) { sendJson(res, 502, { error: "could not read minted tokens from chain" }); return; }
+      const withBalances = await Promise.all(
+        minted.map(async (m) => ({ ...m, tokens: await chain.getBalance(m.tokenId, wallet) }))
+      );
+      const holdings = withBalances
+        .filter((m) => m.tokens > 0)
+        .map((m) => ({ assetId: m.slug, tokenId: m.tokenId, tokens: m.tokens, priceWei: m.priceWei, title: m.title, artist: m.artist }));
+      sendJson(res, 200, { holdings });
+    } catch (e) {
+      sendJson(res, 502, { error: "could not read portfolio", detail: String(e.message || e) });
+    }
+    return;
+  }
+
   const onchainMatch = url.pathname.match(/^\/api\/onchain\/([^/]+)$/);
   if (req.method === "GET" && onchainMatch) {
     try {

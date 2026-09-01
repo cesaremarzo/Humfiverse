@@ -78,6 +78,19 @@ export class ApiService {
     return firstValueFrom(this.http.get<{ source: 'chain' | 'local-table'; assetIds: string[] }>(`${this.base}/api/onchain/list`));
   }
 
+  /** Real token holdings for a wallet (§2.37) — replaces the fictional
+   * Portfolio.holdings mock data, which was never tied to any actual
+   * wallet. Scanned live off the chain, not cached. */
+  getRealPortfolio(walletAddress: string): Promise<{
+    holdings: { assetId: string; tokenId: number; tokens: number; priceWei: string; title: string; artist: string }[];
+  }> {
+    return firstValueFrom(
+      this.http.get<{ holdings: { assetId: string; tokenId: number; tokens: number; priceWei: string; title: string; artist: string }[] }>(
+        `${this.base}/api/portfolio/${encodeURIComponent(walletAddress)}`
+      )
+    );
+  }
+
   /** Releases the contributor's matching token share from the pool right
    * after a real preproduction contribution (§2.34) — contribute() on the
    * escrow contract never touches the token pool on its own. Verified

@@ -378,5 +378,10 @@
   "escrowStatus.studio.waitingOnBoth": "Waiting on you and the artist",
   "escrowStatus.artist.waitingOnYou": "Waiting on you — the studio already confirmed",
   "escrowStatus.artist.waitingOnStudio": "You confirmed — waiting on the studio",
-  "escrowStatus.artist.waitingOnBoth": "Waiting on you and the studio"
+  "escrowStatus.artist.waitingOnBoth": "Waiting on you and the studio",
+  "portfolio.subtitleReal": "Real token balances, read live from the blockchain for your connected wallet — not a mock demo portfolio.",
+  "portfolio.loadingReal": "Reading your balances from the chain…",
+  "portfolio.emptyTitleReal": "This wallet holds no tokens yet",
+  "portfolio.emptyBodyReal": "Browse the <a href=\"#/marketplace\">marketplace</a> and fund a campaign to hold your first real token.",
+  "portfolio.value": "Value"
 }

@@ -378,5 +378,10 @@
   "escrowStatus.studio.waitingOnBoth": "あなたとアーティストの確認待ち",
   "escrowStatus.artist.waitingOnYou": "あなたの確認待ち — スタジオはすでに確認済み",
   "escrowStatus.artist.waitingOnStudio": "確認しました — スタジオの確認待ち",
-  "escrowStatus.artist.waitingOnBoth": "あなたとスタジオの確認待ち"
+  "escrowStatus.artist.waitingOnBoth": "あなたとスタジオの確認待ち",
+  "portfolio.subtitleReal": "接続中のウォレットについて、ブロックチェーンからリアルタイムで読み取った実際のトークン残高です — 架空のデモポートフォリオではありません。",
+  "portfolio.loadingReal": "ブロックチェーンから残高を読み込み中…",
+  "portfolio.emptyTitleReal": "このウォレットはまだトークンを保有していません",
+  "portfolio.emptyBodyReal": "<a href=\"#/marketplace\">マーケットプレイス</a>を見て、キャンペーンに出資し最初の実トークンを手に入れましょう。",
+  "portfolio.value": "評価額"
 }
