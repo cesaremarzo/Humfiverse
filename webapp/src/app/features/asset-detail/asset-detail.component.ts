@@ -13,7 +13,7 @@ import { ApiService } from '../../core/api.service';
 import { WalletService } from '../../core/wallet.service';
 import { ToastService } from '../../core/toast.service';
 import { Asset, DisclosureLevel, EscrowCampaignInfo, OnchainInfo, SecondaryListing } from '../../core/models';
-import { fmtUSD, fmtUSDShort, fundingPct } from '../../core/format.util';
+import { fmtUSD, fmtUSDShort, fundingPct as fundingPctMock } from '../../core/format.util';
 import { computeYieldBreakdown } from '../../core/yield.util';
 import { platformFeeTokens } from '../../core/marketplace-fee.util';
 
@@ -100,11 +100,54 @@ export class AssetDetailComponent {
   isPre(a: Asset): boolean {
     return a.kind === 'preproduction';
   }
+  /** Prefers real on-chain state over the mock tokensSold counter whenever
+   * it's available (§2.32 — a real fix, not a cosmetic one: tokensSold is
+   * never persisted anywhere, so it silently reverted to its pre-purchase
+   * value on every reload even after §2.31 fixed the same-session update).
+   * poolBalance/raised are read straight from the contracts and survive a
+   * reload exactly because they're re-fetched from there, not from local
+   * component state. BigInt division kept until the very last step to
+   * avoid precision loss converting large wei amounts to Number. */
   remaining(a: Asset): number {
+    const onchain = this.onchainInfo();
+    if (!this.isPre(a) && onchain?.onchain) {
+      return Number(BigInt(onchain.poolBalance));
+    }
+    const escrow = this.escrowInfo();
+    if (this.isPre(a) && escrow?.escrow) {
+      const goal = BigInt(escrow.fundingGoal);
+      if (goal > 0n) {
+        const raised = BigInt(escrow.raised);
+        const remainingWei = raised >= goal ? 0n : goal - raised;
+        return Number((remainingWei * BigInt(a.tokensTotal)) / goal);
+      }
+    }
     return a.tokensTotal - a.tokensSold;
   }
   soldOut(a: Asset): boolean {
     return this.remaining(a) <= 0;
+  }
+  fundingPct(a: Asset): number {
+    const escrow = this.escrowInfo();
+    if (this.isPre(a) && escrow?.escrow) {
+      const goal = BigInt(escrow.fundingGoal);
+      if (goal > 0n) {
+        const raised = BigInt(escrow.raised);
+        const bps = raised >= goal ? 10000n : (raised * 10000n) / goal;
+        return Number(bps) / 100;
+      }
+    }
+    const onchain = this.onchainInfo();
+    if (!this.isPre(a) && onchain?.onchain) {
+      const total = BigInt(onchain.totalSupply);
+      if (total > 0n) {
+        const pool = BigInt(onchain.poolBalance);
+        const sold = total > pool ? total - pool : 0n;
+        const bps = sold >= total ? 10000n : (sold * 10000n) / total;
+        return Number(bps) / 100;
+      }
+    }
+    return fundingPctMock(a);
   }
   tabs(a: Asset): [TabKey, string][] {
     return this.isPre(a)
@@ -124,7 +167,6 @@ export class AssetDetailComponent {
         ];
   }
 
-  fundingPct = fundingPct;
   fmt = fmtUSD;
   fmtShort = fmtUSDShort;
 
