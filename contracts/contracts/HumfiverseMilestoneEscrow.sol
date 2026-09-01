@@ -8,19 +8,29 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 /// @notice TESTNET DEMO CONTRACT — not audited, not for real funds, not a
 ///         security offering. Pre-production financing escrow: contributed
 ///         ETH sits in this contract, never reaching the artist directly,
-///         until Humfiverse (the contract owner) confirms each milestone
-///         was genuinely met — see planning/technical-architecture.md §2.7
-///         and legal-regulatory-notes.md §4 on why this is an "attested"
-///         (platform-confirmed) design, not a trustless one, and why that's
-///         an honest tradeoff to state rather than overstate decentralization.
+///         until a milestone is released — see
+///         planning/technical-architecture.md §2.7/§2.27 and
+///         legal-regulatory-notes.md §4/§7.3 on why this design deliberately
+///         gives Humfiverse no discretionary say over whether a milestone
+///         was met: release requires both the artist and the studio to
+///         confirm it independently (§2.27). Humfiverse can register
+///         studios and create campaigns (administrative/custodial acts, not
+///         judgment calls on performance) but cannot itself release a
+///         tranche — this was a deliberate change from an earlier version
+///         where Humfiverse alone confirmed milestones, made specifically
+///         to strengthen the argument that this vehicle isn't "actively
+///         managed" for AIFMD purposes. If artist and studio disagree, the
+///         milestone's funds simply stay locked — there is intentionally no
+///         arbitration or timeout escape hatch here; that's a real
+///         limitation to flag, not an oversight.
 ///
 ///         The "book the studio" milestone is where the guarantor role
 ///         becomes concrete rather than just a promise: its tranche is paid
 ///         straight to the chosen studio's registered wallet, never to the
 ///         artist. The artist commits to recording at that studio when the
-///         campaign is created; the contract — not the artist's discretion —
-///         is what makes sure the money earmarked for that actually gets
-///         there.
+///         campaign is created; the contract — not anyone's discretion — is
+///         what makes sure the money earmarked for that actually gets
+///         there, and only once both sides agree it happened.
 /// @dev Campaigns and studios are created/registered by the platform
 ///      (onlyOwner), mirroring how HumfiverseCatalogueToken.mintCatalogue
 ///      is triggered by the backend after a user completes the onboarding
@@ -71,6 +81,11 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     mapping(uint256 => Milestone[]) private campaignMilestones;
     mapping(uint256 => mapping(address => uint256)) public contributions; // campaignId => contributor => wei contributed
     mapping(uint256 => Studio) public studios;
+    /// @notice Dual sign-off state (§2.27): campaignId => milestoneIndex =>
+    ///         confirmed. A milestone releases only once both are true — see
+    ///         confirmMilestoneAsArtist/confirmMilestoneAsStudio below.
+    mapping(uint256 => mapping(uint256 => bool)) public artistConfirmed;
+    mapping(uint256 => mapping(uint256 => bool)) public studioConfirmed;
     /// @notice O(1) on-chain lookup from the platform's asset id straight to
     ///         its campaign id — the piece that makes this contract itself
     ///         the source of truth for the asset<->campaign link, not just
@@ -82,6 +97,8 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     event StudioRenamed(uint256 indexed studioId, string previousName, string newName);
     event CampaignCreated(uint256 indexed campaignId, address indexed artist, uint256 fundingGoal, uint256 studioId, uint256 deadline, string assetId);
     event Contributed(uint256 indexed campaignId, address indexed contributor, uint256 amount, uint256 totalRaised);
+    event MilestoneConfirmedByArtist(uint256 indexed campaignId, uint256 indexed milestoneIndex);
+    event MilestoneConfirmedByStudio(uint256 indexed campaignId, uint256 indexed milestoneIndex);
     event MilestoneConfirmed(uint256 indexed campaignId, uint256 indexed milestoneIndex, address indexed payee, uint256 amount);
     event CampaignCancelled(uint256 indexed campaignId);
     event Refunded(uint256 indexed campaignId, address indexed contributor, uint256 amount);
@@ -182,21 +199,62 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         emit Contributed(campaignId, msg.sender, msg.value, c.raised);
     }
 
-    /// @notice Owner-only: Humfiverse confirms a milestone was genuinely met
-    ///         and releases its tranche — to the studio's wallet if this is
-    ///         the studio-commitment milestone, otherwise to the artist.
-    ///         Reverts if the campaign hasn't raised enough yet to cover
-    ///         this milestone's share of the goal.
-    function confirmMilestone(uint256 campaignId, uint256 milestoneIndex) external onlyOwner nonReentrant {
+    /// @notice The artist attests a milestone was genuinely met. Combined
+    ///         with confirmMilestoneAsStudio below, this is the *only* path
+    ///         to releasing a tranche — see the contract-level note on why
+    ///         Humfiverse deliberately has no confirmation power of its own
+    ///         (§2.27). If the campaign has no studio (studioId == 0), the
+    ///         artist's confirmation alone is sufficient, since there's no
+    ///         second party to attest against.
+    function confirmMilestoneAsArtist(uint256 campaignId, uint256 milestoneIndex) external nonReentrant {
         Campaign storage c = campaigns[campaignId];
+        require(msg.sender == c.artist, "HumfiverseMilestoneEscrow: not this campaign's artist");
         require(c.status == CampaignStatus.ACTIVE, "HumfiverseMilestoneEscrow: not active");
+        require(milestoneIndex < campaignMilestones[campaignId].length, "HumfiverseMilestoneEscrow: bad index");
+        require(!campaignMilestones[campaignId][milestoneIndex].released, "HumfiverseMilestoneEscrow: already released");
+        artistConfirmed[campaignId][milestoneIndex] = true;
+        emit MilestoneConfirmedByArtist(campaignId, milestoneIndex);
+        _tryRelease(campaignId, milestoneIndex);
+    }
+
+    /// @notice The studio attests a milestone was genuinely met — see
+    ///         confirmMilestoneAsArtist above; a milestone needs both to
+    ///         release, full stop, on every milestone (not only the one
+    ///         paid to the studio) — the point is agreement on what was
+    ///         actually produced, not just who gets paid for it.
+    function confirmMilestoneAsStudio(uint256 campaignId, uint256 milestoneIndex) external nonReentrant {
+        Campaign storage c = campaigns[campaignId];
+        require(c.studioId != 0, "HumfiverseMilestoneEscrow: campaign has no studio");
+        require(msg.sender == studios[c.studioId].wallet, "HumfiverseMilestoneEscrow: not this campaign's studio");
+        require(c.status == CampaignStatus.ACTIVE, "HumfiverseMilestoneEscrow: not active");
+        require(milestoneIndex < campaignMilestones[campaignId].length, "HumfiverseMilestoneEscrow: bad index");
+        require(!campaignMilestones[campaignId][milestoneIndex].released, "HumfiverseMilestoneEscrow: already released");
+        studioConfirmed[campaignId][milestoneIndex] = true;
+        emit MilestoneConfirmedByStudio(campaignId, milestoneIndex);
+        _tryRelease(campaignId, milestoneIndex);
+    }
+
+    /// @notice Releases a milestone's tranche once both required
+    ///         confirmations are in — to the studio's wallet if this is the
+    ///         studio-commitment milestone, otherwise to the artist.
+    ///         Deliberately private and side-effect-only: there is no public
+    ///         function anywhere in this contract that releases a milestone
+    ///         on a single party's say-so, Humfiverse's included. If the two
+    ///         sides never agree, this simply never runs — the funds stay in
+    ///         the contract indefinitely (no arbitration/timeout here).
+    function _tryRelease(uint256 campaignId, uint256 milestoneIndex) private {
+        Campaign storage c = campaigns[campaignId];
+        if (c.status != CampaignStatus.ACTIVE) return;
         Milestone[] storage milestones = campaignMilestones[campaignId];
-        require(milestoneIndex < milestones.length, "HumfiverseMilestoneEscrow: bad index");
+        if (milestoneIndex >= milestones.length) return;
         Milestone storage m = milestones[milestoneIndex];
-        require(!m.released, "HumfiverseMilestoneEscrow: already released");
+        if (m.released) return;
+
+        bool studioSideDone = c.studioId == 0 || studioConfirmed[campaignId][milestoneIndex];
+        if (!(artistConfirmed[campaignId][milestoneIndex] && studioSideDone)) return;
 
         uint256 amount = (c.fundingGoal * m.bps) / 10_000;
-        require(c.raised >= amount, "HumfiverseMilestoneEscrow: not enough raised for this tranche");
+        if (c.raised < amount) return; // not enough raised yet — releases once it is, on the next confirming call
 
         m.released = true;
         c.releasedBps += m.bps;

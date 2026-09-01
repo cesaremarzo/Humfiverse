@@ -6,13 +6,17 @@ import { fmtUSD } from '../../core/format.util';
 type CampaignRow = EscrowCampaignInfo & { assetId: string };
 type LoadedCampaignRow = Extract<CampaignRow, { escrow: true }>;
 
-/** Internal, unlinked admin tool — the "Humfiverse confirms milestones" role
- * from planning/technical-architecture.md §2.15. Not part of the public
- * artist/investor surface, so it isn't in the main nav or translated into
- * the app's 9 locales; reachable only by navigating to /admin/escrow
- * directly. Uses the same CHAIN_OPERATOR_PRIVATE_KEY-backed backend
- * endpoints as everything else that needs Humfiverse's own signature —
- * no separate wallet-connect flow, this is a platform-operator action. */
+/** Internal, unlinked observability tool. Used to show Humfiverse's own
+ * "confirm milestone" action (planning/technical-architecture.md §2.15) —
+ * that action no longer exists. §2.27 redesigned the contract so a
+ * milestone releases only once *both* the artist and the studio confirm it
+ * from their own wallets; Humfiverse has no on-chain function that can
+ * release a tranche by itself anymore (a deliberate choice to strengthen
+ * the argument that this vehicle isn't "actively managed" for AIFMD
+ * purposes — see legal-regulatory-notes.md §7.3). This page is now
+ * read-only: it shows who's still waiting on whom. Not part of the public
+ * artist/investor surface, so it isn't in the main nav or translated;
+ * reachable only by navigating to /admin/escrow directly. */
 @Component({
   selector: 'app-admin-escrow',
   standalone: true,
@@ -23,11 +27,6 @@ export class AdminEscrowComponent {
   campaigns = signal<LoadedCampaignRow[]>([]);
   loading = signal(true);
   error = signal<string | null>(null);
-  confirming = signal<string | null>(null); // `${campaignId}-${milestoneIndex}`
-  lastResult = signal<{ txHash: string; explorerUrl: string } | null>(null);
-  // Held only in this tab's sessionStorage, never sent anywhere but the
-  // X-Admin-Key header on the one endpoint that needs it — see api.service.ts.
-  adminKey = signal<string>(sessionStorage.getItem('humfiverse.adminKey') || '');
 
   fmt = fmtUSD;
   weiToUsd(wei: string): number {
@@ -55,25 +54,5 @@ export class AdminEscrowComponent {
 
   canConfirm(raisedWei: string, amountWei: string): boolean {
     return BigInt(raisedWei) >= BigInt(amountWei);
-  }
-
-  setAdminKey(value: string): void {
-    this.adminKey.set(value);
-    sessionStorage.setItem('humfiverse.adminKey', value);
-  }
-
-  async confirm(campaignId: number, milestoneIndex: number): Promise<void> {
-    const key = `${campaignId}-${milestoneIndex}`;
-    this.confirming.set(key);
-    this.error.set(null);
-    try {
-      const result = await this.api.confirmEscrowMilestone(campaignId, milestoneIndex, this.adminKey());
-      this.lastResult.set(result);
-      this.load();
-    } catch (err: unknown) {
-      this.error.set(String((err as { message?: string })?.message || err));
-    } finally {
-      this.confirming.set(null);
-    }
   }
 }

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
@@ -86,18 +86,11 @@ export class ApiService {
     return firstValueFrom(this.http.post<EscrowCampaignCreateResult>(`${this.base}/api/escrow/campaign`, payload));
   }
 
-  /** Admin: every milestone-escrow campaign, for the confirm-milestone panel. */
+  /** Admin (read-only, §2.27): every milestone-escrow campaign and its
+   * dual sign-off state. Humfiverse has no confirm action to take here
+   * anymore — release requires the artist's and the studio's own wallets,
+   * see WalletService.confirmMilestoneAsArtist/confirmMilestoneAsStudio. */
   getEscrowCampaigns(): Promise<{ campaigns: (EscrowCampaignInfo & { assetId: string })[] }> {
     return firstValueFrom(this.http.get<{ campaigns: (EscrowCampaignInfo & { assetId: string })[] }>(`${this.base}/api/escrow/campaigns`));
-  }
-
-  /** Admin: Humfiverse confirms a milestone was met, releasing its tranche.
-   * Requires the operator's admin key — see AdminEscrowComponent, which
-   * prompts for it and never persists it outside sessionStorage. */
-  confirmEscrowMilestone(campaignId: number, milestoneIndex: number, adminKey: string): Promise<{ txHash: string; explorerUrl: string }> {
-    const headers = new HttpHeaders({ 'X-Admin-Key': adminKey });
-    return firstValueFrom(
-      this.http.post<{ txHash: string; explorerUrl: string }>(`${this.base}/api/escrow/confirm`, { campaignId, milestoneIndex }, { headers })
-    );
   }
 }

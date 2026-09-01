@@ -34,6 +34,10 @@ const BASE_SEPOLIA_ADD_PARAMS = {
 
 const BUY_ABI = ['function buy(uint256 tokenId, uint256 amount) external payable'];
 const CONTRIBUTE_ABI = ['function contribute(uint256 campaignId) external payable'];
+const CONFIRM_MILESTONE_ABI = [
+  'function confirmMilestoneAsArtist(uint256 campaignId, uint256 milestoneIndex) external',
+  'function confirmMilestoneAsStudio(uint256 campaignId, uint256 milestoneIndex) external'
+];
 
 /** MetaMask / injected-provider connection. Identity checks (eth_accounts,
  * eth_requestAccounts, eth_chainId) never prompt for a signature. `buyOnchain`
@@ -160,6 +164,45 @@ export class WalletService {
     const contract = new ethers.Contract(params.contractAddress, CONTRIBUTE_ABI, signer);
 
     const tx = await contract['contribute'](params.campaignId, { value: BigInt(params.amountWei) });
+    const receipt = await tx.wait();
+    if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
+
+    return { txHash: receipt.hash, explorerUrl: `https://sepolia.basescan.org/tx/${receipt.hash}` };
+  }
+
+  /** Real on-chain milestone attestation (§2.27) — the artist's own wallet
+   * confirming a milestone was genuinely met. A tranche only releases once
+   * both this and confirmMilestoneAsStudio (below) have been called for the
+   * same milestone; Humfiverse has no equivalent function of its own. */
+  async confirmMilestoneAsArtist(params: { contractAddress: string; campaignId: number; milestoneIndex: number }): Promise<{ txHash: string; explorerUrl: string }> {
+    if (!window.ethereum) throw new Error('no-wallet');
+    const switched = await this.ensureBaseSepolia();
+    if (!switched) throw new Error('wrong-network');
+
+    const provider = new ethers.BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
+    const signer = await provider.getSigner();
+    const contract = new ethers.Contract(params.contractAddress, CONFIRM_MILESTONE_ABI, signer);
+
+    const tx = await contract['confirmMilestoneAsArtist'](params.campaignId, params.milestoneIndex);
+    const receipt = await tx.wait();
+    if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
+
+    return { txHash: receipt.hash, explorerUrl: `https://sepolia.basescan.org/tx/${receipt.hash}` };
+  }
+
+  /** Same as confirmMilestoneAsArtist, but called from the studio's own
+   * registered wallet — see the contract-level note in
+   * HumfiverseMilestoneEscrow.sol on why this exists (§2.27). */
+  async confirmMilestoneAsStudio(params: { contractAddress: string; campaignId: number; milestoneIndex: number }): Promise<{ txHash: string; explorerUrl: string }> {
+    if (!window.ethereum) throw new Error('no-wallet');
+    const switched = await this.ensureBaseSepolia();
+    if (!switched) throw new Error('wrong-network');
+
+    const provider = new ethers.BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
+    const signer = await provider.getSigner();
+    const contract = new ethers.Contract(params.contractAddress, CONFIRM_MILESTONE_ABI, signer);
+
+    const tx = await contract['confirmMilestoneAsStudio'](params.campaignId, params.milestoneIndex);
     const receipt = await tx.wait();
     if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
 

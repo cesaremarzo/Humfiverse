@@ -13,8 +13,8 @@ const { ethers } = require("ethers");
 const { withRetry } = require("./chainRetry");
 
 const RPC_URL = process.env.CHAIN_RPC_URL || "https://sepolia.base.org";
-const ESCROW_ADDRESS = process.env.CHAIN_ESCROW_ADDRESS || "0xAa604CB2A0A3D22d2382Eb0685774f284735873f";
-const ESCROW_DEPLOY_BLOCK = Number(process.env.CHAIN_ESCROW_DEPLOY_BLOCK || 46244511);
+const ESCROW_ADDRESS = process.env.CHAIN_ESCROW_ADDRESS || "0x447c8F2b3039497E7BFc6C16B715EBf5DB4E3F35";
+const ESCROW_DEPLOY_BLOCK = Number(process.env.CHAIN_ESCROW_DEPLOY_BLOCK || 46245982);
 const EVENT_QUERY_CHUNK = 9000; // public RPCs cap eth_getLogs at ~10,000 blocks
 const CHAIN_ID = 84532; // Base Sepolia
 const EXPLORER_BASE = "https://sepolia.basescan.org";
@@ -25,7 +25,10 @@ const ABI = [
   "function renameStudio(uint256 studioId, string name)",
   "function createCampaign(address artist, uint256 fundingGoal, uint256 studioId, uint256 deadline, string assetId, string[] milestoneNames, uint16[] milestoneBps, uint8[] milestonePayees) returns (uint256)",
   "function contribute(uint256 campaignId) payable",
-  "function confirmMilestone(uint256 campaignId, uint256 milestoneIndex)",
+  "function confirmMilestoneAsArtist(uint256 campaignId, uint256 milestoneIndex)",
+  "function confirmMilestoneAsStudio(uint256 campaignId, uint256 milestoneIndex)",
+  "function artistConfirmed(uint256 campaignId, uint256 milestoneIndex) view returns (bool)",
+  "function studioConfirmed(uint256 campaignId, uint256 milestoneIndex) view returns (bool)",
   "function cancelCampaign(uint256 campaignId)",
   "function refund(uint256 campaignId)",
   "function campaigns(uint256) view returns (address artist, uint256 studioId, uint256 fundingGoal, uint256 raised, uint256 deadline, uint8 status, uint256 releasedBps, string assetId)",
@@ -79,12 +82,14 @@ async function createCampaignOnchain(artist, fundingGoalWei, studioId, deadline,
   return { campaignId: Number(parsed.args.campaignId), txHash: receipt.hash };
 }
 
-async function confirmMilestoneOnchain(campaignId, milestoneIndex) {
-  if (!writeContract) throw new Error("escrow admin actions are disabled (no operator key configured)");
-  const tx = await withRetry(() => writeContract.confirmMilestone(campaignId, milestoneIndex));
-  const receipt = await tx.wait();
-  return { txHash: receipt.hash, explorerUrl: `${EXPLORER_BASE}/tx/${receipt.hash}` };
-}
+/** No more confirmMilestoneOnchain here (§2.27) — Humfiverse deliberately
+ * has no on-chain function that can release a milestone by itself anymore.
+ * Release requires the artist's and the studio's own wallets to each call
+ * confirmMilestoneAsArtist/confirmMilestoneAsStudio directly (mirroring
+ * WalletService.buyOnchain/contributeOnchain's pattern of requesting a
+ * signature from the actual counterparty, not the operator key). This
+ * module can still read the confirmation state (below) but cannot write it
+ * on anyone's behalf. */
 
 async function getCampaignInfo(campaignId) {
   const [c, milestones] = await Promise.all([readContract.campaigns(campaignId), readContract.getMilestones(campaignId)]);
@@ -93,6 +98,19 @@ async function getCampaignInfo(campaignId) {
     const s = await readContract.studios(c.studioId);
     studio = { name: s.name, wallet: s.wallet, active: s.active };
   }
+  const milestonesWithConfirmations = await Promise.all(
+    milestones.map(async (m, i) => ({
+      index: i,
+      name: m.name,
+      bps: Number(m.bps),
+      payee: Number(m.payee) === 1 ? "studio" : "artist",
+      released: m.released,
+      amountWei: ((c.fundingGoal * BigInt(m.bps)) / 10_000n).toString(),
+      // §2.27: what's still needed for release, not something Humfiverse can do.
+      artistConfirmed: await readContract.artistConfirmed(campaignId, i),
+      studioConfirmed: c.studioId > 0n ? await readContract.studioConfirmed(campaignId, i) : true
+    }))
+  );
   return {
     campaignId,
     assetId: c.assetId,
@@ -107,14 +125,7 @@ async function getCampaignInfo(campaignId) {
     deadline: Number(c.deadline),
     status: Number(c.status) === 0 ? "active" : "cancelled",
     releasedBps: Number(c.releasedBps),
-    milestones: milestones.map((m, i) => ({
-      index: i,
-      name: m.name,
-      bps: Number(m.bps),
-      payee: Number(m.payee) === 1 ? "studio" : "artist",
-      released: m.released,
-      amountWei: ((c.fundingGoal * BigInt(m.bps)) / 10_000n).toString()
-    }))
+    milestones: milestonesWithConfirmations
   };
 }
 
@@ -157,7 +168,6 @@ module.exports = {
   registerStudioOnchain,
   renameStudioOnchain,
   createCampaignOnchain,
-  confirmMilestoneOnchain,
   getCampaignInfo,
   getCampaignInfoByAssetId,
   listCampaignAssetIdsFromChain,

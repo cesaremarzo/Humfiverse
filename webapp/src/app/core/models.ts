@@ -212,6 +212,11 @@ export interface EscrowMilestone {
   payee: 'artist' | 'studio';
   released: boolean;
   amountWei: string;
+  /** Dual sign-off state (§2.27) — a milestone releases only once both are
+   * true. Humfiverse has no function that can set either of these itself;
+   * they're only ever set by the artist's/studio's own wallet transaction. */
+  artistConfirmed: boolean;
+  studioConfirmed: boolean;
 }
 
 /** Live on-chain state for a preproduction asset's milestone escrow

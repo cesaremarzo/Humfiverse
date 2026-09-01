@@ -563,25 +563,17 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === "POST" && url.pathname === "/api/escrow/confirm") {
-    try {
-      if (!isAdminAuthorized(req)) {
-        sendJson(res, 401, { error: "missing or invalid X-Admin-Key header" });
-        return;
-      }
-      const body = await readBody(req);
-      if (!body.campaignId || body.milestoneIndex === undefined) {
-        sendJson(res, 400, { error: "campaignId and milestoneIndex are required" });
-        return;
-      }
-      if (!escrow.writeEnabled()) {
-        sendJson(res, 503, { error: "escrow admin actions are disabled on this server (no operator key configured)" });
-        return;
-      }
-      const result = await escrow.confirmMilestoneOnchain(body.campaignId, body.milestoneIndex);
-      sendJson(res, 200, result);
-    } catch (e) {
-      sendJson(res, 502, { error: "milestone confirmation failed", detail: String(e.message || e) });
-    }
+    // Removed (§2.27): the contract no longer has any function that lets
+    // Humfiverse release a milestone by itself — confirmMilestoneAsArtist/
+    // confirmMilestoneAsStudio must each be called directly from the
+    // relevant party's own wallet (see WalletService, mirroring how
+    // buyOnchain/contributeOnchain already request a signature from the
+    // actual counterparty, not this server). 410, not 404: this used to
+    // exist and was deliberately removed, not a typo'd URL.
+    sendJson(res, 410, {
+      error: "Humfiverse can no longer confirm milestones — this is intentional, not a bug",
+      detail: "Release now requires confirmMilestoneAsArtist and confirmMilestoneAsStudio, called directly by the artist's and studio's own wallets. See HumfiverseMilestoneEscrow.sol and technical-architecture.md §2.27."
+    });
     return;
   }
 

@@ -1,21 +1,9 @@
 <div class="page-head">
   <div>
-    <span class="page-kicker">Internal · Humfiverse operator tool</span>
-    <h1>Milestone escrow — confirm tranches</h1>
-    <p class="page-sub">Not part of the public site. This is where Humfiverse confirms a preproduction campaign's milestone was genuinely met, releasing that tranche — straight to the studio's wallet for the studio-booking milestone, to the artist for the rest. See HumfiverseMilestoneEscrow.sol and planning/technical-architecture.md §2.15.</p>
+    <span class="page-kicker">Internal · read-only</span>
+    <h1>Milestone escrow — confirmation status</h1>
+    <p class="page-sub">Not part of the public site. Humfiverse has no action to take here anymore — release now requires the artist and the studio to each confirm a milestone from their own wallet (confirmMilestoneAsArtist / confirmMilestoneAsStudio). This page only shows who's still waiting on whom. See HumfiverseMilestoneEscrow.sol and planning/technical-architecture.md §2.27.</p>
   </div>
-</div>
-
-<div class="card panel" style="margin-bottom:20px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-  <label for="admin-key" style="font-size:13px; font-weight:600;">Admin key</label>
-  <input
-    id="admin-key"
-    type="password"
-    class="mono"
-    style="flex:1; min-width:240px;"
-    placeholder="paste ADMIN_API_KEY — held only in this tab, sent only to /api/escrow/confirm"
-    [value]="adminKey()"
-    (change)="setAdminKey($any($event.target).value)">
 </div>
 
 @if (loading()) {
@@ -25,13 +13,6 @@
 @if (error()) {
   <div class="card panel" style="border-color:var(--danger, #c0392b); margin-bottom:20px;">
     <strong>Error:</strong> {{ error() }}
-  </div>
-}
-
-@if (lastResult(); as r) {
-  <div class="card panel" style="margin-bottom:20px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
-    <div>Milestone confirmed and paid out. <span class="mono" style="font-size:12px;">{{ r.txHash }}</span></div>
-    <a [href]="r.explorerUrl" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">View on explorer</a>
   </div>
 }
 
@@ -60,7 +41,7 @@
 
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Milestone</th><th>Payee</th><th class="cell-num">Amount</th><th></th></tr></thead>
+        <thead><tr><th>Milestone</th><th>Payee</th><th class="cell-num">Amount</th><th>Status</th></tr></thead>
         <tbody>
           @for (m of c.milestones; track m.index) {
             <tr>
@@ -69,14 +50,17 @@
               <td class="cell-num mono">{{ fmt(weiToUsd(m.amountWei)) }}</td>
               <td style="text-align:right;">
                 @if (m.released) {
-                  <span class="chip chip-neutral">Released</span>
+                  <span class="chip chip-good">Released</span>
+                } @else if (!canConfirm(c.raised, m.amountWei)) {
+                  <span class="chip chip-neutral">Not enough raised yet</span>
+                } @else if (m.artistConfirmed && m.studioConfirmed) {
+                  <span class="chip chip-neutral">Both confirmed — releasing</span>
+                } @else if (m.artistConfirmed) {
+                  <span class="chip chip-warning">Waiting on studio</span>
+                } @else if (m.studioConfirmed) {
+                  <span class="chip chip-warning">Waiting on artist</span>
                 } @else {
-                  <button
-                    class="btn btn-primary btn-sm"
-                    [disabled]="confirming() === (c.campaignId + '-' + m.index) || !canConfirm(c.raised, m.amountWei) || !adminKey()"
-                    (click)="confirm(c.campaignId, m.index)">
-                    {{ confirming() === (c.campaignId + '-' + m.index) ? 'Confirming…' : 'Confirm' }}
-                  </button>
+                  <span class="chip chip-neutral">Waiting on both</span>
                 }
               </td>
             </tr>
