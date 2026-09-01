@@ -13,8 +13,8 @@ const { ethers } = require("ethers");
 const { withRetry } = require("./chainRetry");
 
 const RPC_URL = process.env.CHAIN_RPC_URL || "https://sepolia.base.org";
-const ESCROW_ADDRESS = process.env.CHAIN_ESCROW_ADDRESS || "0xbc220eB1234749a2127aad3deB69c689DC74C1a1";
-const ESCROW_DEPLOY_BLOCK = Number(process.env.CHAIN_ESCROW_DEPLOY_BLOCK || 46164128);
+const ESCROW_ADDRESS = process.env.CHAIN_ESCROW_ADDRESS || "0xAa604CB2A0A3D22d2382Eb0685774f284735873f";
+const ESCROW_DEPLOY_BLOCK = Number(process.env.CHAIN_ESCROW_DEPLOY_BLOCK || 46244511);
 const EVENT_QUERY_CHUNK = 9000; // public RPCs cap eth_getLogs at ~10,000 blocks
 const CHAIN_ID = 84532; // Base Sepolia
 const EXPLORER_BASE = "https://sepolia.basescan.org";
@@ -22,6 +22,7 @@ const EXPLORER_BASE = "https://sepolia.basescan.org";
 const ABI = [
   "function registerStudio(address wallet, string name) returns (uint256)",
   "function setStudioActive(uint256 studioId, bool active)",
+  "function renameStudio(uint256 studioId, string name)",
   "function createCampaign(address artist, uint256 fundingGoal, uint256 studioId, uint256 deadline, string assetId, string[] milestoneNames, uint16[] milestoneBps, uint8[] milestonePayees) returns (uint256)",
   "function contribute(uint256 campaignId) payable",
   "function confirmMilestone(uint256 campaignId, uint256 milestoneIndex)",
@@ -55,6 +56,17 @@ async function registerStudioOnchain(walletAddress, name) {
   const receipt = await tx.wait();
   const parsed = receipt.logs.map((l) => { try { return readContract.interface.parseLog(l); } catch { return null; } }).find((e) => e && e.name === "StudioRegistered");
   return { studioId: Number(parsed.args.studioId), txHash: receipt.hash };
+}
+
+/** Admin correction for a genuine mistake in an already-registered studio's
+ * name (§2.26) — not exposed via any API route yet, called directly when
+ * needed. Renames every campaign already pointing at this studioId too,
+ * since a campaign stores a studioId, not a name. */
+async function renameStudioOnchain(studioId, name) {
+  if (!writeContract) throw new Error("escrow admin actions are disabled (no operator key configured)");
+  const tx = await withRetry(() => writeContract.renameStudio(studioId, name));
+  const receipt = await tx.wait();
+  return { txHash: receipt.hash };
 }
 
 async function createCampaignOnchain(artist, fundingGoalWei, studioId, deadline, assetId, milestoneNames, milestoneBps, milestonePayees) {
@@ -143,6 +155,7 @@ async function listCampaignAssetIdsFromChain() {
 module.exports = {
   writeEnabled,
   registerStudioOnchain,
+  renameStudioOnchain,
   createCampaignOnchain,
   confirmMilestoneOnchain,
   getCampaignInfo,

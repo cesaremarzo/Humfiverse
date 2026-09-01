@@ -268,14 +268,28 @@ async function createEscrowCampaign(assetId, artistAddress, fundingGoalWei, stud
   const existingOnchain = await escrow.getCampaignInfoByAssetId(assetId);
   if (existingOnchain) throw Object.assign(new Error("asset already has an escrow campaign"), { code: "already_created", record: existingOnchain });
 
-  let studioRow = await db.prepare("SELECT studio_id FROM escrow_studios WHERE wallet = ?").get(studioWallet.toLowerCase());
+  // Matched on wallet AND name (§2.26 bugfix) — matching on wallet alone
+  // silently reused whatever studio name was registered *first* for that
+  // wallet on every later campaign, even when the artist entered a
+  // genuinely different studio name for the same wallet (this happened for
+  // real: two campaigns using the same wallet ended up both showing the
+  // first campaign's studio name on-chain, since the contract has no
+  // "rename" — a new name for a wallet must mean a new on-chain
+  // registration, not a silently-reused old one).
+  let studioRow = await db.prepare("SELECT studio_id FROM escrow_studios WHERE wallet = ? AND name = ?").get(studioWallet.toLowerCase(), studioName);
   let studioId;
   if (studioRow) {
     studioId = studioRow.studio_id;
   } else {
     const result = await escrow.registerStudioOnchain(studioWallet, studioName);
     studioId = result.studioId;
-    await db.prepare("INSERT INTO escrow_studios (studio_id, wallet, name, tx_hash, created_at) VALUES (?, ?, ?, ?, ?)").run(
+    // INSERT OR REPLACE, not INSERT: the wallet column is still UNIQUE (a
+    // deliberate schema choice, not changed here), so a second name for an
+    // already-cached wallet overwrites the cache entry rather than
+    // conflicting — the cache's only job is to skip a redundant on-chain
+    // registration when the exact same wallet+name pair repeats, so it only
+    // ever needs to remember the most recent pairing.
+    await db.prepare("INSERT OR REPLACE INTO escrow_studios (studio_id, wallet, name, tx_hash, created_at) VALUES (?, ?, ?, ?, ?)").run(
       studioId, studioWallet.toLowerCase(), studioName, result.txHash, new Date().toISOString()
     );
   }

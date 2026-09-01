@@ -79,6 +79,7 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
 
     event StudioRegistered(uint256 indexed studioId, address indexed wallet, string name);
     event StudioActiveSet(uint256 indexed studioId, bool active);
+    event StudioRenamed(uint256 indexed studioId, string previousName, string newName);
     event CampaignCreated(uint256 indexed campaignId, address indexed artist, uint256 fundingGoal, uint256 studioId, uint256 deadline, string assetId);
     event Contributed(uint256 indexed campaignId, address indexed contributor, uint256 amount, uint256 totalRaised);
     event MilestoneConfirmed(uint256 indexed campaignId, uint256 indexed milestoneIndex, address indexed payee, uint256 amount);
@@ -100,6 +101,19 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         require(studios[studioId].wallet != address(0), "HumfiverseMilestoneEscrow: unknown studio");
         studios[studioId].active = active;
         emit StudioActiveSet(studioId, active);
+    }
+
+    /// @notice Corrects a studio's on-chain name after registration — an
+    ///         admin fix for a genuine mistake (e.g. a wrong name registered
+    ///         for a wallet that was then reused for a different campaign),
+    ///         not a way to silently rewrite history for an active dispute.
+    ///         Every campaign already pointing at this studioId picks up
+    ///         the new name immediately, since campaigns store a studioId,
+    ///         not a name.
+    function renameStudio(uint256 studioId, string calldata name) external onlyOwner {
+        require(studios[studioId].wallet != address(0), "HumfiverseMilestoneEscrow: unknown studio");
+        emit StudioRenamed(studioId, studios[studioId].name, name);
+        studios[studioId].name = name;
     }
 
     // --- campaign lifecycle ---

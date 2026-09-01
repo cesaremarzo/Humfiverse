@@ -69,6 +69,33 @@ describe("HumfiverseMilestoneEscrow", function () {
         escrow.createCampaign(artist.address, GOAL, 1, 0, "asset-a", ["a"], [10_000], [1])
       ).to.be.revertedWith("HumfiverseMilestoneEscrow: studio not active");
     });
+
+    it("lets the owner rename a studio, and every campaign already pointing at it sees the new name", async function () {
+      const { escrow, artist, studioWallet } = await deployFixture();
+      await escrow.registerStudio(studioWallet.address, "Wrong Name");
+      await escrow.createCampaign(artist.address, GOAL, 1, 0, "asset-a", ["a"], [10_000], [1]);
+
+      await expect(escrow.renameStudio(1, "Correct Name"))
+        .to.emit(escrow, "StudioRenamed")
+        .withArgs(1, "Wrong Name", "Correct Name");
+
+      const studio = await escrow.studios(1);
+      expect(studio.name).to.equal("Correct Name");
+    });
+
+    it("only the owner can rename a studio", async function () {
+      const { escrow, other, studioWallet } = await deployFixture();
+      await escrow.registerStudio(studioWallet.address, "Analog Sun Studio");
+      await expect(escrow.connect(other).renameStudio(1, "x")).to.be.revertedWithCustomError(
+        escrow,
+        "OwnableUnauthorizedAccount"
+      );
+    });
+
+    it("refuses to rename an unregistered studio", async function () {
+      const { escrow } = await deployFixture();
+      await expect(escrow.renameStudio(99, "x")).to.be.revertedWith("HumfiverseMilestoneEscrow: unknown studio");
+    });
   });
 
   describe("campaign creation", function () {
