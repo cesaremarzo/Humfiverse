@@ -38,7 +38,7 @@
 
   @if (loaded() && !loading()) {
     @if (holdings().length === 0) {
-      <div class="empty-state card"><app-icon name="wallet"></app-icon><h3>{{ 'portfolio.emptyTitleReal' | translate }}</h3><p>{{ 'portfolio.emptyBodyReal' | translate }}</p></div>
+      <div class="empty-state card"><app-icon name="wallet"></app-icon><h3>{{ 'portfolio.emptyTitleReal' | translate }}</h3><p [innerHTML]="'portfolio.emptyBodyReal' | translate"></p></div>
     } @else {
       <div class="stat-grid">
         <div class="card stat-tile"><div class="label">{{ 'portfolio.tokensHeld' | translate }}</div><div class="value">{{ totalTokens().toLocaleString() }}</div></div>

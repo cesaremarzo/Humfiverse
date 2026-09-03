@@ -306,8 +306,8 @@
       <div class="modal">
         <div class="success-icon"><app-icon name="check"></app-icon></div>
         <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:18px;">{{ (a.kind === 'preproduction' ? 'success.contributionConfirmed' : 'success.purchaseConfirmed') | translate }}</h3>
-        <p style="font-size:13.5px; color:var(--text-secondary);">
-          {{ 'success.body' | translate: { qty: s.qty + ' ' + (successQtyKey() | translate), title: a.title, total: fmt(s.total) } }}
+        <p style="font-size:13.5px; color:var(--text-secondary);"
+           [innerHTML]="'success.body' | translate: { qty: s.qty + ' ' + (successQtyKey() | translate), title: a.title, total: fmt(s.total) }">
         </p>
         @if (s.txHash) {
           <div class="card panel" style="text-align:left; font-size:12px; margin-bottom:14px;">
