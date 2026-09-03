@@ -1,12 +1,30 @@
 [build]
-  base = "webapp"
-  command = "npm ci && npx ng build --base-href /"
-  publish = "../docs"
+  # angular.json's outputPath is set to "../docs" with baseHref "/Humfiverse/"
+  # (needed for GitHub Pages, which serves this repo from a /Humfiverse/
+  # subpath). Netlify serves from the domain root, so that baseHref is wrong
+  # here — every asset request 404s even though index.html itself deploys
+  # fine (this was the actual cause of the reported 404). --base-href=/
+  # overrides it for this build only; it never touches the docs/ folder
+  # committed to git for GitHub Pages.
+  command = "cd webapp && npm ci && npx ng build --base-href=/"
+  publish = "docs"
 
 [build.environment]
+  # Angular 22's toolchain needs Node ^22.22.3 || ^24.15.0 || >=26.0.0 —
+  # pinning only the major (not a specific patch) so Netlify always uses
+  # the latest 22.x patch, which satisfies that range (a fixed "22.12.0"
+  # didn't, caught via EBADENGINE warnings in a real Netlify build log).
   NODE_VERSION = "22"
+  # Without this, the Angular CLI's first-run "share anonymous usage
+  # data?" prompt blocks waiting for stdin on Netlify's non-interactive
+  # build — the build log just stops dead right after printing the build
+  # command, with no error (caught live: this was exactly what happened).
+  NG_CLI_ANALYTICS = "false"
 
 [[redirects]]
+  # Safety net: the app uses hash-based routing (#/marketplace, etc.), so
+  # every real navigation already stays on index.html and this shouldn't
+  # normally trigger — but it protects any direct/non-hash path from 404ing.
   from = "/*"
   to = "/index.html"
   status = 200
