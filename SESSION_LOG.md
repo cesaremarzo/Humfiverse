@@ -138,3 +138,55 @@ Huge session. Frontend was fully rewritten (Angular), real legal decisions were 
 - Resolve the Render deploy/env-var gap (§6) — this is the immediate next step the user asked for.
 - No real browser click-through has ever been done on the Angular app — worth doing once, especially the artist-onboarding wizard and KYC flow end to end.
 - Everything is still fundamentally a demo: no real SPV, no real KYC verification, no real payments, testnet-only crypto. That's intentional and matches where the actual project is (see `planning/technical-architecture.md` for the real phased build plan) — don't let the real Base Sepolia contract create a false impression that more is "real" than actually is.
+
+---
+
+## 2026-09-03 — second collaborator onboarded (Vincenzo), branch workflow set up
+
+A second person, Vincenzo, is joining the project. Set up a two-branch
+workflow plus a `CLAUDE.md` so both people's Claude Code sessions follow
+the same conventions automatically:
+
+- Created `dev/cesare`, pushed to `origin`. `dev/vincenzo` is his to
+  create the same way (branched from `main`).
+- Added `CLAUDE.md` at repo root (tracked in git, so it's automatically
+  read by Claude Code for anyone who clones the repo — unlike `.claude/`,
+  which is gitignored and local-only). It documents: never push directly
+  to `main`; work happens on `dev/<name>`, merged to `main` via PR; Render
+  deploys from `main` only; `.env` files are local-only/gitignored, never
+  committed; a stack quick-reference (Sepolia + Alchemy RPC limits, the
+  two independent contracts, etc.); and 5 conflict-avoidance practices
+  (merge small & often, sync `main` into your branch before starting work
+  each session, split work by area, check the other person's recent
+  commits before touching a shared "hot" file, and — important caveat —
+  two different people's Claude Code sessions can't coordinate with each
+  other automatically across accounts, so a quick human heads-up is still
+  the most reliable way to avoid collisions).
+- **Message to forward to Vincenzo to get him set up** (also good context
+  for his Claude Code session's first prompt):
+
+  > Ciao! Ecco come iniziare sul repo Humfiverse:
+  > 1. `git clone https://github.com/cesaremarzo/Humfiverse.git`
+  > 2. `git checkout -b dev/vincenzo` (parti da `main`)
+  > 3. Apri il progetto in Claude Code — leggerà automaticamente
+  >    `CLAUDE.md` (regole del repo) e `SESSION_LOG.md` (contesto di
+  >    quello che è stato fatto finora, questa voce compresa).
+  > 4. Copia `server/.env.example` → `server/.env` e
+  >    `contracts/.env.example` → `contracts/.env`, poi compilali con le
+  >    tue chiavi/valori (chiedimeli se ti servono quelli condivisi, tipo
+  >    l'RPC — **non committare mai questi due file**, sono già in
+  >    `.gitignore`).
+  > 5. Lavora sempre su `dev/vincenzo`, mai direttamente su `main`. Quando
+  >    hai qualcosa di pronto, apri una PR verso `main` (`gh pr create`)
+  >    invece di pushare direttamente.
+  > 6. Prima di iniziare a lavorare ogni volta, sincronizza `main` nel tuo
+  >    branch (`git fetch && git merge origin/main`) così eventuali
+  >    conflitti li vedi subito, non a sorpresa dentro una PR.
+  > 7. Se stai per toccare un file "caldo" condiviso (`server/server.js`,
+  >    `server/chain.js`, roba sotto `webapp/src/app/core/`), dammi un
+  >    'ping' prima — le nostre due sessioni Claude non si parlano tra
+  >    loro automaticamente, quindi resta il modo più affidabile per non
+  >    pestarci i piedi.
+
+- No code/functional changes this session — purely workflow/onboarding
+  setup, on `dev/cesare` (commit `6b0a414`, not yet merged to `main`).

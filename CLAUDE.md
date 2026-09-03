@@ -29,6 +29,25 @@ who's driving:
   mid-change on (check recent commits on their branch with
   `git log origin/dev/<name>`), say so before diving in.
 
+**Conflict-avoidance practices (both of us, both sessions):**
+1. Merge small and often — don't let your branch and `main` drift apart
+   for a whole week; the longer they diverge the bigger the conflict.
+2. Sync `main` into your branch *before* starting new work each session
+   (`git fetch && git merge origin/main`), not only right before opening
+   a PR — so conflicts surface early, in your own branch, not mid-PR.
+3. Split work by area when possible (e.g. one person on backend/contracts,
+   the other on frontend, or by feature) so both people rarely touch the
+   same files in the same window.
+4. Before editing a "hot" shared file (`server/server.js`, `server/chain.js`,
+   `webapp/src/app/core/*`), check the other person's recent commits on
+   their `dev/<name>` branch first (rule above) — don't just assume it's
+   untouched.
+5. Claude Code sessions can't coordinate with each other across two
+   different people's accounts — there's no automatic "the other Claude is
+   working on X" signal. A quick human message ("sto toccando Portfolio")
+   is still the most reliable way to avoid two people editing the same
+   thing at once.
+
 ## Render deploy
 
 `humfiverse-api` on Render deploys from whatever branch its dashboard is
