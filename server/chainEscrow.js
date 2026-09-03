@@ -16,7 +16,15 @@ const { withRetry } = require("./chainRetry");
 const RPC_URL = process.env.CHAIN_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com";
 const ESCROW_ADDRESS = process.env.CHAIN_ESCROW_ADDRESS || "0x3Bac66168748798ec174BDEd855376c4e7012Dba";
 const ESCROW_DEPLOY_BLOCK = Number(process.env.CHAIN_ESCROW_DEPLOY_BLOCK || 11612769);
-const EVENT_QUERY_CHUNK = 9000; // public RPCs cap eth_getLogs at ~10,000 blocks
+// §2.39: Alchemy's free tier caps eth_getLogs at a 10-block range per call,
+// and the public-RPC default this project used before that started
+// silently returning *incomplete* results for a full-history scan instead
+// of erroring. 9 keeps every chunk's span (to - from + 1) at 10.
+const EVENT_QUERY_CHUNK = 9;
+// Bounded "recent activity" window, mirroring chain.js's RECENT_SCAN_BLOCKS
+// (§2.39) — catches a brand-new campaign not yet in the local table without
+// re-scanning full history, which would be 1,000+ eth_getLogs calls.
+const RECENT_SCAN_BLOCKS = 500;
 const CHAIN_ID = 11155111; // Sepolia
 const EXPLORER_BASE = "https://sepolia.etherscan.io";
 
@@ -162,25 +170,27 @@ async function getCampaignInfoByAssetId(assetId) {
   return getCampaignInfo(Number(campaignId));
 }
 
-/** Chain-native campaign enumeration for the admin panel (§2.18): there's
- * no on-chain "list all campaigns" view, so this reads every
- * CampaignCreated event instead of relying on the local table — the local
- * table is only ever a cache of this, and doesn't survive a redeploy on
- * the current hosting plan. Returns null on an RPC error so callers can
- * fall back to the local table. */
-async function listCampaignAssetIdsFromChain() {
+/** A *recent-activity* scan only (§2.39) — same rationale as chain.js's
+ * listRecentlyMintedSlugsFromChain: a full-history scan from
+ * ESCROW_DEPLOY_BLOCK is impractical under any free-tier RPC's block-range
+ * cap. Callers should treat the local escrow_campaigns table as the primary
+ * source and merge this in only to catch a brand-new campaign not yet
+ * cached. Returns null on an RPC error so callers can fall back to the
+ * local table entirely. */
+async function listRecentlyCreatedCampaignAssetIdsFromChain() {
   try {
     const latest = await provider.getBlockNumber();
+    const from = Math.max(ESCROW_DEPLOY_BLOCK, latest - RECENT_SCAN_BLOCKS);
     const filter = readContract.filters.CampaignCreated();
     const events = [];
-    for (let from = ESCROW_DEPLOY_BLOCK; from <= latest; from += EVENT_QUERY_CHUNK + 1) {
-      const to = Math.min(from + EVENT_QUERY_CHUNK, latest);
-      const chunk = await withRetry(() => readContract.queryFilter(filter, from, to));
+    for (let f = from; f <= latest; f += EVENT_QUERY_CHUNK + 1) {
+      const to = Math.min(f + EVENT_QUERY_CHUNK, latest);
+      const chunk = await withRetry(() => readContract.queryFilter(filter, f, to));
       events.push(...chunk);
     }
-    return events.map((e) => e.args.assetId);
+    return events.map((e) => ({ campaignId: Number(e.args.campaignId), assetId: e.args.assetId, txHash: e.transactionHash }));
   } catch (err) {
-    console.warn("Could not read CampaignCreated events from chain.", err.message || err);
+    console.warn("Could not read recent CampaignCreated events from chain.", err.message || err);
     return null;
   }
 }
@@ -193,7 +203,7 @@ module.exports = {
   createCampaignOnchain,
   getCampaignInfo,
   getCampaignInfoByAssetId,
-  listCampaignAssetIdsFromChain,
+  listRecentlyCreatedCampaignAssetIdsFromChain,
   ESCROW_ADDRESS,
   EXPLORER_BASE
 };

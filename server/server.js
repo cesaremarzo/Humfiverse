@@ -310,7 +310,7 @@ async function getOnchainRecord(assetId) {
 async function getOnchainRecordWithFallback(assetId) {
   let record = await getOnchainRecord(assetId);
   if (record) return record;
-  const fromChain = await chain.listMintedSlugsFromChain();
+  const fromChain = await chain.listRecentlyMintedSlugsFromChain();
   const match = fromChain && fromChain.find((m) => m.slug === assetId);
   if (!match) return null;
   const mintedAt = new Date().toISOString();
@@ -600,25 +600,38 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === "GET" && url.pathname === "/api/onchain/list") {
-    // Chain-native listing check (technical-architecture.md §2.14): try
-    // the contract's own event log first — the real source of truth —
-    // and only fall back to the local table mirror if that read fails.
-    const fromChain = await chain.listMintedSlugsFromChain();
-    if (fromChain) {
-      sendJson(res, 200, { source: "chain", assetIds: fromChain.map((m) => m.slug) });
-      return;
-    }
+    // §2.39: the local table is now the primary source, not a fallback —
+    // full-history event scanning turned out to be impractical on any
+    // free-tier RPC (10-block eth_getLogs caps), and a public RPC that
+    // silently returns an *incomplete* result for a too-large range
+    // (rather than erroring) used to make this route wrongly report
+    // "nothing minted" even though the local cache knew better. A bounded
+    // recent-blocks scan still runs to catch a brand-new mint that isn't
+    // cached yet, merged in and self-healed into the table — but a scan
+    // failure or gap can no longer make an already-known asset vanish.
     const rows = await db.prepare("SELECT asset_id FROM onchain_tokens").all();
-    sendJson(res, 200, { source: "local-table", assetIds: rows.map((r) => r.asset_id) });
+    const known = new Set(rows.map((r) => r.asset_id));
+    const recent = await chain.listRecentlyMintedSlugsFromChain();
+    if (recent) {
+      for (const m of recent) {
+        if (known.has(m.slug)) continue;
+        known.add(m.slug);
+        try {
+          await db.prepare(
+            "INSERT OR IGNORE INTO onchain_tokens (token_id, asset_id, slug, supply, tx_hash, minted_at) VALUES (?, ?, ?, ?, ?, ?)"
+          ).run(m.tokenId, m.slug, m.slug, Number(m.supply), m.txHash, new Date().toISOString());
+        } catch { /* best-effort cache re-seed */ }
+      }
+    }
+    sendJson(res, 200, { source: recent ? "local-table+recent-scan" : "local-table", assetIds: [...known] });
     return;
   }
 
-  // §2.37 — real holdings for a wallet, replacing the fictional
+  // §2.37/§2.39 — real holdings for a wallet, replacing the fictional
   // Portfolio.holdings mock data (which was never tied to any actual
-  // wallet at all). Scans every minted token's balanceOf for this
-  // address directly — small, cheap set for a testnet contract this
-  // young; would need indexing to scale, same caveat as
-  // listMintedSlugsFromChain already carries.
+  // wallet at all). Reads known token ids from the local table (not
+  // eth_getLogs) and does a balanceOf per token — small, cheap set for a
+  // testnet contract this young; would need indexing to scale.
   const portfolioMatch = url.pathname.match(/^\/api\/portfolio\/([^/]+)$/);
   if (req.method === "GET" && portfolioMatch) {
     try {
@@ -631,14 +644,22 @@ const server = http.createServer(async (req, res) => {
         sendJson(res, 400, { error: "not a valid wallet address" });
         return;
       }
-      const minted = await chain.listMintedSlugsFromChain();
-      if (!minted) { sendJson(res, 502, { error: "could not read minted tokens from chain" }); return; }
+      // §2.39: the known token ids come from the local table, not a live
+      // eth_getLogs scan — a full-history scan is impractical under any
+      // free-tier RPC's block-range cap, and balanceOf/poolBalance are
+      // plain state reads, not subject to that cap at all. This avoids
+      // eth_getLogs entirely for this route.
+      const rows = await db.prepare("SELECT token_id, asset_id FROM onchain_tokens").all();
       const withBalances = await Promise.all(
-        minted.map(async (m) => ({ ...m, tokens: await chain.getBalance(m.tokenId, wallet) }))
+        rows.map(async (r) => {
+          const [tokens, info] = await Promise.all([
+            chain.getBalance(r.token_id, wallet),
+            chain.getPoolInfo(r.token_id)
+          ]);
+          return { assetId: r.asset_id, tokenId: r.token_id, tokens, priceWei: info.priceWei, title: info.onchainTitle, artist: info.onchainArtist };
+        })
       );
-      const holdings = withBalances
-        .filter((m) => m.tokens > 0)
-        .map((m) => ({ assetId: m.slug, tokenId: m.tokenId, tokens: m.tokens, priceWei: m.priceWei, title: m.title, artist: m.artist }));
+      const holdings = withBalances.filter((m) => m.tokens > 0);
       sendJson(res, 200, { holdings });
     } catch (e) {
       sendJson(res, 502, { error: "could not read portfolio", detail: String(e.message || e) });
@@ -775,10 +796,18 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === "GET" && url.pathname === "/api/escrow/campaigns") {
     try {
-      const fromChain = await escrow.listCampaignAssetIdsFromChain();
-      const assetIds = fromChain || (await db.prepare("SELECT asset_id FROM escrow_campaigns ORDER BY campaign_id").all()).map((r) => r.asset_id);
+      // §2.39: local table is the primary source (see /api/onchain/list for
+      // the same pattern applied to catalogue tokens) — a recent-blocks
+      // scan only supplements it with campaigns not cached yet.
+      const localRows = await db.prepare("SELECT asset_id FROM escrow_campaigns ORDER BY campaign_id").all();
+      const assetIds = new Set(localRows.map((r) => r.asset_id));
+      const recent = await escrow.listRecentlyCreatedCampaignAssetIdsFromChain();
+      if (recent) {
+        for (const c of recent) assetIds.add(c.assetId);
+      }
+      const assetIdList = [...assetIds];
       const infos = await Promise.all(
-        assetIds.map((assetId) => escrow.getCampaignInfoByAssetId(assetId).then((info) => info && { escrow: true, assetId, ...info }))
+        assetIdList.map((assetId) => escrow.getCampaignInfoByAssetId(assetId).then((info) => info && { escrow: true, assetId, ...info }))
       );
       sendJson(res, 200, { campaigns: infos.filter(Boolean) });
     } catch (e) {

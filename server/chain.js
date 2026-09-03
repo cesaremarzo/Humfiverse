@@ -24,7 +24,19 @@ const CONTRACT_ADDRESS = process.env.CHAIN_CONTRACT_ADDRESS || "0x51090e5767F67a
 // of block 0 keeps each eth_getLogs call well under public RPCs' ~10,000-
 // block range limit even as the chain grows. Update after any redeploy.
 const CONTRACT_DEPLOY_BLOCK = Number(process.env.CHAIN_CONTRACT_DEPLOY_BLOCK || 11612893);
-const EVENT_QUERY_CHUNK = 9000;
+// Alchemy's free tier caps eth_getLogs at a 10-block range per call (found
+// the hard way — the public-RPC default this project used before §2.39
+// silently returned *incomplete* results instead of erroring, which is
+// worse). 9 keeps every chunk's span (to - from + 1) at 10.
+const EVENT_QUERY_CHUNK = 9;
+// How far back from the current block a "recent activity" scan looks —
+// used to catch a brand-new mint that isn't in the local cache yet,
+// without re-scanning the contract's entire history (§2.39): at 10 blocks
+// per request that would be well over a thousand calls on a contract this
+// old, impractical on any free-tier RPC. The local onchain_tokens table,
+// self-healed per asset since §2.18/§2.20, remains the primary source for
+// anything older than this window.
+const RECENT_SCAN_BLOCKS = 500;
 const CHAIN_ID = 11155111; // Sepolia
 const EXPLORER_BASE = "https://sepolia.etherscan.io";
 
@@ -92,21 +104,23 @@ async function isTokenIdFree(tokenId) {
   return supply === 0n;
 }
 
-/** The genuinely chain-native listing check (planning doc §2.14): rather
- * than trusting the local onchain_tokens table, read every CatalogueMinted
- * event straight off the contract. Cheap for a testnet contract this young
- * — if this ever needs to scale, cache the result and/or start the query
- * from the deployment block instead of "earliest". Falls back to null on
- * an RPC error so callers can fall back to the local table, matching this
- * backend's usual graceful-degradation pattern. */
-async function listMintedSlugsFromChain() {
+/** A *recent-activity* scan only (§2.39) — deliberately not "from deploy
+ * block", which used to mean 1000+ eth_getLogs calls at a free-tier RPC's
+ * 10-block cap, impractical regardless of provider. Callers are expected
+ * to merge this with the local onchain_tokens table (the real source for
+ * anything older than `RECENT_SCAN_BLOCKS`), not treat it as the full
+ * picture on its own. Falls back to null on an RPC error so callers can
+ * fall back to the local table entirely, matching this backend's usual
+ * graceful-degradation pattern. */
+async function listRecentlyMintedSlugsFromChain() {
   try {
     const latest = await provider.getBlockNumber();
+    const from = Math.max(CONTRACT_DEPLOY_BLOCK, latest - RECENT_SCAN_BLOCKS);
     const filter = readContract.filters.CatalogueMinted();
     const events = [];
-    for (let from = CONTRACT_DEPLOY_BLOCK; from <= latest; from += EVENT_QUERY_CHUNK + 1) {
-      const to = Math.min(from + EVENT_QUERY_CHUNK, latest);
-      const chunk = await withRetry(() => readContract.queryFilter(filter, from, to));
+    for (let f = from; f <= latest; f += EVENT_QUERY_CHUNK + 1) {
+      const t = Math.min(f + EVENT_QUERY_CHUNK, latest);
+      const chunk = await withRetry(() => readContract.queryFilter(filter, f, t));
       events.push(...chunk);
     }
     return events.map((e) => ({
@@ -120,7 +134,7 @@ async function listMintedSlugsFromChain() {
       blockNumber: e.blockNumber
     }));
   } catch (err) {
-    console.warn("Could not read CatalogueMinted events from chain.", err.message || err);
+    console.warn("Could not read recent CatalogueMinted events from chain.", err.message || err);
     return null;
   }
 }
@@ -171,7 +185,7 @@ module.exports = {
   mintCatalogueOnchain,
   releaseFromPoolOnchain,
   isTokenIdFree,
-  listMintedSlugsFromChain,
+  listRecentlyMintedSlugsFromChain,
   CONTRACT_ADDRESS,
   EXPLORER_BASE
 };
