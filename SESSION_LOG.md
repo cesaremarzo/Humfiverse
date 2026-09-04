@@ -190,3 +190,82 @@ the same conventions automatically:
 
 - No code/functional changes this session — purely workflow/onboarding
   setup, on `dev/cesare` (commit `6b0a414`, not yet merged to `main`).
+
+---
+
+## 2026-09-04 — Netlify preview deploys working, marketplace funding-bar bug fixed
+
+Continuation of the collaborator-onboarding session above, same day. The
+`CLAUDE.md`/branch-workflow PR (#1) got merged to `main`. Then set up and
+debugged real Netlify deploys, and fixed a real on-chain-data bug the
+user found on the live site.
+
+**Netlify — three real, sequential build failures found and fixed** (each
+caught from an actual Netlify build log the user pasted, not guessed):
+1. **404 on every page load despite a successful deploy**: `docs/index.html`
+   (built for GitHub Pages) has `base href="/Humfiverse/"` — GitHub Pages
+   serves this repo from that subpath, but Netlify serves from the domain
+   root, so every JS/CSS asset request 404'd. Fixed by adding
+   `netlify.toml` that builds the app fresh on Netlify with
+   `--base-href=/` instead of relying on the GitHub-Pages-flavored
+   committed `docs/`.
+2. **`npm warn EBADENGINE`** — Angular 22's toolchain needs Node
+   `^22.22.3 || ^24.15.0 || >=26.0.0`; the pinned `NODE_VERSION=22.12.0`
+   was below that. Fixed by pinning only the major (`NODE_VERSION=22`),
+   so Netlify always resolves the latest 22.x patch.
+3. **Build silently hung** right after printing the build command, no
+   error: the Angular CLI's first-run "share anonymous usage data?"
+   prompt blocks on stdin on a non-interactive CI runner. Fixed with
+   `NG_CLI_ANALYTICS=false` in `netlify.toml`'s build environment — and
+   additionally, a local `ng build` run with that env var wrote
+   `cli.analytics: false` into `webapp/angular.json`, which disables the
+   prompt permanently for everyone, everywhere (not just Netlify), so
+   this shouldn't recur even in a brand new clone.
+- `netlify.toml` (repo root): `command = "cd webapp && npm ci && npx ng
+  build --base-href=/"`, `publish = "docs"`, plus the env vars above and
+  an SPA-fallback redirect (belt-and-suspenders; the app's hash-based
+  routing shouldn't normally need it).
+- **Still to verify next session**: confirm a Netlify deploy actually
+  succeeds end-to-end with all three fixes in place (was mid-troubleshoot
+  when the session ended), and confirm branch-deploy previews for
+  `dev/cesare`/`dev/vincenzo` are enabled in the Netlify dashboard (a
+  manual dashboard setting, not something committed in code) so both
+  collaborators get separate live preview URLs.
+
+**Real bug found and fixed: marketplace card funding bar never moved
+after a real purchase.** The user reported Guns' progress bar not
+advancing despite real tokens sold, live on the site. Root cause: the
+marketplace's `AssetCardComponent` computed its % from
+`a.tokensSold`/`a.tokensTotal` — static mock fields that never update —
+while the asset-detail page had its own, separate, correct calculation
+reading real on-chain pool balance / escrow raised amounts. Fixed by
+extracting that calculation into `webapp/src/app/core/onchain-progress.util.ts`
+(`remainingFor`/`fundingPctFor`/`tokensSoldFor`/`fundingRaisedFor`),
+refactoring asset-detail to use it (removing the duplicated logic), and
+wiring the marketplace cards to the same functions via two new
+`StoreService` signals (`onchainInfoMap`, `escrowInfoMap`) populated once
+per chain-verified asset during `hydrateFromBackend()`.
+- The user also asked why, without a wallet connected, the marketplace
+  showed all 6 mock tracks instead of the 2 real ones — traced this to
+  **not** be wallet-related at all (marketplace filtering has no wallet
+  dependency); confirmed via direct `curl` that the backend now correctly
+  returns the 2 real assets (`guns-448`, `black-sail-739`) — this was
+  very likely the tail end of the `/api/onchain/list` bug fixed earlier
+  the same day (see the "local table as primary source" entry above), or
+  a Render free-tier cold-start hiccup. Told the user to hard-refresh and
+  retest; **worth confirming next session that it's actually resolved on
+  their end**, not just from this session's own `curl` check.
+
+**Workflow note**: several of this session's fixes (the three Netlify
+fixes, the funding-bar fix) were pushed and merged directly to `main`
+without going through a PR, at the user's explicit request each time
+("fai direttamente merge senza pull request") — a deliberate, faster
+path for quick infra/bug fixes, not a reversal of the PR-based workflow
+`CLAUDE.md` documents for normal feature work. Worth keeping in mind:
+default to the PR workflow unless the user explicitly asks to skip it
+again.
+
+All changes are on `main` (and mirrored onto `dev/cesare`), commits
+`b73f26c` → `fef2a31` (see `git log` for the full list — netlify.toml
+added/fixed across `b73f26c`, `1c3f69e`, `a2fd463`; funding-bar fix in
+`fef2a31`).
