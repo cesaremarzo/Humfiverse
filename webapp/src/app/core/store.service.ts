@@ -41,6 +41,15 @@ export class StoreService {
    * to this set once it resolves, so an asset only ever appears once it
    * genuinely exists on the testnet. */
   readonly onchainAssetIds = signal<Set<string> | null>(null);
+  /** True until the first `/api/onchain/list` call settles (success or
+   * failure) — §2.41. `onchainAssetIds` starting at `null` is meant to
+   * distinguish "still loading" from "genuinely unreachable" for callers
+   * that want the mock-catalogue fallback in the unreachable case, but on
+   * every normal page load it's briefly null too, before the very first
+   * request resolves — without this flag, the marketplace showed the full
+   * 6-track mock catalogue for that ~1s window before snapping to the 2
+   * real assets, a visible flash of wrong content the user caught live. */
+  readonly onchainListLoading = signal(true);
 
   /** Per-asset real pool/escrow state, keyed by assetId (§2.40) — used by
    * both the asset-detail page and the marketplace listing cards so a
@@ -161,6 +170,8 @@ export class StoreService {
     } catch (err) {
       console.warn('Could not load the on-chain listing check — showing the full catalogue unfiltered.', err);
       this.onchainAssetIds.set(null);
+    } finally {
+      this.onchainListLoading.set(false);
     }
     // §2.40: pull each chain-verified asset's real pool/escrow state once,
     // so marketplace cards can show a real, moving funding bar instead of

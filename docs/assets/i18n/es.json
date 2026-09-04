@@ -22,6 +22,7 @@
   "marketplace.kicker": "Mercado",
   "marketplace.title": "Participaciones fraccionadas de royalties, verificadas antes de cotizar",
   "marketplace.subtitle": "Explora catálogos tokenizados con historial de streaming certificado, o financia una pista inacabada antes de producirla. Cada listado revela por adelantado su exposición a contenido AI y el estado de la diligencia debida.",
+  "marketplace.loading": "Comprobando los catálogos en la blockchain…",
   "marketplace.filterAll": "Todos ({{n}})",
   "marketplace.filterCatalogues": "Catálogos",
   "marketplace.filterPreproduction": "Preproducción",

@@ -22,6 +22,7 @@
   "marketplace.kicker": "Маркетплейс",
   "marketplace.title": "Дробные доли роялти, проверенные перед листингом",
   "marketplace.subtitle": "Просматривайте токенизированные каталоги с подтверждённой историей стриминга или финансируйте ещё не выпущенный трек до его создания. В каждом листинге заранее раскрывается доля ИИ-контента и статус due diligence.",
+  "marketplace.loading": "Проверка каталогов в блокчейне…",
   "marketplace.filterAll": "Все ({{n}})",
   "marketplace.filterCatalogues": "Каталоги",
   "marketplace.filterPreproduction": "Препродакшн",

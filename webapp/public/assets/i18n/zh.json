@@ -22,6 +22,7 @@
   "marketplace.kicker": "市场",
   "marketplace.title": "上架前经过验证的碎片化版税份额",
   "marketplace.subtitle": "浏览已有流媒体收听记录的代币化曲库，或为尚未制作完成的曲目提供资金。每个项目都会预先披露其 AI 内容占比与尽职调查状态。",
+  "marketplace.loading": "正在区块链上验证目录……",
   "marketplace.filterAll": "全部（{{n}}）",
   "marketplace.filterCatalogues": "曲库",
   "marketplace.filterPreproduction": "制作前",

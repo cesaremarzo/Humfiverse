@@ -22,6 +22,7 @@
   "marketplace.kicker": "マーケットプレイス",
   "marketplace.title": "上場前に検証済みの分割ロイヤリティ持分",
   "marketplace.subtitle": "報告済みのストリーミング実績があるトークン化カタログを閲覧するか、まだ完成していないトラックの制作資金を提供できます。各リスティングにはAIコンテンツの関与度とデューデリジェンスの状況が事前に開示されています。",
+  "marketplace.loading": "ブロックチェーンでカタログを確認しています…",
   "marketplace.filterAll": "すべて（{{n}}）",
   "marketplace.filterCatalogues": "カタログ",
   "marketplace.filterPreproduction": "制作前",

@@ -37,7 +37,14 @@ export class MarketplaceComponent {
     return list;
   });
 
-  totalCount = computed(() => this.chainVerifiedAssets().length);
+  /** §2.41 — while the first on-chain listing check is still in flight,
+   * show a loading state instead of the mock-catalogue fallback (which is
+   * meant for a genuinely unreachable backend, not this normal ~1s window
+   * on every page load) to avoid a flash of the wrong 6 tracks — and the
+   * wrong "All (6)" filter-button count — before the real 2 snap in. */
+  loading = computed(() => this.store.onchainListLoading());
+
+  totalCount = computed(() => (this.loading() ? 0 : this.chainVerifiedAssets().length));
 
   constructor(public store: StoreService) {}
 

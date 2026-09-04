@@ -18,7 +18,9 @@
   </div>
 </div>
 
-@if (list().length) {
+@if (loading()) {
+  <p class="prose">{{ 'marketplace.loading' | translate }}</p>
+} @else if (list().length) {
   <div class="grid">
     @for (a of list(); track a.id) {
       <app-asset-card [asset]="a"></app-asset-card>

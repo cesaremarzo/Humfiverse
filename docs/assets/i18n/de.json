@@ -22,6 +22,7 @@
   "marketplace.kicker": "Marktplatz",
   "marketplace.title": "Fraktionierte Tantiemenanteile, vor der Notierung geprüft",
   "marketplace.subtitle": "Durchsuchen Sie tokenisierte Kataloge mit dokumentierter Streaming-Historie oder finanzieren Sie einen unfertigen Titel vor der Produktion. Jedes Listing legt Exposure gegenüber KI-Inhalten und Prüfstatus offen.",
+  "marketplace.loading": "Kataloge werden auf der Blockchain überprüft…",
   "marketplace.filterAll": "Alle ({{n}})",
   "marketplace.filterCatalogues": "Kataloge",
   "marketplace.filterPreproduction": "Vorproduktion",

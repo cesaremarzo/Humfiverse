@@ -22,6 +22,7 @@
   "marketplace.kicker": "Marketplace",
   "marketplace.title": "Quote frazionate di royalty, verificate prima della quotazione",
   "marketplace.subtitle": "Sfoglia cataloghi tokenizzati con storico streaming certificato, oppure finanzia un brano non ancora prodotto. Ogni listing dichiara subito la propria esposizione ai contenuti AI e lo stato della due diligence.",
+  "marketplace.loading": "Verifica dei cataloghi sulla blockchain…",
   "marketplace.filterAll": "Tutti ({{n}})",
   "marketplace.filterCatalogues": "Cataloghi",
   "marketplace.filterPreproduction": "Pre-produzione",

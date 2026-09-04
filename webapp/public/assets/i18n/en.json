@@ -22,6 +22,7 @@
   "marketplace.kicker": "Marketplace",
   "marketplace.title": "Fractional royalty shares, verified before they’re listed",
   "marketplace.subtitle": "Browse tokenized catalogues with reported streaming history, or finance an unfinished track before it’s produced. Each listing discloses its AI-content exposure and diligence status up front.",
+  "marketplace.loading": "Checking the blockchain for verified catalogues…",
   "marketplace.filterAll": "All ({{n}})",
   "marketplace.filterCatalogues": "Catalogues",
   "marketplace.filterPreproduction": "Pre-production",

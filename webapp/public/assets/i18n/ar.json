@@ -22,6 +22,7 @@
   "marketplace.kicker": "السوق",
   "marketplace.title": "حصص إتاوات مجزّأة، تم التحقق منها قبل الإدراج",
   "marketplace.subtitle": "تصفّح كتالوجات مُرمَّزة ذات سجل بث موثّق، أو موّل تسجيلًا لم يُنجز بعد قبل إنتاجه. يكشف كل عرض عن نسبة محتوى الذكاء الاصطناعي وحالة الفحص النافي للجهالة منذ البداية.",
+  "marketplace.loading": "جارٍ التحقق من الكتالوجات على البلوكتشين…",
   "marketplace.filterAll": "الكل ({{n}})",
   "marketplace.filterCatalogues": "الكتالوجات",
   "marketplace.filterPreproduction": "ما قبل الإنتاج",
