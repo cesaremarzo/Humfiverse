@@ -74,12 +74,29 @@ describe("HumfiverseCatalogueToken", function () {
     await expect(token.releaseFromPool(buyer.address, MIDNIGHT_STATIC_ID, 40)).to.not.be.reverted;
   });
 
-  it("only the owner can release from the pool", async function () {
+  it("only the owner or the linked escrow contract can release from the pool", async function () {
     const { token, buyer, other } = await deployFixture();
     await token.mintCatalogue(MIDNIGHT_STATIC_ID, "midnight-static", MIDNIGHT_STATIC_SUPPLY, PRICE_PER_TOKEN, "Test Track", "Test Artist");
     await expect(
       token.connect(other).releaseFromPool(buyer.address, MIDNIGHT_STATIC_ID, 10)
-    ).to.be.revertedWithCustomError(token, "OwnableUnauthorizedAccount");
+    ).to.be.revertedWith("HumfiverseCatalogueToken: not authorized");
+  });
+
+  it("lets the owner authorize an escrow contract, which can then release from the pool too", async function () {
+    const { token, owner, buyer, other } = await deployFixture();
+    await token.mintCatalogue(MIDNIGHT_STATIC_ID, "midnight-static", MIDNIGHT_STATIC_SUPPLY, PRICE_PER_TOKEN, "Test Track", "Test Artist");
+
+    await expect(token.connect(other).setEscrowContract(other.address)).to.be.revertedWithCustomError(
+      token,
+      "OwnableUnauthorizedAccount"
+    );
+
+    await expect(token.setEscrowContract(other.address)).to.emit(token, "EscrowContractUpdated").withArgs(ethers.ZeroAddress, other.address);
+    await expect(token.connect(other).releaseFromPool(buyer.address, MIDNIGHT_STATIC_ID, 10)).to.not.be.reverted;
+    expect(await token.releasedOf(MIDNIGHT_STATIC_ID)).to.equal(10);
+
+    // the owner itself is unaffected by whatever the escrow address is set to
+    await expect(token.connect(owner).releaseFromPool(buyer.address, MIDNIGHT_STATIC_ID, 5)).to.not.be.reverted;
   });
 
   it("supports minting and releasing multiple independent catalogues", async function () {

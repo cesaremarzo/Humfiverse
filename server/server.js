@@ -74,14 +74,6 @@ async function initSchema() {
       tx_hash TEXT,
       minted_at TEXT
     );
-    CREATE TABLE IF NOT EXISTS onchain_releases (
-      contribution_tx_hash TEXT PRIMARY KEY,
-      asset_id TEXT NOT NULL,
-      contributor TEXT NOT NULL,
-      qty INTEGER NOT NULL,
-      release_tx_hash TEXT,
-      created_at TEXT
-    );
     CREATE TABLE IF NOT EXISTS escrow_campaigns (
       campaign_id INTEGER PRIMARY KEY,
       asset_id TEXT UNIQUE NOT NULL,
@@ -303,10 +295,10 @@ async function getOnchainRecord(assetId) {
  * here doesn't mean the token doesn't exist, only that this cache doesn't
  * know about it yet (e.g. after a redeploy wiped it, §2.18). Falls back to
  * scanning the chain's own event log and re-seeds the cache so subsequent
- * lookups are fast again. Shared by GET /api/onchain/:assetId and
- * releaseForContribution (§2.34) — both used to only check the local
- * table directly, which meant a cold cache could wrongly report "no
- * token" for an asset that's actually minted. */
+ * lookups are fast again. Used by GET /api/onchain/:assetId and
+ * createEscrowCampaign — both used to only check the local table
+ * directly, which meant a cold cache could wrongly report "no token" for
+ * an asset that's actually minted. */
 async function getOnchainRecordWithFallback(assetId) {
   let record = await getOnchainRecord(assetId);
   if (record) return record;
@@ -345,63 +337,6 @@ async function mintAssetOnchain(assetId, slug, supply, priceWei, title, artist) 
   return result;
 }
 
-/** §2.34 — HumfiverseMilestoneEscrow.contribute() never touches
- * HumfiverseCatalogueToken on its own (they're independent contracts), so
- * a real preproduction contribution never moved the token pool the way a
- * real catalogue buy() does — the pool sat frozen at its minted value
- * forever for preproduction assets. This releases the contributor's
- * matching share of tokens from that same pool right after a contribution,
- * verified against the contribution's own on-chain event rather than
- * trusting whatever a client claims — a caller can't just POST an
- * arbitrary amount and get free tokens released.
- *
- * Known limitation, accepted rather than solved here: if a campaign is
- * later cancelled and refunded, this doesn't claw back tokens already
- * released for that contribution — the contributor could end up with both
- * a partial refund and the tokens. Flagged, not fixed; see
- * planning/technical-architecture.md §2.34. */
-async function releaseForContribution(assetId, contributionTxHash) {
-  const already = await db.prepare("SELECT * FROM onchain_releases WHERE contribution_tx_hash = ?").get(contributionTxHash);
-  if (already) {
-    // Must also match assetId — otherwise a request for the wrong asset
-    // against a tx that was legitimately processed for a *different*
-    // asset would incorrectly short-circuit to that other asset's result
-    // instead of being rejected as a mismatch (a real bug caught while
-    // testing this very endpoint).
-    if (already.asset_id !== assetId) {
-      throw Object.assign(new Error("this transaction's campaign does not match assetId"), { code: "campaign_mismatch" });
-    }
-    return { released: already.qty > 0, qty: already.qty, releaseTxHash: already.release_tx_hash, alreadyProcessed: true };
-  }
-
-  const contribution = await escrow.getContributionFromTx(contributionTxHash);
-  if (!contribution) throw Object.assign(new Error("no Contributed event found on that transaction"), { code: "not_a_contribution" });
-
-  const campaignInfo = await escrow.getCampaignInfoByAssetId(assetId);
-  if (!campaignInfo || campaignInfo.campaignId !== contribution.campaignId) {
-    throw Object.assign(new Error("this transaction's campaign does not match assetId"), { code: "campaign_mismatch" });
-  }
-
-  const onchainRecord = await getOnchainRecordWithFallback(assetId);
-  if (!onchainRecord) throw Object.assign(new Error("asset has no on-chain token to release from"), { code: "no_token" });
-
-  const poolInfo = await chain.getPoolInfo(onchainRecord.token_id);
-  const priceWei = BigInt(poolInfo.priceWei);
-  const qty = priceWei > 0n ? Number(BigInt(contribution.amountWei) / priceWei) : 0;
-
-  let releaseTxHash = null;
-  if (qty > 0) {
-    const result = await chain.releaseFromPoolOnchain(onchainRecord.token_id, contribution.contributor, qty);
-    releaseTxHash = result.txHash;
-  }
-
-  await db.prepare(
-    "INSERT INTO onchain_releases (contribution_tx_hash, asset_id, contributor, qty, release_tx_hash, created_at) VALUES (?, ?, ?, ?, ?, ?)"
-  ).run(contributionTxHash, assetId, contribution.contributor, qty, releaseTxHash, new Date().toISOString());
-
-  return { released: qty > 0, qty, releaseTxHash };
-}
-
 /** Creates the on-chain milestone escrow campaign for a preproduction asset:
  * registers the studio (if not already registered — keyed by wallet
  * address, since there's no studio-picker UI yet, only a name+wallet field
@@ -414,6 +349,14 @@ async function releaseForContribution(assetId, contributionTxHash) {
 async function createEscrowCampaign(assetId, artistAddress, fundingGoalWei, studioName, studioWallet, milestones) {
   const existingOnchain = await escrow.getCampaignInfoByAssetId(assetId);
   if (existingOnchain) throw Object.assign(new Error("asset already has an escrow campaign"), { code: "already_created", record: existingOnchain });
+
+  // §2.42: the campaign now needs an already-minted token id at creation
+  // time — contribute() releases tokens from this same pool atomically, so
+  // the contract itself requires the token to exist before the campaign
+  // can reference it. The frontend now awaits the mint call before this
+  // one for exactly this reason (previously these two calls raced).
+  const onchainRecord = await getOnchainRecordWithFallback(assetId);
+  if (!onchainRecord) throw Object.assign(new Error("asset has no on-chain token yet — mint it before creating a campaign"), { code: "no_token" });
 
   // Matched on wallet AND name (§2.26 bugfix) — matching on wallet alone
   // silently reused whatever studio name was registered *first* for that
@@ -444,7 +387,7 @@ async function createEscrowCampaign(assetId, artistAddress, fundingGoalWei, stud
   const names = milestones.map((m) => m.name);
   const bps = milestones.map((m) => m.bps);
   const payees = milestones.map((m) => (m.payee === "studio" ? 1 : 0));
-  const created = await escrow.createCampaignOnchain(artistAddress, fundingGoalWei, studioId, 0, assetId, names, bps, payees);
+  const created = await escrow.createCampaignOnchain(artistAddress, fundingGoalWei, studioId, 0, assetId, onchainRecord.token_id, names, bps, payees);
 
   await db.prepare(
     "INSERT INTO escrow_campaigns (campaign_id, asset_id, studio_id, studio_name, studio_wallet, tx_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
@@ -551,6 +494,46 @@ const server = http.createServer(async (req, res) => {
     const result = await db.prepare("DELETE FROM assets WHERE id = ?").run(assetId);
     await db.prepare("DELETE FROM campaigns WHERE id = ?").run(assetId);
     sendJson(res, 200, { ok: true, deleted: result.changes > 0 });
+    return;
+  }
+
+  const onchainResetMatch = url.pathname.match(/^\/api\/admin\/onchain-reset\/([^/]+)$/);
+  if (req.method === "DELETE" && onchainResetMatch) {
+    // Admin-only (§2.42): clears the local onchain_tokens/escrow_campaigns
+    // cache rows for one asset so it can be re-minted against a *new*
+    // contract deploy — mintAssetOnchain/createEscrowCampaign both refuse
+    // to re-mint an assetId with an existing row, which is exactly right
+    // for normal operation but wrong immediately after a redeploy, where
+    // the row correctly describes a token that no longer exists on the
+    // contract this backend now talks to. Does not touch the old
+    // contract's on-chain state — only this backend's local cache of it.
+    if (!isAdminAuthorized(req)) {
+      sendJson(res, 401, { error: "missing or invalid X-Admin-Key header" });
+      return;
+    }
+    const assetId = decodeURIComponent(onchainResetMatch[1]);
+    const tokenResult = await db.prepare("DELETE FROM onchain_tokens WHERE asset_id = ?").run(assetId);
+    const campaignResult = await db.prepare("DELETE FROM escrow_campaigns WHERE asset_id = ?").run(assetId);
+    sendJson(res, 200, { ok: true, tokenRowDeleted: tokenResult.changes > 0, campaignRowDeleted: campaignResult.changes > 0 });
+    return;
+  }
+
+  if (req.method === "DELETE" && url.pathname === "/api/admin/escrow-studios-reset") {
+    // Admin-only (§2.42): the escrow_studios table caches wallet+name ->
+    // on-chain studioId to skip a redundant registration transaction — but
+    // that studioId is only valid against the escrow contract it was
+    // registered on. After redeploying HumfiverseMilestoneEscrow, every
+    // cached id is stale (studio ids restart from 1 on the new contract),
+    // so createEscrowCampaign would silently reuse the wrong id instead of
+    // registering fresh. Clearing the whole table is safe either way —
+    // registerStudioOnchain is just an extra tx if it turns out to be
+    // unnecessary, never incorrect.
+    if (!isAdminAuthorized(req)) {
+      sendJson(res, 401, { error: "missing or invalid X-Admin-Key header" });
+      return;
+    }
+    await db.prepare("DELETE FROM escrow_studios").run();
+    sendJson(res, 200, { ok: true });
     return;
   }
 
@@ -744,29 +727,6 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  if (req.method === "POST" && url.pathname === "/api/onchain/release-for-contribution") {
-    try {
-      const body = await readBody(req);
-      if (!body.assetId || !body.txHash) {
-        sendJson(res, 400, { error: "assetId and txHash are required" });
-        return;
-      }
-      if (!chain.mintingEnabled()) {
-        sendJson(res, 503, { error: "on-chain actions are disabled on this server (no operator key configured)" });
-        return;
-      }
-      const result = await releaseForContribution(body.assetId, body.txHash);
-      sendJson(res, 200, result);
-    } catch (e) {
-      if (e.code === "not_a_contribution" || e.code === "campaign_mismatch" || e.code === "no_token") {
-        sendJson(res, 400, { error: e.message });
-      } else {
-        sendJson(res, 502, { error: "could not release tokens for this contribution", detail: String(e.message || e) });
-      }
-    }
-    return;
-  }
-
   // --- milestone escrow (HumfiverseMilestoneEscrow.sol, §2.15) ---
 
   if (req.method === "POST" && url.pathname === "/api/escrow/campaign") {
@@ -787,6 +747,8 @@ const server = http.createServer(async (req, res) => {
     } catch (e) {
       if (e.code === "already_created") {
         sendJson(res, 409, { error: "asset already has an escrow campaign", record: e.record });
+      } else if (e.code === "no_token") {
+        sendJson(res, 400, { error: e.message });
       } else {
         sendJson(res, 502, { error: "escrow campaign creation failed", detail: String(e.message || e) });
       }
