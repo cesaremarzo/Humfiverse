@@ -91,17 +91,6 @@ export class ApiService {
     );
   }
 
-  /** Releases the contributor's matching token share from the pool right
-   * after a real preproduction contribution (§2.34) — contribute() on the
-   * escrow contract never touches the token pool on its own. Verified
-   * server-side against the contribution's own on-chain event, not this
-   * call's own claims. */
-  releaseForContribution(assetId: string, txHash: string): Promise<{ released: boolean; qty: number; releaseTxHash: string | null }> {
-    return firstValueFrom(
-      this.http.post<{ released: boolean; qty: number; releaseTxHash: string | null }>(`${this.base}/api/onchain/release-for-contribution`, { assetId, txHash })
-    );
-  }
-
   getEscrowCampaign(assetId: string): Promise<EscrowCampaignInfo> {
     return firstValueFrom(this.http.get<EscrowCampaignInfo>(`${this.base}/api/escrow/campaign/${encodeURIComponent(assetId)}`));
   }

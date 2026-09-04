@@ -10,7 +10,12 @@ module.exports = {
     version: "0.8.24",
     settings: {
       optimizer: { enabled: true, runs: 200 },
-      evmVersion: "cancun"
+      evmVersion: "cancun",
+      // createCampaign gained a tokenId parameter (§2.42, unifying
+      // catalogue/preproduction token release) and now trips the EVM's
+      // stack-depth limit under the default codegen — viaIR compiles
+      // through Yul instead, which doesn't have that limitation.
+      viaIR: true
     }
   },
   networks: {

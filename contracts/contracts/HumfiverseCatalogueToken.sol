@@ -51,11 +51,23 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
     /// @notice where primary-sale ETH proceeds go. Defaults to the deployer.
     address public payoutRecipient;
 
+    /// @notice the one other contract, besides the owner, allowed to call
+    ///         releaseFromPool — HumfiverseMilestoneEscrow, so a real
+    ///         preproduction contribution can release tokens atomically in
+    ///         the same transaction, exactly like buy() does for catalogue
+    ///         purchases, instead of needing a second, backend-signed
+    ///         transaction afterward. Owner-settable so this contract can be
+    ///         deployed first and linked to the escrow after (deploy order:
+    ///         this contract, then the escrow with this address, then
+    ///         setEscrowContract(escrowAddress)).
+    address public escrowContract;
+
     event CatalogueMinted(uint256 indexed tokenId, string slug, uint256 supply, uint256 priceWeiPerToken, string title, string artist);
     event TokensReleased(uint256 indexed tokenId, address indexed to, uint256 amount);
     event TokensPurchased(uint256 indexed tokenId, address indexed buyer, uint256 amount, uint256 paidWei);
     event PriceUpdated(uint256 indexed tokenId, uint256 previousPriceWei, uint256 newPriceWei);
     event PayoutRecipientUpdated(address indexed previous, address indexed next);
+    event EscrowContractUpdated(address indexed previous, address indexed next);
 
     /// @dev The original deploy used a placeholder `.example` domain here —
     ///      a reserved TLD (RFC 2606) that never resolves — so wallets could
@@ -77,6 +89,19 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
     ///         this exists.
     function setURI(string calldata newuri) external onlyOwner {
         _setURI(newuri);
+    }
+
+    /// @notice Owner-only: authorizes HumfiverseMilestoneEscrow (or unsets
+    ///         it, passing address(0)) to call releaseFromPool — see the
+    ///         escrowContract field above.
+    function setEscrowContract(address next) external onlyOwner {
+        emit EscrowContractUpdated(escrowContract, next);
+        escrowContract = next;
+    }
+
+    modifier onlyOwnerOrEscrow() {
+        require(msg.sender == owner() || msg.sender == escrowContract, "HumfiverseCatalogueToken: not authorized");
+        _;
     }
 
     /// @notice Mints the full supply for a catalogue into the platform pool
@@ -105,10 +130,15 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
 
     /// @notice Releases `amount` tokens of `tokenId` from the platform pool
     ///         to `to` — the on-chain analogue of a token purchase clearing.
-    ///         No payment logic here: this is the owner-gated issuance path
-    ///         (e.g. off-chain/fiat purchases settled by the platform), kept
-    ///         alongside the public, paid `buy()` below.
-    function releaseFromPool(address to, uint256 tokenId, uint256 amount) external onlyOwner {
+    ///         Callable by the owner (e.g. off-chain/fiat purchases settled
+    ///         by the platform) or by the linked escrow contract, which
+    ///         calls this from inside its own contribute() so a
+    ///         preproduction contribution releases tokens in the same
+    ///         transaction as a catalogue buy() does. No payment logic
+    ///         here — the caller is trusted to have already collected
+    ///         payment (buy()'s own payable path, or the escrow's payable
+    ///         contribute()).
+    function releaseFromPool(address to, uint256 tokenId, uint256 amount) external onlyOwnerOrEscrow {
         require(to != address(0), "HumfiverseCatalogueToken: zero address");
         _release(to, tokenId, amount);
         emit TokensReleased(tokenId, to, amount);

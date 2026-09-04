@@ -3,6 +3,7 @@ pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "./HumfiverseCatalogueToken.sol";
 
 /// @title HumfiverseMilestoneEscrow
 /// @notice TESTNET DEMO CONTRACT — not audited, not for real funds, not a
@@ -74,10 +75,24 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         bool active;
     }
 
+    /// @notice The linked HumfiverseCatalogueToken — every preproduction
+    ///         campaign's pledged supply lives there too (same unified
+    ///         mint-at-creation flow as catalogue assets), so contribute()
+    ///         below can release the contributor's matching tokens directly
+    ///         from that pool, atomically, in the same transaction as the
+    ///         contribution itself. Requires this contract's address to be
+    ///         authorized there via HumfiverseCatalogueToken.setEscrowContract
+    ///         after deploy — see that contract's escrowContract field.
+    HumfiverseCatalogueToken public immutable catalogueToken;
+
     uint256 private nextCampaignId = 1;
     uint256 private nextStudioId = 1;
 
     mapping(uint256 => Campaign) public campaigns;
+    /// @notice campaignId => the HumfiverseCatalogueToken token id this
+    ///         campaign's contributions release from, set once at
+    ///         createCampaign and never changed.
+    mapping(uint256 => uint256) public campaignTokenId;
     mapping(uint256 => Milestone[]) private campaignMilestones;
     mapping(uint256 => mapping(address => uint256)) public contributions; // campaignId => contributor => wei contributed
     mapping(uint256 => Studio) public studios;
@@ -103,7 +118,10 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     event CampaignCancelled(uint256 indexed campaignId);
     event Refunded(uint256 indexed campaignId, address indexed contributor, uint256 amount);
 
-    constructor() Ownable(msg.sender) {}
+    constructor(address _catalogueToken) Ownable(msg.sender) {
+        require(_catalogueToken != address(0), "HumfiverseMilestoneEscrow: zero token address");
+        catalogueToken = HumfiverseCatalogueToken(_catalogueToken);
+    }
 
     // --- studio registry (platform-curated for this pilot) ---
 
@@ -141,6 +159,7 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         uint256 studioId,
         uint256 deadline,
         string calldata assetId,
+        uint256 tokenId,
         string[] calldata milestoneNames,
         uint16[] calldata milestoneBps,
         Payee[] calldata milestonePayees
@@ -149,6 +168,10 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         require(fundingGoal > 0, "HumfiverseMilestoneEscrow: goal must be > 0");
         require(bytes(assetId).length > 0, "HumfiverseMilestoneEscrow: assetId required");
         require(campaignIdByAssetId[assetId] == 0, "HumfiverseMilestoneEscrow: asset already has a campaign");
+        // The token must already be minted (backend mints on upload, before
+        // creating the campaign — same order the frontend now awaits) so
+        // contribute() below always has a real pool to release from.
+        require(catalogueToken.totalSupplyOf(tokenId) > 0, "HumfiverseMilestoneEscrow: unknown token id");
         require(
             milestoneNames.length == milestoneBps.length && milestoneNames.length == milestonePayees.length,
             "HumfiverseMilestoneEscrow: length mismatch"
@@ -179,6 +202,7 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
             assetId: assetId
         });
         campaignIdByAssetId[assetId] = campaignId;
+        campaignTokenId[campaignId] = tokenId;
         for (uint256 i = 0; i < milestoneNames.length; i++) {
             campaignMilestones[campaignId].push(
                 Milestone({name: milestoneNames[i], bps: milestoneBps[i], payee: milestonePayees[i], released: false})
@@ -187,6 +211,23 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         emit CampaignCreated(campaignId, artist, fundingGoal, studioId, deadline, assetId);
     }
 
+    /// @notice Contributes ETH to a campaign and, in the same transaction,
+    ///         releases the matching quantity of tokens from the linked
+    ///         catalogue pool straight to the contributor — the same
+    ///         atomicity a catalogue buy() already has, unified here rather
+    ///         than requiring a second, backend-signed release afterward
+    ///         (the earlier design; see planning/technical-architecture.md
+    ///         §2.34/§2.42). qty = msg.value / pricePerToken, floored —
+    ///         same integer-division "dust" behavior the backend used to
+    ///         compute this off-chain. If the token has no price set
+    ///         (pricePerToken == 0), or the division floors to 0, the ETH
+    ///         is still recorded normally and no tokens are released.
+    ///
+    ///         Known limitation, carried over unchanged from the prior
+    ///         design (accepted, not fixed here): if a campaign is later
+    ///         cancelled and refunded, this doesn't claw back tokens
+    ///         already released for that contribution — the contributor
+    ///         could end up with both a partial ETH refund and the tokens.
     function contribute(uint256 campaignId) external payable nonReentrant {
         Campaign storage c = campaigns[campaignId];
         require(c.artist != address(0), "HumfiverseMilestoneEscrow: unknown campaign");
@@ -197,6 +238,15 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         c.raised += msg.value;
         contributions[campaignId][msg.sender] += msg.value;
         emit Contributed(campaignId, msg.sender, msg.value, c.raised);
+
+        uint256 tokenId = campaignTokenId[campaignId];
+        uint256 price = catalogueToken.pricePerToken(tokenId);
+        if (price > 0) {
+            uint256 qty = msg.value / price;
+            if (qty > 0) {
+                catalogueToken.releaseFromPool(msg.sender, tokenId, qty);
+            }
+        }
     }
 
     /// @notice The artist attests a milestone was genuinely met. Combined

@@ -14,8 +14,11 @@ const { withRetry } = require("./chainRetry");
 
 // Switched from Base Sepolia to real Ethereum Sepolia (§2.35).
 const RPC_URL = process.env.CHAIN_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com";
-const ESCROW_ADDRESS = process.env.CHAIN_ESCROW_ADDRESS || "0x3Bac66168748798ec174BDEd855376c4e7012Dba";
-const ESCROW_DEPLOY_BLOCK = Number(process.env.CHAIN_ESCROW_DEPLOY_BLOCK || 11612769);
+// §2.42 redeploy — takes a HumfiverseCatalogueToken address at construction
+// so contribute() can release tokens from that pool atomically; see
+// HumfiverseMilestoneEscrow.sol and chain.js's own CONTRACT_ADDRESS.
+const ESCROW_ADDRESS = process.env.CHAIN_ESCROW_ADDRESS || "0xa1670bC06e2d2860e8F7c1d80e6c13a501bcaF81";
+const ESCROW_DEPLOY_BLOCK = Number(process.env.CHAIN_ESCROW_DEPLOY_BLOCK || 11635556);
 // §2.39: Alchemy's free tier caps eth_getLogs at a 10-block range per call,
 // and the public-RPC default this project used before that started
 // silently returning *incomplete* results for a full-history scan instead
@@ -32,7 +35,8 @@ const ABI = [
   "function registerStudio(address wallet, string name) returns (uint256)",
   "function setStudioActive(uint256 studioId, bool active)",
   "function renameStudio(uint256 studioId, string name)",
-  "function createCampaign(address artist, uint256 fundingGoal, uint256 studioId, uint256 deadline, string assetId, string[] milestoneNames, uint16[] milestoneBps, uint8[] milestonePayees) returns (uint256)",
+  "function createCampaign(address artist, uint256 fundingGoal, uint256 studioId, uint256 deadline, string assetId, uint256 tokenId, string[] milestoneNames, uint16[] milestoneBps, uint8[] milestonePayees) returns (uint256)",
+  "function campaignTokenId(uint256) view returns (uint256)",
   "function contribute(uint256 campaignId) payable",
   "function confirmMilestoneAsArtist(uint256 campaignId, uint256 milestoneIndex)",
   "function confirmMilestoneAsStudio(uint256 campaignId, uint256 milestoneIndex)",
@@ -102,10 +106,10 @@ async function renameStudioOnchain(studioId, name) {
   return { txHash: receipt.hash };
 }
 
-async function createCampaignOnchain(artist, fundingGoalWei, studioId, deadline, assetId, milestoneNames, milestoneBps, milestonePayees) {
+async function createCampaignOnchain(artist, fundingGoalWei, studioId, deadline, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees) {
   if (!writeContract) throw new Error("escrow admin actions are disabled (no operator key configured)");
   const tx = await withRetry(() =>
-    writeContract.createCampaign(artist, fundingGoalWei, studioId, deadline, assetId, milestoneNames, milestoneBps, milestonePayees)
+    writeContract.createCampaign(artist, fundingGoalWei, studioId, deadline, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees)
   );
   const receipt = await tx.wait();
   const parsed = receipt.logs.map((l) => { try { return readContract.interface.parseLog(l); } catch { return null; } }).find((e) => e && e.name === "CampaignCreated");
