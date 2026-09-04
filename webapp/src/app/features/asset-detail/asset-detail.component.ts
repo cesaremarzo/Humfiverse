@@ -13,7 +13,8 @@ import { ApiService } from '../../core/api.service';
 import { WalletService } from '../../core/wallet.service';
 import { ToastService } from '../../core/toast.service';
 import { Asset, DisclosureLevel, EscrowCampaignInfo, OnchainInfo, SecondaryListing } from '../../core/models';
-import { fmtUSD, fmtUSDShort, fundingPct as fundingPctMock } from '../../core/format.util';
+import { fmtUSD, fmtUSDShort } from '../../core/format.util';
+import { fundingPctFor, remainingFor, tokensSoldFor } from '../../core/onchain-progress.util';
 import { computeYieldBreakdown } from '../../core/yield.util';
 import { platformFeeTokens } from '../../core/marketplace-fee.util';
 
@@ -109,20 +110,7 @@ export class AssetDetailComponent {
    * component state. BigInt division kept until the very last step to
    * avoid precision loss converting large wei amounts to Number. */
   remaining(a: Asset): number {
-    const onchain = this.onchainInfo();
-    if (!this.isPre(a) && onchain?.onchain) {
-      return Number(BigInt(onchain.poolBalance));
-    }
-    const escrow = this.escrowInfo();
-    if (this.isPre(a) && escrow?.escrow) {
-      const goal = BigInt(escrow.fundingGoal);
-      if (goal > 0n) {
-        const raised = BigInt(escrow.raised);
-        const remainingWei = raised >= goal ? 0n : goal - raised;
-        return Number((remainingWei * BigInt(a.tokensTotal)) / goal);
-      }
-    }
-    return a.tokensTotal - a.tokensSold;
+    return remainingFor(a, this.onchainInfo(), this.escrowInfo());
   }
   soldOut(a: Asset): boolean {
     return this.remaining(a) <= 0;
@@ -134,29 +122,10 @@ export class AssetDetailComponent {
    * showing the pre-purchase count even after remaining()/fundingPct()
    * were fixed to read from the chain. */
   tokensSold(a: Asset): number {
-    return a.tokensTotal - this.remaining(a);
+    return tokensSoldFor(a, this.onchainInfo(), this.escrowInfo());
   }
   fundingPct(a: Asset): number {
-    const escrow = this.escrowInfo();
-    if (this.isPre(a) && escrow?.escrow) {
-      const goal = BigInt(escrow.fundingGoal);
-      if (goal > 0n) {
-        const raised = BigInt(escrow.raised);
-        const bps = raised >= goal ? 10000n : (raised * 10000n) / goal;
-        return Number(bps) / 100;
-      }
-    }
-    const onchain = this.onchainInfo();
-    if (!this.isPre(a) && onchain?.onchain) {
-      const total = BigInt(onchain.totalSupply);
-      if (total > 0n) {
-        const pool = BigInt(onchain.poolBalance);
-        const sold = total > pool ? total - pool : 0n;
-        const bps = sold >= total ? 10000n : (sold * 10000n) / total;
-        return Number(bps) / 100;
-      }
-    }
-    return fundingPctMock(a);
+    return fundingPctFor(a, this.onchainInfo(), this.escrowInfo());
   }
   tabs(a: Asset): [TabKey, string][] {
     return this.isPre(a)

@@ -1,7 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { ApiService } from './api.service';
-import { Asset, Campaign, ContractTemplate, InvestorState, Locale, Portfolio, SecondaryListing } from './models';
+import { Asset, Campaign, ContractTemplate, EscrowCampaignInfo, InvestorState, Locale, OnchainInfo, Portfolio, SecondaryListing } from './models';
 import { SUPPORTED_LOCALES, RTL_LOCALES } from './locales';
 
 import assetsJson from './mock-data/assets.json';
@@ -41,6 +41,13 @@ export class StoreService {
    * to this set once it resolves, so an asset only ever appears once it
    * genuinely exists on the testnet. */
   readonly onchainAssetIds = signal<Set<string> | null>(null);
+
+  /** Per-asset real pool/escrow state, keyed by assetId (§2.40) — used by
+   * both the asset-detail page and the marketplace listing cards so a
+   * card's funding bar reflects real purchases instead of the static mock
+   * tokensSold count, which never changes after a real on-chain buy. */
+  readonly onchainInfoMap = signal<Map<string, OnchainInfo>>(new Map());
+  readonly escrowInfoMap = signal<Map<string, EscrowCampaignInfo>>(new Map());
 
   readonly locale = signal<Locale>(detectInitialLocale());
   readonly theme = signal<'light' | 'dark' | null>(null); // null = follow system
@@ -146,12 +153,30 @@ export class StoreService {
     } catch {
       /* keep bundled fallback template */
     }
+    let chainVerifiedIds: string[] = [];
     try {
       const list = await this.api.getOnchainList();
+      chainVerifiedIds = list.assetIds;
       this.onchainAssetIds.set(new Set(list.assetIds));
     } catch (err) {
       console.warn('Could not load the on-chain listing check — showing the full catalogue unfiltered.', err);
       this.onchainAssetIds.set(null);
+    }
+    // §2.40: pull each chain-verified asset's real pool/escrow state once,
+    // so marketplace cards can show a real, moving funding bar instead of
+    // the static mock count — a small, cheap set for a testnet catalogue
+    // this young (same scaling note as the endpoints this calls).
+    try {
+      const [onchainEntries, escrowResult] = await Promise.all([
+        Promise.all(
+          chainVerifiedIds.map(async (id) => [id, await this.api.getOnchainInfo(id).catch((): OnchainInfo => ({ onchain: false }))] as const)
+        ),
+        this.api.getEscrowCampaigns().catch(() => ({ campaigns: [] }))
+      ]);
+      this.onchainInfoMap.set(new Map(onchainEntries));
+      this.escrowInfoMap.set(new Map(escrowResult.campaigns.map((c) => [c.assetId, c] as const)));
+    } catch (err) {
+      console.warn('Could not load per-asset on-chain/escrow state for the marketplace cards.', err);
     }
   }
 }
