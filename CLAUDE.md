@@ -5,7 +5,8 @@ running context on what's live and what's in progress. Read
 `planning/technical-architecture.md` for design decisions and their
 rationale — it has a dated changelog (§2.x) documenting every non-obvious
 fix this project has needed; check it before re-diagnosing something that
-may have already been solved and explained there.
+may have already been solved and explained there. Read `REPO_MAP.md` for
+a folder-by-folder index of what lives where.
 
 ## Team & branches
 
