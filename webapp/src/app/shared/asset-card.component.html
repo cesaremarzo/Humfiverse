@@ -1,6 +1,6 @@
 <a class="card asset-card" [routerLink]="['/asset', asset.id]">
   <div class="asset-cover">
-    <app-cover [asset]="asset" [playSize]="48" [motifSize]="80"></app-cover>
+    <app-cover [asset]="asset" [playSize]="48" [motifSize]="80" [previewable]="!!previewUrl" [playing]="isPreviewPlaying" (previewToggle)="onPreviewToggle()"></app-cover>
     <app-status-chip [asset]="asset"></app-status-chip>
     <app-verified-chip [asset]="asset" [short]="true"></app-verified-chip>
   </div>

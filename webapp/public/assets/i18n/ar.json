@@ -355,6 +355,7 @@
   "detail.escrowCampaignId": "معرّف الحملة",
   "detail.escrowRaisedGoal": "تم جمعه / الهدف",
   "detail.escrowStudio": "الاستوديو",
+  "detail.escrowArtistWallet": "محفظة الفنان",
   "toast.assetSaveFailed": "تم إنشاء الحملة، لكن تعذّر حفظها على الخادم — قد لا تكون مرئية بعد لزوار آخرين.",
   "detail.onchainRecordNote": "العنوان والفنان مقروءان مباشرة من العقد:",
   "nav.studio": "الاستوديو",

@@ -140,6 +140,7 @@
                 @if ($any(escrowInfo()).studio) {
                   <div class="card stat-tile"><div class="label">{{ 'detail.escrowStudio' | translate }}</div><div class="value" style="font-size:14px; font-family:'IBM Plex Sans',sans-serif;">{{ $any(escrowInfo()).studio.name }}</div></div>
                 }
+                <div class="card stat-tile"><div class="label">{{ 'detail.escrowArtistWallet' | translate }}</div><div class="value mono" style="font-size:14px;">{{ wallet.truncateAddr($any(escrowInfo()).artist) }}</div></div>
               </div>
               <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px;">
                 <a [href]="$any(escrowInfo()).explorerUrl" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">

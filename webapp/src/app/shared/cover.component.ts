@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { IconComponent } from './icon.component';
 import { Asset } from '../core/models';
 import { coverBackground, coverMonogram, genreMotif } from '../core/cover.util';
@@ -22,18 +22,32 @@ import { coverBackground, coverMonogram, genreMotif } from '../core/cover.util';
         <app-icon [name]="motif"></app-icon>
       </span>
       @if (play) {
-        <span class="cover-play" [style.width.px]="playSize" [style.height.px]="playSize" role="img" [attr.aria-label]="asset.title + ' — track preview'">
-          <app-icon name="play"></app-icon>
+        <!-- §2.44: functional only when a real track is linked
+             (previewable=true) — click plays/pauses it via the caller's
+             PreviewAudioService and never navigates the card's own link.
+             Without a linked track this stays the original decorative
+             affordance: clicking it just navigates like the rest of the
+             card, unchanged from before. -->
+        <span class="cover-play" [class.cover-play-active]="playing" [style.width.px]="playSize" [style.height.px]="playSize"
+              role="img" [attr.aria-label]="asset.title + (previewable ? ' — ' + (playing ? 'pause preview' : 'play preview') : ' — track preview')"
+              (click)="onPlayClick($event)">
+          <app-icon [name]="playing ? 'pause' : 'play'"></app-icon>
         </span>
       }
     </div>
-  `
+  `,
+  styles: [`.cover-play-active{ transform: scale(1.08); }`]
 })
 export class CoverComponent {
   @Input({ required: true }) asset!: Asset;
   @Input() play = true;
   @Input() playSize = 52;
   @Input() motifSize = 90;
+  /** Whether a real audio preview is available to toggle — see the
+   * template note above. */
+  @Input() previewable = false;
+  @Input() playing = false;
+  @Output() previewToggle = new EventEmitter<Event>();
 
   get background(): string {
     return coverBackground(this.asset.id, this.asset.kind);
@@ -43,5 +57,12 @@ export class CoverComponent {
   }
   get motif(): string {
     return genreMotif(this.asset.genre);
+  }
+
+  onPlayClick(event: Event): void {
+    if (!this.previewable) return; // decorative — let the click bubble to the card's own link, unchanged
+    event.stopPropagation();
+    event.preventDefault();
+    this.previewToggle.emit(event);
   }
 }

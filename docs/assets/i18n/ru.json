@@ -355,6 +355,7 @@
   "detail.escrowCampaignId": "ID кампании",
   "detail.escrowRaisedGoal": "Собрано / цель",
   "detail.escrowStudio": "Студия",
+  "detail.escrowArtistWallet": "Кошелёк артиста",
   "toast.assetSaveFailed": "Кампания создана, но её не удалось сохранить на сервере — другим посетителям она пока может быть не видна.",
   "detail.onchainRecordNote": "Название и исполнитель считаны напрямую из контракта:",
   "nav.studio": "Студия",
