@@ -1,6 +1,10 @@
 node_modules/
 server/humfiverse.db
 .DS_Store
-.claude/
+# .claude/ is session-local config and stays out of git — except
+# .claude/skills/, which is shared, repo-specific knowledge (like
+# CLAUDE.md) that both collaborators' Claude Code sessions should have.
+.claude/*
+!.claude/skills/
 .env
 password

@@ -69,4 +69,4 @@ Builds to `../docs` (see below) for GitHub Pages; Netlify builds it fresh from s
 
 ## `.vscode/`, `.claude/`
 
-Editor/tooling config. `.claude/` is gitignored — session-local, not shared between collaborators (unlike `CLAUDE.md` at the root, which is tracked and shared).
+Editor/tooling config. Most of `.claude/` is gitignored — session-local, not shared between collaborators. **Exception: `.claude/skills/`** — repo-specific Claude Code skills (packaged, checklist-style playbooks for a procedure this project repeats), tracked and shared like `CLAUDE.md`. Currently: `contract-redeploy` (see its `SKILL.md` — the exact steps to redeploy `HumfiverseCatalogueToken`/`HumfiverseMilestoneEscrow` and restore real on-chain state afterward, learned the hard way across four real redeploys this project has needed).
