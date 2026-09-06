@@ -269,3 +269,95 @@ All changes are on `main` (and mirrored onto `dev/cesare`), commits
 `b73f26c` → `fef2a31` (see `git log` for the full list — netlify.toml
 added/fixed across `b73f26c`, `1c3f69e`, `a2fd463`; funding-bar fix in
 `fef2a31`).
+
+---
+
+## 2026-09-05 → 2026-09-06 — token/escrow unification, real audio upload, repo docs
+
+Big session, same collaboration thread as above. Four real contract
+redeploys happened (yes, four — see the new skill at the bottom of this
+entry). All work went through PRs on `dev/cesare`, merged to `main` after
+explicit confirmation each time (PRs #2–#5) — the direct-merge-without-PR
+pattern from the previous entry did **not** recur this session; back to
+the normal PR workflow throughout.
+
+**1. Unified catalogue and preproduction token release (PR #2).** User's
+explicit ask: a preproduction `contribute()` should deliver tokens
+exactly like a catalogue `buy()` does — one signed transaction, not a
+contribution followed by a second backend-signed release (the old §2.34
+design). `HumfiverseCatalogueToken.releaseFromPool` is now callable by an
+authorized escrow contract, not just the owner; `HumfiverseMilestoneEscrow.contribute()`
+releases the matching tokens atomically, in the same transaction, via the
+linked token contract. Removed the now-dangerous (double-release risk)
+`releaseForContribution` backend flow entirely. Real redeploy #1
+(token `0xfd8D1d...`, escrow `0xa1670bC...`) — see
+`planning/technical-architecture.md` §2.42 for full detail.
+
+**2. Real audio-file upload, linked on-chain (PR #3).** User's explicit
+ask: upload a track's actual audio and link it on-chain to the contract
+that mints/sells its tokens — the wizard never touched a real audio file
+before, only metadata. Storage decision given to the user as a real
+tradeoff (Render's disk is ephemeral): **IPFS via Pinata**, user created
+the account and provided the API key. `HumfiverseCatalogueToken` gained
+`trackAudioUri` + `setTrackAudioUri`; `server/pinata.js` uploads via
+Node's built-in fetch/FormData/Blob, no new dependency. New
+`POST /api/onchain/audio/:assetId`. Since `HumfiverseMilestoneEscrow`'s
+reference to the token is **immutable**, this forced redeploy #2 of
+*both* contracts (token `0xd8820e0...`, escrow `0x170c825f...`) — real
+holder balances (Guns 45, Black Sail 9 — both had grown from real testing
+since redeploy #1) were read fresh right before redeploying and restored
+exactly. See §2.43.
+
+**3. Marketplace audio preview + artist wallet on the escrow panel (PR
+#4).** Same-day follow-up, also explicit asks: a track should be
+previewable from the marketplace grid itself, and the asset-detail page
+should show the funding data tied to the artist who registered it. Wired
+the marketplace cover art's previously-decorative "play" icon to a real
+preview via a new shared `PreviewAudioService` (one `<audio>` element,
+starting one card's preview stops another's). Added the campaign's
+artist wallet address to the escrow panel. Frontend-only, no redeploy.
+See §2.44.
+
+**4. Repo documentation, user-initiated (PRs #5).** User asked directly
+whether any file tracks "what's where and how it was built" across the
+whole repo — answer was no, not as a single file, so:
+- **`REPO_MAP.md`** — folder-by-folder index of the repo (contracts/,
+  server/, webapp/, docs/, planning/), cross-referencing `SESSION_LOG.md`
+  and `technical-architecture.md` rather than duplicating them. Linked
+  from `CLAUDE.md`.
+- **`.claude/skills/contract-redeploy/SKILL.md`** — a real Claude Code
+  skill, the user's own idea after asking whether the project would need
+  one going forward. Packages the exact redeploy playbook (snapshot real
+  state fresh → deploy token → deploy escrow linked to it → verify on
+  Etherscan → restore real assets/campaigns/balances via a one-off
+  script → wire in new addresses → verify locally → ship via PR → verify
+  production isn't silently still on the old contract → merge) learned
+  across this session's four real redeploys. Had to carve `.claude/skills/`
+  out of `.gitignore`'s blanket `.claude/` exclusion so it's shared via
+  git like `CLAUDE.md`, not session-local — the rest of `.claude/` stays
+  ignored.
+
+**A real gotcha hit twice while verifying redeploy #1 in production**:
+after updating Render's env vars to the new contract addresses, the API
+kept responding with old-contract data. Root cause: Render's dashboard
+env vars were overridden by an **environment group** the user hadn't
+realized existed — editing the individual service's env vars did nothing
+until the group's values were fixed too. Caught by comparing a real
+balance number against a direct `ethers` read of both the old and new
+contract (not by trusting that the response merely "looked plausible") —
+now written into the `contract-redeploy` skill as an explicit step, not
+just a one-off lesson.
+
+**Contract addresses at the end of this session** (current production,
+Sepolia): `HumfiverseCatalogueToken` at `0xd8820e0fb8F6229577BcdfA0BaAF864280B969a4`,
+`HumfiverseMilestoneEscrow` at `0x170c825f68024D0b919BfacecD0D8FcFDc639f8d`.
+Real assets live on it: `guns-448` (Guns, 45 tokens held by the test
+wallet), `black-sail-739` (Black Sail, 9 tokens held), `darios-516`
+(dariosà, 0 held), `primo-pezzo-783` (Primo Pezzo, catalogue-kind, no
+audio linked yet as of this entry).
+
+**Open items for next session**: none blocking. Worth confirming the
+marketplace audio preview actually works when clicked on the live site
+(verified via code review + build success, not an actual browser click —
+no browser tooling available this session, see the `run` skill's note in
+`CLAUDE.md` about testing UI changes for real when possible).
