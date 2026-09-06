@@ -18,6 +18,7 @@ import { fundingPctFor, remainingFor, tokensSoldFor } from '../../core/onchain-p
 import { ipfsGatewayUrl } from '../../core/ipfs.util';
 import { computeYieldBreakdown } from '../../core/yield.util';
 import { platformFeeTokens } from '../../core/marketplace-fee.util';
+import { weiToUsd } from '../../core/usd-eth.util';
 
 type TabKey = 'overview' | 'royalty' | 'milestones' | 'disclosure' | 'documents' | 'risk';
 
@@ -253,11 +254,7 @@ export class AssetDetailComponent {
     this.success.set({ qty, total });
   }
 
-  /** Inverse of the 0.0001 ETH-per-$1 illustrative mapping used at creation
-   * — for displaying escrow amounts (wei) back in the app's USD mock scale. */
-  weiToUsd(wei: string): number {
-    return Number(BigInt(wei) / 100_000_000_000_000n);
-  }
+  weiToUsd = weiToUsd;
 
   private onchainErrorKey(err: unknown): string {
     const message = (err as { message?: string })?.message;

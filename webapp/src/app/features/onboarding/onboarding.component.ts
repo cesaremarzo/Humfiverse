@@ -8,6 +8,7 @@ import { ApiService } from '../../core/api.service';
 import { ToastService } from '../../core/toast.service';
 import { AiDisclosure, Asset, Campaign, DisclosureLevel } from '../../core/models';
 import { fmtUSD } from '../../core/format.util';
+import { usdToWei } from '../../core/usd-eth.util';
 import { buildRoyaltyHistory } from '../../core/royalty-history.util';
 import { clauseCategory, clauseText, contractLegalBasisNote, vessatoriaClauseIds } from '../../core/contract-text.util';
 
@@ -97,6 +98,12 @@ export class OnboardingComponent {
    * transient upload state, not campaign data. Uploaded (to IPFS, then
    * linked on-chain) after a successful mint in submit() below. */
   audioFile = signal<File | null>(null);
+
+  /** True from the moment submit() is clicked until every best-effort
+   * on-chain step (mint, audio link, escrow) has settled — see submit()'s
+   * comment on why this can genuinely take up to a minute and why the app
+   * used to navigate away long before that finished. */
+  submitting = signal(false);
 
   stepKey = computed(() => this.steps[this.stepIndex()].key);
 
@@ -212,6 +219,8 @@ export class OnboardingComponent {
   }
 
   async submit(): Promise<void> {
+    if (this.submitting()) return; // guard against a double-click firing this twice
+    this.submitting.set(true);
     const d = this.data();
     const audioFile = this.audioFile(); // captured before the reset below
 
@@ -228,6 +237,7 @@ export class OnboardingComponent {
       } catch (err) {
         console.warn('Contract acceptance rejected by backend.', err);
         this.toast.show(this.translate.instant('toast.contractFailed'), 'alert');
+        this.submitting.set(false);
         return;
       }
     }
@@ -304,10 +314,7 @@ export class OnboardingComponent {
     // which is what actually controls fund release — the token here is
     // just the claim/quantity record, same role it plays for catalogues.
     if (this.store.backendAvailable()) {
-      // Illustrative testnet-only USD→wei mapping (0.0001 ETH per $1 of the
-      // mock display price) — no real peg, just keeps relative pricing
-      // between catalogues sensible. Matches contracts/scripts/catalogues.js.
-      const priceWei = (BigInt(Math.round(asset.tokenPrice)) * 100_000_000_000_000n).toString();
+      const priceWei = usdToWei(asset.tokenPrice).toString();
       // Awaited now (§2.42) — createCampaign on the escrow contract
       // requires this token to already exist on-chain, since contribute()
       // releases tokens from this same pool atomically. The two calls used
@@ -333,14 +340,24 @@ export class OnboardingComponent {
       // the mint above to have succeeded first, same reasoning as the
       // escrow campaign below. Best-effort: uploading is optional, and a
       // failure here doesn't affect the token/campaign that already exist.
+      // Awaited (previously fire-and-forget with an immediate navigate right
+      // after this block) — this request stays open server-side until the
+      // Pinata upload *and* the on-chain setTrackAudioUri transaction both
+      // confirm, which can genuinely take up to a minute. Navigating away
+      // before that finished didn't cancel the request, but it also gave the
+      // artist zero signal to stay on the tab — closing it (or the browser
+      // backgrounding/killing it) mid-upload silently lost the link forever,
+      // with no way to attach audio to an existing campaign afterward. This
+      // was the actual cause of tracks created through the wizard ending up
+      // with no playable preview.
       if (audioFile && mintedTokenId !== null) {
-        this.api
-          .uploadTrackAudio(id, audioFile)
-          .then(() => this.toast.show(this.translate.instant('toast.audioLinked'), 'checkCircle'))
-          .catch((err) => {
-            console.warn('Audio upload did not happen (campaign was still created normally).', err);
-            this.toast.show(this.translate.instant('toast.audioUploadFailed'), 'alert');
-          });
+        try {
+          await this.api.uploadTrackAudio(id, audioFile);
+          this.toast.show(this.translate.instant('toast.audioLinked'), 'checkCircle');
+        } catch (err) {
+          console.warn('Audio upload did not happen (campaign was still created normally).', err);
+          this.toast.show(this.translate.instant('toast.audioUploadFailed'), 'alert');
+        }
       }
 
       // Preproduction campaigns also get a real milestone escrow (§2.15) —
@@ -348,15 +365,16 @@ export class OnboardingComponent {
       // non-studio milestone tranche pays out to, and needs the mint above
       // to have actually succeeded (§2.42 — see the comment there). Best-
       // effort: the campaign still exists without it, just without escrow
-      // protection until an artist wallet is set up.
+      // protection until an artist wallet is set up. Awaited for the same
+      // reason as the audio upload above.
       if (isPre && mintedTokenId !== null) {
         const artistAddress = this.wallet.state().address;
         if (!artistAddress) {
           this.toast.show(this.translate.instant('toast.escrowNeedsWallet'), 'alert');
         } else {
-          const fundingGoalWei = (BigInt(Math.round(total)) * 100_000_000_000_000n).toString();
-          this.api
-            .createEscrowCampaign({
+          const fundingGoalWei = usdToWei(total).toString();
+          try {
+            await this.api.createEscrowCampaign({
               assetId: id,
               artistAddress,
               fundingGoalWei,
@@ -368,18 +386,17 @@ export class OnboardingComponent {
                 { name: 'Mix & master delivered', bps: 3000, payee: 'artist' },
                 { name: 'Release confirmed on DSPs', bps: 1000, payee: 'artist' }
               ]
-            })
-            .then(() => {
-              this.toast.show(this.translate.instant('toast.escrowCreated'), 'checkCircle');
-            })
-            .catch((err) => {
-              console.warn('Escrow campaign creation did not happen (campaign was still created normally).', err);
-              this.toast.show(this.translate.instant('toast.escrowCreateFailed'), 'alert');
             });
+            this.toast.show(this.translate.instant('toast.escrowCreated'), 'checkCircle');
+          } catch (err) {
+            console.warn('Escrow campaign creation did not happen (campaign was still created normally).', err);
+            this.toast.show(this.translate.instant('toast.escrowCreateFailed'), 'alert');
+          }
         }
       }
     }
 
+    this.submitting.set(false);
     this.router.navigateByUrl('/artist/dashboard');
   }
 }

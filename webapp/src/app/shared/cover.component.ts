@@ -27,10 +27,14 @@ import { coverBackground, coverMonogram, genreMotif } from '../core/cover.util';
              PreviewAudioService and never navigates the card's own link.
              Without a linked track this stays the original decorative
              affordance: clicking it just navigates like the rest of the
-             card, unchanged from before. -->
+             card, unchanged from before. Keyboard-operable when previewable
+             (role="button", focusable, Enter/Space) — previously mouse-only,
+             the only way to reach the preview toggle without a pointer. -->
         <span class="cover-play" [class.cover-play-active]="playing" [style.width.px]="playSize" [style.height.px]="playSize"
-              role="img" [attr.aria-label]="asset.title + (previewable ? ' — ' + (playing ? 'pause preview' : 'play preview') : ' — track preview')"
-              (click)="onPlayClick($event)">
+              [attr.role]="previewable ? 'button' : 'img'" [attr.tabindex]="previewable ? 0 : null"
+              [attr.aria-pressed]="previewable ? playing : null"
+              [attr.aria-label]="asset.title + (previewable ? ' — ' + (playing ? 'pause preview' : 'play preview') : ' — track preview')"
+              (click)="onPlayClick($event)" (keydown.enter)="onPlayKeydown($event)" (keydown.space)="onPlayKeydown($event)">
           <app-icon [name]="playing ? 'pause' : 'play'"></app-icon>
         </span>
       }
@@ -64,5 +68,10 @@ export class CoverComponent {
     event.stopPropagation();
     event.preventDefault();
     this.previewToggle.emit(event);
+  }
+
+  onPlayKeydown(event: Event): void {
+    if (!this.previewable) return; // not focusable in this state, but guard anyway
+    this.onPlayClick(event);
   }
 }

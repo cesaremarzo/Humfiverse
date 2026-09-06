@@ -10,6 +10,7 @@ import { fmtUSD } from '../../core/format.util';
 import { coverBackground } from '../../core/cover.util';
 import { SecondaryListing } from '../../core/models';
 import { platformFeeTokens } from '../../core/marketplace-fee.util';
+import { weiToUsd } from '../../core/usd-eth.util';
 
 /** A real on-chain holding — replaces the fictional Portfolio.holdings mock
  * data (§2.37), which was seeded fixed demo numbers never tied to any
@@ -83,10 +84,7 @@ export class PortfolioComponent {
             tokens: h.tokens,
             title: h.title,
             artist: h.artist,
-            // Same illustrative 0.0001 ETH-per-$1 mapping used everywhere
-            // else this app converts a real priceWei back to a mock USD
-            // display figure (see weiToUsd in asset-detail.component.ts).
-            valueUsd: h.tokens * Number(BigInt(h.priceWei) / 100_000_000_000_000n)
+            valueUsd: h.tokens * weiToUsd(h.priceWei)
           }))
         );
         this.loaded.set(true);
