@@ -209,17 +209,13 @@ export class AssetDetailComponent {
         });
         this.applyPurchase(a, qty, total);
         this.success.set({ qty, total, txHash: result.txHash, explorerUrl: result.explorerUrl });
+        // §2.42: contribute() itself now releases the matching tokens
+        // atomically, in the same transaction — no second, backend-signed
+        // release call needed anymore (contrast with the old §2.34 design,
+        // where it stayed frozen until a separate call caught up). The
+        // scheduled refresh below just picks up that same transaction's
+        // already-final result.
         this.scheduleOnchainRefresh(a.id);
-        // Best-effort (§2.34): contribute() on the escrow contract never
-        // touches the token pool on its own, so without this the pool
-        // shown in the "On-chain token" panel stays frozen at its minted
-        // value forever for a preproduction asset. Refresh again once the
-        // release itself confirms, since scheduleOnchainRefresh's own
-        // timing above won't have seen it yet.
-        this.api
-          .releaseForContribution(a.id, result.txHash)
-          .then(() => this.scheduleOnchainRefresh(a.id))
-          .catch((err) => console.warn('Could not release matching tokens for this contribution.', err));
       } catch (err: unknown) {
         console.warn('On-chain contribution did not complete.', err);
         this.toast.show(this.translate.instant(this.onchainErrorKey(err)), 'alert');

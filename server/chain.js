@@ -19,11 +19,14 @@ const { withRetry } = require("./chainRetry");
 // Switched from Base Sepolia to real Ethereum Sepolia (§2.35) — easier to
 // get testnet ETH from faucets there.
 const RPC_URL = process.env.CHAIN_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com";
-const CONTRACT_ADDRESS = process.env.CHAIN_CONTRACT_ADDRESS || "0x51090e5767F67aFc52725B2267f409811d59d03d";
+// §2.42 redeploy — added escrowContract authorization so
+// HumfiverseMilestoneEscrow.contribute() can release tokens atomically;
+// see HumfiverseMilestoneEscrow.sol and chainEscrow.js.
+const CONTRACT_ADDRESS = process.env.CHAIN_CONTRACT_ADDRESS || "0xfd8D1d02Df922B9839D05b5C24cA2C06eD9690dD";
 // Block this contract was deployed at — starting event queries here instead
 // of block 0 keeps each eth_getLogs call well under public RPCs' ~10,000-
 // block range limit even as the chain grows. Update after any redeploy.
-const CONTRACT_DEPLOY_BLOCK = Number(process.env.CHAIN_CONTRACT_DEPLOY_BLOCK || 11612893);
+const CONTRACT_DEPLOY_BLOCK = Number(process.env.CHAIN_CONTRACT_DEPLOY_BLOCK || 11635555);
 // Alchemy's free tier caps eth_getLogs at a 10-block range per call (found
 // the hard way — the public-RPC default this project used before §2.39
 // silently returned *incomplete* results instead of erroring, which is

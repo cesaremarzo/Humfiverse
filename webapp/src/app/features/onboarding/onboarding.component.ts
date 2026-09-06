@@ -290,27 +290,34 @@ export class OnboardingComponent {
       // mock display price) — no real peg, just keeps relative pricing
       // between catalogues sensible. Matches contracts/scripts/catalogues.js.
       const priceWei = (BigInt(Math.round(asset.tokenPrice)) * 100_000_000_000_000n).toString();
-      this.api
-        .mintOnchainToken({ assetId: id, slug: id, supply: asset.tokensTotal, priceWei, title: asset.title, artist: asset.artistName })
-        .then((result) => {
-          this.toast.show(this.translate.instant('toast.onchainMinted', { tokenId: result.tokenId }), 'checkCircle');
-          // The marketplace only lists chain-verified assets (§2.14) — add
-          // this one to that set now rather than waiting for a reload,
-          // otherwise the campaign would vanish from its own listing right
-          // after being created.
-          this.store.onchainAssetIds.update((ids) => (ids ? new Set(ids).add(id) : ids));
-        })
-        .catch((err) => {
-          console.warn('On-chain mint did not happen (campaign was still created normally).', err);
-          this.toast.show(this.translate.instant('toast.onchainMintFailed'), 'alert');
-        });
+      // Awaited now (§2.42) — createCampaign on the escrow contract
+      // requires this token to already exist on-chain, since contribute()
+      // releases tokens from this same pool atomically. The two calls used
+      // to fire in parallel/unawaited, which raced: if the escrow call
+      // reached the chain before the mint transaction had confirmed, campaign
+      // creation would revert.
+      let mintedTokenId: number | null = null;
+      try {
+        const result = await this.api.mintOnchainToken({ assetId: id, slug: id, supply: asset.tokensTotal, priceWei, title: asset.title, artist: asset.artistName });
+        mintedTokenId = result.tokenId;
+        this.toast.show(this.translate.instant('toast.onchainMinted', { tokenId: result.tokenId }), 'checkCircle');
+        // The marketplace only lists chain-verified assets (§2.14) — add
+        // this one to that set now rather than waiting for a reload,
+        // otherwise the campaign would vanish from its own listing right
+        // after being created.
+        this.store.onchainAssetIds.update((ids) => (ids ? new Set(ids).add(id) : ids));
+      } catch (err) {
+        console.warn('On-chain mint did not happen (campaign was still created normally).', err);
+        this.toast.show(this.translate.instant('toast.onchainMintFailed'), 'alert');
+      }
 
       // Preproduction campaigns also get a real milestone escrow (§2.15) —
       // needs the artist's own wallet connected, since that's where every
-      // non-studio milestone tranche pays out to. Best-effort: the
-      // campaign still exists without it, just without escrow protection
-      // until an artist wallet is set up.
-      if (isPre) {
+      // non-studio milestone tranche pays out to, and needs the mint above
+      // to have actually succeeded (§2.42 — see the comment there). Best-
+      // effort: the campaign still exists without it, just without escrow
+      // protection until an artist wallet is set up.
+      if (isPre && mintedTokenId !== null) {
         const artistAddress = this.wallet.state().address;
         if (!artistAddress) {
           this.toast.show(this.translate.instant('toast.escrowNeedsWallet'), 'alert');
