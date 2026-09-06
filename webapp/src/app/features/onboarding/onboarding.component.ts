@@ -91,6 +91,12 @@ export class OnboardingComponent {
 
   stepIndex = signal(0);
   data = signal<WizardData>(freshWizardData());
+  /** The real audio file for this track, if the artist attached one
+   * (§2.43) — kept out of WizardData since a File object doesn't survive
+   * freshWizardData()'s reset-by-spread pattern meaningfully, and it's
+   * transient upload state, not campaign data. Uploaded (to IPFS, then
+   * linked on-chain) after a successful mint in submit() below. */
+  audioFile = signal<File | null>(null);
 
   stepKey = computed(() => this.steps[this.stepIndex()].key);
 
@@ -195,8 +201,19 @@ export class OnboardingComponent {
     this.toast.show(this.translate.instant('toast.statementAttached'), 'file');
   }
 
+  onAudioFileSelected(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0] ?? null;
+    if (file && file.size > 20 * 1024 * 1024) {
+      this.toast.show(this.translate.instant('toast.audioTooLarge'), 'alert');
+      (event.target as HTMLInputElement).value = '';
+      return;
+    }
+    this.audioFile.set(file);
+  }
+
   async submit(): Promise<void> {
     const d = this.data();
+    const audioFile = this.audioFile(); // captured before the reset below
 
     if (this.store.backendAvailable()) {
       try {
@@ -262,6 +279,7 @@ export class OnboardingComponent {
 
     this.stepIndex.set(0);
     this.data.set(freshWizardData());
+    this.audioFile.set(null);
 
     this.toast.show(this.translate.instant('toast.campaignLaunched'), 'sparkles');
 
@@ -309,6 +327,20 @@ export class OnboardingComponent {
       } catch (err) {
         console.warn('On-chain mint did not happen (campaign was still created normally).', err);
         this.toast.show(this.translate.instant('toast.onchainMintFailed'), 'alert');
+      }
+
+      // Links the real audio file to the just-minted token (§2.43) — needs
+      // the mint above to have succeeded first, same reasoning as the
+      // escrow campaign below. Best-effort: uploading is optional, and a
+      // failure here doesn't affect the token/campaign that already exist.
+      if (audioFile && mintedTokenId !== null) {
+        this.api
+          .uploadTrackAudio(id, audioFile)
+          .then(() => this.toast.show(this.translate.instant('toast.audioLinked'), 'checkCircle'))
+          .catch((err) => {
+            console.warn('Audio upload did not happen (campaign was still created normally).', err);
+            this.toast.show(this.translate.instant('toast.audioUploadFailed'), 'alert');
+          });
       }
 
       // Preproduction campaigns also get a real milestone escrow (§2.15) —

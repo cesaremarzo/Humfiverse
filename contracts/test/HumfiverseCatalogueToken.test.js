@@ -194,6 +194,28 @@ describe("HumfiverseCatalogueToken", function () {
       );
     });
 
+    it("lets the owner link a minted token to its uploaded track's IPFS URI", async function () {
+      const { token } = await deployFixture();
+      await token.mintCatalogue(MIDNIGHT_STATIC_ID, "midnight-static", MIDNIGHT_STATIC_SUPPLY, PRICE_PER_TOKEN, "Test Track", "Test Artist");
+      const uri = "ipfs://QmTestAudioCid";
+      await expect(token.setTrackAudioUri(MIDNIGHT_STATIC_ID, uri)).to.emit(token, "TrackAudioUriUpdated").withArgs(MIDNIGHT_STATIC_ID, uri);
+      expect(await token.trackAudioUri(MIDNIGHT_STATIC_ID)).to.equal(uri);
+    });
+
+    it("only the owner can set the track audio URI", async function () {
+      const { token, other } = await deployFixture();
+      await token.mintCatalogue(MIDNIGHT_STATIC_ID, "midnight-static", MIDNIGHT_STATIC_SUPPLY, PRICE_PER_TOKEN, "Test Track", "Test Artist");
+      await expect(token.connect(other).setTrackAudioUri(MIDNIGHT_STATIC_ID, "ipfs://x")).to.be.revertedWithCustomError(
+        token,
+        "OwnableUnauthorizedAccount"
+      );
+    });
+
+    it("refuses to link audio to a token id that hasn't been minted", async function () {
+      const { token } = await deployFixture();
+      await expect(token.setTrackAudioUri(999, "ipfs://x")).to.be.revertedWith("HumfiverseCatalogueToken: unknown token id");
+    });
+
     it("lets the owner redirect payout proceeds", async function () {
       const { token, owner, buyer, other } = await deployFixture();
       await token.mintCatalogue(MIDNIGHT_STATIC_ID, "midnight-static", MIDNIGHT_STATIC_SUPPLY, PRICE_PER_TOKEN, "Test Track", "Test Artist");

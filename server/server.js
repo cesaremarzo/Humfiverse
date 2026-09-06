@@ -24,6 +24,7 @@ const db = require("./db");
 const { CONTRACT_TEMPLATE } = require("./contract-template");
 const chain = require("./chain");
 const escrow = require("./chainEscrow");
+const pinata = require("./pinata");
 
 const PORT = process.env.PORT || 3001;
 // Gates POST /api/escrow/confirm — the one endpoint only Humfiverse should be
@@ -432,6 +433,33 @@ function readBody(req) {
   });
 }
 
+/** Raw binary body reader for the audio-upload endpoint (§2.43) — readBody
+ * above is JSON-only and capped at 1MB, far too small for an audio file.
+ * 20MB covers a full-length mp3 at a normal bitrate; the client sends the
+ * file's raw bytes directly as the request body (no multipart parsing
+ * needed here — Pinata is the one that wants multipart, see pinata.js). */
+function readRawBody(req, maxBytes = 20 * 1024 * 1024) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    let total = 0;
+    let tooLarge = false;
+    req.on("data", (chunk) => {
+      total += chunk.length;
+      if (total > maxBytes) {
+        tooLarge = true;
+        req.destroy();
+        return;
+      }
+      chunks.push(chunk);
+    });
+    req.on("end", () => {
+      if (tooLarge) return reject(Object.assign(new Error("file too large"), { code: "too_large" }));
+      resolve(Buffer.concat(chunks));
+    });
+    req.on("error", reject);
+  });
+}
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
 
@@ -680,6 +708,11 @@ const server = http.createServer(async (req, res) => {
         name: info.onchainTitle,
         description: `"${info.onchainTitle}" by ${info.onchainArtist} — a Humfiverse catalogue token on Sepolia. Testnet prototype, not a real financial instrument.`,
         image: `${TOKEN_METADATA_BASE}/api/token-metadata/${tokenId}/image.svg`,
+        // §2.43 — the standard field wallets/marketplaces read to play an
+        // NFT's audio/video; only present once a track's been uploaded and
+        // linked on-chain (see trackAudioUri on the contract, the actual
+        // source of truth — this JSON is just a convenience mirror of it).
+        ...(info.audioUri ? { animation_url: info.audioUri } : {}),
         attributes: [
           { trait_type: "Artist", value: info.onchainArtist },
           { trait_type: "Total supply", value: Number(info.totalSupply) },
@@ -722,6 +755,47 @@ const server = http.createServer(async (req, res) => {
         sendJson(res, 409, { error: "asset already has an on-chain token", record: e.record });
       } else {
         sendJson(res, 502, { error: "on-chain mint failed", detail: String(e.message || e) });
+      }
+    }
+    return;
+  }
+
+  // §2.43 — links an already-minted token to its real, uploaded track
+  // audio: pins the file to IPFS via Pinata, then writes the resulting CID
+  // on-chain (HumfiverseCatalogueToken.setTrackAudioUri). Two independent
+  // steps — a Pinata failure never touches the chain, and a chain failure
+  // still leaves the file pinned (safe to retry: it'll just get set again).
+  const audioUploadMatch = url.pathname.match(/^\/api\/onchain\/audio\/([^/]+)$/);
+  if (req.method === "POST" && audioUploadMatch) {
+    try {
+      const assetId = decodeURIComponent(audioUploadMatch[1]);
+      const filename = url.searchParams.get("filename") || "track";
+      if (!chain.mintingEnabled()) {
+        sendJson(res, 503, { error: "on-chain actions are disabled on this server (no operator key configured)" });
+        return;
+      }
+      if (!pinata.uploadsEnabled()) {
+        sendJson(res, 503, { error: "audio upload is disabled on this server (no Pinata key configured)" });
+        return;
+      }
+      const onchainRecord = await getOnchainRecordWithFallback(assetId);
+      if (!onchainRecord) {
+        sendJson(res, 400, { error: "asset has no on-chain token yet — mint it before uploading audio" });
+        return;
+      }
+      const buffer = await readRawBody(req);
+      if (!buffer.length) {
+        sendJson(res, 400, { error: "empty file body" });
+        return;
+      }
+      const uri = await pinata.uploadAudio(buffer, filename);
+      const result = await chain.setTrackAudioUriOnchain(onchainRecord.token_id, uri);
+      sendJson(res, 200, { uri, txHash: result.txHash, explorerUrl: result.explorerUrl });
+    } catch (e) {
+      if (e.code === "too_large") {
+        sendJson(res, 413, { error: "file too large (20MB max)" });
+      } else {
+        sendJson(res, 502, { error: "audio upload failed", detail: String(e.message || e) });
       }
     }
     return;
