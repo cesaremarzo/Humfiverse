@@ -1,7 +1,9 @@
 import { Component, signal } from '@angular/core';
 import { ApiService } from '../../core/api.service';
+import { WalletService } from '../../core/wallet.service';
 import { EscrowCampaignInfo } from '../../core/models';
 import { fmtUSD } from '../../core/format.util';
+import { weiToUsd } from '../../core/usd-eth.util';
 
 type CampaignRow = EscrowCampaignInfo & { assetId: string };
 type LoadedCampaignRow = Extract<CampaignRow, { escrow: true }>;
@@ -29,12 +31,12 @@ export class AdminEscrowComponent {
   error = signal<string | null>(null);
 
   fmt = fmtUSD;
-  weiToUsd(wei: string): number {
-    // Inverse of the 0.0001 ETH-per-$1 illustrative mapping used at creation.
-    return Number(BigInt(wei) / 100_000_000_000_000n);
-  }
+  weiToUsd = weiToUsd;
 
-  constructor(private api: ApiService) {
+  constructor(
+    private api: ApiService,
+    public wallet: WalletService
+  ) {
     this.load();
   }
 
@@ -46,10 +48,6 @@ export class AdminEscrowComponent {
       .then((res) => this.campaigns.set(res.campaigns.filter((c): c is LoadedCampaignRow => c.escrow === true)))
       .catch((err) => this.error.set(String(err?.message || err)))
       .finally(() => this.loading.set(false));
-  }
-
-  truncate(addr: string): string {
-    return addr ? addr.slice(0, 6) + '…' + addr.slice(-4) : '';
   }
 
   canConfirm(raisedWei: string, amountWei: string): boolean {

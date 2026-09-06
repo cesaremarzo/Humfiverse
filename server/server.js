@@ -20,6 +20,7 @@
 
 require("dotenv").config();
 const http = require("node:http");
+const crypto = require("node:crypto");
 const db = require("./db");
 const { CONTRACT_TEMPLATE } = require("./contract-template");
 const chain = require("./chain");
@@ -399,7 +400,9 @@ async function createEscrowCampaign(assetId, artistAddress, fundingGoalWei, stud
 
 function isAdminAuthorized(req) {
   if (!ADMIN_API_KEY) return false; // fail closed: unconfigured means disabled, not open
-  return req.headers["x-admin-key"] === ADMIN_API_KEY;
+  const provided = req.headers["x-admin-key"];
+  if (typeof provided !== "string" || provided.length !== ADMIN_API_KEY.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(provided), Buffer.from(ADMIN_API_KEY));
 }
 
 function sendJson(res, status, body) {
@@ -421,15 +424,35 @@ function sendRaw(res, status, contentType, body) {
 function readBody(req) {
   return new Promise((resolve, reject) => {
     let raw = "";
+    let settled = false;
     req.on("data", chunk => {
+      if (settled) return;
       raw += chunk;
-      if (raw.length > 1e6) req.destroy(); // basic guard against oversized bodies
+      if (raw.length > 1e6) {
+        // Reject immediately instead of calling req.destroy() here: destroy()
+        // tears down the socket res also writes on, so the route handler's
+        // catch block could never actually deliver a 413 to the client —
+        // the promise (and the client) just hung forever instead. Rejecting
+        // without destroying lets the normal error response flow through;
+        // the rest of the oversized body is simply drained and ignored
+        // (raw is never appended to again) rather than forcibly cut off —
+        // fine for this prototype's threat model, not a substitute for real
+        // request-size enforcement at a reverse-proxy/rate-limiting layer.
+        settled = true;
+        reject(Object.assign(new Error("request body too large"), { code: "too_large" }));
+      }
     });
     req.on("end", () => {
+      if (settled) return;
+      settled = true;
       if (!raw) return resolve({});
       try { resolve(JSON.parse(raw)); } catch (e) { reject(e); }
     });
-    req.on("error", reject);
+    req.on("error", (e) => {
+      if (settled) return;
+      settled = true;
+      reject(e);
+    });
   });
 }
 
@@ -442,21 +465,31 @@ function readRawBody(req, maxBytes = 20 * 1024 * 1024) {
   return new Promise((resolve, reject) => {
     const chunks = [];
     let total = 0;
-    let tooLarge = false;
+    let settled = false;
     req.on("data", (chunk) => {
+      if (settled) return;
       total += chunk.length;
       if (total > maxBytes) {
-        tooLarge = true;
-        req.destroy();
+        // Same fix as readBody above: reject without destroying req, so the
+        // route handler's catch block can still send a real 413 on the same
+        // (still-alive) socket instead of the client hanging forever against
+        // one destroy() already killed.
+        settled = true;
+        reject(Object.assign(new Error("file too large"), { code: "too_large" }));
         return;
       }
       chunks.push(chunk);
     });
     req.on("end", () => {
-      if (tooLarge) return reject(Object.assign(new Error("file too large"), { code: "too_large" }));
+      if (settled) return;
+      settled = true;
       resolve(Buffer.concat(chunks));
     });
-    req.on("error", reject);
+    req.on("error", (e) => {
+      if (settled) return;
+      settled = true;
+      reject(e);
+    });
   });
 }
 
@@ -503,7 +536,13 @@ const server = http.createServer(async (req, res) => {
       }
       sendJson(res, 200, { ok: true, id: asset.id });
     } catch (e) {
-      sendJson(res, 502, { error: "could not save asset", detail: String(e.message || e) });
+      if (e instanceof SyntaxError) {
+        sendJson(res, 400, { error: "malformed JSON body" });
+      } else if (e.code === "too_large") {
+        sendJson(res, 413, { error: "request body too large" });
+      } else {
+        sendJson(res, 502, { error: "could not save asset", detail: String(e.message || e) });
+      }
     }
     return;
   }

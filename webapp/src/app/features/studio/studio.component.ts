@@ -6,6 +6,7 @@ import { WalletService } from '../../core/wallet.service';
 import { ToastService } from '../../core/toast.service';
 import { EscrowCampaignInfo } from '../../core/models';
 import { fmtUSD } from '../../core/format.util';
+import { weiToUsd } from '../../core/usd-eth.util';
 
 type CampaignRow = EscrowCampaignInfo & { assetId: string };
 type LoadedCampaignRow = Extract<CampaignRow, { escrow: true }>;
@@ -32,9 +33,7 @@ export class StudioComponent {
   confirming = signal<string | null>(null); // `${campaignId}-${milestoneIndex}`
 
   fmt = fmtUSD;
-  weiToUsd(wei: string): number {
-    return Number(BigInt(wei) / 100_000_000_000_000n);
-  }
+  weiToUsd = weiToUsd;
 
   myCampaigns = computed(() => {
     const addr = this.wallet.state().address?.toLowerCase();
@@ -72,10 +71,6 @@ export class StudioComponent {
       })
       .catch((err) => this.error.set(String(err?.message || err)))
       .finally(() => this.loading.set(false));
-  }
-
-  truncate(addr: string): string {
-    return addr ? addr.slice(0, 6) + '…' + addr.slice(-4) : '';
   }
 
   canConfirm(raisedWei: string, amountWei: string): boolean {

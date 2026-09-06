@@ -40,7 +40,7 @@
         <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:14px;">
           <div>
             <div class="cell-primary">{{ c.assetId }}</div>
-            <div style="font-size:12px; color:var(--text-secondary);">Campaign #{{ c.campaignId }} · Artist {{ truncate(c.artist) }}</div>
+            <div style="font-size:12px; color:var(--text-secondary);">Campaign #{{ c.campaignId }} · Artist {{ wallet.truncateAddr(c.artist) }}</div>
           </div>
           <span class="chip" [class.chip-good]="c.status === 'active'" [class.chip-neutral]="c.status === 'cancelled'">{{ c.status }}</span>
         </div>
