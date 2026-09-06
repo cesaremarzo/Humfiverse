@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -105,6 +105,28 @@ export class AssetDetailComponent {
   }
 
   audioGatewayUrl = ipfsGatewayUrl;
+
+  /** Lets the cover artwork's play/pause icon (same affordance as the
+   * marketplace card, §2.44) act as a shortcut for the full <audio> element
+   * further down this same page, rather than routing through the shared
+   * PreviewAudioService the marketplace grid uses — that service manages
+   * one <audio> element shared *across* cards, which would fight with this
+   * page's own full player over playback state. Both controls stay in sync
+   * for free since they drive the exact same underlying element. */
+  private audioPlayerRef = viewChild<ElementRef<HTMLAudioElement>>('audioPlayer');
+  audioPreviewPlaying = signal(false);
+
+  get audioPreviewUrl(): string | null {
+    const info = this.onchainInfo();
+    return info?.onchain && info.audioUri ? this.audioGatewayUrl(info.audioUri) : null;
+  }
+
+  toggleCoverAudioPreview(): void {
+    const el = this.audioPlayerRef()?.nativeElement;
+    if (!el) return;
+    if (el.paused) el.play().catch(() => {});
+    else el.pause();
+  }
   /** Prefers real on-chain state over the mock tokensSold counter whenever
    * it's available (§2.32 — a real fix, not a cosmetic one: tokensSold is
    * never persisted anywhere, so it silently reverted to its pre-purchase

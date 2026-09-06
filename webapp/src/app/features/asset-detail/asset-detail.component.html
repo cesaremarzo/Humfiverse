@@ -16,7 +16,7 @@
   <div class="detail-layout">
     <div>
       <div class="detail-hero">
-        <div class="detail-cover"><app-cover [asset]="a" [playSize]="38" [motifSize]="52"></app-cover></div>
+        <div class="detail-cover"><app-cover [asset]="a" [playSize]="38" [motifSize]="52" [previewable]="!!audioPreviewUrl" [playing]="audioPreviewPlaying()" (previewToggle)="toggleCoverAudioPreview()"></app-cover></div>
         <div class="detail-heading">
           <div class="chips">
             <app-status-chip [asset]="a"></app-status-chip>
@@ -113,7 +113,8 @@
               @if ($any(onchainInfo()).audioUri) {
                 <div style="margin-top:14px;">
                   <div class="label" style="margin-bottom:6px;">{{ 'detail.onchainAudio' | translate }}</div>
-                  <audio controls style="width:100%;" [src]="audioGatewayUrl($any(onchainInfo()).audioUri)"></audio>
+                  <audio #audioPlayer controls style="width:100%;" [src]="audioGatewayUrl($any(onchainInfo()).audioUri)"
+                          (play)="audioPreviewPlaying.set(true)" (pause)="audioPreviewPlaying.set(false)" (ended)="audioPreviewPlaying.set(false)"></audio>
                 </div>
               }
               <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px;">
