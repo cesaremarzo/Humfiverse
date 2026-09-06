@@ -15,6 +15,7 @@ import { ToastService } from '../../core/toast.service';
 import { Asset, DisclosureLevel, EscrowCampaignInfo, OnchainInfo, SecondaryListing } from '../../core/models';
 import { fmtUSD, fmtUSDShort } from '../../core/format.util';
 import { fundingPctFor, remainingFor, tokensSoldFor } from '../../core/onchain-progress.util';
+import { ipfsGatewayUrl } from '../../core/ipfs.util';
 import { computeYieldBreakdown } from '../../core/yield.util';
 import { platformFeeTokens } from '../../core/marketplace-fee.util';
 
@@ -102,13 +103,7 @@ export class AssetDetailComponent {
     return a.kind === 'preproduction';
   }
 
-  /** `ipfs://<cid>` isn't fetchable by a browser <audio> tag directly —
-   * routes through Pinata's own public gateway (§2.43), same service the
-   * file was pinned to. The on-chain value itself stays the protocol-
-   * neutral ipfs:// form; this is purely a playback convenience. */
-  audioGatewayUrl(uri: string): string {
-    return uri.startsWith('ipfs://') ? `https://gateway.pinata.cloud/ipfs/${uri.slice('ipfs://'.length)}` : uri;
-  }
+  audioGatewayUrl = ipfsGatewayUrl;
   /** Prefers real on-chain state over the mock tokensSold counter whenever
    * it's available (§2.32 — a real fix, not a cosmetic one: tokensSold is
    * never persisted anywhere, so it silently reverted to its pre-purchase

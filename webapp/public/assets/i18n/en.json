@@ -355,6 +355,7 @@
   "detail.escrowCampaignId": "Campaign ID",
   "detail.escrowRaisedGoal": "Raised / goal",
   "detail.escrowStudio": "Studio",
+  "detail.escrowArtistWallet": "Artist wallet",
   "toast.assetSaveFailed": "Campaign created, but it couldn't be saved to the server — it may not be visible to other visitors yet.",
   "detail.onchainRecordNote": "Title and artist read straight from the contract:",
   "nav.studio": "Studio",

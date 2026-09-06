@@ -10,6 +10,8 @@ import { fmtUSD, fmtUSDShort, fundingGoal } from '../core/format.util';
 import { fundingPctFor, fundingRaisedFor } from '../core/onchain-progress.util';
 import { computeProjectedYield } from '../core/yield.util';
 import { StoreService } from '../core/store.service';
+import { PreviewAudioService } from '../core/preview-audio.service';
+import { ipfsGatewayUrl } from '../core/ipfs.util';
 
 @Component({
   selector: 'app-asset-card',
@@ -19,8 +21,24 @@ import { StoreService } from '../core/store.service';
 })
 export class AssetCardComponent {
   private store = inject(StoreService);
+  private preview = inject(PreviewAudioService);
 
   @Input({ required: true }) asset!: Asset;
+
+  /** §2.44 — a real preview, straight from the track linked on-chain
+   * (HumfiverseCatalogueToken.trackAudioUri), not a mock/placeholder clip.
+   * "" until the artist actually uploads one (§2.43). */
+  get previewUrl(): string | null {
+    const info = this.store.onchainInfoMap().get(this.asset.id);
+    return info?.onchain && info.audioUri ? ipfsGatewayUrl(info.audioUri) : null;
+  }
+  get isPreviewPlaying(): boolean {
+    return this.preview.playingAssetId() === this.asset.id;
+  }
+  onPreviewToggle(): void {
+    const url = this.previewUrl;
+    if (url) this.preview.toggle(this.asset.id, url);
+  }
 
   get isPre(): boolean {
     return this.asset.kind === 'preproduction';

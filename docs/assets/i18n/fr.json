@@ -355,6 +355,7 @@
   "detail.escrowCampaignId": "ID de campagne",
   "detail.escrowRaisedGoal": "Collecté / objectif",
   "detail.escrowStudio": "Studio",
+  "detail.escrowArtistWallet": "Portefeuille de l'artiste",
   "toast.assetSaveFailed": "Campagne créée, mais elle n'a pas pu être enregistrée sur le serveur — elle pourrait ne pas encore être visible pour les autres visiteurs.",
   "detail.onchainRecordNote": "Titre et artiste lus directement depuis le contrat :",
   "nav.studio": "Studio",
