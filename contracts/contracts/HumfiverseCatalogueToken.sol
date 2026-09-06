@@ -35,6 +35,18 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
     ///         planning/technical-architecture.md §2.24.
     mapping(uint256 => string) public trackTitle;
     mapping(uint256 => string) public artistName;
+    /// @notice IPFS URI (`ipfs://<cid>`) for the actual uploaded track audio
+    ///         file, e.g. `ipfs://Qm...` — set separately from mint via
+    ///         setTrackAudioUri, not a mintCatalogue parameter, since the
+    ///         upload (to IPFS, off-chain) and the mint are two independent
+    ///         steps that can each fail on their own (§2.43). Empty string
+    ///         means no audio has been linked yet. Surfaced in the ERC-1155
+    ///         metadata JSON's `animation_url` field (server.js) so wallets/
+    ///         marketplaces that support it can play the track directly —
+    ///         but the on-chain value here is the source of truth, not that
+    ///         JSON, matching this contract's existing pattern for
+    ///         trackTitle/artistName (§2.24).
+    mapping(uint256 => string) public trackAudioUri;
     /// @notice total minted supply for a given token id
     mapping(uint256 => uint256) public totalSupplyOf;
     /// @notice cumulative amount released from the pool for a given token id
@@ -68,6 +80,7 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
     event PriceUpdated(uint256 indexed tokenId, uint256 previousPriceWei, uint256 newPriceWei);
     event PayoutRecipientUpdated(address indexed previous, address indexed next);
     event EscrowContractUpdated(address indexed previous, address indexed next);
+    event TrackAudioUriUpdated(uint256 indexed tokenId, string uri);
 
     /// @dev The original deploy used a placeholder `.example` domain here —
     ///      a reserved TLD (RFC 2606) that never resolves — so wallets could
@@ -176,6 +189,17 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
     function setPrice(uint256 tokenId, uint256 priceWeiPerToken) external onlyOwner {
         emit PriceUpdated(tokenId, pricePerToken[tokenId], priceWeiPerToken);
         pricePerToken[tokenId] = priceWeiPerToken;
+    }
+
+    /// @notice Owner-only: links tokenId to its uploaded track's IPFS URI —
+    ///         see trackAudioUri above. Requires the token to already be
+    ///         minted, same as this contract's other per-token setters
+    ///         implicitly assume (there's nothing to link audio to
+    ///         otherwise).
+    function setTrackAudioUri(uint256 tokenId, string calldata uri) external onlyOwner {
+        require(totalSupplyOf[tokenId] > 0, "HumfiverseCatalogueToken: unknown token id");
+        trackAudioUri[tokenId] = uri;
+        emit TrackAudioUriUpdated(tokenId, uri);
     }
 
     function setPayoutRecipient(address next) external onlyOwner {

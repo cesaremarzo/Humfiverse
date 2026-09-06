@@ -73,6 +73,19 @@ export class ApiService {
     return firstValueFrom(this.http.post<OnchainMintResult>(`${this.base}/api/onchain/mint`, payload));
   }
 
+  /** Uploads the track's real audio file to IPFS and links the resulting
+   * CID on-chain (§2.43) — sends the file's raw bytes directly as the
+   * request body (no multipart form needed for this hop; the backend
+   * handles the multipart step towards Pinata itself). */
+  uploadTrackAudio(assetId: string, file: File): Promise<{ uri: string; txHash: string; explorerUrl: string }> {
+    return firstValueFrom(
+      this.http.post<{ uri: string; txHash: string; explorerUrl: string }>(
+        `${this.base}/api/onchain/audio/${encodeURIComponent(assetId)}?filename=${encodeURIComponent(file.name)}`,
+        file
+      )
+    );
+  }
+
   /** Every assetId with a real, chain-verified token — see StoreService.onchainAssetIds. */
   getOnchainList(): Promise<{ source: 'chain' | 'local-table'; assetIds: string[] }> {
     return firstValueFrom(this.http.get<{ source: 'chain' | 'local-table'; assetIds: string[] }>(`${this.base}/api/onchain/list`));

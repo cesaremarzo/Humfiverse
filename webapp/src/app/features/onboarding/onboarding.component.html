@@ -95,6 +95,16 @@
           <span class="hint">{{ 'wizSource.statementHint' | translate }}</span>
         </div>
       }
+
+      <div class="field" style="margin-top:14px;">
+        <label>{{ 'wizSource.audioLabel' | translate }}</label>
+        <label class="doc-row" style="cursor:pointer;">
+          <app-icon name="upload"></app-icon>
+          <span class="name">{{ audioFile()?.name || ('wizSource.audioPlaceholder' | translate) }}</span>
+          <input type="file" accept="audio/*" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" (change)="onAudioFileSelected($event)">
+        </label>
+        <span class="hint">{{ 'wizSource.audioHint' | translate }}</span>
+      </div>
     }
 
     @if (stepKey() === 'disclosure') {

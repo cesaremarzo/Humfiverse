@@ -19,14 +19,13 @@ const { withRetry } = require("./chainRetry");
 // Switched from Base Sepolia to real Ethereum Sepolia (§2.35) — easier to
 // get testnet ETH from faucets there.
 const RPC_URL = process.env.CHAIN_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com";
-// §2.42 redeploy — added escrowContract authorization so
-// HumfiverseMilestoneEscrow.contribute() can release tokens atomically;
-// see HumfiverseMilestoneEscrow.sol and chainEscrow.js.
-const CONTRACT_ADDRESS = process.env.CHAIN_CONTRACT_ADDRESS || "0xfd8D1d02Df922B9839D05b5C24cA2C06eD9690dD";
+// §2.43 redeploy — added trackAudioUri + setTrackAudioUri, linking a
+// minted token to its uploaded track's real IPFS audio (see pinata.js).
+const CONTRACT_ADDRESS = process.env.CHAIN_CONTRACT_ADDRESS || "0xd8820e0fb8F6229577BcdfA0BaAF864280B969a4";
 // Block this contract was deployed at — starting event queries here instead
 // of block 0 keeps each eth_getLogs call well under public RPCs' ~10,000-
 // block range limit even as the chain grows. Update after any redeploy.
-const CONTRACT_DEPLOY_BLOCK = Number(process.env.CHAIN_CONTRACT_DEPLOY_BLOCK || 11635555);
+const CONTRACT_DEPLOY_BLOCK = Number(process.env.CHAIN_CONTRACT_DEPLOY_BLOCK || 11647954);
 // Alchemy's free tier caps eth_getLogs at a 10-block range per call (found
 // the hard way — the public-RPC default this project used before §2.39
 // silently returned *incomplete* results instead of erroring, which is
@@ -52,6 +51,8 @@ const ABI = [
   "function pricePerToken(uint256) view returns (uint256)",
   "function trackTitle(uint256) view returns (string)",
   "function artistName(uint256) view returns (string)",
+  "function trackAudioUri(uint256) view returns (string)",
+  "function setTrackAudioUri(uint256 tokenId, string uri)",
   "function releaseFromPool(address to, uint256 tokenId, uint256 amount)",
   "function balanceOf(address account, uint256 id) view returns (uint256)",
   "event CatalogueMinted(uint256 indexed tokenId, string slug, uint256 supply, uint256 priceWeiPerToken, string title, string artist)"
@@ -74,13 +75,14 @@ function mintingEnabled() {
 }
 
 async function getPoolInfo(tokenId) {
-  const [poolBalance, totalSupply, released, priceWei, title, artist] = await Promise.all([
+  const [poolBalance, totalSupply, released, priceWei, title, artist, audioUri] = await Promise.all([
     readContract.poolBalance(tokenId),
     readContract.totalSupplyOf(tokenId),
     readContract.releasedOf(tokenId),
     readContract.pricePerToken(tokenId),
     readContract.trackTitle(tokenId),
-    readContract.artistName(tokenId)
+    readContract.artistName(tokenId),
+    readContract.trackAudioUri(tokenId)
   ]);
   return {
     tokenId,
@@ -92,8 +94,20 @@ async function getPoolInfo(tokenId) {
     released: released.toString(),
     priceWei: priceWei.toString(),
     onchainTitle: title,
-    onchainArtist: artist
+    onchainArtist: artist,
+    audioUri
   };
+}
+
+/** Links tokenId to its uploaded track's IPFS URI (§2.43) — see
+ * trackAudioUri on the contract. Called after server.js's pinata.js module
+ * uploads the file and gets a CID back; two independent steps (upload,
+ * then on-chain write) that can each fail on their own. */
+async function setTrackAudioUriOnchain(tokenId, uri) {
+  if (!writeContract) throw new Error("on-chain minting is disabled (no operator key configured)");
+  const tx = await withRetry(() => writeContract.setTrackAudioUri(tokenId, uri));
+  const receipt = await tx.wait();
+  return { txHash: receipt.hash, explorerUrl: `${EXPLORER_BASE}/tx/${receipt.hash}` };
 }
 
 /** The local SQLite record of used token ids is only a hint — it can be
@@ -187,6 +201,7 @@ module.exports = {
   getPoolInfo,
   mintCatalogueOnchain,
   releaseFromPoolOnchain,
+  setTrackAudioUriOnchain,
   isTokenIdFree,
   listRecentlyMintedSlugsFromChain,
   CONTRACT_ADDRESS,

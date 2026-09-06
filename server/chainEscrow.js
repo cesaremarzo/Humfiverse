@@ -14,11 +14,12 @@ const { withRetry } = require("./chainRetry");
 
 // Switched from Base Sepolia to real Ethereum Sepolia (§2.35).
 const RPC_URL = process.env.CHAIN_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com";
-// §2.42 redeploy — takes a HumfiverseCatalogueToken address at construction
-// so contribute() can release tokens from that pool atomically; see
-// HumfiverseMilestoneEscrow.sol and chain.js's own CONTRACT_ADDRESS.
-const ESCROW_ADDRESS = process.env.CHAIN_ESCROW_ADDRESS || "0xa1670bC06e2d2860e8F7c1d80e6c13a501bcaF81";
-const ESCROW_DEPLOY_BLOCK = Number(process.env.CHAIN_ESCROW_DEPLOY_BLOCK || 11635556);
+// §2.42: takes a HumfiverseCatalogueToken address at construction so
+// contribute() can release tokens from that pool atomically — redeployed
+// again in §2.43 alongside the token (an immutable reference, so any token
+// redeploy forces an escrow redeploy too). See chain.js's CONTRACT_ADDRESS.
+const ESCROW_ADDRESS = process.env.CHAIN_ESCROW_ADDRESS || "0x170c825f68024D0b919BfacecD0D8FcFDc639f8d";
+const ESCROW_DEPLOY_BLOCK = Number(process.env.CHAIN_ESCROW_DEPLOY_BLOCK || 11647955);
 // §2.39: Alchemy's free tier caps eth_getLogs at a 10-block range per call,
 // and the public-RPC default this project used before that started
 // silently returning *incomplete* results for a full-history scan instead

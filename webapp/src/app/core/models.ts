@@ -195,6 +195,11 @@ export type OnchainInfo =
        * off-chain database's copy of the name. */
       onchainTitle: string;
       onchainArtist: string;
+      /** ipfs://<cid> for the uploaded track's audio, or "" if none has
+       * been linked yet — see HumfiverseCatalogueToken.trackAudioUri
+       * (§2.43). Source of truth is the contract itself, not this API
+       * response. */
+      audioUri: string;
     };
 
 export interface OnchainMintResult {
