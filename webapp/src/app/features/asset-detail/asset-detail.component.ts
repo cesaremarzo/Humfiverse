@@ -259,7 +259,7 @@ export class AssetDetailComponent {
         this.scheduleOnchainRefresh(a.id);
       } catch (err: unknown) {
         console.warn('On-chain contribution did not complete.', err);
-        this.toast.show(this.translate.instant(this.onchainErrorKey(err)), 'alert');
+        this.toast.show(this.onchainErrorMessage(err), 'alert');
       } finally {
         this.onchainBuyPending.set(false);
       }
@@ -280,7 +280,7 @@ export class AssetDetailComponent {
         this.scheduleOnchainRefresh(a.id);
       } catch (err: unknown) {
         console.warn('On-chain purchase did not complete.', err);
-        this.toast.show(this.translate.instant(this.onchainErrorKey(err)), 'alert');
+        this.toast.show(this.onchainErrorMessage(err), 'alert');
       } finally {
         this.onchainBuyPending.set(false);
       }
@@ -293,11 +293,28 @@ export class AssetDetailComponent {
 
   weiToUsd = weiToUsd;
 
-  private onchainErrorKey(err: unknown): string {
-    const message = (err as { message?: string })?.message;
-    if (message === 'wrong-network') return 'toast.onchainWrongNetwork';
-    if (message === 'no-wallet') return 'toast.noWalletDetected';
-    return 'toast.onchainBuyFailed';
+  /** Was a single catch-all "failed or was rejected" message regardless of
+   * why — indistinguishable whether the user just declined the signature,
+   * their wallet couldn't cover the ETH, or the contract itself reverted
+   * (and if it reverted, for what reason). That collapsed every real
+   * diagnosis into "open devtools and read the console", which is exactly
+   * what made a real on-chain-capacity bug (§ the Guns remaining-tokens
+   * fix) take several rounds to actually pin down. Distinguishes the
+   * cases ethers v6 (and this service's own pre-flight checks) actually
+   * report, and surfaces the raw on-chain revert reason verbatim when
+   * there is one — untranslated by design, same as the backend's own
+   * error responses elsewhere in this app, since it's a fixed Solidity
+   * string, not user-facing copy this app authored. */
+  private onchainErrorMessage(err: unknown): string {
+    const e = err as { message?: string; code?: string; reason?: string; shortMessage?: string };
+    if (e?.message === 'wrong-network') return this.translate.instant('toast.onchainWrongNetwork');
+    if (e?.message === 'no-wallet') return this.translate.instant('toast.noWalletDetected');
+    if (e?.code === 'ACTION_REJECTED') return this.translate.instant('toast.onchainRejected');
+    if (e?.code === 'INSUFFICIENT_FUNDS') return this.translate.instant('toast.onchainInsufficientFunds');
+    if (e?.message === 'tx-failed') return this.translate.instant('toast.onchainReverted');
+    const reason = e?.reason || e?.shortMessage;
+    if (reason) return this.translate.instant('toast.onchainBuyFailedReason', { reason });
+    return this.translate.instant('toast.onchainBuyFailed');
   }
 
   private applyPurchase(a: Asset, qty: number, total: number): void {
