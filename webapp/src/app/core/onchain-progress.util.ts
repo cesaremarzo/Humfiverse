@@ -14,7 +14,22 @@ function isPre(a: Asset): boolean {
 }
 
 export function remainingFor(a: Asset, onchain: OnchainInfo | null, escrow: EscrowCampaignInfo | null): number {
-  if (!isPre(a) && onchain?.onchain) {
+  // The token pool's own balance is the real, hard constraint on how many
+  // more tokens *any* purchase path (buy() or contribute() — both release
+  // from this same pool atomically, §2.42) can actually deliver, for a
+  // catalogue or a preproduction campaign alike — prefer it whenever it's
+  // available, before ever falling back to the escrow's own raised/goal
+  // ratio. That ratio only reflects contributions that went through
+  // contribute() on the *current* contract; tokens released other ways —
+  // most notably the manual re-releases this project has done to make a
+  // real holder whole after every contract redeploy (see
+  // planning/technical-architecture.md §2.36/§2.42/§2.43) — never touch
+  // escrow.raised at all. For Guns specifically that gap is 45 tokens
+  // (poolBalance 1255 vs. tokensTotal 1300): the escrow-ratio formula
+  // advertised the full 1300 as purchasable, and a buy for the max the UI
+  // itself offered would revert every time, since the token contract
+  // simply doesn't have that many left to release.
+  if (onchain?.onchain) {
     return Number(BigInt(onchain.poolBalance));
   }
   if (isPre(a) && escrow?.escrow) {
