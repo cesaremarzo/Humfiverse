@@ -106,6 +106,21 @@ export class AssetDetailComponent {
 
   audioGatewayUrl = ipfsGatewayUrl;
 
+  /** Every external link on this page (explorer/source links) is wired
+   * through this instead of relying on the anchor's own default click
+   * behavior — reported not to open at all for at least one user on some
+   * unidentified mobile/webview setup despite the href itself being
+   * correct (verified against the live deployed bundle). The href stays
+   * on the element too (so hover-preview, right-click "copy link", and
+   * screen readers still work) — this just forces the actual navigation
+   * through the one browser API that has no known environment where it
+   * silently no-ops, instead of trusting the native anchor click. */
+  openExternal(event: Event, url: string | undefined): void {
+    if (!url) return;
+    event.preventDefault();
+    window.location.href = url;
+  }
+
   /** Lets the cover artwork's play/pause icon (same affordance as the
    * marketplace card, §2.44) act as a shortcut for the full <audio> element
    * further down this same page, rather than routing through the shared

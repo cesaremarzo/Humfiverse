@@ -118,10 +118,10 @@
                 </div>
               }
               <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px;">
-                <a [href]="$any(onchainInfo()).explorerUrl" class="btn btn-secondary btn-sm">
+                <a [href]="$any(onchainInfo()).explorerUrl" (click)="openExternal($event, $any(onchainInfo()).explorerUrl)" class="btn btn-secondary btn-sm">
                   <app-icon name="arrowRight"></app-icon> {{ 'detail.onchainExplorer' | translate }}
                 </a>
-                <a href="https://github.com/cesaremarzo/Humfiverse/blob/main/contracts/contracts/HumfiverseCatalogueToken.sol" class="btn btn-ghost btn-sm">
+                <a href="https://github.com/cesaremarzo/Humfiverse/blob/main/contracts/contracts/HumfiverseCatalogueToken.sol" (click)="openExternal($event, 'https://github.com/cesaremarzo/Humfiverse/blob/main/contracts/contracts/HumfiverseCatalogueToken.sol')" class="btn btn-ghost btn-sm">
                   <app-icon name="file"></app-icon> {{ 'detail.viewSource' | translate }}
                 </a>
               </div>
@@ -144,10 +144,10 @@
                 <div class="card stat-tile"><div class="label">{{ 'detail.escrowArtistWallet' | translate }}</div><div class="value mono" style="font-size:14px;">{{ wallet.truncateAddr($any(escrowInfo()).artist) }}</div></div>
               </div>
               <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px;">
-                <a [href]="$any(escrowInfo()).explorerUrl" class="btn btn-secondary btn-sm">
+                <a [href]="$any(escrowInfo()).explorerUrl" (click)="openExternal($event, $any(escrowInfo()).explorerUrl)" class="btn btn-secondary btn-sm">
                   <app-icon name="arrowRight"></app-icon> {{ 'detail.onchainExplorer' | translate }}
                 </a>
-                <a href="https://github.com/cesaremarzo/Humfiverse/blob/main/contracts/contracts/HumfiverseMilestoneEscrow.sol" class="btn btn-ghost btn-sm">
+                <a href="https://github.com/cesaremarzo/Humfiverse/blob/main/contracts/contracts/HumfiverseMilestoneEscrow.sol" (click)="openExternal($event, 'https://github.com/cesaremarzo/Humfiverse/blob/main/contracts/contracts/HumfiverseMilestoneEscrow.sol')" class="btn btn-ghost btn-sm">
                   <app-icon name="file"></app-icon> {{ 'detail.viewSource' | translate }}
                 </a>
               </div>
@@ -321,7 +321,7 @@
           <div class="card panel" style="text-align:left; font-size:12px; margin-bottom:14px;">
             <div style="color:var(--text-secondary); margin-bottom:4px;">{{ 'buy.onchainTxLabel' | translate }}</div>
             <div class="mono" style="word-break:break-all;">{{ s.txHash }}</div>
-            <a [href]="s.explorerUrl" class="btn btn-secondary btn-sm" style="margin-top:10px;">
+            <a [href]="s.explorerUrl" (click)="openExternal($event, s.explorerUrl)" class="btn btn-secondary btn-sm" style="margin-top:10px;">
               <app-icon name="arrowRight"></app-icon> {{ 'detail.onchainExplorer' | translate }}
             </a>
           </div>
