@@ -60,8 +60,11 @@ export class AssetCardComponent {
   get priceFmt(): string {
     return fmtUSD(this.asset.tokenPrice);
   }
-  get yieldPct(): string {
-    const y = computeProjectedYield(this.asset);
-    return (y || 0).toFixed(1);
+  /** null when there's no real royalty history to compute from — the
+   * template shows an honest "not yet reported" state instead of masking
+   * this as a plausible-looking "0.0%", which would just be a different
+   * kind of fake number. */
+  get yieldPct(): number | null {
+    return computeProjectedYield(this.asset);
   }
 }

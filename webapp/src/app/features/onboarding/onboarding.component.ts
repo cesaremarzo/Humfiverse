@@ -9,7 +9,6 @@ import { ToastService } from '../../core/toast.service';
 import { AiDisclosure, Asset, Campaign, DisclosureLevel } from '../../core/models';
 import { fmtUSD } from '../../core/format.util';
 import { usdToWei } from '../../core/usd-eth.util';
-import { buildRoyaltyHistory } from '../../core/royalty-history.util';
 import { clauseCategory, clauseText, contractLegalBasisNote, vessatoriaClauseIds } from '../../core/contract-text.util';
 
 type ModelKind = 'catalogue' | 'preproduction' | null;
@@ -279,9 +278,18 @@ export class OnboardingComponent {
         { name: 'Mix & master delivered', trancheAmount: Math.round(total * 0.3), status: 'pending' },
         { name: 'Release confirmed on DSPs', trancheAmount: Math.round(total * 0.1), status: 'pending' }
       ];
-    } else {
-      asset.royaltyHistory = buildRoyaltyHistory(Math.max(3, parseInt(d.catalogue.months, 10) || 6), 1800, 1.01, 0.18, id.length * 7);
     }
+    // Catalogue-kind campaigns deliberately get no royaltyHistory here — a
+    // track just uploaded through this wizard has no real distribution
+    // history yet. This used to call buildRoyaltyHistory() to fabricate one
+    // (a random-walk generator never calibrated against this wizard's own
+    // fixed $20 x 1,500-token catalogue economics), which is exactly what
+    // produced the ~72-75% "projected yield" the user flagged as fake —
+    // recalibrating the generator's numbers would have just produced a
+    // more convincing fake one. A real yield needs a real trailing-12-month
+    // royalty statement (§2.1/§2.9), which this prototype has no way to
+    // collect yet; every place that reads royaltyHistory shows an honest
+    // "not yet reported" state instead of a number when it's absent.
 
     const campaign: Campaign = { id, assetId: id, title: asset.title, artistName: asset.artistName, holders: 0, milestones: asset.milestones };
     this.store.assets.update((assets) => [asset, ...assets]);

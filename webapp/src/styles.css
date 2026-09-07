@@ -297,6 +297,7 @@
   .asset-foot{ display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:4px; }
   .asset-foot .yield{ font-family:"IBM Plex Mono",monospace; font-weight:600; color: var(--good); font-size:13.5px; }
   .asset-foot .yield.venture{ color: var(--accent-ink); }
+  .asset-foot .yield.pending{ color: var(--text-muted); font-weight:500; }
 
   /* ============================= DETAIL PAGE ============================= */
   .breadcrumb{ display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-muted); margin-bottom:18px; }
