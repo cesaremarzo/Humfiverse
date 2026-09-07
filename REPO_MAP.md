@@ -14,6 +14,7 @@ A folder-by-folder index of this repo: what's where, and where to read the *why*
 | `netlify.toml` | Netlify deploy config (branch preview builds — see `CLAUDE.md` "Team & branches"). |
 | `render.yaml` | Render deploy config for the backend (`server/`). |
 | `run-dev.sh` | Runs backend + frontend together locally. |
+| `.gitbook.yaml` | Tells GitBook where the synced whitepaper content lives (`whitepaper/`) when the space is connected to this repo. |
 | `password` | Empty, untracked-origin file that showed up once during development (§ in `SESSION_LOG.md`'s 2026-08-29 entry). Harmless, gitignored, never resolved — not a real credential. |
 
 ## `contracts/` — Solidity smart contracts (Hardhat)
@@ -66,6 +67,10 @@ Builds to `../docs` (see below) for GitHub Pages; Netlify builds it fresh from s
 
 - `technical-architecture.md` — **the detailed technical changelog**, dated and numbered (§2.1 → §2.44+ and counting). Every non-obvious bug, fix, or architectural decision this project has made is documented here with its reasoning. Check here before re-diagnosing something that may already have a documented answer.
 - `business-overview.md`, `legal-regulatory-notes.md`, `blockchain-infrastructure-implementation-notes.md`, `frontend-prototype.md` — the original business/legal/technical planning docs, more static, written before most of the build-out.
+
+## `whitepaper/` — public-facing whitepaper (GitBook)
+
+Synced to GitBook via git (`.gitbook.yaml` at the repo root points GitBook at this folder). `SUMMARY.md` is GitBook's table-of-contents file; `README.md` is the space's landing page; everything else is one chapter per file. Unlike `planning/` (internal working docs, written for the team, full of open questions and hedges), this is the polished, external-facing document — written to be read by artists/investors, but held to the same honesty standard as the rest of this project: it states plainly what's actually built/deployed (testnet only, unaudited, no real SPV yet) versus what's planned, rather than reading as a pitch. Update this whenever a real, material change happens to the legal, business, or technical status it describes — not on every commit.
 
 ## `.vscode/`, `.claude/`
 
