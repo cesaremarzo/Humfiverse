@@ -86,7 +86,11 @@
           } @else {
             <div class="card chart-card">
               <div class="chart-card-head"><h3>{{ 'detail.reportedRoyaltyIncome' | translate }}</h3><span class="legend"><span class="legend-dot"></span> {{ 'detail.monthlyUsd' | translate }}</span></div>
-              <app-line-chart [royaltyHistory]="a.royaltyHistory!"></app-line-chart>
+              @if (a.royaltyHistory?.length) {
+                <app-line-chart [royaltyHistory]="a.royaltyHistory!"></app-line-chart>
+              } @else {
+                <p class="prose" style="font-size:12.5px; padding:20px 0;">{{ 'detail.royaltyHistoryPending' | translate }}</p>
+              }
             </div>
           }
 
@@ -187,16 +191,22 @@
         }
 
         @if (tab() === 'royalty' && !isPre(a)) {
-          <div class="stat-row">
-            <div class="card stat-tile"><div class="label">{{ 'detail.trailingTotal' | translate }}</div><div class="value">{{ fmtShort(royaltyTotal(a)) }}</div></div>
-            <div class="card stat-tile"><div class="label">{{ 'detail.monthlyAvg' | translate }}</div><div class="value">{{ fmt(royaltyAvg(a)) }}</div></div>
-            <div class="card stat-tile"><div class="label">{{ 'detail.history' | translate }}</div><div class="value">{{ 'detail.moSuffix' | translate: { n: a.royaltyHistory!.length } }}</div></div>
-          </div>
-          <div class="card chart-card">
-            <div class="chart-card-head"><h3>{{ 'detail.fullReportedHistory' | translate }}</h3><span class="legend"><span class="legend-dot"></span> {{ 'detail.monthlyUsd' | translate }}</span></div>
-            <app-line-chart [royaltyHistory]="a.royaltyHistory!"></app-line-chart>
-          </div>
-          <div class="prose">{{ 'detail.sourcedFrom' | translate }}</div>
+          @if (a.royaltyHistory?.length) {
+            <div class="stat-row">
+              <div class="card stat-tile"><div class="label">{{ 'detail.trailingTotal' | translate }}</div><div class="value">{{ fmtShort(royaltyTotal(a)) }}</div></div>
+              <div class="card stat-tile"><div class="label">{{ 'detail.monthlyAvg' | translate }}</div><div class="value">{{ fmt(royaltyAvg(a)) }}</div></div>
+              <div class="card stat-tile"><div class="label">{{ 'detail.history' | translate }}</div><div class="value">{{ 'detail.moSuffix' | translate: { n: a.royaltyHistory!.length } }}</div></div>
+            </div>
+            <div class="card chart-card">
+              <div class="chart-card-head"><h3>{{ 'detail.fullReportedHistory' | translate }}</h3><span class="legend"><span class="legend-dot"></span> {{ 'detail.monthlyUsd' | translate }}</span></div>
+              <app-line-chart [royaltyHistory]="a.royaltyHistory!"></app-line-chart>
+            </div>
+            <div class="prose">{{ 'detail.sourcedFrom' | translate }}</div>
+          } @else {
+            <div class="card panel">
+              <p class="prose" style="font-size:13px;">{{ 'detail.royaltyHistoryPending' | translate }}</p>
+            </div>
+          }
         }
 
         @if (tab() === 'milestones' && isPre(a)) {

@@ -585,6 +585,32 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  const royaltyHistoryResetMatch = url.pathname.match(/^\/api\/admin\/royalty-history\/([^/]+)$/);
+  if (req.method === "DELETE" && royaltyHistoryResetMatch) {
+    // Admin-only cleanup: strips a fabricated royaltyHistory from an
+    // already-stored asset, without touching anything else on the record
+    // or anything on-chain. Existed because the onboarding wizard used to
+    // synthesize a fake royalty history for every catalogue-kind campaign
+    // via buildRoyaltyHistory() — a real campaign with no real distribution
+    // history yet showing a fabricated "72% projected yield" straight out
+    // of a random-number generator. The wizard no longer does this; this
+    // endpoint is for cleaning up rows created before that fix.
+    if (!isAdminAuthorized(req)) {
+      sendJson(res, 401, { error: "missing or invalid X-Admin-Key header" });
+      return;
+    }
+    const assetId = decodeURIComponent(royaltyHistoryResetMatch[1]);
+    const asset = await getAssetById(assetId);
+    if (!asset) {
+      sendJson(res, 404, { error: "no asset with this id" });
+      return;
+    }
+    delete asset.royaltyHistory;
+    await db.prepare("UPDATE assets SET data = ? WHERE id = ?").run(JSON.stringify(asset), assetId);
+    sendJson(res, 200, { ok: true, assetId });
+    return;
+  }
+
   if (req.method === "DELETE" && url.pathname === "/api/admin/escrow-studios-reset") {
     // Admin-only (§2.42): the escrow_studios table caches wallet+name ->
     // on-chain studioId to skip a redundant registration transaction — but
