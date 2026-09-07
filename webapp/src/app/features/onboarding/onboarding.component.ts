@@ -360,6 +360,22 @@ export class OnboardingComponent {
         }
       }
 
+      // store.onchainInfoMap (unlike onchainAssetIds just above) is only
+      // ever populated once, at app boot — it has no entry for a campaign
+      // created since then, so its marketplace card would show no preview
+      // icon/funding data until a full page reload. Re-fetching just this
+      // one asset's on-chain record now and merging it in fixes that for
+      // this session without waiting on a reload, mirroring what already
+      // happens for onchainAssetIds above.
+      if (mintedTokenId !== null) {
+        try {
+          const info = await this.api.getOnchainInfo(id);
+          this.store.onchainInfoMap.update((map) => new Map(map).set(id, info));
+        } catch {
+          /* the card just falls back to mock data until the next reload, same as any other onchain-read failure */
+        }
+      }
+
       // Preproduction campaigns also get a real milestone escrow (§2.15) —
       // needs the artist's own wallet connected, since that's where every
       // non-studio milestone tranche pays out to, and needs the mint above
