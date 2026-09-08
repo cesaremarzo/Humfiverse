@@ -9,35 +9,46 @@ Humfiverse offers two ways to invest, and treats them as genuinely different, no
 
 Both work the same way underneath: a legal entity holds the real royalty right, and your token is a claim against *that entity* — never a claim on the copyright itself. See [Legal & Regulatory Structure](05-legal-structure.md).
 
-## Where the money goes
+## The full money loop
+
+Not just where an investor's money goes on the way in — the whole round trip, including how it eventually comes back as a payout:
 
 ```mermaid
-flowchart LR
-    I(["Investor"]) -->|"pays a fixed price"| P{"Catalogue<br/>or<br/>Pre-production?"}
+flowchart TD
+    Investor(["Investor"])
 
-    P -->|"Catalogue"| Direct["Money goes straight<br/>to the rights holder"]
-    P -->|"Pre-production"| Escrow["Money is held in the<br/>milestone escrow contract"]
+    Investor -->|"① buys or contributes"| Choice{"Catalogue<br/>or<br/>Pre-production?"}
 
-    P -.->|"either way"| T["Tokens land in your wallet<br/>immediately — same transaction"]
+    Choice -->|"Catalogue — already earning"| Paid["Rights holder<br/>paid immediately, in full"]
+    Choice -->|"Pre-production — not finished"| Escrow["Money held in the<br/>milestone escrow contract"]
 
     Escrow --> MS
 
-    subgraph MS["Escrow money is released one tranche at a time —<br/>only once BOTH the Artist and the Studio confirm it, from their own wallets"]
-        direction TB
-        M1["① Funding goal reached — 20% → Artist"]
-        M2["② Studio & collaborators booked — 40% → Studio"]
-        M3["③ Mix & master delivered — 30% → Artist"]
-        M4["④ Release confirmed on streaming services — 10% → Artist"]
+    subgraph MS["② Escrow pays out one tranche at a time —<br/>only once BOTH the Artist and the Studio confirm it themselves"]
+        direction LR
+        M1["Funding goal<br/>20% → Artist"]
+        M2["Studio booked<br/>40% → Studio"]
+        M3["Mix & master<br/>30% → Artist"]
+        M4["Release confirmed<br/>10% → Artist"]
     end
 
-    Escrow -.->|"if the campaign is cancelled"| R(["Contributors are refunded —<br/>pro-rata, only the part not yet released"])
+    Paid --> Track(["Track is released<br/>and streaming"])
+    MS --> Track
+
+    Track -->|"③ earns"| Royalties["Royalty income<br/>(Spotify, PROs, etc.)"]
+    Royalties -->|"④ confirmed on-chain"| Payout["Distribution contract"]
+    Payout -->|"⑤ paid out, pro-rata,<br/>to every token holder"| Investor
+
+    Escrow -.->|"if the campaign is cancelled"| Refund(["Contributors refunded —<br/>the unreleased portion only"])
 ```
 
-For a catalogue, buying is simple: pay, receive your tokens, done — one transaction. For pre-production, your tokens still land in your wallet immediately, but *your money* sits in the escrow contract and only reaches the artist and studio as the track actually gets made. Neither Humfiverse nor the artist can touch it early, and no single side can release it alone — a milestone pays out only when the artist and the studio *both* confirm, independently, that it genuinely happened. If they disagree, the money simply stays locked; there's no arbitration, on purpose (see [Governance](06-governance.md) for why).
+Step by step:
 
-If a campaign gets cancelled, contributors get refunded for whatever hasn't been paid out yet. Money already released for milestones genuinely delivered stays with whoever earned it.
-
-Once a track is actually earning royalties — from either product — that income gets collected and paid out to token holders periodically. A smart contract can automate that payout once the money reaches an account it controls, but it can't reach into Spotify or a collecting society and pull the money out by itself. Someone has to confirm "this royalty payment really arrived" before the contract can act on it. That confirmation step is the hardest, most important part of this whole system — see [Technical Architecture](03-technical-architecture.md) for how Humfiverse handles it honestly rather than glossing over it.
+1. **The investor pays**, and their tokens land in their wallet immediately — one transaction, whichever product it is.
+2. **For a catalogue**, that's it — the rights holder is paid in full right away, because the track is already earning. **For pre-production**, the money instead sits in the escrow contract and only reaches the artist and studio as the track actually gets made, tranche by tranche. Neither Humfiverse nor the artist can touch it early, and no single side can release a tranche alone — it pays out only once the artist and the studio *both* confirm, independently, that it genuinely happened. If they disagree, the money just stays locked; there's no arbitration, on purpose (see [Governance](06-governance.md)). If the campaign is cancelled instead, contributors are refunded for whatever hasn't been released yet — money already paid out for milestones genuinely delivered stays with whoever earned it.
+3. **The track releases and starts earning** royalties from streaming, licensing, and performance.
+4. **That income has to be confirmed on-chain** before anything can happen with it — a smart contract can't reach into Spotify and pull money out by itself. Someone has to confirm "this royalty payment really arrived." That confirmation step is the hardest, most important part of the whole system — see [Technical Architecture](03-technical-architecture.md) for how Humfiverse handles it honestly rather than glossing over it.
+5. **Confirmed income gets paid out**, pro-rata, to every token holder — closing the loop back to the investor.
 
 ## Why an escrow, specifically
 
