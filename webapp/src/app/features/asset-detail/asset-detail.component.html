@@ -139,6 +139,12 @@
                 <span class="chip chip-accent">{{ 'detail.onchainNetwork' | translate }}</span>
               </div>
               <p class="prose" style="font-size:12.5px; margin-top:8px;">{{ 'detail.escrowExplainer' | translate }}</p>
+              @if (isStudioSelfDealing(escrowInfo())) {
+                <div class="risk-item" style="margin-top:10px;">
+                  <app-icon name="alert"></app-icon>
+                  <div>{{ 'detail.studioSelfDealingWarning' | translate }}</div>
+                </div>
+              }
               <div class="stat-row" style="margin-top:14px;">
                 <div class="card stat-tile"><div class="label">{{ 'detail.escrowCampaignId' | translate }}</div><div class="value mono">#{{ $any(escrowInfo()).campaignId }}</div></div>
                 <div class="card stat-tile"><div class="label">{{ 'detail.escrowRaisedGoal' | translate }}</div><div class="value mono" style="font-size:14px;">{{ weiToUsd($any(escrowInfo()).raised) }} / {{ weiToUsd($any(escrowInfo()).fundingGoal) }}</div></div>

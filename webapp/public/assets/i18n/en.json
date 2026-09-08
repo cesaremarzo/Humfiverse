@@ -366,6 +366,7 @@
   "detail.escrowTitle": "Milestone escrow contract",
   "detail.extraCampaignTitle": "Extra campaign escrow contract",
   "detail.escrowExplainer": "Funds sit in this contract, never with the artist directly, until both the artist and the studio confirm each milestone from their own wallets — Humfiverse has no way to release a tranche on its own.",
+  "detail.studioSelfDealingWarning": "Unverified studio — the studio wallet is the same as the artist's, so one signer controls both confirmations. Milestone releases aren't independently checked for this campaign.",
   "detail.escrowCampaignId": "Campaign ID",
   "detail.escrowRaisedGoal": "Raised / goal",
   "detail.escrowStudio": "Studio",
