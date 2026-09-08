@@ -406,5 +406,11 @@
   "portfolio.loadingReal": "Reading your balances from the chain…",
   "portfolio.emptyTitleReal": "This wallet holds no tokens yet",
   "portfolio.emptyBodyReal": "Browse the <a href=\"#/marketplace\">marketplace</a> and fund a campaign to hold your first real token.",
-  "portfolio.value": "Value"
+  "portfolio.value": "Value",
+  "portfolio.dashboardAllocation": "Allocation by campaign",
+  "portfolio.dashboardTrend": "Portfolio value",
+  "portfolio.dashboardNoData": "Nothing to show yet — this fills in once you hold tokens with a real market value.",
+  "portfolio.dashboardTrendPending": "Check back tomorrow — this chart needs at least two days of visits to show a trend, and won't invent a history that isn't real.",
+  "portfolio.dashboardTotal": "Total",
+  "portfolio.dashboardOther": "Other"
 }

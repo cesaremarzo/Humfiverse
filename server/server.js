@@ -92,6 +92,13 @@ async function initSchema() {
       tx_hash TEXT,
       created_at TEXT
     );
+    CREATE TABLE IF NOT EXISTS portfolio_snapshots (
+      wallet TEXT NOT NULL,
+      snapshot_date TEXT NOT NULL,
+      value_usd REAL NOT NULL,
+      recorded_at TEXT NOT NULL,
+      PRIMARY KEY (wallet, snapshot_date)
+    );
   `);
   // Migration for a kyc_records table that already existed before
   // wallet_address was added (§2.30) — CREATE TABLE IF NOT EXISTS above
@@ -732,13 +739,87 @@ const server = http.createServer(async (req, res) => {
             chain.getBalance(r.token_id, wallet),
             chain.getPoolInfo(r.token_id)
           ]);
-          return { assetId: r.asset_id, tokenId: r.token_id, tokens, priceWei: info.priceWei, title: info.onchainTitle, artist: info.onchainArtist };
+          // poolBalance/totalSupply ride along for free — getPoolInfo()
+          // already reads them, and the frontend's portfolio dashboard
+          // needs them to know whether this asset's primary sale is still
+          // open (see core/token-value.util.ts).
+          return {
+            assetId: r.asset_id,
+            tokenId: r.token_id,
+            tokens,
+            priceWei: info.priceWei,
+            title: info.onchainTitle,
+            artist: info.onchainArtist,
+            poolBalance: info.poolBalance,
+            totalSupply: info.totalSupply
+          };
         })
       );
       const holdings = withBalances.filter((m) => m.tokens > 0);
       sendJson(res, 200, { holdings });
     } catch (e) {
       sendJson(res, 502, { error: "could not read portfolio", detail: String(e.message || e) });
+    }
+    return;
+  }
+
+  // Portfolio value dashboard: one snapshot per wallet per calendar day
+  // (UTC), upserted on POST — so a wallet revisiting the portfolio page
+  // repeatedly in the same day doesn't grow this table unboundedly, while
+  // genuinely building up a real value-over-time history from whenever
+  // that wallet first visits. The frontend computes valueUsd itself (same
+  // lowest-available-price logic driving the pie chart, see
+  // core/token-value.util.ts) and just reports it here — this is a
+  // personal-analytics convenience, not something anything else depends
+  // on being correct, so trusting the client's own already-verified
+  // on-chain reads is proportionate. Deliberately no backfilled/synthetic
+  // history: a fabricated royalty history produced a fabricated yield
+  // number the user rightly rejected once already (§ the projected-yield
+  // fix) — the same principle applies to this chart starting genuinely
+  // empty for a new wallet rather than inventing a past.
+  const snapshotMatch = url.pathname.match(/^\/api\/portfolio\/([^/]+)\/snapshot$/);
+  if (req.method === "POST" && snapshotMatch) {
+    try {
+      const wallet = decodeURIComponent(snapshotMatch[1]);
+      if (!/^0x[0-9a-fA-F]{40}$/.test(wallet)) {
+        sendJson(res, 400, { error: "not a valid wallet address" });
+        return;
+      }
+      const body = await readBody(req);
+      const valueUsd = Number(body.valueUsd);
+      if (!Number.isFinite(valueUsd) || valueUsd < 0) {
+        sendJson(res, 400, { error: "valueUsd must be a non-negative number" });
+        return;
+      }
+      const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD, UTC
+      await db.prepare(
+        "INSERT OR REPLACE INTO portfolio_snapshots (wallet, snapshot_date, value_usd, recorded_at) VALUES (?, ?, ?, ?)"
+      ).run(wallet.toLowerCase(), today, valueUsd, new Date().toISOString());
+      sendJson(res, 200, { ok: true, date: today, valueUsd });
+    } catch (e) {
+      if (e instanceof SyntaxError) {
+        sendJson(res, 400, { error: "malformed JSON body" });
+      } else {
+        sendJson(res, 502, { error: "could not record snapshot", detail: String(e.message || e) });
+      }
+    }
+    return;
+  }
+
+  const historyMatch = url.pathname.match(/^\/api\/portfolio\/([^/]+)\/history$/);
+  if (req.method === "GET" && historyMatch) {
+    try {
+      const wallet = decodeURIComponent(historyMatch[1]);
+      if (!/^0x[0-9a-fA-F]{40}$/.test(wallet)) {
+        sendJson(res, 400, { error: "not a valid wallet address" });
+        return;
+      }
+      const rows = await db.prepare(
+        "SELECT snapshot_date, value_usd FROM portfolio_snapshots WHERE wallet = ? ORDER BY snapshot_date ASC"
+      ).all(wallet.toLowerCase());
+      sendJson(res, 200, { history: rows.map((r) => ({ date: r.snapshot_date, valueUsd: r.value_usd })) });
+    } catch (e) {
+      sendJson(res, 502, { error: "could not read portfolio history", detail: String(e.message || e) });
     }
     return;
   }

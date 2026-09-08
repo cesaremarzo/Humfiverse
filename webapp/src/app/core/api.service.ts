@@ -13,6 +13,7 @@ import {
   KycResult,
   OnchainInfo,
   OnchainMintResult,
+  RealHoldingDto,
   RedeemResult
 } from './models';
 
@@ -94,14 +95,21 @@ export class ApiService {
   /** Real token holdings for a wallet (§2.37) — replaces the fictional
    * Portfolio.holdings mock data, which was never tied to any actual
    * wallet. Scanned live off the chain, not cached. */
-  getRealPortfolio(walletAddress: string): Promise<{
-    holdings: { assetId: string; tokenId: number; tokens: number; priceWei: string; title: string; artist: string }[];
-  }> {
+  getRealPortfolio(walletAddress: string): Promise<{ holdings: RealHoldingDto[] }> {
+    return firstValueFrom(this.http.get<{ holdings: RealHoldingDto[] }>(`${this.base}/api/portfolio/${encodeURIComponent(walletAddress)}`));
+  }
+
+  /** Records today's total portfolio value (UTC calendar day, upserted
+   * server-side) for the portfolio dashboard's value-over-time chart —
+   * best-effort, never blocks rendering the dashboard itself if it fails. */
+  recordPortfolioSnapshot(walletAddress: string, valueUsd: number): Promise<{ ok: boolean; date: string; valueUsd: number }> {
     return firstValueFrom(
-      this.http.get<{ holdings: { assetId: string; tokenId: number; tokens: number; priceWei: string; title: string; artist: string }[] }>(
-        `${this.base}/api/portfolio/${encodeURIComponent(walletAddress)}`
-      )
+      this.http.post<{ ok: boolean; date: string; valueUsd: number }>(`${this.base}/api/portfolio/${encodeURIComponent(walletAddress)}/snapshot`, { valueUsd })
     );
+  }
+
+  getPortfolioHistory(walletAddress: string): Promise<{ history: { date: string; valueUsd: number }[] }> {
+    return firstValueFrom(this.http.get<{ history: { date: string; valueUsd: number }[] }>(`${this.base}/api/portfolio/${encodeURIComponent(walletAddress)}/history`));
   }
 
   getEscrowCampaign(assetId: string): Promise<EscrowCampaignInfo> {

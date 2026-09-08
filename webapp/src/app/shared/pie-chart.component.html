@@ -1,0 +1,29 @@
+<div style="display:flex; align-items:center; gap:22px; flex-wrap:wrap;">
+  <div style="position:relative; flex:none;">
+    <svg [attr.viewBox]="'0 0 ' + size + ' ' + size" [attr.width]="size" [attr.height]="size" (mouseleave)="deactivate()">
+      @for (a of arcs; track a.slice.label; let i = $index) {
+        <path [attr.d]="a.path" [attr.fill]="a.slice.color" [attr.opacity]="hoverIndex === null || hoverIndex === i ? 1 : 0.45"
+              stroke="var(--surface)" stroke-width="2" style="cursor:pointer; transition:opacity .12s ease;"
+              (mouseenter)="activate(i)" (focus)="activate(i)" tabindex="0" [attr.aria-label]="a.slice.label + ' — ' + a.pct.toFixed(1) + '%'"/>
+      }
+    </svg>
+    <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none; text-align:center;">
+      @if (hoverIndex !== null && arcs[hoverIndex]) {
+        <div class="mono" style="font-size:11px; color:var(--text-secondary); max-width:74px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ arcs[hoverIndex].slice.label }}</div>
+        <div class="mono" style="font-size:15px; font-weight:600;">{{ arcs[hoverIndex].pct.toFixed(1) }}%</div>
+      } @else {
+        <div style="font-size:10.5px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.04em;">{{ 'portfolio.dashboardTotal' | translate }}</div>
+        <div class="mono" style="font-size:14px; font-weight:600;">{{ fmt(total) }}</div>
+      }
+    </div>
+  </div>
+  <div style="display:flex; flex-direction:column; gap:8px; min-width:160px; flex:1;">
+    @for (a of arcs; track a.slice.label; let i = $index) {
+      <div style="display:flex; align-items:center; gap:8px; font-size:12.5px; cursor:pointer;" (mouseenter)="activate(i)" (mouseleave)="deactivate()">
+        <span style="width:9px; height:9px; border-radius:50%; flex:none;" [style.background]="a.slice.color"></span>
+        <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text);">{{ a.slice.label }}</span>
+        <span class="mono" style="color:var(--text-secondary); flex:none;">{{ a.pct.toFixed(1) }}%</span>
+      </div>
+    }
+  </div>
+</div>

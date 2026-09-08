@@ -406,5 +406,11 @@
   "portfolio.loadingReal": "Чтение балансов из блокчейна…",
   "portfolio.emptyTitleReal": "На этом кошельке пока нет токенов",
   "portfolio.emptyBodyReal": "Просмотрите <a href=\"#/marketplace\">маркетплейс</a> и профинансируйте кампанию, чтобы получить свой первый реальный токен.",
-  "portfolio.value": "Стоимость"
+  "portfolio.value": "Стоимость",
+  "portfolio.dashboardAllocation": "Распределение по кампаниям",
+  "portfolio.dashboardTrend": "Стоимость портфеля",
+  "portfolio.dashboardNoData": "Пока нечего показать — здесь появятся данные, как только у вас будут токены с реальной рыночной стоимостью.",
+  "portfolio.dashboardTrendPending": "Загляните завтра — этому графику нужно как минимум два дня посещений, чтобы показать тренд, и он не выдумывает историю, которой не было.",
+  "portfolio.dashboardTotal": "Всего",
+  "portfolio.dashboardOther": "Другое"
 }

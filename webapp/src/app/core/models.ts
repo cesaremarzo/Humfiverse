@@ -253,3 +253,19 @@ export interface EscrowCampaignCreateResult {
   studioId: number;
   txHash: string;
 }
+
+/** GET /api/portfolio/:wallet's per-holding shape (§2.37/§2.39, extended
+ * for the portfolio value dashboard). poolBalance/totalSupply — both plain
+ * on-chain state reads already made for this same response — tell the
+ * dashboard whether this asset's primary sale is still open, which is
+ * half of the "lowest available price" valuation in core/token-value.util.ts. */
+export interface RealHoldingDto {
+  assetId: string;
+  tokenId: number;
+  tokens: number;
+  priceWei: string;
+  title: string;
+  artist: string;
+  poolBalance: string;
+  totalSupply: string;
+}

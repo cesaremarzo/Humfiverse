@@ -406,5 +406,11 @@
   "portfolio.loadingReal": "Salden werden von der Blockchain gelesen…",
   "portfolio.emptyTitleReal": "Dieses Wallet hält noch keine Token",
   "portfolio.emptyBodyReal": "Durchsuchen Sie den <a href=\"#/marketplace\">Marktplatz</a> und finanzieren Sie eine Kampagne, um Ihren ersten echten Token zu erhalten.",
-  "portfolio.value": "Wert"
+  "portfolio.value": "Wert",
+  "portfolio.dashboardAllocation": "Aufteilung nach Kampagne",
+  "portfolio.dashboardTrend": "Portfoliowert",
+  "portfolio.dashboardNoData": "Noch nichts anzuzeigen — das füllt sich, sobald du Tokens mit einem echten Marktwert besitzt.",
+  "portfolio.dashboardTrendPending": "Schau morgen wieder vorbei — dieses Diagramm braucht mindestens zwei Besuchstage, um einen Verlauf zu zeigen, und erfindet keine Historie, die nicht real ist.",
+  "portfolio.dashboardTotal": "Gesamt",
+  "portfolio.dashboardOther": "Sonstige"
 }

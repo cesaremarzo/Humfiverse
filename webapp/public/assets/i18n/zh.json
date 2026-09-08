@@ -406,5 +406,11 @@
   "portfolio.loadingReal": "正在从链上读取余额……",
   "portfolio.emptyTitleReal": "该钱包尚未持有任何代币",
   "portfolio.emptyBodyReal": "浏览<a href=\"#/marketplace\">市场</a>并资助一个活动，获得你的第一枚真实代币。",
-  "portfolio.value": "价值"
+  "portfolio.value": "价值",
+  "portfolio.dashboardAllocation": "按项目分配",
+  "portfolio.dashboardTrend": "投资组合价值",
+  "portfolio.dashboardNoData": "暂无可显示的内容——一旦你持有具有真实市场价值的代币，这里就会显示数据。",
+  "portfolio.dashboardTrendPending": "请明天再来查看——此图表至少需要两天的访问数据才能显示趋势，并且不会编造不真实的历史记录。",
+  "portfolio.dashboardTotal": "总计",
+  "portfolio.dashboardOther": "其他"
 }
