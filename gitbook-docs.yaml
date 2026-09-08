@@ -1,0 +1,11 @@
+$schema: https://api.gitbook.com/gitbook-docs.yaml
+site:
+  title: Humfiverse
+  structure:
+    - type: space
+      key: whitepaper
+      title: Whitepaper
+      path: whitepaper
+      default: true
+      content:
+        directory: ./whitepaper

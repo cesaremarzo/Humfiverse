@@ -1,26 +1,59 @@
 # How Humfiverse Works
 
-## Two products, deliberately kept distinct
+## Two products
 
-Humfiverse supports two financing models, and treats them as genuinely different products with different risk profiles rather than variations on one pitch:
+Humfiverse offers two ways to invest, and treats them as genuinely different, not two flavors of the same pitch:
 
-**Catalogue tokenization** is the bond-like product. A song or catalogue that is already released and already earning royalties is verified against real distributor, DSP, and collecting-society data, then tokenized. A token holder's return is a share of a *known, ongoing* cash flow, and the platform's own "projected yield" figure for a catalogue is computed directly from trailing reported income — `(royalty paid out over the trailing 12 reported months) ÷ (token price × total tokens) × 100` — never a promised or hardcoded number, and never shown at all for a catalogue that has no real reported income yet to compute it from.
+- **Catalogue tokenization.** A song or catalogue that's already out and already earning royalties gets tokenized. You're buying a share of income that already exists. This is the safer, bond-like product.
+- **Pre-production financing.** An artist uploads an unfinished track — a demo, a rough idea — and token sales pay for finishing it: studio time, musicians, mixing and mastering. You're buying a share of income that doesn't exist yet, betting the track gets made and does well. This is the riskier, venture-like product. Most crowdfunded creative projects don't fully pay back their backers, and Humfiverse says so plainly rather than hiding that risk behind the first product's safer profile.
 
-**Pre-production financing** is the venture-like product. An artist uploads a track in an unfinished state — a demo, a raw idea, an AI-assisted draft — and token sales raise the money to actually finish it: studio time, session musicians, mixing and mastering. Token holders hold a claim on that specific track's *future* royalties once it is released. This is financing a venture with no track record, the same way most crowdfunded creative projects and most early-stage startup investments carry real risk of not recouping for backers — Humfiverse discloses it as such, deliberately not dressed up with the risk profile of the first product.
+Both work the same way underneath: a legal entity holds the real royalty right, and your token is a claim against *that entity* — never a claim on the copyright itself. See [Legal & Regulatory Structure](05-legal-structure.md).
 
-Both share one legal architecture underneath: a wrapper entity holds the real royalty right (or, for pre-production, the right to the track's future royalty stream), and the token represents a claim against that entity — never a claim on the copyright itself, which is not yet a recognized on-chain legal structure in any jurisdiction Humfiverse has reviewed. See [Legal & Regulatory Structure](05-legal-structure.md).
+## The full money loop
 
-## The money flow, in plain language
+Not just where an investor's money goes on the way in — the whole round trip, including how it eventually comes back as a payout:
 
-1. A rights holder — an artist, a publisher, or a catalogue owner — submits a song or catalogue. For an already-released catalogue, its royalty income is verified against collecting-society, distributor, or PRO data during onboarding diligence. For an unreleased track, there is no income yet to verify; diligence instead covers rights ownership and production intent.
-2. A legal entity holds the actual royalty right (or the right to the future one). The token sold to investors represents a claim against that entity, sized in fractional units small enough for retail participation.
-3. For pre-production campaigns specifically, contributed funds are held in a smart-contract escrow, never in a commingled operating account, and released only against production milestones both the artist and the studio confirm actually happened — see [Technical Architecture](03-technical-architecture.md) for exactly how, and why that specific design exists.
-4. Royalty income, once it exists, is collected into an account controlled by the rights-holding entity and distributed to token holders periodically. This is the part a smart contract can genuinely automate — once money has reached an on-chain-controlled account — but it cannot reach into Spotify or a collecting society and pull money out on its own. Bridging that gap honestly is the hardest engineering problem in this entire model, not the token contract; see the next chapter for how Humfiverse's architecture treats that bridge as a named trust point rather than glossing over it.
+```mermaid
+flowchart TD
+    Investor(["Investor"])
 
-## What this is not: a trading venue
+    Investor -->|"① buys or contributes"| Choice{"Catalogue<br/>or<br/>Pre-production?"}
 
-Humfiverse's revenue-distribution mechanism — accumulate confirmed royalty income, let holders claim their pro-rata share — is deliberately not the same system as any future secondary-market mechanism for reselling tokens between holders. A literal automated-market-maker-style "liquidity pool," where price is discovered algorithmically and holders can swap claims against it, would introduce price-discovery dynamics that have nothing to do with paying out a royalty share — and, more importantly, functioning as a venue where people trade claims against each other starts to look like operating a regulated trading facility layered on top of everything else in this document. Humfiverse keeps these as two clearly separate systems, decided separately: royalty distribution now, any secondary-trading mechanism only later and only with the correct, heavier authorization it would require (see [Legal & Regulatory Structure](05-legal-structure.md), §MTF/OTF).
+    Choice -->|"Catalogue — already earning"| Paid["Rights holder<br/>paid immediately, in full"]
+    Choice -->|"Pre-production — not finished"| Escrow["Money held in the<br/>milestone escrow contract"]
 
-## Why milestone escrow, specifically
+    Escrow --> MS
 
-Pre-production financing platforms have a well-documented failure mode: PledgeMusic, a pre-blockchain fan-funding platform, collapsed in 2019 after using newer campaigns' money to cover older ones once its financial controls fell behind its growth — artists were left owed hundreds of thousands of dollars that had simply evaporated from a commingled account. Humfiverse's answer is structural, not procedural: contributed funds sit in a smart contract from the moment they arrive, are never available to Humfiverse or the artist as a lump sum, and release in pre-agreed tranches only against milestones — funding goal reached, studio and collaborators booked, mix and master delivered, release confirmed on DSPs — that both the artist and the assigned studio confirm on-chain, from their own wallets. If a campaign is cancelled, contributors are refunded pro-rata on whatever remains unreleased; money already paid out for milestones genuinely delivered stays paid, rather than being clawed back. This is a stronger, more checkable guarantee than a traditional crowdfunding platform can offer, and it is real, deployed, and testable today — not a design intention. See [Technical Architecture](03-technical-architecture.md).
+    subgraph MS["② Escrow pays out one tranche at a time —<br/>only once BOTH the Artist and the Studio confirm it themselves"]
+        direction LR
+        M1["Funding goal<br/>20% → Artist"]
+        M2["Studio booked<br/>40% → Studio"]
+        M3["Mix & master<br/>30% → Artist"]
+        M4["Release confirmed<br/>10% → Artist"]
+    end
+
+    Paid --> Track(["Track is released<br/>and streaming"])
+    MS --> Track
+
+    Track -->|"③ earns"| Royalties["Royalty income<br/>(Spotify, PROs, etc.)"]
+    Royalties -->|"④ confirmed on-chain"| Payout["Distribution contract"]
+    Payout -->|"⑤ paid out, pro-rata,<br/>to every token holder"| Investor
+
+    Escrow -.->|"if the campaign is cancelled"| Refund(["Contributors refunded —<br/>the unreleased portion only"])
+```
+
+Step by step:
+
+1. **The investor pays**, and their tokens land in their wallet immediately — one transaction, whichever product it is.
+2. **For a catalogue**, that's it — the rights holder is paid in full right away, because the track is already earning. **For pre-production**, the money instead sits in the escrow contract and only reaches the artist and studio as the track actually gets made, tranche by tranche. Neither Humfiverse nor the artist can touch it early, and no single side can release a tranche alone — it pays out only once the artist and the studio *both* confirm, independently, that it genuinely happened. If they disagree, the money just stays locked; there's no arbitration, on purpose (see [Governance](06-governance.md)). If the campaign is cancelled instead, contributors are refunded for whatever hasn't been released yet — money already paid out for milestones genuinely delivered stays with whoever earned it.
+3. **The track releases and starts earning** royalties from streaming, licensing, and performance.
+4. **That income has to be confirmed on-chain** before anything can happen with it — a smart contract can't reach into Spotify and pull money out by itself. Someone has to confirm "this royalty payment really arrived." That confirmation step is the hardest, most important part of the whole system — see [Technical Architecture](03-technical-architecture.md) for how Humfiverse handles it honestly rather than glossing over it.
+5. **Confirmed income gets paid out**, pro-rata, to every token holder — closing the loop back to the investor.
+
+## Why an escrow, specifically
+
+A pre-blockchain platform called PledgeMusic tried something similar and collapsed in 2019 — it had been using new campaigns' money to pay off older campaigns, and when growth outpaced its books, artists were left owed hundreds of thousands of dollars that had simply vanished. Humfiverse's escrow is a direct, structural answer to that exact failure: the money is never in one pool anyone can dip into. It's a stronger guarantee than a traditional crowdfunding platform can offer, and — unlike a lot of whitepaper promises — it's real, deployed, and checkable on a block explorer today, not just a design on paper.
+
+## Not a trading venue
+
+Humfiverse's payout system (collect confirmed royalty income, let holders claim their share) is deliberately kept separate from any future system for reselling tokens between holders. A price that moves automatically, set by an algorithm matching buyers and sellers, would cross into running a regulated trading venue — a much heavier license than issuing tokens. So that's not built. Resale, where it exists, works more like a classified ad than a stock exchange: a holder lists tokens at a price they choose, and a buyer takes it or doesn't. See [Legal & Regulatory Structure](05-legal-structure.md).
