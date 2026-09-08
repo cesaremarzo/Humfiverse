@@ -409,8 +409,12 @@
   "portfolio.value": "القيمة",
   "portfolio.dashboardAllocation": "التوزيع حسب الحملة",
   "portfolio.dashboardTrend": "قيمة المحفظة",
+  "portfolio.granularityDaily": "يومي",
+  "portfolio.granularityWeekly": "أسبوعي",
+  "portfolio.granularityMonthly": "شهري",
+  "portfolio.granularityYearly": "سنوي",
   "portfolio.dashboardNoData": "لا يوجد شيء لعرضه بعد — سيُملأ هذا بمجرد امتلاكك رموزًا لها قيمة سوقية حقيقية.",
-  "portfolio.dashboardTrendPending": "عد غدًا — يحتاج هذا الرسم البياني إلى زيارتين على الأقل لعرض اتجاه، ولا يخترع سجلًا غير حقيقي.",
+  "portfolio.dashboardTrendPending": "لم يتم تسجيل أي سجل للقيمة بعد — يظهر بعد أول زيارة لك بمحفظة متصلة.",
   "portfolio.dashboardTotal": "الإجمالي",
   "portfolio.dashboardOther": "أخرى"
 }

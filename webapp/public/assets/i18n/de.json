@@ -409,8 +409,12 @@
   "portfolio.value": "Wert",
   "portfolio.dashboardAllocation": "Aufteilung nach Kampagne",
   "portfolio.dashboardTrend": "Portfoliowert",
+  "portfolio.granularityDaily": "Täglich",
+  "portfolio.granularityWeekly": "Wöchentlich",
+  "portfolio.granularityMonthly": "Monatlich",
+  "portfolio.granularityYearly": "Jährlich",
   "portfolio.dashboardNoData": "Noch nichts anzuzeigen — das füllt sich, sobald du Tokens mit einem echten Marktwert besitzt.",
-  "portfolio.dashboardTrendPending": "Schau morgen wieder vorbei — dieses Diagramm braucht mindestens zwei Besuchstage, um einen Verlauf zu zeigen, und erfindet keine Historie, die nicht real ist.",
+  "portfolio.dashboardTrendPending": "Noch kein Wertverlauf erfasst — erscheint nach deinem ersten Besuch mit verbundener Wallet.",
   "portfolio.dashboardTotal": "Gesamt",
   "portfolio.dashboardOther": "Sonstige"
 }
