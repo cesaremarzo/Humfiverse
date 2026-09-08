@@ -18,7 +18,7 @@ import { fundingPctFor, remainingFor, tokensSoldFor } from '../../core/onchain-p
 import { ipfsGatewayUrl } from '../../core/ipfs.util';
 import { computeYieldBreakdown } from '../../core/yield.util';
 import { platformFeeTokens } from '../../core/marketplace-fee.util';
-import { weiToUsd } from '../../core/usd-eth.util';
+import { weiToUsd, usdToWei } from '../../core/usd-eth.util';
 
 type TabKey = 'overview' | 'royalty' | 'milestones' | 'disclosure' | 'documents' | 'risk';
 
@@ -233,6 +233,48 @@ export class AssetDetailComponent {
     return !!(info?.escrow && info.status === 'active' && this.wallet.state().address);
   }
 
+  /** Shared by buy()'s preproduction path and fundExtraCampaign() below —
+   * both are "pay into this asset's active escrow campaign", the only
+   * difference being *why* the campaign exists (financing the track
+   * itself vs. financing extras around an already-tokenized one). Same
+   * contribute() call, same atomic token release, same refresh pattern
+   * either way — see §2.42. */
+  private async contributeToEscrow(a: Asset, escrowInfo: Extract<EscrowCampaignInfo, { escrow: true }>, qty: number, total: number): Promise<void> {
+    this.onchainBuyPending.set(true);
+    try {
+      const amountWei = usdToWei(total).toString();
+      const result = await this.wallet.contributeOnchain({
+        contractAddress: escrowInfo.contractAddress,
+        campaignId: escrowInfo.campaignId,
+        amountWei
+      });
+      this.applyPurchase(a, qty, total);
+      this.success.set({ qty, total, txHash: result.txHash, explorerUrl: result.explorerUrl });
+      this.scheduleOnchainRefresh(a.id);
+    } catch (err: unknown) {
+      console.warn('On-chain contribution did not complete.', err);
+      this.toast.show(this.onchainErrorMessage(err), 'alert');
+    } finally {
+      this.onchainBuyPending.set(false);
+    }
+  }
+
+  /** Catalogue-kind only: funds this catalogue's *optional* extra campaign
+   * (a video, a marketing push — see onboarding.component.ts's
+   * catalogueCampaign step) rather than buying regular catalogue tokens
+   * outright. Both draw from the exact same token pool and deliver the
+   * same tokens — the only difference is whether the ETH goes straight to
+   * the rights holder (buy()) or into the milestone-gated escrow
+   * (contribute()), which is exactly why this needs to be a deliberate,
+   * separate action rather than something buy() infers on its own. */
+  async fundExtraCampaign(a: Asset): Promise<void> {
+    const escrowInfo = this.escrowInfo();
+    if (!escrowInfo?.escrow || escrowInfo.status !== 'active' || !this.wallet.state().address) return;
+    const qty = this.qty();
+    const total = qty * a.tokenPrice;
+    await this.contributeToEscrow(a, escrowInfo, qty, total);
+  }
+
   async buy(a: Asset): Promise<void> {
     const qty = this.qty();
     const total = qty * a.tokenPrice;
@@ -240,29 +282,7 @@ export class AssetDetailComponent {
     const onchain = this.onchainInfo();
 
     if (this.isPre(a) && escrowInfo?.escrow && escrowInfo.status === 'active' && this.wallet.state().address) {
-      this.onchainBuyPending.set(true);
-      try {
-        const amountWei = (BigInt(Math.round(total)) * 100_000_000_000_000n).toString();
-        const result = await this.wallet.contributeOnchain({
-          contractAddress: escrowInfo.contractAddress,
-          campaignId: escrowInfo.campaignId,
-          amountWei
-        });
-        this.applyPurchase(a, qty, total);
-        this.success.set({ qty, total, txHash: result.txHash, explorerUrl: result.explorerUrl });
-        // §2.42: contribute() itself now releases the matching tokens
-        // atomically, in the same transaction — no second, backend-signed
-        // release call needed anymore (contrast with the old §2.34 design,
-        // where it stayed frozen until a separate call caught up). The
-        // scheduled refresh below just picks up that same transaction's
-        // already-final result.
-        this.scheduleOnchainRefresh(a.id);
-      } catch (err: unknown) {
-        console.warn('On-chain contribution did not complete.', err);
-        this.toast.show(this.onchainErrorMessage(err), 'alert');
-      } finally {
-        this.onchainBuyPending.set(false);
-      }
+      await this.contributeToEscrow(a, escrowInfo, qty, total);
       return;
     }
 

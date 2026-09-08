@@ -100,6 +100,8 @@
   "buy.ackLabel": "我理解这是一个试点结构，并非投资建议，并已阅读风险因素。",
   "buy.fundCampaign": "为该项目出资",
   "buy.buyTokens": "购买代币",
+  "buy.fundExtraCampaign": "改为资助额外活动",
+  "buy.fundExtraCampaignHint": "价格和代币数量相同——区别在于这笔 ETH 将进入用于视频/营销活动的里程碑托管账户，而不是直接支付给版权方。",
   "buy.kycNote": "资金结算前需完成（模拟的）KYC/AML 验证。无需加密钱包——法币入金以模拟步骤展示。",
   "buy.kycRequired": "购买前需完成身份验证及 MiFID II 投资者适当性评估。",
   "buy.completeVerification": "完成投资者验证",

@@ -100,6 +100,8 @@
   "buy.ackLabel": "Entiendo que se trata de una estructura piloto, no de asesoramiento de inversión, y que he revisado los factores de riesgo.",
   "buy.fundCampaign": "Financiar esta campaña",
   "buy.buyTokens": "Comprar tokens",
+  "buy.fundExtraCampaign": "Financiar en su lugar la campaña extra",
+  "buy.fundExtraCampaignHint": "Mismo precio, mismos tokens — la diferencia es que este ETH va al depósito en garantía por hitos para la campaña de video/marketing, en lugar de ir directamente al titular de los derechos.",
   "buy.kycNote": "Se requiere verificación KYC/AML (simulada) antes de liquidar los fondos. No se necesita wallet cripto — la rampa fiat se muestra como paso simulado.",
   "buy.kycRequired": "Antes de comprar se requiere verificación de identidad y una evaluación de idoneidad MiFID II.",
   "buy.completeVerification": "Completar verificación de inversor",
