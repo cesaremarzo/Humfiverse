@@ -366,6 +366,7 @@
   "detail.escrowTitle": "Meilenstein-Treuhandvertrag",
   "detail.extraCampaignTitle": "Treuhandvertrag der Zusatzkampagne",
   "detail.escrowExplainer": "Die Mittel verbleiben in diesem Vertrag, niemals direkt beim Künstler, bis sowohl der Künstler als auch das Studio jeden Meilenstein von ihrer eigenen Wallet aus bestätigen — Humfiverse kann eine Tranche nicht selbst freigeben.",
+  "detail.studioSelfDealingWarning": "Nicht verifiziertes Studio — die Studio-Wallet ist identisch mit der des Künstlers, sodass eine einzige Person beide Bestätigungen kontrolliert. Meilenstein-Freigaben werden bei dieser Kampagne nicht unabhängig geprüft.",
   "detail.escrowCampaignId": "Kampagnen-ID",
   "detail.escrowRaisedGoal": "Gesammelt / Ziel",
   "detail.escrowStudio": "Studio",

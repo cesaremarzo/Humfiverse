@@ -104,6 +104,20 @@ export class AssetDetailComponent {
     return a.kind === 'preproduction';
   }
 
+  /** True when the campaign's artist and studio are the same wallet — the
+   * dual artist+studio confirmation (§2.27) exists specifically so no
+   * single party can release a milestone tranche alone; a shared wallet
+   * defeats that independence entirely, since one signer controls both
+   * confirmations. Surfaced as a warning rather than blocked outright —
+   * this app has no way to verify a studio's identity beyond the wallet
+   * address an artist entered, so it can flag the specific case it *can*
+   * detect (identical addresses) without claiming to catch every way two
+   * parties could still be the same person behind different wallets. */
+  isStudioSelfDealing(escrowInfo: EscrowCampaignInfo | null): boolean {
+    if (!escrowInfo?.escrow || !escrowInfo.studio) return false;
+    return escrowInfo.artist.toLowerCase() === escrowInfo.studio.wallet.toLowerCase();
+  }
+
   audioGatewayUrl = ipfsGatewayUrl;
 
   /** Every external link on this page (explorer/source links) is wired

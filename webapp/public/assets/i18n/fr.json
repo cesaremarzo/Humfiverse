@@ -366,6 +366,7 @@
   "detail.escrowTitle": "Contrat de séquestre par jalons",
   "detail.extraCampaignTitle": "Contrat de séquestre de la campagne supplémentaire",
   "detail.escrowExplainer": "Les fonds restent dans ce contrat, jamais directement chez l'artiste, jusqu'à ce que l'artiste et le studio confirment chacun un jalon depuis leur propre wallet — Humfiverse n'a aucun moyen de débloquer une tranche seule.",
+  "detail.studioSelfDealingWarning": "Studio non vérifié — le wallet du studio est identique à celui de l'artiste, donc un seul signataire contrôle les deux confirmations. Les déblocages de jalons de cette campagne ne sont pas vérifiés de manière indépendante.",
   "detail.escrowCampaignId": "ID de campagne",
   "detail.escrowRaisedGoal": "Collecté / objectif",
   "detail.escrowStudio": "Studio",

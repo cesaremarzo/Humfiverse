@@ -366,6 +366,7 @@
   "detail.escrowTitle": "マイルストーンエスクロー契約",
   "detail.extraCampaignTitle": "追加キャンペーンのエスクロー契約",
   "detail.escrowExplainer": "資金はこの契約内に留まり、アーティストに直接渡ることはありません。アーティストとスタジオの両方がそれぞれのウォレットから各マイルストーンを確認するまで解放されません — Humfiverseが単独でトランシュを解放する手段はありません。",
+  "detail.studioSelfDealingWarning": "未検証のスタジオ — スタジオのウォレットがアーティストのものと同一のため、1人の署名者が両方の確認を管理しています。このキャンペーンのマイルストーン解放は独立して検証されていません。",
   "detail.escrowCampaignId": "キャンペーンID",
   "detail.escrowRaisedGoal": "調達額 / 目標額",
   "detail.escrowStudio": "スタジオ",

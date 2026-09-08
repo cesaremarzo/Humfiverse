@@ -366,6 +366,7 @@
   "detail.escrowTitle": "Contratto escrow a milestone",
   "detail.extraCampaignTitle": "Contratto escrow campagna extra",
   "detail.escrowExplainer": "I fondi restano in questo contratto, mai direttamente con l'artista, finché sia l'artista sia lo studio non confermano ciascuna milestone dai propri wallet — Humfiverse non ha modo di rilasciare una tranche da sola.",
+  "detail.studioSelfDealingWarning": "Studio non verificato — il wallet dello studio coincide con quello dell'artista, quindi un solo firmatario controlla entrambe le conferme. Per questa campagna le milestone non sono verificate in modo indipendente.",
   "detail.escrowCampaignId": "ID campagna",
   "detail.escrowRaisedGoal": "Raccolto / obiettivo",
   "detail.escrowStudio": "Studio",

@@ -366,6 +366,7 @@
   "detail.escrowTitle": "里程碑托管合约",
   "detail.extraCampaignTitle": "额外活动托管合约",
   "detail.escrowExplainer": "资金保留在此合约中，绝不会直接交给艺人，直到艺人和录音室都从各自的钱包确认每个里程碑——Humfiverse 无法单方面释放分期资金。",
+  "detail.studioSelfDealingWarning": "录音室未验证——录音室的钱包与艺人的钱包相同，因此同一签名者控制着两次确认。该活动的里程碑释放未经过独立核实。",
   "detail.escrowCampaignId": "项目 ID",
   "detail.escrowRaisedGoal": "已筹 / 目标",
   "detail.escrowStudio": "录音室",
