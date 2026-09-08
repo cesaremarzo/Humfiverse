@@ -2,21 +2,27 @@ import { Component, computed, effect, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { IconComponent } from '../../shared/icon.component';
+import { LineChartComponent } from '../../shared/line-chart.component';
+import { PieChartComponent, PieSlice } from '../../shared/pie-chart.component';
 import { StoreService } from '../../core/store.service';
 import { WalletService } from '../../core/wallet.service';
 import { ApiService } from '../../core/api.service';
 import { ToastService } from '../../core/toast.service';
 import { fmtUSD } from '../../core/format.util';
 import { coverBackground } from '../../core/cover.util';
-import { SecondaryListing } from '../../core/models';
+import { SecondaryListing, RoyaltyMonth } from '../../core/models';
 import { platformFeeTokens } from '../../core/marketplace-fee.util';
 import { weiToUsd } from '../../core/usd-eth.util';
+import { lowestAvailablePrice } from '../../core/token-value.util';
 
 /** A real on-chain holding — replaces the fictional Portfolio.holdings mock
  * data (§2.37), which was seeded fixed demo numbers never tied to any
- * actual wallet. `value` is tokens × the token's own current on-chain
- * price, not a historical cost basis (this app has no purchase-price
- * indexer) — labeled accordingly in the template, not called "cost basis". */
+ * actual wallet. `value` is tokens × the lowest price at which one more
+ * unit is currently buyable on the platform — primary price while the
+ * pool has tokens (unless a resale listing has undercut it), the cheapest
+ * active resale listing once the pool is exhausted — computed once at
+ * load time via core/token-value.util.ts, not a historical cost basis
+ * (this app has no purchase-price indexer). */
 interface RealHolding {
   assetId: string;
   tokenId: number;
@@ -26,10 +32,15 @@ interface RealHolding {
   valueUsd: number;
 }
 
+function formatSnapshotDate(iso: string): string {
+  const d = new Date(iso + 'T00:00:00Z');
+  return d.toLocaleString('en', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+}
+
 @Component({
   selector: 'app-portfolio',
   standalone: true,
-  imports: [RouterLink, TranslatePipe, IconComponent],
+  imports: [RouterLink, TranslatePipe, IconComponent, LineChartComponent, PieChartComponent],
   templateUrl: './portfolio.component.html'
 })
 export class PortfolioComponent {
@@ -37,6 +48,14 @@ export class PortfolioComponent {
   loaded = signal(false);
   error = signal<string | null>(null);
   holdings = signal<RealHolding[]>([]);
+
+  /** One point per calendar day the wallet has visited this page — see
+   * server.js's portfolio_snapshots table. Deliberately never backfilled
+   * with invented history (the fake-royalty-history lesson applies here
+   * too, see planning/technical-architecture.md's §2.9 changelog entry):
+   * a new wallet's chart starts genuinely empty and fills in for real,
+   * one real visit at a time. */
+  valueHistory = signal<{ date: string; valueUsd: number }[]>([]);
 
   hasInjectedWallet = typeof window !== 'undefined' && !!window.ethereum;
 
@@ -50,6 +69,42 @@ export class PortfolioComponent {
 
   totalTokens = computed(() => this.holdings().reduce((s, h) => s + h.tokens, 0));
   totalValue = computed(() => this.holdings().reduce((s, h) => s + h.valueUsd, 0));
+
+  /** Allocation-by-campaign pie chart. Colors assigned once, in a fixed
+   * order keyed by assetId (never by current value/rank), so a slice
+   * doesn't change color just because holdings were re-fetched and
+   * happened to sort differently — see the dataviz skill's "color follows
+   * the entity, never its rank" rule. Caps at the palette's 8 validated
+   * categorical slots and folds anything beyond into "Other" rather than
+   * inventing a 9th hue. */
+  pieSlices = computed<PieSlice[]>(() => {
+    const held = this.holdings()
+      .filter((h) => h.valueUsd > 0)
+      .sort((a, b) => a.assetId.localeCompare(b.assetId));
+    const MAX_SLOTS = 8;
+    const overflow = held.length > MAX_SLOTS;
+    const shown = held.slice(0, overflow ? MAX_SLOTS - 1 : MAX_SLOTS);
+    const rest = held.slice(shown.length);
+    const slices: PieSlice[] = shown.map((h, i) => ({ label: h.title, value: h.valueUsd, color: `var(--pie-${i + 1})` }));
+    if (rest.length) {
+      slices.push({
+        label: this.translate.instant('portfolio.dashboardOther'),
+        value: rest.reduce((s, h) => s + h.valueUsd, 0),
+        color: 'var(--text-muted)'
+      });
+    }
+    return slices;
+  });
+
+  /** null (not an empty array) while there's fewer than 2 real snapshots —
+   * line-chart.component.ts divides by (points.length - 1) to place x
+   * coordinates, so a single point would divide by zero. The template
+   * shows an honest "check back tomorrow" state instead in that case. */
+  valueTrend = computed<RoyaltyMonth[] | null>(() => {
+    const h = this.valueHistory();
+    if (h.length < 2) return null;
+    return h.map((p) => ({ month: formatSnapshotDate(p.date), royaltyUSD: p.valueUsd }));
+  });
 
   constructor(
     public store: StoreService,
@@ -66,6 +121,7 @@ export class PortfolioComponent {
       if (address) this.load(address);
       else {
         this.holdings.set([]);
+        this.valueHistory.set([]);
         this.loaded.set(false);
       }
     });
@@ -78,19 +134,39 @@ export class PortfolioComponent {
       .getRealPortfolio(address)
       .then((res) => {
         this.holdings.set(
-          res.holdings.map((h) => ({
-            assetId: h.assetId,
-            tokenId: h.tokenId,
-            tokens: h.tokens,
-            title: h.title,
-            artist: h.artist,
-            valueUsd: h.tokens * weiToUsd(h.priceWei)
-          }))
+          res.holdings.map((h) => {
+            const primaryPriceUsd = weiToUsd(h.priceWei);
+            const unitValue = lowestAvailablePrice(primaryPriceUsd, Number(h.poolBalance), this.store.lowestAsk(h.assetId));
+            return {
+              assetId: h.assetId,
+              tokenId: h.tokenId,
+              tokens: h.tokens,
+              title: h.title,
+              artist: h.artist,
+              valueUsd: h.tokens * unitValue
+            };
+          })
         );
         this.loaded.set(true);
+        this.recordSnapshotAndLoadHistory(address);
       })
       .catch((err) => this.error.set(String(err?.message || err)))
       .finally(() => this.loading.set(false));
+  }
+
+  /** Best-effort on both ends — a failed snapshot write or history read
+   * just means the dashboard's trend chart stays at whatever it already
+   * had (or empty), never blocks the rest of the page. */
+  private recordSnapshotAndLoadHistory(address: string): void {
+    this.api.recordPortfolioSnapshot(address, this.totalValue()).catch(() => {
+      /* the trend chart just won't gain today's point */
+    });
+    this.api
+      .getPortfolioHistory(address)
+      .then((res) => this.valueHistory.set(res.history))
+      .catch(() => {
+        /* trend chart shows its empty state instead */
+      });
   }
 
   fmt = fmtUSD;

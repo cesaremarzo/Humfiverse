@@ -94,6 +94,33 @@
           <div class="doc-row" style="cursor:pointer;" (click)="attachStatement()"><app-icon name="upload"></app-icon><span class="name">{{ data().catalogue.history || ('wizSource.statementPlaceholder' | translate) }}</span></div>
           <span class="hint">{{ 'wizSource.statementHint' | translate }}</span>
         </div>
+
+        <label class="check-row" style="margin-top:18px;">
+          <input type="checkbox" [checked]="data().catalogueCampaign.enabled" (change)="toggleCatalogueCampaign($any($event.target).checked)">
+          <span>{{ 'wizSource.extraCampaignToggle' | translate }}</span>
+        </label>
+        <p class="hint" style="margin-top:2px;">{{ 'wizSource.extraCampaignHint' | translate }}</p>
+
+        @if (data().catalogueCampaign.enabled) {
+          <div class="field" style="margin-top:12px;">
+            <label>{{ 'wizSource.extraCampaignGoalLabel' | translate }}</label>
+            <input type="number" min="0" step="100" class="mono" [value]="data().catalogueCampaign.goal" (input)="updateCatalogueCampaignGoal($any($event.target).value)">
+          </div>
+          <div class="field">
+            <label>{{ 'wizSource.studioNameLabel' | translate }}</label>
+            <input type="text" [value]="data().catalogueCampaign.studioName" (input)="updateCatalogueCampaignTextField('studioName', $any($event.target).value)" [placeholder]="'wizSource.studioNamePlaceholder' | translate">
+          </div>
+          <div class="field">
+            <label>{{ 'wizSource.studioWalletLabel' | translate }}</label>
+            <input type="text" class="mono" [value]="data().catalogueCampaign.studioWallet" (input)="updateCatalogueCampaignTextField('studioWallet', $any($event.target).value)" placeholder="0x…">
+            @if (data().catalogueCampaign.studioWallet && !isValidWalletAddress(data().catalogueCampaign.studioWallet)) {
+              <span class="hint" style="color:var(--warning-ink, #b45309);">{{ 'wizSource.studioWalletInvalid' | translate }}</span>
+            } @else {
+              <span class="hint">{{ 'wizSource.studioWalletHint' | translate }}</span>
+            }
+          </div>
+          <p class="prose" style="margin-top:6px; font-size:12.5px;">{{ 'wizSource.extraCampaignMilestonesNote' | translate }}</p>
+        }
       }
 
       <div class="field" style="margin-top:14px;">
@@ -179,6 +206,25 @@
         }
       </div>
       @if (data().model === 'preproduction') {
+        @if (wallet.state().address) {
+          <div class="risk-item good" style="margin-bottom:16px;">
+            <app-icon name="checkCircle"></app-icon>
+            <div>{{ 'wizReview.escrowReady' | translate }}</div>
+          </div>
+        } @else {
+          <div class="risk-item" style="margin-bottom:16px;">
+            <app-icon name="wallet"></app-icon>
+            <div>
+              {{ 'wizReview.escrowConnectPrompt' | translate }}
+              <button type="button" class="btn btn-ghost btn-sm" style="margin-top:6px;" [disabled]="wallet.state().connecting" (click)="wallet.connect()">
+                <app-icon name="wallet"></app-icon> {{ (wallet.state().connecting ? 'wallet.connecting' : 'wallet.connect') | translate }}
+              </button>
+            </div>
+          </div>
+        }
+      }
+      @if (data().model === 'catalogue' && data().catalogueCampaign.enabled) {
+        <div class="card stat-tile" style="margin-bottom:16px;"><div class="label">{{ 'wizReview.extraCampaignGoalField' | translate }}</div><div class="value">{{ fmt(data().catalogueCampaign.goal) }}</div></div>
         @if (wallet.state().address) {
           <div class="risk-item good" style="margin-bottom:16px;">
             <app-icon name="checkCircle"></app-icon>
