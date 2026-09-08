@@ -13,7 +13,7 @@ import { coverBackground } from '../../core/cover.util';
 import { SecondaryListing, RoyaltyMonth } from '../../core/models';
 import { platformFeeTokens } from '../../core/marketplace-fee.util';
 import { weiToUsd } from '../../core/usd-eth.util';
-import { lowestAvailablePrice } from '../../core/token-value.util';
+import { lowestAvailablePrice, bucketSnapshots, ChartGranularity } from '../../core/token-value.util';
 
 /** A real on-chain holding — replaces the fictional Portfolio.holdings mock
  * data (§2.37), which was seeded fixed demo numbers never tied to any
@@ -32,8 +32,10 @@ interface RealHolding {
   valueUsd: number;
 }
 
-function formatSnapshotDate(iso: string): string {
+function formatSnapshotDate(iso: string, granularity: ChartGranularity): string {
   const d = new Date(iso + 'T00:00:00Z');
+  if (granularity === 'yearly') return d.toLocaleString('en', { year: 'numeric', timeZone: 'UTC' });
+  if (granularity === 'monthly') return d.toLocaleString('en', { month: 'short', year: 'numeric', timeZone: 'UTC' });
   return d.toLocaleString('en', { month: 'short', day: 'numeric', timeZone: 'UTC' });
 }
 
@@ -96,15 +98,23 @@ export class PortfolioComponent {
     return slices;
   });
 
-  /** null (not an empty array) while there's fewer than 2 real snapshots —
-   * line-chart.component.ts divides by (points.length - 1) to place x
-   * coordinates, so a single point would divide by zero. The template
-   * shows an honest "check back tomorrow" state instead in that case. */
+  /** Daily/weekly/monthly/yearly — line-chart.component.ts now handles a
+   * single real point gracefully (a lone dot, no line), so this shows
+   * real data from the very first visit rather than gating on having
+   * "enough" of it. null only when there's genuinely zero history yet
+   * (a wallet that has never triggered a snapshot at all). */
+  granularity = signal<ChartGranularity>('daily');
+
   valueTrend = computed<RoyaltyMonth[] | null>(() => {
     const h = this.valueHistory();
-    if (h.length < 2) return null;
-    return h.map((p) => ({ month: formatSnapshotDate(p.date), royaltyUSD: p.valueUsd }));
+    if (h.length === 0) return null;
+    const g = this.granularity();
+    return bucketSnapshots(h, g).map((p) => ({ month: formatSnapshotDate(p.date, g), royaltyUSD: p.valueUsd }));
   });
+
+  setGranularity(g: ChartGranularity): void {
+    this.granularity.set(g);
+  }
 
   constructor(
     public store: StoreService,

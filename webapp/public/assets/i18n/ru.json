@@ -409,8 +409,12 @@
   "portfolio.value": "Стоимость",
   "portfolio.dashboardAllocation": "Распределение по кампаниям",
   "portfolio.dashboardTrend": "Стоимость портфеля",
+  "portfolio.granularityDaily": "День",
+  "portfolio.granularityWeekly": "Неделя",
+  "portfolio.granularityMonthly": "Месяц",
+  "portfolio.granularityYearly": "Год",
   "portfolio.dashboardNoData": "Пока нечего показать — здесь появятся данные, как только у вас будут токены с реальной рыночной стоимостью.",
-  "portfolio.dashboardTrendPending": "Загляните завтра — этому графику нужно как минимум два дня посещений, чтобы показать тренд, и он не выдумывает историю, которой не было.",
+  "portfolio.dashboardTrendPending": "История стоимости пока не записана — появится после вашего первого посещения с подключённым кошельком.",
   "portfolio.dashboardTotal": "Всего",
   "portfolio.dashboardOther": "Другое"
 }

@@ -409,8 +409,12 @@
   "portfolio.value": "評価額",
   "portfolio.dashboardAllocation": "キャンペーン別配分",
   "portfolio.dashboardTrend": "ポートフォリオの価値",
+  "portfolio.granularityDaily": "日次",
+  "portfolio.granularityWeekly": "週次",
+  "portfolio.granularityMonthly": "月次",
+  "portfolio.granularityYearly": "年次",
   "portfolio.dashboardNoData": "まだ表示するものがありません — 実際の市場価値を持つトークンを保有すると表示されます。",
-  "portfolio.dashboardTrendPending": "また明日確認してください — このグラフは推移を表示するために少なくとも2日分の訪問が必要で、実在しない履歴を作り出すことはしません。",
+  "portfolio.dashboardTrendPending": "まだ価値の履歴が記録されていません — ウォレットを接続して訪問すると表示されます。",
   "portfolio.dashboardTotal": "合計",
   "portfolio.dashboardOther": "その他"
 }
