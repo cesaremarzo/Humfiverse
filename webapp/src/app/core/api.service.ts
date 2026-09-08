@@ -14,7 +14,8 @@ import {
   OnchainInfo,
   OnchainMintResult,
   RealHoldingDto,
-  RedeemResult
+  RedeemResult,
+  RoyaltyMonth
 } from './models';
 
 @Injectable({ providedIn: 'root' })
@@ -110,6 +111,24 @@ export class ApiService {
 
   getPortfolioHistory(walletAddress: string): Promise<{ history: { date: string; valueUsd: number }[] }> {
     return firstValueFrom(this.http.get<{ history: { date: string; valueUsd: number }[] }>(`${this.base}/api/portfolio/${encodeURIComponent(walletAddress)}/history`));
+  }
+
+  /** Records a real, artist-submitted royalty figure for one calendar month
+   * on a catalogue asset — the write path that replaces the fabricated
+   * royalty-history generator removed after the fake-yield fix. Upserts by
+   * month, so resubmitting the same month corrects it. `reportedBy` is an
+   * audit trail (the connected wallet that submitted it), not an
+   * authorization check — see server.js for why. */
+  submitRoyaltyReport(assetId: string, month: string, royaltyUSD: number, reportedBy?: string): Promise<{ ok: boolean; royaltyHistory: RoyaltyMonth[] }> {
+    return firstValueFrom(
+      this.http.post<{ ok: boolean; royaltyHistory: RoyaltyMonth[] }>(`${this.base}/api/assets/${encodeURIComponent(assetId)}/royalty-report`, { month, royaltyUSD, reportedBy })
+    );
+  }
+
+  deleteRoyaltyReport(assetId: string, month: string): Promise<{ ok: boolean; royaltyHistory: RoyaltyMonth[] }> {
+    return firstValueFrom(
+      this.http.delete<{ ok: boolean; royaltyHistory: RoyaltyMonth[] }>(`${this.base}/api/assets/${encodeURIComponent(assetId)}/royalty-report/${encodeURIComponent(month)}`)
+    );
   }
 
   getEscrowCampaign(assetId: string): Promise<EscrowCampaignInfo> {

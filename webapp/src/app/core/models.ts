@@ -4,6 +4,9 @@ export type DisclosureLevel = 'human' | 'ai-assisted' | 'ai' | 'pending' | 'n/a'
 export interface RoyaltyMonth {
   month: string;
   royaltyUSD: number;
+  /** Wallet that submitted this entry, if any — an audit trail, not
+   * authorization; see server.js's /api/assets/:id/royalty-report. */
+  reportedBy?: string;
 }
 
 export interface AiDisclosure {
