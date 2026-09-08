@@ -361,3 +361,220 @@ marketplace audio preview actually works when clicked on the live site
 (verified via code review + build success, not an actual browser click —
 no browser tooling available this session, see the `run` skill's note in
 `CLAUDE.md` about testing UI changes for real when possible).
+
+---
+
+## 2026-09-06 → 2026-09-08 — full-project review, several real bugs the user caught by actually using the site, first whitepaper draft
+
+Big session, no contract redeploy (contract addresses unchanged from the
+entry above). Everything went through PRs on `dev/cesare`, merged to
+`main` only when the user explicitly asked, same as always — PRs #7–#12,
+all listed below with their merge order.
+
+**1. Full-project review (PR #7, first half).** The user asked for a
+complete review of the project. Ran four reviews in parallel (Solidity
+contracts, backend, Angular core/architecture, Angular
+pages/UX/i18n/accessibility), each briefed on this log and
+`technical-architecture.md` so it wouldn't re-flag already-documented,
+deliberate decisions as bugs. Findings compiled into a published Artifact
+("Humfiverse Audit") the user can revisit. Fixed and shipped the
+low-risk findings in the same pass:
+- `server.js`: `readBody`/`readRawBody` could hang a request forever on
+  an oversized body (`req.destroy()` killed the socket `res` needed to
+  respond on — fixed by rejecting without destroying); `isAdminAuthorized`
+  now uses `crypto.timingSafeEqual`; `/api/assets` returns the right
+  status per failure type instead of a blanket 502; `PORT`/`DB_PATH`/
+  `TOKEN_METADATA_BASE` documented in `.env.example`.
+- `run-dev.sh`: dropped the `--experimental-sqlite` flag, stale since the
+  Turso/@libsql migration (§2.23) — was passing a flag for a sync SQLite
+  API the backend hasn't used in over a week.
+- `npm audit`: 0 vulnerabilities left in `webapp`; `contracts` reduced via
+  a non-breaking fix (the rest need a Hardhat 2→3 migration, not
+  attempted — real risk, already flagged elsewhere in this doc re:
+  Sourcify verification).
+- `webapp`: `weiToUsd()`/`usdToWei()` deduplicated from 6 files into
+  `core/usd-eth.util.ts`; `truncate()` deduplicated from 3 components
+  into `WalletService.truncateAddr()`; removed a dead i18n key
+  (`redeem.successBody`, zero references, all 9 locales); the
+  marketplace track-preview toggle (`shared/cover.component.ts`) is now
+  keyboard-operable (`role="button"`, focus, Enter/Space) instead of
+  mouse-only.
+
+**2. Critical bug found by the user actually using the wizard (PR #7,
+second half): tracks created through onboarding kept ending up with no
+playable audio.** Root cause: `onboarding.component.ts`'s `submit()`
+fired the audio-upload and escrow-creation calls without awaiting them,
+then immediately redirected to `/artist/dashboard` with a "campaign
+launched" toast. The audio-link request stays open server-side until the
+Pinata upload *and* the on-chain `setTrackAudioUri` tx both confirm —
+up to a minute — so leaving the page early (which the UI actively
+invited, looking finished) silently lost the link, with no way to retry
+since audio can only be attached during creation. `submit()` now awaits
+both calls and the UI shows a "Publishing…" state with an explicit
+don't-close-this-tab note. **A second discovery while diagnosing this**:
+even the one track that *did* have linked audio (`guns-448`) turned out
+to be a 35-byte plain-text test file from when this feature was first
+built (§2.43), not real audio — clicking its play button did nothing
+visible because the browser can't decode it, which is the same visible
+symptom as "no audio" for an unrelated reason. Both this and the fake
+Guns file were left for the user to fix by re-creating the affected
+campaigns now that the underlying bug is gone — there's no "edit an
+existing campaign" surface anywhere in the app to patch them in place.
+
+**3. Cover-embedded audio preview on the asset-detail page, and a
+related staleness bug (PR #8).** The marketplace card's play/pause icon
+overlay (§2.44) only existed on the marketplace grid; the asset-detail
+page had a plain `<audio controls>` element instead, disconnected from
+the cover shown at the top of the same page. The cover's icon there now
+drives that same `<audio>` element directly via a `viewChild` ref
+(deliberately not the marketplace's shared `PreviewAudioService`, which
+would fight this page's own full player over playback state). Found
+while testing: `store.onchainInfoMap` (audioUri/pool/price — what
+marketplace cards read) is only ever populated once at app boot, so a
+campaign created in the same browser session showed no preview icon or
+funding data on its card until a full reload, even though
+`onchainAssetIds` (whether the card shows *at all*) was already updated
+live for exactly this reason. `onboarding.component.ts` now refreshes
+that map entry too, right after minting.
+
+**4. "View on block explorer" doing nothing after a purchase — took two
+rounds to actually fix (PR #8, then #9).** First fix: dropped
+`target="_blank"`/`rel="noopener"` from all 5 external links on the
+asset-detail page, on the theory that a wallet app's in-app browser
+(MetaMask Mobile, commonly used for exactly this kind of on-chain
+purchase) might be silently swallowing new-tab requests. The user
+retested and it still didn't work. Second fix, since the URL itself
+checked out correct in both source and the live deployed bundle: all 5
+links now also fire `window.location.href` on click via an
+`openExternal()` handler (keeping `href` on the element for
+hover-preview/right-click/screen readers) — forcing navigation through
+the one API with no known environment that silently no-ops it, rather
+than continuing to trust the browser's native anchor-click handling.
+**This was the actual fix** — the user confirmed it started working and
+identified the real cause themselves: Brave's Shields, which block
+exactly this kind of new-tab/redirect behavior more aggressively than
+Chrome/Firefox. Worth remembering for any future "a link/redirect
+silently does nothing" report — ask what browser first.
+
+**5. Fake "projected yield" — a real bug, not just a calibration issue
+(PR #10).** The user caught a 75.2% projected yield on a track they'd
+just uploaded, correctly identifying it as impossible for a track with
+no real distribution history, and asked for a way to compute this for
+real. Root cause: `onboarding.component.ts`'s catalogue branch called
+`buildRoyaltyHistory()` (a seeded random-walk generator) to fabricate a
+fake royalty history for every new catalogue campaign. Its base amount
+(1800/mo) was calibrated years ago against the four *original* demo
+catalogues' own varied price/supply combinations (§2.9) but never
+against the wizard's own fixed $20/token × 1,500-token economics
+($30k raise) — trailing-12-months-of-$1800 against a $30k raise lands
+at ~72-75% for *every* catalogue the wizard creates, regardless of the
+actual track. Recalibrating the generator would only have produced a
+more convincing fake number, so the fix removes it entirely:
+`onboarding.component.ts` no longer generates a royalty history for new
+catalogues (`royalty-history.util.ts` deleted, its only caller), and
+every place that reads `Asset.royaltyHistory` — the marketplace card's
+yield badge, both royalty-chart sections on asset-detail — now shows an
+honest "Royalty data pending" state instead of a fabricated number or a
+null-masked-as-zero one (`asset-card.component.ts`'s `(y || 0)` was
+doing exactly that). New admin-gated `DELETE
+/api/admin/royalty-history/:assetId` to strip the already-stored fake
+history from the two campaigns created before this fix (`primo-pezzo-783`
+and whatever id "Secondo Pezzo" actually has — **not yet confirmed run
+by the user**, flagged below). **Still open, proposed but not built**:
+letting an artist self-report a real monthly royalty figure during
+onboarding for an already-earning catalogue, so a real yield number
+becomes possible for catalogue tokenization specifically — the user
+was interested, nothing built yet.
+
+**6. On-chain purchase reverting at the exact max quantity the UI
+itself offered (PR #10, same PR as #5).** The user reported buying
+Guns' full advertised remaining amount (1,300 tokens, $13,000 at its
+$10 price) always failed on-chain. `remainingFor()` computed a
+preproduction campaign's "remaining" purely from the escrow's
+raised/fundingGoal ratio, which only tracks ETH that came in through a
+real `contribute()` call on the *current* contract — it never accounted
+for the 45 tokens this project has manually re-released directly via
+`releaseFromPool` across past contract redeploys (§2.36/§2.42/§2.43),
+to make a real holder whole, which never touches `raised`. The token
+contract's real pool balance was 1,255, not 1,300; buying the UI's own
+advertised max reverted every time. Fixed by preferring the token
+contract's real `poolBalance` (already fetched via `onchainInfo`)
+whenever available, for a preproduction campaign too, not just
+catalogue-kind ones — the actual hard constraint either purchase path
+shares, independent of how the ETH-side accounting happens to track it.
+
+**7. Real on-chain errors were all collapsed into one unhelpful message
+(PR #11).** Surfaced while chasing #6: after that fix, the user hit
+"on-chain purchase not completed" and there was no way — from either
+side — to tell whether it was a leftover instance of the same bug, a
+declined signature, or something else, since `onchainErrorKey()` mapped
+every failure to the same generic toast regardless of cause; the real
+reason only ever reached the browser console. Replaced with
+`onchainErrorMessage()`, which distinguishes a declined signature
+(`ACTION_REJECTED`), an underfunded wallet (`INSUFFICIENT_FUNDS`), a
+transaction mined but reverted on-chain (this app's own `'tx-failed'`),
+and — when ethers can decode one — the raw on-chain revert reason
+itself, shown verbatim rather than translated. **Not yet confirmed
+whether the Guns purchase now actually succeeds end-to-end** — the
+conversation moved to other things before a final retest was reported;
+worth checking first next session.
+
+**8. First whitepaper draft, structured for GitBook (PR #12 + one
+unmerged commit).** The user wants a public whitepaper, specifically on
+GitBook (a git-sync-based docs tool, dominant for crypto whitepapers).
+`whitepaper/` (10 chapters, ~8,400 words) synthesizes the existing
+internal planning docs (`business-overview.md`, `legal-regulatory-notes.md`,
+`blockchain-infrastructure-implementation-notes.md`,
+`technical-architecture.md`) into a public-facing document — deliberately
+not just a copy of their working-draft tone, but held to the same
+honesty standard: states plainly that no real SPV exists yet, no token
+has been offered to any investor, and the deployed contracts are
+unaudited and live on a public testnet only. Explicitly clarifies there
+is no platform-wide Humfiverse coin — only per-catalogue ERC-1155 tokens.
+- Added `.gitbook.yaml` at the repo root first (for GitBook's older,
+  single-"Space" git-sync model) — this turned out to be the wrong
+  mechanism for the user's actual setup, which is a GitBook **Site**
+  (their newer product), and the space came up completely empty
+  ("the page does not exist") because a Site needs `gitbook-docs.yaml`
+  at the Git Sync **Project directory** to map any content to any space
+  at all; `.gitbook.yaml` alone has no effect until something points a
+  space at a directory in the first place. Confirmed this by fetching
+  GitBook's own current docs and its schema directly
+  (`api.gitbook.com/gitbook-docs.yaml`), since the product had moved on
+  from what a first search turned up.
+- Added `gitbook-docs.yaml` (repo root) mapping exactly one space —
+  `whitepaper` → `./whitepaper` — since that's the only directory in
+  this repo actually shaped as GitBook content (its own README+SUMMARY).
+  Deliberately didn't map `planning/` (internal, superseded by the
+  whitepaper itself) or any code directory. **Pushed to `dev/cesare`
+  only, not yet merged to `main`** — the user hadn't asked to merge this
+  one by the end of the session.
+- Told the user to leave GitBook's "Project directory" field blank,
+  since `gitbook-docs.yaml` lives at the repo root and GitBook defaults
+  there — **not yet confirmed whether the sync actually picked up
+  content after this change.**
+- The earlier root-level `.gitbook.yaml` is very likely redundant now
+  under the Site/`gitbook-docs.yaml` model — left in place (wasn't asked
+  to remove it), flagged here rather than silently deleted.
+
+**Open items for next session:**
+- Merge `gitbook-docs.yaml` (commit `5376267`, `dev/cesare` only) to
+  `main` if the user wants it live — not yet asked for.
+- Confirm the GitBook Site actually shows the whitepaper's content now
+  that `gitbook-docs.yaml` exists and "Project directory" is blank.
+- Confirm buying tokens for Guns (or any preproduction campaign) now
+  actually succeeds end-to-end on-chain — the remaining-tokens fix (#6)
+  and the better error messages (#7) were both shipped, but no final
+  "it worked" was confirmed before the conversation moved on.
+- Run the two `DELETE /api/admin/royalty-history/:assetId` cleanup
+  calls (Primo Pezzo, and whichever id Secondo Pezzo actually has — the
+  user needs to grab that from `GET /api/data` first) to strip the
+  already-stored fake royalty history #5 left behind on those two.
+- Decide whether to remove the now-likely-redundant root `.gitbook.yaml`.
+- Decide whether to build the proposed self-reported-monthly-royalty
+  field for catalogue onboarding (#5's real-yield follow-up) — discussed,
+  not committed to.
+- The onboarding wizard's "months of history" field (catalogue model)
+  still collects a number that no longer feeds anything now that fake
+  royalty-history generation is gone — cosmetic dead input, flagged
+  during #5's fix but not resolved.
