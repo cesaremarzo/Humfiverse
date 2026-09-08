@@ -132,10 +132,10 @@
             </div>
           }
 
-          @if (isPre(a) && escrowInfo()?.escrow) {
+          @if (escrowInfo()?.escrow) {
             <div class="card panel">
               <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
-                <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:15px;">{{ 'detail.escrowTitle' | translate }}</h3>
+                <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:15px;">{{ isPre(a) ? ('detail.escrowTitle' | translate) : ('detail.extraCampaignTitle' | translate) }}</h3>
                 <span class="chip chip-accent">{{ 'detail.onchainNetwork' | translate }}</span>
               </div>
               <p class="prose" style="font-size:12.5px; margin-top:8px;">{{ 'detail.escrowExplainer' | translate }}</p>

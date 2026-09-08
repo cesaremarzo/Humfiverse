@@ -22,6 +22,14 @@ interface WizardData {
   description: string;
   catalogue: { dsp: string; months: string; history: string };
   preprod: { studio: number; session: number; mix: number; extra: number; studioName: string; studioWallet: string };
+  /** Optional, catalogue-kind only: an already-tokenized, already-earning
+   * catalogue can *additionally* raise a small milestone-gated fund for
+   * post-launch production work (a video, a marketing push) — the same
+   * escrow mechanism preproduction campaigns use for financing the track
+   * itself, reused here for financing extras around an already-finished
+   * one. `goal` is USD, same illustrative mapping as everywhere else in
+   * this wizard. */
+  catalogueCampaign: { enabled: boolean; goal: number; studioName: string; studioWallet: string };
   disclosure: AiDisclosure;
   contract: { generalAccepted: boolean; vessatoriaAccepted: Record<string, boolean> };
   ack: boolean;
@@ -45,6 +53,7 @@ function freshWizardData(): WizardData {
     description: '',
     catalogue: { dsp: 'Spotify for Artists', months: '12', history: '' },
     preprod: { studio: 5000, session: 4000, mix: 3000, extra: 1000, studioName: '', studioWallet: '' },
+    catalogueCampaign: { enabled: false, goal: 2000, studioName: '', studioWallet: '' },
     disclosure: { vocals: 'human', instrumentation: 'human', composition: 'human', postProduction: 'human', lyrics: 'human' },
     contract: { generalAccepted: false, vessatoriaAccepted: {} },
     ack: false
@@ -139,6 +148,17 @@ export class OnboardingComponent {
     this.data.update((d) => ({ ...d, preprod: { ...d.preprod, [field]: value } }));
   }
 
+  toggleCatalogueCampaign(enabled: boolean): void {
+    this.data.update((d) => ({ ...d, catalogueCampaign: { ...d.catalogueCampaign, enabled } }));
+  }
+  updateCatalogueCampaignGoal(value: string): void {
+    const n = Math.max(0, parseInt(value || '0', 10) || 0);
+    this.data.update((d) => ({ ...d, catalogueCampaign: { ...d.catalogueCampaign, goal: n } }));
+  }
+  updateCatalogueCampaignTextField(field: 'studioName' | 'studioWallet', value: string): void {
+    this.data.update((d) => ({ ...d, catalogueCampaign: { ...d.catalogueCampaign, [field]: value } }));
+  }
+
   isValidWalletAddress(value: string): boolean {
     return /^0x[a-fA-F0-9]{40}$/.test(value.trim());
   }
@@ -184,6 +204,9 @@ export class OnboardingComponent {
     if (key === 'model') return !!d.model;
     if (key === 'source' && d.model === 'preproduction') {
       return !!d.preprod.studioName.trim() && this.isValidWalletAddress(d.preprod.studioWallet);
+    }
+    if (key === 'source' && d.model === 'catalogue' && d.catalogueCampaign.enabled) {
+      return d.catalogueCampaign.goal > 0 && !!d.catalogueCampaign.studioName.trim() && this.isValidWalletAddress(d.catalogueCampaign.studioWallet);
     }
     if (key === 'contract') return this.isContractComplete();
     return true;
@@ -414,6 +437,39 @@ export class OnboardingComponent {
             this.toast.show(this.translate.instant('toast.escrowCreated'), 'checkCircle');
           } catch (err) {
             console.warn('Escrow campaign creation did not happen (campaign was still created normally).', err);
+            this.toast.show(this.translate.instant('toast.escrowCreateFailed'), 'alert');
+          }
+        }
+      } else if (!isPre && d.catalogueCampaign.enabled && mintedTokenId !== null) {
+        // Optional, catalogue-kind only: the same milestone-escrow
+        // mechanism preproduction uses to finance *making* a track, reused
+        // here to finance *extras* around one that's already made and
+        // already earning — a video, a marketing push. Contributing still
+        // atomically delivers tokens from this catalogue's own pool
+        // (contribute() doesn't distinguish why a campaign exists), so this
+        // is a real follow-on raise against the same catalogue, not a
+        // separate instrument. Same dual artist+studio confirmation gates
+        // every tranche — see planning/technical-architecture.md §2.27.
+        const artistAddress = this.wallet.state().address;
+        if (!artistAddress) {
+          this.toast.show(this.translate.instant('toast.escrowNeedsWallet'), 'alert');
+        } else {
+          const fundingGoalWei = usdToWei(d.catalogueCampaign.goal).toString();
+          try {
+            await this.api.createEscrowCampaign({
+              assetId: id,
+              artistAddress,
+              fundingGoalWei,
+              studioName: d.catalogueCampaign.studioName,
+              studioWallet: d.catalogueCampaign.studioWallet,
+              milestones: [
+                { name: 'Music video produced', bps: 5000, payee: 'studio' },
+                { name: 'Marketing campaign launched', bps: 5000, payee: 'studio' }
+              ]
+            });
+            this.toast.show(this.translate.instant('toast.escrowCreated'), 'checkCircle');
+          } catch (err) {
+            console.warn('Optional campaign creation did not happen (catalogue was still created normally).', err);
             this.toast.show(this.translate.instant('toast.escrowCreateFailed'), 'alert');
           }
         }
