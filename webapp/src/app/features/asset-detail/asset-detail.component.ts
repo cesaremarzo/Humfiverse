@@ -259,20 +259,19 @@ export class AssetDetailComponent {
     }
   }
 
-  /** Catalogue-kind only: funds this catalogue's *optional* extra campaign
-   * (a video, a marketing push — see onboarding.component.ts's
-   * catalogueCampaign step) rather than buying regular catalogue tokens
-   * outright. Both draw from the exact same token pool and deliver the
-   * same tokens — the only difference is whether the ETH goes straight to
-   * the rights holder (buy()) or into the milestone-gated escrow
-   * (contribute()), which is exactly why this needs to be a deliberate,
-   * separate action rather than something buy() infers on its own. */
-  async fundExtraCampaign(a: Asset): Promise<void> {
-    const escrowInfo = this.escrowInfo();
-    if (!escrowInfo?.escrow || escrowInfo.status !== 'active' || !this.wallet.state().address) return;
-    const qty = this.qty();
-    const total = qty * a.tokenPrice;
-    await this.contributeToEscrow(a, escrowInfo, qty, total);
+  /** Catalogue-kind only: true while this catalogue has an active *optional*
+   * extra campaign (video/marketing — see onboarding.component.ts's
+   * catalogueCampaign step) whose own goal isn't fully raised yet. The
+   * token a buyer receives is identical either way and carries the same
+   * royalty claim — the only thing that changes is whether the ETH they
+   * pay stops in the milestone escrow on its way to the studio, or goes
+   * straight to the rights holder. Since that's not a difference that
+   * changes what the buyer owns, routing it is the app's job, not a
+   * choice to hand the buyer: purchases fund the open campaign
+   * automatically until its goal is met, then quietly go back to paying
+   * the rights holder directly, all under one "buy" action. */
+  catalogueEscrowStillOpen(escrowInfo: EscrowCampaignInfo | null): escrowInfo is Extract<EscrowCampaignInfo, { escrow: true }> {
+    return !!escrowInfo?.escrow && escrowInfo.status === 'active' && BigInt(escrowInfo.raised) < BigInt(escrowInfo.fundingGoal);
   }
 
   async buy(a: Asset): Promise<void> {
@@ -282,6 +281,11 @@ export class AssetDetailComponent {
     const onchain = this.onchainInfo();
 
     if (this.isPre(a) && escrowInfo?.escrow && escrowInfo.status === 'active' && this.wallet.state().address) {
+      await this.contributeToEscrow(a, escrowInfo, qty, total);
+      return;
+    }
+
+    if (!this.isPre(a) && this.catalogueEscrowStillOpen(escrowInfo) && this.wallet.state().address) {
       await this.contributeToEscrow(a, escrowInfo, qty, total);
       return;
     }

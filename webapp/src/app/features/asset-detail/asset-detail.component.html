@@ -307,6 +307,13 @@
           }
         }
 
+        @if (!isPre(a) && catalogueEscrowStillOpen(escrowInfo())) {
+          <div class="risk-item good" style="margin-bottom:10px;">
+            <app-icon name="coins"></app-icon>
+            <div>{{ 'buy.fundsExtraCampaignNote' | translate }}</div>
+          </div>
+        }
+
         <button class="btn btn-primary btn-block btn-lg" [disabled]="!ack() || onchainBuyPending()" (click)="buy(a)">
           @if (onchainBuyPending()) {
             {{ 'buy.onchainPending' | translate }}
@@ -314,13 +321,6 @@
             {{ (a.kind === 'preproduction' ? 'buy.fundCampaign' : 'buy.buyTokens') | translate }} <app-icon name="arrowRight"></app-icon>
           }
         </button>
-
-        @if (!isPre(a) && escrowInfo()?.escrow && $any(escrowInfo()).status === 'active') {
-          <button class="btn btn-secondary btn-block btn-lg" style="margin-top:8px;" [disabled]="!ack() || onchainBuyPending() || !wallet.state().address" (click)="fundExtraCampaign(a)">
-            {{ 'buy.fundExtraCampaign' | translate }} <app-icon name="coins"></app-icon>
-          </button>
-          <p class="hint" style="margin-top:6px;">{{ 'buy.fundExtraCampaignHint' | translate }}</p>
-        }
       }
       <div class="prose" style="font-size:11.5px;">{{ 'buy.kycNote' | translate }}</div>
     </div>
