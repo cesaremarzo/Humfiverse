@@ -215,6 +215,56 @@ export class AssetDetailComponent {
     return h.length ? Math.round(this.royaltyTotal(a) / h.length) : 0;
   }
 
+  // --- real royalty self-reporting (replaces the fabricated random-walk
+  // history generator removed after the fake-yield fix) — a connected
+  // wallet can add or correct one real monthly figure at a time, which
+  // feeds straight into yield.util.ts's trailing-12-months calculation and
+  // the charts above, unchanged. No ownership check exists for who submits
+  // (see server.js's endpoint comment for why); the wallet is only kept as
+  // a visible audit trail per entry. ---
+  royaltyMonthInput = signal('');
+  royaltyUsdInput = signal('');
+  royaltySubmitting = signal(false);
+
+  updateRoyaltyMonthInput(v: string): void {
+    this.royaltyMonthInput.set(v);
+  }
+  updateRoyaltyUsdInput(v: string): void {
+    this.royaltyUsdInput.set(v);
+  }
+
+  canSubmitRoyaltyReport(): boolean {
+    if (!this.wallet.state().address) return false;
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(this.royaltyMonthInput())) return false;
+    const n = Number(this.royaltyUsdInput());
+    return Number.isFinite(n) && n >= 0;
+  }
+
+  async submitRoyaltyReport(a: Asset): Promise<void> {
+    if (!this.canSubmitRoyaltyReport() || this.royaltySubmitting()) return;
+    this.royaltySubmitting.set(true);
+    try {
+      const res = await this.api.submitRoyaltyReport(a.id, this.royaltyMonthInput(), Number(this.royaltyUsdInput()), this.wallet.state().address ?? undefined);
+      this.store.assets.update((list) => list.map((x) => (x.id === a.id ? { ...x, royaltyHistory: res.royaltyHistory } : x)));
+      this.royaltyMonthInput.set('');
+      this.royaltyUsdInput.set('');
+      this.toast.show(this.translate.instant('detail.royaltyReportSuccessToast'));
+    } catch (err) {
+      this.toast.show(this.translate.instant('detail.royaltyReportErrorToast'), 'alert');
+    } finally {
+      this.royaltySubmitting.set(false);
+    }
+  }
+
+  async removeRoyaltyReport(a: Asset, month: string): Promise<void> {
+    try {
+      const res = await this.api.deleteRoyaltyReport(a.id, month);
+      this.store.assets.update((list) => list.map((x) => (x.id === a.id ? { ...x, royaltyHistory: res.royaltyHistory } : x)));
+    } catch (err) {
+      this.toast.show(this.translate.instant('detail.royaltyReportErrorToast'), 'alert');
+    }
+  }
+
   disclosureVal(a: Asset, key: keyof Asset['aiDisclosure']): DisclosureLevel {
     return a.aiDisclosure[key];
   }

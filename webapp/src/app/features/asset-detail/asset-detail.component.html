@@ -213,6 +213,56 @@
               <p class="prose" style="font-size:13px;">{{ 'detail.royaltyHistoryPending' | translate }}</p>
             </div>
           }
+
+          <div class="card panel">
+            <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:15px; margin-bottom:6px;">{{ 'detail.royaltyReportTitle' | translate }}</h3>
+            <p class="prose" style="font-size:12.5px; margin-bottom:14px;">{{ 'detail.royaltyReportIntro' | translate }}</p>
+
+            @if (!wallet.state().address) {
+              <p class="prose" style="font-size:13px;">{{ 'detail.royaltyReportConnectPrompt' | translate }}</p>
+            } @else {
+              <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
+                <label style="display:flex; flex-direction:column; gap:6px;">
+                  <span style="font-size:12px; color:var(--text-secondary);">{{ 'detail.royaltyReportMonthLabel' | translate }}</span>
+                  <input type="month" [value]="royaltyMonthInput()" (input)="updateRoyaltyMonthInput($any($event.target).value)"
+                         style="padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--text); font:inherit;" />
+                </label>
+                <label style="display:flex; flex-direction:column; gap:6px;">
+                  <span style="font-size:12px; color:var(--text-secondary);">{{ 'detail.royaltyReportAmountLabel' | translate }}</span>
+                  <input type="number" min="0" step="0.01" [value]="royaltyUsdInput()" (input)="updateRoyaltyUsdInput($any($event.target).value)"
+                         style="padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--text); font:inherit; width:140px;" />
+                </label>
+                <button class="btn btn-primary btn-sm" [disabled]="!canSubmitRoyaltyReport() || royaltySubmitting()" (click)="submitRoyaltyReport(a)">
+                  <app-icon name="plus"></app-icon> {{ (royaltySubmitting() ? 'detail.royaltyReportSubmitting' : 'detail.royaltyReportSubmitBtn') | translate }}
+                </button>
+              </div>
+              <p style="font-size:11.5px; color:var(--text-secondary); margin-top:10px;">{{ 'detail.royaltyReportDisclaimer' | translate }}</p>
+
+              @if (a.royaltyHistory?.length) {
+                <div class="table-wrap" style="margin-top:14px;">
+                  <table>
+                    <thead><tr><th>{{ 'detail.royaltyReportMonthLabel' | translate }}</th><th class="cell-num">{{ 'detail.monthlyUsd' | translate }}</th><th></th><th></th></tr></thead>
+                    <tbody>
+                      @for (m of a.royaltyHistory!; track m.month) {
+                        <tr>
+                          <td class="mono">{{ m.month }}</td>
+                          <td class="cell-num mono">{{ fmt(m.royaltyUSD) }}</td>
+                          <td style="font-size:11.5px; color:var(--text-secondary);">
+                            @if (m.reportedBy) {
+                              {{ 'detail.royaltyReportReportedBy' | translate: { addr: wallet.truncateAddr(m.reportedBy) } }}
+                            }
+                          </td>
+                          <td style="text-align:right;">
+                            <button class="btn btn-ghost btn-sm" (click)="removeRoyaltyReport(a, m.month)">{{ 'detail.royaltyReportRemoveBtn' | translate }}</button>
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+            }
+          </div>
         }
 
         @if (tab() === 'milestones' && isPre(a)) {

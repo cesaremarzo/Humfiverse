@@ -618,6 +618,77 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // Lets whoever is looking at a catalogue asset record a real, dated
+  // royalty figure into its royaltyHistory — the write path that replaces
+  // the fabricated random-walk generator the fake-yield fix removed (see
+  // the royalty-history-reset endpoint above). Deliberately unauthenticated
+  // beyond requiring a connected wallet address for the audit trail: unlike
+  // an escrow campaign, a catalogue asset has no stored owner-wallet field
+  // to check a submitter against, and this app has no broader identity
+  // system to build real authorization on top of — same trust posture as
+  // every other prototype-stage write endpoint here (contract acceptance,
+  // KYC). `reportedBy` is stored purely for transparency in the UI, never
+  // used to gate anything. Upserts by month (YYYY-MM) so a resubmission
+  // corrects a mistake instead of duplicating it, and keeps the array
+  // sorted ascending so yield.util.ts's trailing-12-months slice and the
+  // line chart both keep working unchanged.
+  const royaltyReportMatch = url.pathname.match(/^\/api\/assets\/([^/]+)\/royalty-report$/);
+  if (req.method === "POST" && royaltyReportMatch) {
+    try {
+      const assetId = decodeURIComponent(royaltyReportMatch[1]);
+      const asset = await getAssetById(assetId);
+      if (!asset) {
+        sendJson(res, 404, { error: "no asset with this id" });
+        return;
+      }
+      const body = await readBody(req);
+      const month = String(body.month || "");
+      if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
+        sendJson(res, 400, { error: "month must be in YYYY-MM format" });
+        return;
+      }
+      const royaltyUSD = Number(body.royaltyUSD);
+      if (!Number.isFinite(royaltyUSD) || royaltyUSD < 0) {
+        sendJson(res, 400, { error: "royaltyUSD must be a non-negative number" });
+        return;
+      }
+      const reportedBy = typeof body.reportedBy === "string" && /^0x[0-9a-fA-F]{40}$/.test(body.reportedBy) ? body.reportedBy.toLowerCase() : undefined;
+      const history = (Array.isArray(asset.royaltyHistory) ? asset.royaltyHistory : []).filter((m) => m.month !== month);
+      history.push(reportedBy ? { month, royaltyUSD, reportedBy } : { month, royaltyUSD });
+      history.sort((a, b) => a.month.localeCompare(b.month));
+      asset.royaltyHistory = history;
+      await db.prepare("UPDATE assets SET data = ? WHERE id = ?").run(JSON.stringify(asset), assetId);
+      sendJson(res, 200, { ok: true, royaltyHistory: history });
+    } catch (e) {
+      if (e instanceof SyntaxError) {
+        sendJson(res, 400, { error: "malformed JSON body" });
+      } else {
+        sendJson(res, 502, { error: "could not save royalty report", detail: String(e.message || e) });
+      }
+    }
+    return;
+  }
+
+  const royaltyReportDeleteMatch = url.pathname.match(/^\/api\/assets\/([^/]+)\/royalty-report\/([^/]+)$/);
+  if (req.method === "DELETE" && royaltyReportDeleteMatch) {
+    try {
+      const assetId = decodeURIComponent(royaltyReportDeleteMatch[1]);
+      const month = decodeURIComponent(royaltyReportDeleteMatch[2]);
+      const asset = await getAssetById(assetId);
+      if (!asset) {
+        sendJson(res, 404, { error: "no asset with this id" });
+        return;
+      }
+      const history = (Array.isArray(asset.royaltyHistory) ? asset.royaltyHistory : []).filter((m) => m.month !== month);
+      asset.royaltyHistory = history;
+      await db.prepare("UPDATE assets SET data = ? WHERE id = ?").run(JSON.stringify(asset), assetId);
+      sendJson(res, 200, { ok: true, royaltyHistory: history });
+    } catch (e) {
+      sendJson(res, 502, { error: "could not remove royalty report", detail: String(e.message || e) });
+    }
+    return;
+  }
+
   if (req.method === "DELETE" && url.pathname === "/api/admin/escrow-studios-reset") {
     // Admin-only (§2.42): the escrow_studios table caches wallet+name ->
     // on-chain studioId to skip a redundant registration transaction — but
