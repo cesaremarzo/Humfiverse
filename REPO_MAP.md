@@ -32,9 +32,17 @@ The only genuinely on-chain part of the project. Deployed to **Ethereum Sepolia*
 
 ## `server/` — backend API (Node, zero-framework `http`)
 
-Deployed on Render at `humfiverse-api.onrender.com`. No Express — hand-rolled routing in `server.js`.
+Deployed on Render at `humfiverse-api.onrender.com`. No Express: the routing layer one would provide is `lib/router.js`, at about forty lines.
 
-- `server.js` — the actual HTTP server and every route.
+**Read `server/STRUCTURE.md` before changing anything here** — it has the layer rule, the file-by-file table, and the steps for adding an endpoint. Short version: four layers, imports pointing one way only.
+
+- `server.js` — entry point. Loads `.env`, initialises the schema, opens the port. Nothing else.
+- `app.js` — builds the request handler: URL parsing, CORS preflight, dispatch, 404, and the 500 backstop.
+- `config.js` — every environment-derived constant, read once.
+- `lib/` — `router.js` (method+path matching, literal paths beat `:param` ones), `http.js` (send/read helpers and their size caps), `admin-auth.js` (`X-Admin-Key`, fails closed), `receipts.js`, `token-image.js`.
+- `data/` — one repository per group of tables, plus `schema.js`. **All SQL lives here**, nowhere else.
+- `services/` — domain logic, and the only layer that talks to the two contracts. Takes values, returns values, throws errors carrying a `code`.
+- `routes/` — one module per path prefix; `index.js` registers them and reads as a table of contents for the API.
 - `chain.js` — talks to `HumfiverseCatalogueToken` (reads always work; writes need `CHAIN_OPERATOR_PRIVATE_KEY`).
 - `chainEscrow.js` — talks to `HumfiverseMilestoneEscrow`.
 - `pinata.js` — uploads track audio files to IPFS (§2.43). No SDK — Node's built-in `fetch`/`FormData`/`Blob`.
