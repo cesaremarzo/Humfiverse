@@ -8,6 +8,7 @@ A folder-by-folder index of this repo: what's where, and where to read the *why*
 
 | Path | What it is |
 |---|---|
+| `README.md` | Front door: what the project is, what's real versus simulated, prerequisites, setup, how to run each part locally, and how each part deploys. Start here if you've never run this repo. |
 | `CLAUDE.md` | Project rules Claude Code reads automatically every session: branch workflow, deploy notes, env var handling. Read this first if you're a new collaborator (human or AI). |
 | `SESSION_LOG.md` | Cross-session diary, most recent entry at the bottom. Read this first for *recent* context — what's live, what's in progress. |
 | `REPO_MAP.md` | This file. |
