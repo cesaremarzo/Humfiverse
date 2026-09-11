@@ -30,9 +30,22 @@ who's driving:
   into your branch first, resolve any conflicts there — don't discover
   conflicts for the first time in a PR against `main`.
 - Merges into `main` should go through a GitHub PR (`gh pr create`), not a
-  local `git merge` + push, so the other person can see what changed. Only
-  actually push to `main` (or merge a PR) when the user explicitly asks —
-  same rule as any other repo.
+  local `git merge` + push, so the other person can see what changed.
+- **A bug fix goes all the way to `main` and gets merged without asking.**
+  Still open the PR, so the other person can see what changed; it's the
+  merge *confirmation* that's waived, not the PR. The reason is that both
+  of us verify by looking at the live site, not at a diff — a fix sitting
+  in an unpushed commit is indistinguishable from no fix at all. This was
+  learned the hard way: a funding-percentage bug was found, fixed, tested
+  and committed, and reported as still broken three times in a row, purely
+  because nothing had been deployed.
+- **Everything else — features, refactors, docs, anything architectural —
+  still needs an explicit go-ahead before merging to `main`.**
+- Remember what a merge to `main` actually does: it redeploys *both* the
+  frontend to GitHub Pages and the backend to Render. Verify afterwards
+  rather than assuming — check the live bundle filename changed
+  (`curl -s https://cesaremarzo.github.io/Humfiverse/ | grep -o 'main-[^"]*\.js'`)
+  and sweep the production API's read endpoints. Both are quick.
 - If you're about to touch a file the other person is likely also
   mid-change on (check recent commits on their branch with
   `git log origin/dev/<name>`), say so before diving in.
