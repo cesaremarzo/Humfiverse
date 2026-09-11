@@ -13,6 +13,7 @@ import { ApiService } from '../../core/api.service';
 import { WalletService } from '../../core/wallet.service';
 import { ToastService } from '../../core/toast.service';
 import { Asset, DisclosureLevel, EscrowCampaignInfo, OnchainInfo, SecondaryListing } from '../../core/models';
+import { buildListingMessage, buildCancelMessage } from '../../core/listing-signature.util';
 import { fmtUSD, fmtUSDShort } from '../../core/format.util';
 import { fundingPctFor, remainingFor, tokensSoldFor } from '../../core/onchain-progress.util';
 import { ipfsGatewayUrl } from '../../core/ipfs.util';
@@ -478,7 +479,11 @@ export class AssetDetailComponent {
     const price = this.sellPrice();
     this.sellSubmitting.set(true);
     try {
-      await this.api.createListing({ assetId: a.id, seller, qty, pricePerToken: price });
+      const issuedAt = new Date().toISOString();
+      const signature = await this.wallet.signMessage(
+        buildListingMessage({ assetId: a.id, seller, qty, pricePerToken: price, issuedAt })
+      );
+      await this.api.createListing({ assetId: a.id, seller, qty, pricePerToken: price, issuedAt, signature });
       await this.store.refreshListings();
       this.sellOpen.set(false);
       this.sellResult.set({ qty, price });
@@ -497,7 +502,9 @@ export class AssetDetailComponent {
     const seller = this.mySeller();
     if (!seller) return;
     try {
-      await this.api.cancelListing(id, seller);
+      const issuedAt = new Date().toISOString();
+      const signature = await this.wallet.signMessage(buildCancelMessage({ listingId: id, seller, issuedAt }));
+      await this.api.cancelListing(id, { seller, issuedAt, signature });
       await this.store.refreshListings();
     } catch (err) {
       console.warn('Could not cancel the listing.', err);

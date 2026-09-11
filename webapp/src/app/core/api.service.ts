@@ -96,12 +96,12 @@ export class ApiService {
     return firstValueFrom(this.http.get<{ listings: SecondaryListing[] }>(`${this.base}/api/listings`));
   }
 
-  createListing(payload: { assetId: string; seller: string; qty: number; pricePerToken: number }): Promise<{ listing: SecondaryListing }> {
+  createListing(payload: { assetId: string; seller: string; qty: number; pricePerToken: number; issuedAt: string; signature: string }): Promise<{ listing: SecondaryListing }> {
     return firstValueFrom(this.http.post<{ listing: SecondaryListing }>(`${this.base}/api/listings`, payload));
   }
 
-  cancelListing(id: string, seller: string): Promise<{ ok: true; listing: SecondaryListing }> {
-    return firstValueFrom(this.http.post<{ ok: true; listing: SecondaryListing }>(`${this.base}/api/listings/${encodeURIComponent(id)}/cancel`, { seller }));
+  cancelListing(id: string, payload: { seller: string; issuedAt: string; signature: string }): Promise<{ ok: true; listing: SecondaryListing }> {
+    return firstValueFrom(this.http.post<{ ok: true; listing: SecondaryListing }>(`${this.base}/api/listings/${encodeURIComponent(id)}/cancel`, payload));
   }
 
   buyListing(id: string): Promise<{ ok: true; listing: SecondaryListing }> {

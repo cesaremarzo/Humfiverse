@@ -133,6 +133,17 @@ export class WalletService {
    * HumfiverseCatalogueToken, paying `amount * priceWei`. Throws on
    * rejection, wrong network, or a reverted/failed transaction — callers
    * are expected to catch and show the user what happened. */
+  /** Plain-text signature, no transaction and no gas. Used to prove the
+   * wallet authorised a resale listing — see core/listing-signature.util.ts
+   * for what the signer is actually agreeing to. */
+  async signMessage(message: string): Promise<string> {
+    if (!window.ethereum) throw new Error('no-wallet');
+    if (!(await this.ensureSepolia())) throw new Error('wrong-network');
+    const provider = new ethers.BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
+    const signer = await provider.getSigner();
+    return signer.signMessage(message);
+  }
+
   async buyOnchain(params: { contractAddress: string; tokenId: number; amount: number; priceWei: string }): Promise<{ txHash: string; explorerUrl: string }> {
     if (!window.ethereum) throw new Error('no-wallet');
     const switched = await this.ensureSepolia();
