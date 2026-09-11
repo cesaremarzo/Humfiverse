@@ -10,7 +10,7 @@ import { ApiService } from '../../core/api.service';
 import { ToastService } from '../../core/toast.service';
 import { fmtUSD } from '../../core/format.util';
 import { coverBackground } from '../../core/cover.util';
-import { SecondaryListing, RoyaltyMonth } from '../../core/models';
+import { RoyaltyMonth } from '../../core/models';
 import { platformFeeTokens } from '../../core/marketplace-fee.util';
 import { weiToUsd } from '../../core/usd-eth.util';
 import { lowestAvailablePrice, bucketSnapshots, ChartGranularity } from '../../core/token-value.util';
@@ -66,8 +66,15 @@ export class PortfolioComponent {
   sellPrice = signal(1);
   sellResult = signal<{ assetId: string; qty: number; price: number } | null>(null);
 
-  mySellerLabel = 'you';
-  myListings = computed(() => this.store.secondaryListings().filter((l) => l.seller === this.mySellerLabel && l.qty > 0));
+  /** Listings are shared state now, so "mine" means the connected wallet
+   * rather than the literal string 'you' this used to store as the
+   * seller — which would have read as "you" for every visitor. */
+  mySeller = computed(() => (this.wallet.state().address ?? '').toLowerCase());
+  myListings = computed(() => {
+    const me = this.mySeller();
+    return me ? this.store.secondaryListings().filter((l) => l.seller.toLowerCase() === me && l.qty > 0) : [];
+  });
+  sellSubmitting = signal(false);
 
   totalTokens = computed(() => this.holdings().reduce((s, h) => s + h.tokens, 0));
   totalValue = computed(() => this.holdings().reduce((s, h) => s + h.valueUsd, 0));
@@ -232,42 +239,43 @@ export class PortfolioComponent {
     return platformFeeTokens(this.sellQty());
   }
 
-  confirmSell(): void {
+  /** Persisted server-side now, so the offer survives a reload and every
+   * visitor sees it. The backend also checks the wallet really holds what
+   * it is listing, which is why this can fail and has to be awaited. */
+  async confirmSell(): Promise<void> {
     const draft = this.sellDraft();
-    if (!draft) return;
+    const seller = this.mySeller();
+    if (!draft || !seller || this.sellSubmitting()) return;
     const qty = this.sellQty();
     const price = this.sellPrice();
 
-    this.holdings.update((list) =>
-      list.map((h) => (h.assetId === draft.assetId ? { ...h, tokens: h.tokens - qty } : h))
-    );
-
-    const listingId = `you-${draft.assetId}-${Date.now()}`;
-    this.store.secondaryListings.update((listings) => [
-      ...listings,
-      { id: listingId, assetId: draft.assetId, seller: this.mySellerLabel, qty, pricePerToken: price } as SecondaryListing
-    ]);
-
-    this.sellDraft.set(null);
-    this.sellResult.set({ assetId: draft.assetId, qty, price });
+    this.sellSubmitting.set(true);
+    try {
+      await this.api.createListing({ assetId: draft.assetId, seller, qty, pricePerToken: price });
+      await this.store.refreshListings();
+      this.sellDraft.set(null);
+      this.sellResult.set({ assetId: draft.assetId, qty, price });
+    } catch (err) {
+      console.warn('Could not create the listing.', err);
+      this.toast.show(this.translate.instant('portfolio.listingFailed'), 'alert');
+    } finally {
+      this.sellSubmitting.set(false);
+    }
   }
 
   closeSellResult(): void {
     this.sellResult.set(null);
   }
 
-  cancelListing(listingId: string): void {
-    const listing = this.store.secondaryListings().find((l) => l.id === listingId);
-    if (!listing) return;
-
-    this.holdings.update((list) => {
-      const existing = list.find((h) => h.assetId === listing.assetId);
-      if (existing) {
-        return list.map((h) => (h.assetId === listing.assetId ? { ...h, tokens: h.tokens + listing.qty } : h));
-      }
-      return [...list, { assetId: listing.assetId, tokenId: 0, tokens: listing.qty, title: listing.assetId, artist: '', valueUsd: 0 }];
-    });
-
-    this.store.secondaryListings.update((listings) => listings.filter((l) => l.id !== listingId));
+  async cancelListing(listingId: string): Promise<void> {
+    const seller = this.mySeller();
+    if (!seller) return;
+    try {
+      await this.api.cancelListing(listingId, seller);
+      await this.store.refreshListings();
+    } catch (err) {
+      console.warn('Could not cancel the listing.', err);
+      this.toast.show(this.translate.instant('portfolio.listingFailed'), 'alert');
+    }
   }
 }

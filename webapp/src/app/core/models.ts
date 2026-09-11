@@ -94,9 +94,14 @@ export interface Portfolio {
 export interface SecondaryListing {
   id: string;
   assetId: string;
+  /** The seller's wallet address, lowercased. Was the literal string
+   * 'you' while listings lived in one tab's memory; now that they are
+   * shared, the row has to say *whose* offer it is. The UI renders "you"
+   * when this matches the connected wallet. */
   seller: string;
   qty: number;
   pricePerToken: number;
+  createdAt?: string;
 }
 
 export interface YieldBreakdown {

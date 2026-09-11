@@ -52,6 +52,23 @@ export class AssetDetailComponent {
   marketPrice = computed(() => this.store.lowestAsk(this.id()));
   resaleResult = signal<{ listing: SecondaryListing; received: number; fee: number; paid: number } | null>(null);
 
+  /* --- listing your own tokens, from the page the tokens are on ---
+     Until now the only way to offer tokens for resale was the Portfolio
+     page, which meant leaving the campaign you were looking at to do it.
+     The balance below is the connected wallet's real on-chain holding of
+     this one asset, read from the same endpoint the Portfolio uses. */
+  myTokens = signal(0);
+  mySeller = computed(() => (this.wallet.state().address ?? '').toLowerCase());
+  myListings = computed(() => {
+    const me = this.mySeller();
+    return me ? this.listings().filter((l) => l.seller.toLowerCase() === me) : [];
+  });
+  sellOpen = signal(false);
+  sellQty = signal(1);
+  sellPrice = signal(1);
+  sellSubmitting = signal(false);
+  sellResult = signal<{ qty: number; price: number } | null>(null);
+
   disclosureRows: [keyof Asset['aiDisclosure'], string][] = [
     ['vocals', 'disclosure.vocals'],
     ['instrumentation', 'disclosure.instrumentation'],
@@ -73,6 +90,18 @@ export class AssetDetailComponent {
       this.onchainInfo.set(null);
       this.escrowInfo.set(null);
       this.refreshOnchainState(id);
+    });
+
+    // Re-reads whenever the asset or the connected wallet changes, so the
+    // sell panel knows how much this wallet can actually offer.
+    effect(() => {
+      const id = this.id();
+      const address = this.wallet.state().address;
+      if (!id || !address) { this.myTokens.set(0); return; }
+      this.api
+        .getRealPortfolio(address)
+        .then((res) => this.myTokens.set(res.holdings.find((h) => h.assetId === id)?.tokens ?? 0))
+        .catch(() => this.myTokens.set(0));
     });
   }
 
@@ -416,15 +445,83 @@ export class AssetDetailComponent {
     return s && s.qty > 1 ? 'success.tokens' : 'success.token';
   }
 
+  // --- offering your own tokens for resale ---
+
+  openSell(a: Asset): void {
+    if (!this.mySeller() || this.myTokens() <= 0) return;
+    this.sellQty.set(1);
+    this.sellPrice.set(this.marketPrice() ?? a.tokenPrice);
+    this.sellOpen.set(true);
+  }
+  closeSell(): void {
+    this.sellOpen.set(false);
+  }
+  setSellQty(value: string): void {
+    const n = parseInt(value.replace(/\D/g, ''), 10);
+    this.sellQty.set(Math.max(1, Math.min(this.myTokens(), n || 1)));
+  }
+  setSellPrice(value: string): void {
+    const n = Number(value);
+    this.sellPrice.set(Number.isFinite(n) && n > 0 ? n : 1);
+  }
+  sellFeePreview(): number {
+    return platformFeeTokens(this.sellQty());
+  }
+
+  /** Persisted server-side, so the offer survives a reload and every
+   * visitor sees it. The backend re-checks the wallet really holds what
+   * it is listing, so this can fail and has to be awaited. */
+  async confirmSell(a: Asset): Promise<void> {
+    const seller = this.mySeller();
+    if (!seller || this.sellSubmitting()) return;
+    const qty = this.sellQty();
+    const price = this.sellPrice();
+    this.sellSubmitting.set(true);
+    try {
+      await this.api.createListing({ assetId: a.id, seller, qty, pricePerToken: price });
+      await this.store.refreshListings();
+      this.sellOpen.set(false);
+      this.sellResult.set({ qty, price });
+    } catch (err) {
+      console.warn('Could not create the listing.', err);
+      this.toast.show(this.translate.instant('portfolio.listingFailed'), 'alert');
+    } finally {
+      this.sellSubmitting.set(false);
+    }
+  }
+  closeSellResult(): void {
+    this.sellResult.set(null);
+  }
+
+  async cancelMyListing(id: string): Promise<void> {
+    const seller = this.mySeller();
+    if (!seller) return;
+    try {
+      await this.api.cancelListing(id, seller);
+      await this.store.refreshListings();
+    } catch (err) {
+      console.warn('Could not cancel the listing.', err);
+      this.toast.show(this.translate.instant('portfolio.listingFailed'), 'alert');
+    }
+  }
+
   // --- buy from a resale listing (secondary purchase, 1% platform token fee) ---
-  buyFromListing(listing: SecondaryListing): void {
+  async buyFromListing(listing: SecondaryListing): Promise<void> {
     const fee = platformFeeTokens(listing.qty);
     const received = listing.qty - fee;
     const paid = listing.qty * listing.pricePerToken;
 
     this.store.portfolio.update((p) => addHolding(p, { assetId: listing.assetId, tokens: received, costBasis: paid }));
 
-    this.store.secondaryListings.update((listings) => listings.filter((l) => l.id !== listing.id));
+    try {
+      await this.api.buyListing(listing.id);
+      await this.store.refreshListings();
+    } catch (err) {
+      // The offer board is shared now, so retiring the listing has to
+      // reach the server; the simulated transfer above already happened.
+      console.warn('Could not retire the listing on the server.', err);
+      this.store.secondaryListings.update((l) => l.filter((x) => x.id !== listing.id));
+    }
     this.resaleResult.set({ listing, received, fee, paid });
   }
 
