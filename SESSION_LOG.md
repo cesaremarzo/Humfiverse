@@ -853,3 +853,34 @@ them into a single endpoint so it is one round trip the server can
 parallelize, and/or have the cards render a loading state instead of a
 confident zero they are about to replace. The second is arguably the more
 important lesson of this whole session.
+
+### One request per page, and a placeholder instead of a zero (§2.56)
+
+Both follow-ups from §2.55, done together because they are the same
+experience from opposite ends.
+
+`GET /api/onchain/batch?ids=…` returns every asset's chain state in one
+call; the frontend was making one request per asset, seven on a page with
+seven campaigns. `getTokenView`/`getTokenViews` share one response shape so
+the batch and the single-asset route cannot drift, verified field-for-field.
+The batch reads the local table directly — going through the chain-scanning
+fallback once per missing asset would put back the exact cost §2.55 removed.
+
+And the cards no longer print a confident zero while they wait.
+`onchainInfoLoading` gates an em dash and an empty meter on both cards and
+the dashboard total. **This is the real lesson of the session:** almost
+every wrong number reported today was a *fallback* shown with exactly the
+same authority as a real one — "$0", "0%", "96.53%" — with nothing on
+screen to say the app was still guessing. Worth applying anywhere else a
+fallback value can reach the UI.
+
+Verified in a real browser, live: one batch request in the network log,
+dashboard reading "$13k" and Guns "Sold out · $13k of $13k · 100%".
+
+One more thing found by deploying: Pages publishes in a minute and Render
+takes several, so every release has a window where the new frontend talks
+to the old backend. One that predates `/api/onchain/batch` matches that URL
+against `/api/onchain/:assetId` and answers `{ onchain: false }` with a 200,
+which threw on every page load until Render caught up. Guarded with
+`result?.tokens ?? {}`. **This recurs on every release** — worth remembering
+when adding any endpoint the frontend depends on.
