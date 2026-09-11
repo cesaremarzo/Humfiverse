@@ -31,6 +31,12 @@ export class CampaignCardComponent {
      saw a bar that never moved, while the marketplace card for the same
      campaign showed the real one. Same chain-aware helpers as that card
      now, off the same two store maps. */
+  /** See asset-card: a placeholder while the pool read is in flight beats
+   * a zero that reads like a finished answer. */
+  fundingUnknown(): boolean {
+    const a = this.asset;
+    return this.store.onchainInfoLoading() && (!a || !this.store.onchainFor(a.id));
+  }
   pct(): number {
     const a = this.asset;
     return a ? fundingPctFor(a, this.store.onchainFor(a.id), this.store.escrowFor(a.id)) : 0;

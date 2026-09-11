@@ -57,6 +57,11 @@ export class StoreService {
    * card's funding bar reflects real purchases instead of the static mock
    * tokensSold count, which never changes after a real on-chain buy. */
   readonly onchainInfoMap = signal<Map<string, OnchainInfo>>(new Map());
+  /** True until the batched pool read has come back. The cards read it so
+   * they can show a placeholder instead of a confident zero they are about
+   * to replace — the failure mode that made several real bugs in this
+   * project so hard to tell apart from a slow page. */
+  readonly onchainInfoLoading = signal(true);
   readonly escrowInfoMap = signal<Map<string, EscrowCampaignInfo>>(new Map());
 
   readonly locale = signal<Locale>(detectInitialLocale());
@@ -206,17 +211,16 @@ export class StoreService {
     // one says this asset has no token, which is what lets the funding
     // helpers fall back to the escrow's ETH ratio and print a precise
     // wrong number. An absent entry reads as unknown, which is the truth.
-    const onchainLoad = Promise.all(
-      knownAssetIds.map(async (id) => {
-        try {
-          return [id, await retrying(() => this.api.getOnchainInfo(id))] as const;
-        } catch {
-          return null;
-        }
-      })
-    )
-      .then((entries) => this.onchainInfoMap.set(new Map(entries.filter((e): e is readonly [string, OnchainInfo] => e !== null))))
-      .catch((err) => console.warn('Could not load per-asset on-chain state for the cards.', err));
+    /* One request for every asset, not one per asset. Seven separate
+       requests, each doing its own chain read against a single free-tier
+       instance, kept the cards on placeholder numbers for twenty to
+       thirty seconds. An asset missing from the response is left out of
+       the map: absent reads as unknown, which is what it is, and is not
+       the same claim as `{ onchain: false }`. */
+    const onchainLoad = (knownAssetIds.length ? retrying(() => this.api.getOnchainBatch(knownAssetIds)) : Promise.resolve({ tokens: {} }))
+      .then((result) => this.onchainInfoMap.set(new Map(Object.entries(result.tokens))))
+      .catch((err) => console.warn('Could not load per-asset on-chain state for the cards.', err))
+      .finally(() => this.onchainInfoLoading.set(false));
 
     const escrowLoad = this.api
       .getEscrowCampaigns()

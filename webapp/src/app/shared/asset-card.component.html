@@ -15,10 +15,15 @@
       <div class="prose" style="font-size:12.5px; -webkit-line-clamp:2; display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden;">{{ asset.description }}</div>
     }
     <div>
-      <div class="meter"><span [style.width.%]="pct"></span></div>
+      <div class="meter"><span [style.width.%]="fundingUnknown ? 0 : pct"></span></div>
       <div class="asset-meta-row" style="margin-top:6px;">
-        <span>{{ 'asset.ofGoal' | translate: { raised: raisedShort, goal: goalShort } }}</span>
-        <span class="value">{{ pct }}%</span>
+        @if (fundingUnknown) {
+          <span aria-busy="true">&mdash;</span>
+          <span class="value">&mdash;</span>
+        } @else {
+          <span>{{ 'asset.ofGoal' | translate: { raised: raisedShort, goal: goalShort } }}</span>
+          <span class="value">{{ pct }}%</span>
+        }
       </div>
     </div>
     <div class="asset-foot">

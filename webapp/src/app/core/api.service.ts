@@ -89,8 +89,17 @@ export class ApiService {
   }
 
   /** Every assetId with a real, chain-verified token — see StoreService.onchainAssetIds. */
-  getOnchainList(): Promise<{ source: 'chain' | 'local-table'; assetIds: string[] }> {
-    return firstValueFrom(this.http.get<{ source: 'chain' | 'local-table'; assetIds: string[] }>(`${this.base}/api/onchain/list`));
+  getOnchainList(): Promise<{ source: string; assetIds: string[] }> {
+    return firstValueFrom(this.http.get<{ source: string; assetIds: string[] }>(`${this.base}/api/onchain/list`));
+  }
+
+  /** Every card's on-chain state in one request instead of one per asset.
+   * Assets with no readable chain state are absent from the result rather
+   * than reported as having no token — the caller treats absence as
+   * unknown, which is what it is. */
+  getOnchainBatch(assetIds: string[]): Promise<{ tokens: Record<string, OnchainInfo> }> {
+    const ids = assetIds.map((id) => encodeURIComponent(id)).join(',');
+    return firstValueFrom(this.http.get<{ tokens: Record<string, OnchainInfo> }>(`${this.base}/api/onchain/batch?ids=${ids}`));
   }
 
   /** Real token holdings for a wallet (§2.37) — replaces the fictional

@@ -17,19 +17,34 @@ module.exports = function registerOnchainRoutes(router) {
     sendJson(res, 200, await onchainService.listMintedAssetIds());
   });
 
+  /* Many assets at once, for the pages that render a card per campaign.
+     Exact path, so it is matched before /api/onchain/:assetId below.
+     `ids` is a comma-separated list; the response is keyed by asset id,
+     and an asset with no readable chain state is simply absent rather
+     than reported as having no token. */
+  router.get("/api/onchain/batch", async (req, res, { url }) => {
+    try {
+      const ids = (url.searchParams.get("ids") || "")
+        .split(",")
+        .map((id) => id.trim())
+        .filter(Boolean);
+      if (!ids.length) {
+        sendJson(res, 400, { error: "ids query parameter is required, comma-separated" });
+        return;
+      }
+      if (ids.length > 100) {
+        sendJson(res, 400, { error: "at most 100 ids per request" });
+        return;
+      }
+      sendJson(res, 200, { tokens: await onchainService.getTokenViews(ids) });
+    } catch (e) {
+      sendJson(res, 502, { error: "could not read on-chain data", detail: String(e.message || e) });
+    }
+  });
+
   router.get("/api/onchain/:assetId", async (req, res, { params }) => {
     try {
-      const record = await onchainService.findTokenWithChainFallback(params.assetId);
-      if (!record) { sendJson(res, 200, { onchain: false }); return; }
-      const poolInfo = await chain.getPoolInfo(record.token_id);
-      sendJson(res, 200, {
-        onchain: true,
-        assetId: params.assetId,
-        slug: record.slug,
-        mintTxHash: record.tx_hash,
-        mintedAt: record.minted_at,
-        ...poolInfo
-      });
+      sendJson(res, 200, await onchainService.getTokenView(params.assetId));
     } catch (e) {
       sendJson(res, 502, { error: "could not read on-chain data", detail: String(e.message || e) });
     }
