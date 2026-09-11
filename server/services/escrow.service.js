@@ -60,15 +60,36 @@ async function createCampaign(assetId, artistAddress, fundingGoalWei, studioName
   return { campaignId: created.campaignId, studioId, txHash: created.txHash };
 }
 
-/** §2.39: local table is the primary source (see onchain.service.js
- * listMintedAssetIds for the same pattern applied to catalogue tokens) —
- * a recent-blocks scan only supplements it with campaigns not cached
- * yet. */
+/** §2.39: the local table is the primary source (see onchain.service.js
+ * listMintedAssetIds for the same pattern applied to catalogue tokens).
+ *
+ * The recent-blocks scan that used to supplement it on *every* call now
+ * runs only when the table is empty, and that one change is what took
+ * this endpoint from 200s to a couple of seconds. The scan walks the
+ * window in 10-block steps because that is the free-tier `eth_getLogs`
+ * cap, which is **50 sequential RPC round trips**, each wrapped in a
+ * retry — measured at 3.4s against a fast RPC and far worse against a
+ * rate-limited one. Every one of those round trips was being paid to
+ * look for something that is almost never there: a campaign is only ever
+ * created through this backend, which writes its row in the same call.
+ *
+ * The case the scan genuinely covers is the local table having lost rows
+ * a campaign on chain still has — a wiped database, or an insert that
+ * failed after the transaction confirmed. An empty table is exactly that
+ * signature, so the recovery path survives; it simply stops charging
+ * every reader for it.
+ *
+ * The per-campaign lookup stays chain-native on purpose (§2.18): asking
+ * the contract for the id costs one call and cannot return another
+ * campaign's data, which a cached id can after a redeploy renumbers
+ * them. */
 async function listCampaigns() {
   const assetIds = new Set(await escrowRepo.listCampaignAssetIds());
-  const recent = await escrowChain.listRecentlyCreatedCampaignAssetIdsFromChain();
-  if (recent) {
-    for (const c of recent) assetIds.add(c.assetId);
+  if (!assetIds.size) {
+    const recent = await escrowChain.listRecentlyCreatedCampaignAssetIdsFromChain();
+    if (recent) {
+      for (const c of recent) assetIds.add(c.assetId);
+    }
   }
   const infos = await Promise.all(
     [...assetIds].map((assetId) => escrowChain.getCampaignInfoByAssetId(assetId).then((info) => info && { escrow: true, assetId, ...info }))
