@@ -884,3 +884,45 @@ against `/api/onchain/:assetId` and answers `{ onchain: false }` with a 200,
 which threw on every page load until Render caught up. Guarded with
 `result?.tokens ?? {}`. **This recurs on every release** — worth remembering
 when adding any endpoint the frontend depends on.
+
+## 2026-09-12 — resale listings persisted, and sellable from the campaign page (§2.57)
+
+The user reported that tokens they had listed for sale on Guns were gone
+from the campaign page, and that offering tokens was only possible from
+Portfolio.
+
+**They vanished because listings were never stored anywhere.** The signal
+was seeded from a bundled JSON file of three fictional offers, and the
+Portfolio sell flow appended to it *in memory*. No request, no table, no
+row. A reload restored the fictional rows and discarded the real one, and
+no other visitor ever saw a listing. Same failure campaign records had
+before §2.20, in a feature that never got the same treatment. **Not a
+regression from this week's work** — it had never worked.
+
+Now a real `secondary_listings` table with repository, service and routes
+following §2.45's layering. Cancel is gated on the listing's own seller.
+
+**What is genuinely verified, and what is not.** Creating a listing reads
+the seller's real balance off the token contract and refuses an offer
+larger than they hold — verified live: `409, "wallet holds 0 token(s) of
+this asset, cannot list 5"`. That is the most this can honestly be.
+`HumfiverseMarketplace.sol` is written and tested but **never deployed**,
+so nothing escrows the tokens or settles a trade, and the balance is
+checked once at creation. The sell dialog says all of that in plain words.
+
+The seller is now a wallet address; it used to be the literal string
+`'you'`, which would have read as "you" for every visitor once listings
+became shared.
+
+**The campaign page** gained the holder's own balance for that asset, a
+list-for-sale button, a cancel button on their own rows, and the same
+dialog Portfolio uses. Both write through the API. Eight new i18n keys
+across all 9 locales (440 each), and the empty state no longer points at
+the Portfolio for something now doable in place.
+
+Verified live after deploy: created a listing on production, saw it render
+on the published campaign page with a truncated seller, then cancelled it.
+
+**The honest next step**, unchanged: a real resale needs
+`HumfiverseMarketplace.sol` deployed and the tokens actually escrowed.
+Until then this is an offer board with a verified balance, labelled as one.
