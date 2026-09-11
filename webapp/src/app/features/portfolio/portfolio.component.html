@@ -114,9 +114,9 @@
                   <tr>
                     <td>{{ l.assetId }}</td>
                     <td class="cell-num mono">{{ l.qty }}</td>
-                    <td class="cell-num mono">{{ fmt(l.pricePerToken) }}</td>
+                    <td class="cell-num mono">{{ fmt(weiToUsd(l.pricePerTokenWei)) }}</td>
                     <td style="text-align:right;">
-                      <button class="btn btn-ghost btn-sm" (click)="cancelListing(l.id)">{{ 'portfolio.cancelListingBtn' | translate }}</button>
+                      <button class="btn btn-ghost btn-sm" (click)="cancelListing(l)">{{ 'portfolio.cancelListingBtn' | translate }}</button>
                     </td>
                   </tr>
                 }
@@ -152,6 +152,10 @@
         <div style="display:flex; justify-content:space-between;"><span>{{ 'portfolio.sellListingTotal' | translate }}</span><strong>{{ fmt(sellQty() * sellPrice()) }}</strong></div>
         <div style="display:flex; justify-content:space-between; color:var(--text-secondary);"><span>{{ 'portfolio.sellFeeLabel' | translate }}</span><span>{{ sellFeePreview() }}</span></div>
         <p style="font-size:11.5px; color:var(--text-secondary); margin:6px 0 0;">{{ 'portfolio.sellFeeNote' | translate }}</p>
+        <p style="font-size:11.5px; color:var(--text-secondary); margin:6px 0 0;">{{ 'detail.resaleOnchainNote' | translate }}</p>
+        @if (sellStep(); as step) {
+          <p style="font-size:11.5px; color:var(--accent); margin:6px 0 0;">{{ (step === 'approving' ? 'detail.resaleApproving' : 'detail.resaleListing') | translate }}</p>
+        }
       </div>
 
       <div style="display:flex; gap:10px; margin-top:16px;">

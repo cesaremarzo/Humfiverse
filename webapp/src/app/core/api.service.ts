@@ -92,20 +92,19 @@ export class ApiService {
   /** Every assetId with a real, chain-verified token — see StoreService.onchainAssetIds. */
   /* --- secondary-market listings (persisted, shared across visitors) --- */
 
-  getListings(): Promise<{ listings: SecondaryListing[] }> {
-    return firstValueFrom(this.http.get<{ listings: SecondaryListing[] }>(`${this.base}/api/listings`));
+  /** The open offers, read off HumfiverseMarketplace. `marketplaceEnabled`
+   * is false when the server has no marketplace address configured, which
+   * is how the UI knows to say resale is unavailable rather than show an
+   * empty board as though nobody were selling. */
+  getListings(): Promise<{ marketplaceEnabled: boolean; marketplaceAddress: string | null; listings: SecondaryListing[] }> {
+    return firstValueFrom(this.http.get<{ marketplaceEnabled: boolean; marketplaceAddress: string | null; listings: SecondaryListing[] }>(`${this.base}/api/listings`));
   }
 
-  createListing(payload: { assetId: string; seller: string; qty: number; pricePerToken: number; issuedAt: string; signature: string }): Promise<{ listing: SecondaryListing }> {
-    return firstValueFrom(this.http.post<{ listing: SecondaryListing }>(`${this.base}/api/listings`, payload));
-  }
-
-  cancelListing(id: string, payload: { seller: string; issuedAt: string; signature: string }): Promise<{ ok: true; listing: SecondaryListing }> {
-    return firstValueFrom(this.http.post<{ ok: true; listing: SecondaryListing }>(`${this.base}/api/listings/${encodeURIComponent(id)}/cancel`, payload));
-  }
-
-  buyListing(id: string): Promise<{ ok: true; listing: SecondaryListing }> {
-    return firstValueFrom(this.http.post<{ ok: true; listing: SecondaryListing }>(`${this.base}/api/listings/${encodeURIComponent(id)}/buy`, {}));
+  /** Records a listing id the seller has just created on chain, so the
+   * board can find it without scanning events. Creating, cancelling and
+   * buying are the user's own transactions and never touch this API. */
+  indexListing(payload: { listingId: number; assetId: string }): Promise<{ ok: true }> {
+    return firstValueFrom(this.http.post<{ ok: true }>(`${this.base}/api/listings/index`, payload));
   }
 
   getOnchainList(): Promise<{ source: string; assetIds: string[] }> {

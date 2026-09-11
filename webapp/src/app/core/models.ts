@@ -91,16 +91,29 @@ export interface Portfolio {
  * platform's "current market price" for an asset is the lowest active
  * listing's pricePerToken (see StoreService.lowestAsk), not an
  * automatically-updating/matched price. */
+/** An open offer on HumfiverseMarketplace, read back off the contract.
+ *
+ * Not a record this app owns: `listingId`, `seller`, `qty` and the price
+ * are the contract's own state, and a listing leaves this list the moment
+ * it is cancelled or fully bought, without anything here being told. */
 export interface SecondaryListing {
   id: string;
+  listingId: number;
   assetId: string;
-  /** The seller's wallet address, lowercased. Was the literal string
-   * 'you' while listings lived in one tab's memory; now that they are
-   * shared, the row has to say *whose* offer it is. The UI renders "you"
-   * when this matches the connected wallet. */
+  /** Seller's wallet, lowercased. The UI shows "you" on a match. */
   seller: string;
   qty: number;
-  pricePerToken: number;
+  /** Wei per token, as the contract stores it. `buyListing` demands
+   * exactly qty x this, so the raw value travels rather than a rounded
+   * dollar figure; the UI converts for display only. */
+  pricePerTokenWei: string;
+  /** Whether the seller still holds what they are offering. The contract
+   * checks the balance at listing time, not continuously, so a listing
+   * can outlive the tokens behind it and the purchase would revert. */
+  deliverable: boolean;
+  contractAddress: string;
+  explorerUrl: string;
+  txHash?: string | null;
   createdAt?: string;
 }
 

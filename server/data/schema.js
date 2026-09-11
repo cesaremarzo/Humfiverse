@@ -59,12 +59,18 @@ async function initSchema() {
       tx_hash TEXT,
       created_at TEXT
     );
-    CREATE TABLE IF NOT EXISTS secondary_listings (
-      id TEXT PRIMARY KEY,
+    -- An index of listings that exist on HumfiverseMarketplace, not a
+    -- copy of them. Quantity, price, seller and whether a listing is still
+    -- open are read from the contract every time; this table only answers
+    -- "which listing ids exist", which the contract cannot be asked
+    -- cheaply (its counter is private and an event scan costs 50
+    -- sequential calls, §2.55). Same relationship onchain_tokens has to
+    -- the token contract.
+    CREATE TABLE IF NOT EXISTS marketplace_listings (
+      listing_id INTEGER PRIMARY KEY,
       asset_id TEXT NOT NULL,
-      seller TEXT NOT NULL,
-      qty INTEGER NOT NULL,
-      price_per_token REAL NOT NULL,
+      token_id INTEGER NOT NULL,
+      tx_hash TEXT,
       created_at TEXT NOT NULL
     );
     CREATE TABLE IF NOT EXISTS portfolio_snapshots (

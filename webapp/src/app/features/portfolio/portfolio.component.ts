@@ -10,10 +10,9 @@ import { ApiService } from '../../core/api.service';
 import { ToastService } from '../../core/toast.service';
 import { fmtUSD } from '../../core/format.util';
 import { coverBackground } from '../../core/cover.util';
-import { RoyaltyMonth } from '../../core/models';
-import { buildListingMessage, buildCancelMessage } from '../../core/listing-signature.util';
+import { RoyaltyMonth, SecondaryListing } from '../../core/models';
 import { platformFeeTokens } from '../../core/marketplace-fee.util';
-import { weiToUsd } from '../../core/usd-eth.util';
+import { weiToUsd, usdToWei } from '../../core/usd-eth.util';
 import { lowestAvailablePrice, bucketSnapshots, ChartGranularity } from '../../core/token-value.util';
 
 /** A real on-chain holding — replaces the fictional Portfolio.holdings mock
@@ -76,6 +75,8 @@ export class PortfolioComponent {
     return me ? this.store.secondaryListings().filter((l) => l.seller.toLowerCase() === me && l.qty > 0) : [];
   });
   sellSubmitting = signal(false);
+  sellStep = signal<'approving' | 'listing' | null>(null);
+  weiToUsd = weiToUsd;
 
   totalTokens = computed(() => this.holdings().reduce((s, h) => s + h.tokens, 0));
   totalValue = computed(() => this.holdings().reduce((s, h) => s + h.valueUsd, 0));
@@ -240,25 +241,38 @@ export class PortfolioComponent {
     return platformFeeTokens(this.sellQty());
   }
 
-  /** Persisted server-side now, so the offer survives a reload and every
-   * visitor sees it. The backend also checks the wallet really holds what
-   * it is listing, which is why this can fail and has to be awaited. */
+  /** The seller's own transaction against HumfiverseMarketplace: a one-off
+   * approval so the contract can move this token when a buyer arrives,
+   * then `list`. Humfiverse signs nothing — see the campaign page's copy
+   * of this for the reasoning, and §2.58 for what it replaced. */
   async confirmSell(): Promise<void> {
     const draft = this.sellDraft();
     const seller = this.mySeller();
+    const marketplace = this.store.marketplaceAddress();
     if (!draft || !seller || this.sellSubmitting()) return;
+    const onchain = this.store.onchainFor(draft.assetId);
+    if (!marketplace || !onchain?.onchain) {
+      this.toast.show(this.translate.instant('detail.resaleUnavailable'), 'alert');
+      return;
+    }
     const qty = this.sellQty();
     const price = this.sellPrice();
 
     this.sellSubmitting.set(true);
     try {
-      // The wallet has to authorise these exact terms. Without it the
-      // seller field was just a string anyone could put in a request.
-      const issuedAt = new Date().toISOString();
-      const signature = await this.wallet.signMessage(
-        buildListingMessage({ assetId: draft.assetId, seller, qty, pricePerToken: price, issuedAt })
-      );
-      await this.api.createListing({ assetId: draft.assetId, seller, qty, pricePerToken: price, issuedAt, signature });
+      if (!(await this.wallet.isMarketplaceApproved(onchain.contractAddress, marketplace))) {
+        this.sellStep.set('approving');
+        await this.wallet.approveMarketplace(onchain.contractAddress, marketplace);
+      }
+      this.sellStep.set('listing');
+      const { listingId } = await this.wallet.listOnMarketplace({
+        marketplace,
+        tokenContract: onchain.contractAddress,
+        tokenId: onchain.tokenId,
+        qty,
+        pricePerTokenWei: usdToWei(price).toString()
+      });
+      await this.api.indexListing({ listingId, assetId: draft.assetId }).catch((err) => console.warn('Listing created on chain but not indexed.', err));
       await this.store.refreshListings();
       this.sellDraft.set(null);
       this.sellResult.set({ assetId: draft.assetId, qty, price });
@@ -266,6 +280,7 @@ export class PortfolioComponent {
       console.warn('Could not create the listing.', err);
       this.toast.show(this.translate.instant('portfolio.listingFailed'), 'alert');
     } finally {
+      this.sellStep.set(null);
       this.sellSubmitting.set(false);
     }
   }
@@ -274,13 +289,11 @@ export class PortfolioComponent {
     this.sellResult.set(null);
   }
 
-  async cancelListing(listingId: string): Promise<void> {
-    const seller = this.mySeller();
-    if (!seller) return;
+  async cancelListing(listing: SecondaryListing): Promise<void> {
+    const marketplace = this.store.marketplaceAddress();
+    if (!this.mySeller() || !marketplace) return;
     try {
-      const issuedAt = new Date().toISOString();
-      const signature = await this.wallet.signMessage(buildCancelMessage({ listingId, seller, issuedAt }));
-      await this.api.cancelListing(listingId, { seller, issuedAt, signature });
+      await this.wallet.cancelListingOnchain({ marketplace, listingId: listing.listingId });
       await this.store.refreshListings();
     } catch (err) {
       console.warn('Could not cancel the listing.', err);
