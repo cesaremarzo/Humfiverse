@@ -754,3 +754,31 @@ asking; the PR is still opened so the other person can see the change.
 Features, refactors and docs still need an explicit go-ahead. The reason
 is recorded there too: three consecutive "still broken" reports in this
 session were caused purely by nothing having been deployed.
+
+### The actual cause, found on the fifth report (§2.52)
+
+The user pasted their page source. It loaded `main-LEWVCAPR.js`, the
+current build — which killed every environmental explanation at once and
+proved the remaining fault was in the code.
+
+96.53% has two decimals and the mock fallback rounds to whole numbers, so
+it can only come from the escrow ratio, and after §2.51 that branch needs
+`{ onchain: false }`. Production returns `onchain: true` for Guns. So the
+client was manufacturing that value — and it was: both the asset page and
+the store mapped a **failed request** to `{ onchain: false }`, which is a
+claim that the asset has no token, not a statement that the read failed.
+Nothing retried, so the wrong number stayed for the life of the page.
+
+That is why every check from the terminal passed: the backend sleeps on
+Render's free tier, and a cold on-chain read can take tens of seconds and
+fail in a browser while a warm curl succeeds.
+
+Fixed in two parts: a failed read now leaves the state unknown rather than
+asserting there is no token, and both on-chain reads go through a bounded
+three-attempt retry so a cold instance self-heals.
+
+**Lesson, recorded because it cost four exchanges:** when a user reports a
+UI value that the code says is impossible, ask for the loaded bundle
+filename *first*. It separates "you are looking at old code" from "the
+code is wrong" in one step. Three real defects were found and shipped
+against this symptom before that question was asked.
