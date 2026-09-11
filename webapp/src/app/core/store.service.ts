@@ -32,6 +32,11 @@ export class StoreService {
   readonly campaigns = signal<Campaign[]>(campaignsJson as unknown as Campaign[]);
   readonly portfolio = signal<Portfolio>(portfolioJson as unknown as Portfolio);
   readonly contractTemplate = signal<ContractTemplate>(contractTemplateJson as unknown as ContractTemplate);
+  /** Bundled rows are the offline seed only. Once the backend answers,
+   * its list replaces them outright — including when it answers with
+   * nothing, because three fictional offers are worse than an honest
+   * empty board. Until these were persisted server-side, a listing lived
+   * in the creating tab's memory and was gone on the next reload. */
   readonly secondaryListings = signal<SecondaryListing[]>(secondaryListingsJson as unknown as SecondaryListing[]);
   readonly backendAvailable = signal(false);
 
@@ -165,6 +170,18 @@ export class StoreService {
     return listings.length ? listings[0].pricePerToken : null;
   }
 
+  /** Re-pulls the offer board after any write, so the portfolio, the
+   * campaign page and the marketplace all see the same thing without
+   * each maintaining its own copy. */
+  async refreshListings(): Promise<void> {
+    try {
+      const result = await this.api.getListings();
+      this.secondaryListings.set(result.listings ?? []);
+    } catch (err) {
+      console.warn('Could not refresh resale listings.', err);
+    }
+  }
+
   async hydrateFromBackend(): Promise<void> {
     try {
       const data = await this.api.getData();
@@ -228,11 +245,16 @@ export class StoreService {
       .catch((err) => console.warn('Could not load per-asset on-chain state for the cards.', err))
       .finally(() => this.onchainInfoLoading.set(false));
 
+    const listingsLoad = this.api
+      .getListings()
+      .then((result) => this.secondaryListings.set(result.listings ?? []))
+      .catch((err) => console.warn('Could not load resale listings — showing the bundled sample instead.', err));
+
     const escrowLoad = this.api
       .getEscrowCampaigns()
       .then((result) => this.escrowInfoMap.set(new Map(result.campaigns.map((c) => [c.assetId, c] as const))))
       .catch((err) => console.warn('Could not load escrow campaign state for the cards.', err));
 
-    await Promise.allSettled([listLoad, onchainLoad, escrowLoad]);
+    await Promise.allSettled([listLoad, onchainLoad, escrowLoad, listingsLoad]);
   }
 }

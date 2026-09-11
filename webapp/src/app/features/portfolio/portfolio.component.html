@@ -156,7 +156,7 @@
 
       <div style="display:flex; gap:10px; margin-top:16px;">
         <button class="btn btn-ghost btn-block" (click)="closeSellDraft()">{{ 'portfolio.sellCancelBtn' | translate }}</button>
-        <button class="btn btn-primary btn-block" (click)="confirmSell()">{{ 'portfolio.sellConfirmBtn' | translate }}</button>
+        <button class="btn btn-primary btn-block" [disabled]="sellSubmitting()" (click)="confirmSell()">{{ 'portfolio.sellConfirmBtn' | translate }}</button>
       </div>
     </div>
   </div>

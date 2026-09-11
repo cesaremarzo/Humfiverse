@@ -15,7 +15,8 @@ import {
   OnchainMintResult,
   RealHoldingDto,
   RedeemResult,
-  RoyaltyMonth
+  RoyaltyMonth,
+  SecondaryListing
 } from './models';
 
 @Injectable({ providedIn: 'root' })
@@ -89,6 +90,24 @@ export class ApiService {
   }
 
   /** Every assetId with a real, chain-verified token — see StoreService.onchainAssetIds. */
+  /* --- secondary-market listings (persisted, shared across visitors) --- */
+
+  getListings(): Promise<{ listings: SecondaryListing[] }> {
+    return firstValueFrom(this.http.get<{ listings: SecondaryListing[] }>(`${this.base}/api/listings`));
+  }
+
+  createListing(payload: { assetId: string; seller: string; qty: number; pricePerToken: number }): Promise<{ listing: SecondaryListing }> {
+    return firstValueFrom(this.http.post<{ listing: SecondaryListing }>(`${this.base}/api/listings`, payload));
+  }
+
+  cancelListing(id: string, seller: string): Promise<{ ok: true; listing: SecondaryListing }> {
+    return firstValueFrom(this.http.post<{ ok: true; listing: SecondaryListing }>(`${this.base}/api/listings/${encodeURIComponent(id)}/cancel`, { seller }));
+  }
+
+  buyListing(id: string): Promise<{ ok: true; listing: SecondaryListing }> {
+    return firstValueFrom(this.http.post<{ ok: true; listing: SecondaryListing }>(`${this.base}/api/listings/${encodeURIComponent(id)}/buy`, {}));
+  }
+
   getOnchainList(): Promise<{ source: string; assetIds: string[] }> {
     return firstValueFrom(this.http.get<{ source: string; assetIds: string[] }>(`${this.base}/api/onchain/list`));
   }

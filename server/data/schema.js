@@ -59,6 +59,14 @@ async function initSchema() {
       tx_hash TEXT,
       created_at TEXT
     );
+    CREATE TABLE IF NOT EXISTS secondary_listings (
+      id TEXT PRIMARY KEY,
+      asset_id TEXT NOT NULL,
+      seller TEXT NOT NULL,
+      qty INTEGER NOT NULL,
+      price_per_token REAL NOT NULL,
+      created_at TEXT NOT NULL
+    );
     CREATE TABLE IF NOT EXISTS portfolio_snapshots (
       wallet TEXT NOT NULL,
       snapshot_date TEXT NOT NULL,
