@@ -1,0 +1,1 @@
+function n(t){return`$`+t.toLocaleString(`en-US`,{minimumFractionDigits:t%1!==0?2:0,maximumFractionDigits:2})}function r(t){return t>=1e3?`$`+(t/1e3).toFixed(t>=1e4?0:1)+`k`:`$`+Math.round(t)}function e(t){return t.tokenPrice*t.tokensTotal}function o(t){return t.tokensTotal?Math.min(100,Math.round(t.tokensSold/t.tokensTotal*100)):0}export{r as i,n,o as r,e as t};
