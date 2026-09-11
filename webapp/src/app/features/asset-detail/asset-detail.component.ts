@@ -22,6 +22,7 @@ import { weiToUsd, usdToWei } from '../../core/usd-eth.util';
 import { isValidRoyaltyMonth, royaltyAvg, royaltyTotal } from '../../core/royalty.util';
 import { onchainErrorTranslation } from '../../core/onchain-error.util';
 import { addHolding } from '../../core/portfolio-holdings.util';
+import { retrying } from '../../core/retry.util';
 
 type TabKey = 'overview' | 'royalty' | 'milestones' | 'disclosure' | 'documents' | 'risk';
 
@@ -91,14 +92,20 @@ export class AssetDetailComponent {
 
   private refreshOnchainState(id: string): void {
     this.onchainLoading.set(true);
-    this.api
-      .getOnchainInfo(id)
+    retrying(() => this.api.getOnchainInfo(id))
       .then((info) => this.onchainInfo.set(info))
-      .catch(() => this.onchainInfo.set({ onchain: false }))
+      // A failed request is NOT evidence that this asset has no on-chain
+      // token. It used to be recorded as `{ onchain: false }`, which says
+      // exactly that — and that is the one value that lets the funding
+      // helpers fall back to the escrow's ETH ratio. So a request that
+      // merely timed out put 96.53% on Guns and left it there, because
+      // nothing ever retried. `null` means unknown, which is the truth,
+      // and the helpers then show the plain counter instead of a precise
+      // wrong number. The template already renders both identically.
+      .catch(() => this.onchainInfo.set(null))
       .finally(() => this.onchainLoading.set(false));
 
-    this.api
-      .getEscrowCampaign(id)
+    retrying(() => this.api.getEscrowCampaign(id))
       .then((info) => this.escrowInfo.set(info))
       .catch(() => this.escrowInfo.set({ escrow: false }));
   }

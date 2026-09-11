@@ -3,6 +3,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { ApiService } from './api.service';
 import { Asset, Campaign, ContractTemplate, EscrowCampaignInfo, InvestorState, Locale, OnchainInfo, Portfolio, SecondaryListing } from './models';
 import { SUPPORTED_LOCALES, RTL_LOCALES } from './locales';
+import { retrying } from './retry.util';
 
 import assetsJson from './mock-data/assets.json';
 import campaignsJson from './mock-data/campaigns.json';
@@ -194,11 +195,24 @@ export class StoreService {
     try {
       const [onchainEntries, escrowResult] = await Promise.all([
         Promise.all(
-          chainVerifiedIds.map(async (id) => [id, await this.api.getOnchainInfo(id).catch((): OnchainInfo => ({ onchain: false }))] as const)
+          // A read that fails is left *out* of the map, not recorded as
+          // `{ onchain: false }`. The two are not the same claim: the
+          // second says this asset has no on-chain token, which is what
+          // lets the funding helpers fall back to the escrow's ETH ratio
+          // and put a precise wrong number on a card. An absent entry
+          // reads as unknown, which is what a failed request actually
+          // means, and the card shows the plain counter instead.
+          chainVerifiedIds.map(async (id) => {
+            try {
+              return [id, await retrying(() => this.api.getOnchainInfo(id))] as const;
+            } catch {
+              return null;
+            }
+          })
         ),
         this.api.getEscrowCampaigns().catch(() => ({ campaigns: [] }))
       ]);
-      this.onchainInfoMap.set(new Map(onchainEntries));
+      this.onchainInfoMap.set(new Map(onchainEntries.filter((e): e is readonly [string, OnchainInfo] => e !== null)));
       this.escrowInfoMap.set(new Map(escrowResult.campaigns.map((c) => [c.assetId, c] as const)));
     } catch (err) {
       console.warn('Could not load per-asset on-chain/escrow state for the marketplace cards.', err);
