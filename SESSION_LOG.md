@@ -673,10 +673,45 @@ sync against the live published whitepaper.
   The equivalence proof and the passing build are what it rests on; the
   Chrome extension wasn't available this session. Worth a real pass over
   the wizard and the asset page — `CLAUDE.md` asks for exactly that.
-- Guns shows sold out while its funding bar reads 96.5%, because the
-  escrow's ETH goal can never be met (the 45-token gap never flowed
-  through `contribute()`). Honest and it prevents a reverting purchase,
-  but two numbers disagree on the same page. Left as is, deliberately.
+- ~~Guns shows sold out while its funding bar reads 96.5% … left as is,
+  deliberately.~~ **Wrong call, fixed the same day — see below.**
 - The backend still has no automated test suite. The new layering is
   what makes one possible: `app.js` builds a handler without opening a
   port, and every service and repository can be required directly.
+
+### Same day, follow-up: the funding bar was a real bug (§2.49)
+
+The user pushed back on the item above straight away: "su guns sono stati
+venduti tutti i token ma il sito mostra il 96,53% venduti, trova il bug."
+They were right and the entry above was wrong to file it as acceptable.
+
+`onchain-progress.util.ts` exports four functions that all answer "how far
+along is this campaign", drawing on **two different sources**.
+`remainingFor` prefers the token contract's real `poolBalance`;
+`tokensSoldFor` and `fundingRaisedFor` derive from it. `fundingPctFor` did
+not — for a preproduction campaign it used the escrow's `raised/fundingGoal`
+ratio, which only counts ETH that came through `contribute()`. Tokens
+released any other way never touch `raised`, and the manual
+`releaseFromPool` re-issues done after each redeploy are exactly that: 45
+tokens for Guns, 9 for Black Sail. So the page showed "1,300/1,300 tokens",
+"0 remaining" and "$13,000 of $13,000" beside a bar at 96.53%. Black Sail
+was the mirror image: 9 tokens out, $90 raised, bar at 0%.
+
+`fundingPctFor` is now the percentage form of `tokensSoldFor()/tokensTotal`,
+the same two numbers printed beside it, clamped to 0–100 since it drives a
+CSS width. The escrow ratio stays as the fallback when there is no on-chain
+token data. Testing the fix surfaced a second defect: `format.util.ts`'s
+`fundingPct` divided by `tokensTotal` with no zero guard, and the wizard
+can produce `tokensTotal: 0` because it never requires a preproduction
+budget above zero. Guarded.
+
+Verified against all four live campaigns' real on-chain state, asserting
+the percentage equals both the token fraction and the dollar fraction,
+plus every fallback and both clamping edges.
+
+**Added to the open items:** `campaign-card.component.ts` still uses the
+chain-unaware `fundingPct(a)` reading the never-persisted mock
+`tokensSold` counter. Same class of staleness (§2.32), different surface;
+it needs the store's on-chain maps threaded in rather than a patch to
+`format.util.ts`. Also worth checking: the wizard lets a preproduction
+campaign be created with a zero budget, which mints a zero supply.

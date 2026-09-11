@@ -47,21 +47,43 @@ export function tokensSoldFor(a: Asset, onchain: OnchainInfo | null, escrow: Esc
   return a.tokensTotal - remainingFor(a, onchain, escrow);
 }
 
+/** The percentage form of tokensSoldFor()/a.tokensTotal — deliberately
+ * derived from the same two numbers the UI prints beside it, so the bar
+ * can never contradict the "X/Y tokens" tile or the USD raised figure.
+ *
+ * This used to compute a preproduction campaign's percentage from the
+ * escrow's own raised/fundingGoal ratio instead, which is a different
+ * measurement: ETH that arrived through contribute() on the current
+ * contract. Tokens that left the pool any other way never touch `raised`
+ * — most of all the manual releaseFromPool re-issues this project runs
+ * after every contract redeploy to make real holders whole (§2.36/§2.42/
+ * §2.43). remainingFor() above was fixed to prefer the real pool balance
+ * for exactly that reason; this function was not, so the two drifted
+ * apart by precisely the number of manually released tokens.
+ *
+ * Guns is what surfaced it: 45 of its 1,300 tokens were re-released by
+ * hand, so once the remaining 1,255 had genuinely sold, the page showed
+ * "1,300/1,300 tokens", "0 remaining" and "$13,000 of $13,000 raised"
+ * next to a bar reading 96.53%. Black Sail had the mirror image — 9
+ * tokens out and $90 raised against a bar reading 0%.
+ *
+ * The escrow ratio stays as the fallback for a preproduction campaign
+ * with no on-chain token data to read, and the mock counter below that. */
 export function fundingPctFor(a: Asset, onchain: OnchainInfo | null, escrow: EscrowCampaignInfo | null): number {
+  if (onchain?.onchain && a.tokensTotal > 0) {
+    const sold = tokensSoldFor(a, onchain, escrow);
+    // Truncated to two decimals, matching the basis-point division this
+    // replaced, and clamped: the value drives a CSS width, and a local
+    // asset record that disagrees with the chain must not produce a
+    // negative or overflowing bar.
+    const bps = Math.floor((sold * 10000) / a.tokensTotal);
+    return Math.min(100, Math.max(0, bps / 100));
+  }
   if (isPre(a) && escrow?.escrow) {
     const goal = BigInt(escrow.fundingGoal);
     if (goal > 0n) {
       const raised = BigInt(escrow.raised);
       const bps = raised >= goal ? 10000n : (raised * 10000n) / goal;
-      return Number(bps) / 100;
-    }
-  }
-  if (!isPre(a) && onchain?.onchain) {
-    const total = BigInt(onchain.totalSupply);
-    if (total > 0n) {
-      const pool = BigInt(onchain.poolBalance);
-      const sold = total > pool ? total - pool : 0n;
-      const bps = sold >= total ? 10000n : (sold * 10000n) / total;
       return Number(bps) / 100;
     }
   }
