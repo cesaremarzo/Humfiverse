@@ -123,8 +123,12 @@ The everyday loop is the backend plus the Angular dev server:
 cd server && npm start          # http://localhost:3001
 
 # terminal 2
-cd webapp && npx ng serve       # http://localhost:4200
+cd webapp && npx ng serve       # http://localhost:4200/Humfiverse
 ```
+
+Note the `/Humfiverse` in that second URL. `ng serve` inherits the base
+href from `angular.json`, which is set for GitHub Pages' subpath, so the
+bare `localhost:4200` redirects rather than serving the app.
 
 Confirm the backend is up before using the app:
 

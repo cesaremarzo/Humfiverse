@@ -61,9 +61,9 @@ Builds to `../docs` (see below) for GitHub Pages; Netlify builds it fresh from s
   - `api.service.ts` — every backend HTTP call.
   - `wallet.service.ts` — MetaMask/injected-wallet connect + on-chain tx signing (buy/contribute/confirm-milestone).
   - `models.ts` — shared TypeScript types.
-  - `*.util.ts` — pure helper functions (funding-% math, formatting, IPFS gateway URLs, yield calculation, etc.) — check here before re-deriving logic that already exists.
+  - `*.util.ts` — pure helper functions (funding-% math, formatting, IPFS gateway URLs, yield calculation, royalty aggregates, holdings upsert, on-chain error mapping, etc.) — **check here before re-deriving logic that already exists.**
   - `mock-data/` — bundled fallback data (assets, campaigns, i18n icons) used when the backend is unreachable.
-- `webapp/src/app/features/` — one folder per page/screen (`marketplace`, `asset-detail`, `onboarding`, `portfolio`, `kyc`, `studio`, `artist-dashboard`, `artist-milestones`, `admin-escrow`, `for-artists`, `landing`). Each is self-contained: `.component.ts` + `.component.html`.
+- `webapp/src/app/features/` — one folder per page/screen (`marketplace`, `asset-detail`, `onboarding`, `portfolio`, `kyc`, `studio`, `artist-dashboard`, `artist-milestones`, `admin-escrow`, `for-artists`, `landing`). Each is self-contained: `.component.ts` + `.component.html`, plus any `.model.ts`/`.util.ts` that only that page uses — `onboarding/` has both, holding the wizard's draft shape and its milestone templates (the single source of truth for both the displayed tranche amounts and the basis points sent to the escrow contract).
 - `webapp/src/app/shared/` — reusable presentational components (`asset-card`, `cover`, `icon`, chips, charts, etc.) used across multiple features.
 - `webapp/src/app/layout/` — top-level app shell (nav, topbar).
 - `webapp/public/assets/i18n/` — translation files, one JSON per locale (`en`, `it`, `fr`, `es`, `de`, `ru`, `ja`, `zh`, `ar`) — **always kept at matching key-count parity across all 9** when adding a key.
