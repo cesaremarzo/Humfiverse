@@ -14,7 +14,8 @@ const STATUS_BY_CODE = {
   no_token: 400,
   insufficient_balance: 409,
   not_found: 404,
-  not_seller: 403
+  not_seller: 403,
+  unauthorised: 401
 };
 
 function fail(res, e, fallbackMessage) {
@@ -47,7 +48,7 @@ module.exports = function registerListingRoutes(router) {
   router.post("/api/listings/:id/cancel", async (req, res, { params }) => {
     try {
       const body = await readBody(req);
-      sendJson(res, 200, { ok: true, listing: await listings.cancel(params.id, body.seller) });
+      sendJson(res, 200, { ok: true, listing: await listings.cancel(params.id, body) });
     } catch (e) {
       if (e instanceof SyntaxError) { sendJson(res, 400, { error: "malformed JSON body" }); return; }
       fail(res, e, "could not cancel listing");

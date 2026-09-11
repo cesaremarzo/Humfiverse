@@ -11,6 +11,7 @@ import { ToastService } from '../../core/toast.service';
 import { fmtUSD } from '../../core/format.util';
 import { coverBackground } from '../../core/cover.util';
 import { RoyaltyMonth } from '../../core/models';
+import { buildListingMessage, buildCancelMessage } from '../../core/listing-signature.util';
 import { platformFeeTokens } from '../../core/marketplace-fee.util';
 import { weiToUsd } from '../../core/usd-eth.util';
 import { lowestAvailablePrice, bucketSnapshots, ChartGranularity } from '../../core/token-value.util';
@@ -251,7 +252,13 @@ export class PortfolioComponent {
 
     this.sellSubmitting.set(true);
     try {
-      await this.api.createListing({ assetId: draft.assetId, seller, qty, pricePerToken: price });
+      // The wallet has to authorise these exact terms. Without it the
+      // seller field was just a string anyone could put in a request.
+      const issuedAt = new Date().toISOString();
+      const signature = await this.wallet.signMessage(
+        buildListingMessage({ assetId: draft.assetId, seller, qty, pricePerToken: price, issuedAt })
+      );
+      await this.api.createListing({ assetId: draft.assetId, seller, qty, pricePerToken: price, issuedAt, signature });
       await this.store.refreshListings();
       this.sellDraft.set(null);
       this.sellResult.set({ assetId: draft.assetId, qty, price });
@@ -271,7 +278,9 @@ export class PortfolioComponent {
     const seller = this.mySeller();
     if (!seller) return;
     try {
-      await this.api.cancelListing(listingId, seller);
+      const issuedAt = new Date().toISOString();
+      const signature = await this.wallet.signMessage(buildCancelMessage({ listingId, seller, issuedAt }));
+      await this.api.cancelListing(listingId, { seller, issuedAt, signature });
       await this.store.refreshListings();
     } catch (err) {
       console.warn('Could not cancel the listing.', err);
