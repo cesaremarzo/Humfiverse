@@ -41,6 +41,15 @@ export interface Asset {
   tokensTotal: number;
   tokensSold: number;
   royaltyHistory?: RoyaltyMonth[];
+  /** Catalogue-only, collected by the onboarding wizard: which distributor
+   * or PRO the artist says reports this track's royalties, and how many
+   * months of history they say exists. Both are artist-declared provenance
+   * for royaltyHistory above and are never verified — shown beside the
+   * reported figures so a reader can see where the numbers are meant to
+   * come from, and how much of what was claimed has actually been entered.
+   * Until this existed the wizard collected both and then discarded them. */
+  royaltySource?: string;
+  royaltyHistoryMonths?: number;
   targetRaiseUse?: string;
   aiDisclosure: AiDisclosure;
   dspPolicy: string;

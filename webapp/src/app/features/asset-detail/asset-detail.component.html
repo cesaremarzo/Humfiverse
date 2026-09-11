@@ -208,9 +208,15 @@
               <app-line-chart [royaltyHistory]="a.royaltyHistory!"></app-line-chart>
             </div>
             <div class="prose">{{ 'detail.sourcedFrom' | translate }}</div>
+            @if (a.royaltySource || a.royaltyHistoryMonths) {
+              <div class="prose" style="font-size:12.5px;">{{ 'detail.royaltyDeclared' | translate }}@if (a.royaltySource) { <strong>{{ a.royaltySource }}</strong> }@if (a.royaltyHistoryMonths) { · {{ 'detail.moSuffix' | translate: { n: a.royaltyHistoryMonths } }} }</div>
+            }
           } @else {
             <div class="card panel">
               <p class="prose" style="font-size:13px;">{{ 'detail.royaltyHistoryPending' | translate }}</p>
+              @if (a.royaltySource || a.royaltyHistoryMonths) {
+                <div class="prose" style="font-size:12.5px;">{{ 'detail.royaltyDeclared' | translate }}@if (a.royaltySource) { <strong>{{ a.royaltySource }}</strong> }@if (a.royaltyHistoryMonths) { · {{ 'detail.moSuffix' | translate: { n: a.royaltyHistoryMonths } }} }</div>
+              }
             </div>
           }
 

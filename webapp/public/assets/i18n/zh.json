@@ -66,6 +66,7 @@
   "detail.moSuffix": "{{n}} 个月",
   "detail.fullReportedHistory": "完整的已报告历史",
   "detail.sourcedFrom": "数据来源于入驻尽职调查期间的分销商／表演权协会（PRO）报表（详见「文件」标签页）。历史收入不能保证未来的版税支付。",
+  "detail.royaltyDeclared": "由艺人在提交时自行申报，Humfiverse 未作核实： ",
   "detail.royaltyHistoryPending": "该目录尚未报告任何版税收入 — 一旦记录了真实的分销商/表演权协会（PRO）报表，此处将显示数据。",
   "detail.royaltyReportTitle": "报告真实版税收入",
   "detail.royaltyReportIntro": "为该目录添加一笔真实、带日期的版税金额——来自你持有的分销商或表演权协会（PRO）报表。它会直接计入上方的历史收益率计算和图表；此处没有任何估算或虚构的数据。",

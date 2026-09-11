@@ -102,6 +102,15 @@ export function buildAssetDraft(d: WizardData, id: string, total: number): Asset
   if (isPre) {
     asset.targetRaiseUse = 'Studio time, session musicians, mix & master, release';
     asset.milestones = milestonesForDisplay(PREPRODUCTION_MILESTONES, total);
+  } else {
+    // Both of these were collected by the wizard's catalogue step and then
+    // dropped on the floor: the draft held them, the review step showed
+    // them back to the artist, and nothing ever wrote them anywhere. They
+    // are the provenance of whatever royalty figures get self-reported
+    // later, so they belong on the record, shown as declared and unverified.
+    asset.royaltySource = d.catalogue.dsp;
+    const months = parseInt(d.catalogue.months, 10);
+    if (Number.isFinite(months) && months > 0) asset.royaltyHistoryMonths = months;
   }
 
   // Catalogue-kind campaigns deliberately get no royaltyHistory — a track

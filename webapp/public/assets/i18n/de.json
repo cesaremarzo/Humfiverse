@@ -66,6 +66,7 @@
   "detail.moSuffix": "{{n}} Mon.",
   "detail.fullReportedHistory": "Vollständige gemeldete Historie",
   "detail.sourcedFrom": "Quelle: Vertriebs-/PRO-Abrechnungen aus der Onboarding-Prüfung (siehe Reiter Dokumente). Historische Einnahmen sind keine Garantie für künftige Tantiemenzahlungen.",
+  "detail.royaltyDeclared": "Bei der Einreichung vom Künstler angegeben, von Humfiverse nicht geprüft: ",
   "detail.royaltyHistoryPending": "Für diesen Katalog wurden noch keine Tantiemeneinnahmen gemeldet — diese Angabe erscheint, sobald echte Vertriebs-/PRO-Abrechnungen erfasst werden.",
   "detail.royaltyReportTitle": "Echte Tantiemeneinnahmen melden",
   "detail.royaltyReportIntro": "Fügen Sie eine echte, datierte Tantiemenangabe für diesen Katalog hinzu — aus einer Vertriebs- oder PRO-Abrechnung, die Ihnen vorliegt. Sie fließt direkt in die Berechnung der historischen Rendite und das obige Diagramm ein; nichts hier ist geschätzt oder erfunden.",
