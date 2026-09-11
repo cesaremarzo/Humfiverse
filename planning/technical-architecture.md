@@ -337,6 +337,19 @@ The Angular artist-onboarding wizard now calls the mint endpoint automatically r
 - **The fix.** Three independent loads, each publishing its own signal the moment it lands: the listing check that gates the marketplace, the per-asset pool reads (now started straight from the ids already in hand), and the escrow batch. Nothing waits on anything else. The dashboard's numbers now appear as soon as the pool reads return, instead of being held behind a call that can take three minutes.
 - Worth noting what this was *not*: every individual request was returning 200 the whole time. Nothing failed, nothing errored, and no log would have shown a problem. The defect was purely in what the client waited for before believing any of it.
 
+**2.55 The chain scan on the read path: 50 sequential RPC round trips, paid on every request, to look for something almost never there (11 Sep 2026).** Follow-up to §2.54, which found `GET /api/escrow/campaigns` taking 200s cold and 31s warm and blocking every funding figure in the app. This is the backend half.
+- **Where the time went, measured rather than guessed.** Timing the pieces directly against the live RPC: the recent-blocks scan took **3.4s**, reading *all five* campaigns in parallel took **0.35s**. The scan walks its 500-block window in 10-block steps because that is the free-tier `eth_getLogs` cap, so it is **50 sequential round trips**, each wrapped in a retry. On a slower or rate-limited RPC that is where the 200s came from. `GET /api/onchain/list` carried an identical scan.
+- **What the scan was for, and why it was the wrong place.** §2.39 established the local tables as the primary source with a bounded scan merged in to catch a record not cached yet. But a campaign or a mint is only ever created *through this backend*, which writes its row in the same call — so the scan was paying 50 round trips per request to look for something that is essentially never there. Worse, its window covers about 500 blocks, roughly 1.7 hours of Sepolia: verified against an emptied cache, it recovers **0** of this project's real campaigns, all of which are older than that. It was buying almost nothing at a very high price.
+- **The change.** Both listings run the scan only when their table is empty, which is the signature of the cache loss it exists to recover from. Per-asset self-healing is untouched: `findTokenWithChainFallback` still scans on a single-asset miss and re-seeds the row, and the frontend requests every asset individually, so a lost row still heals — just not on the listing path. The per-campaign lookup stays chain-native on purpose (§2.18), since asking the contract for the id costs one call and cannot return another campaign's data the way a cached id can after a redeploy renumbers them.
+- **Measured, old against new, same seeded database, output compared:**
+
+| call | before | after | output |
+|---|---|---|---|
+| `listCampaigns` | 3,812 ms | 299 ms | byte-identical, 5 campaigns |
+| `listMintedAssetIds` | 7,457 ms | 1 ms | same asset ids |
+
+- Over HTTP against a database seeded to match production: `/api/onchain/list` 2ms, `/api/escrow/campaigns` 0.6s. The empty-table recovery path was verified to still run the scan.
+
 ## 3. Suggested phased build
 
 1. **Phase 0 — Paper pilot**: one song or small catalogue, manual royalty verification, SPV set up, token issuance and distribution done as a scripted/manual process (not yet a polished product) to prove the legal-to-cash-to-token pipeline end to end with real royalty income, even a small amount. No governance module — if the pilot uses the pre-production variant, milestone escrow is still manually administered.

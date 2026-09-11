@@ -73,7 +73,13 @@ async function mintAsset(assetId, slug, supply, priceWei, title, artist) {
  * longer make an already-known asset vanish. */
 async function listMintedAssetIds() {
   const known = new Set(await onchainRepo.listTokenAssetIds());
-  const recent = await chain.listRecentlyMintedSlugsFromChain();
+  // Same change as escrow.service.js listCampaigns: the scan costs 50
+  // sequential RPC round trips (the free-tier eth_getLogs cap is 10
+  // blocks), and it was being paid on every page load of the app to look
+  // for a mint that this backend itself records as it happens. It now
+  // runs only when the table is empty, which is the signature of the
+  // cache loss it exists to recover from.
+  const recent = known.size ? null : await chain.listRecentlyMintedSlugsFromChain();
   if (recent) {
     for (const m of recent) {
       if (known.has(m.slug)) continue;

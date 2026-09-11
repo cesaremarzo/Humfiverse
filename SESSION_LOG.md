@@ -782,3 +782,38 @@ UI value that the code says is impossible, ask for the loaded bundle
 filename *first*. It separates "you are looking at old code" from "the
 code is wrong" in one step. Three real defects were found and shipped
 against this symptom before that question was asked.
+
+### Driving the live site in a real browser, and what it found (§2.53, §2.54)
+
+After the fifth report, stopped reasoning about what the code *should*
+render and drove headless Chrome over the DevTools protocol against the
+published site — about forty lines, no dependencies, capturing the loaded
+bundle, every `/api` call and the rendered text. Keep this technique.
+
+**The campaign page was already correct**, and is now verified as such:
+five consecutive live renders showing "TOKENS 1,300/1,300", "FUNDED 100%"
+and a "Sold out" chip, with every request at 200. 96.53% never appeared.
+
+**The dashboard was not**, and it took two fixes:
+1. `artist-dashboard.component.ts` summed the chain-unaware
+   `fundingRaised()` for its total tile, so an artist whose campaign had
+   sold out saw "TOTAL RAISED $0" above a card already reading the real
+   pool. Missed earlier because that grep searched for the chain-aware
+   helper names and this file used the mock one.
+2. The real one: `hydrateFromBackend` joined its last two loads with a
+   single `Promise.all` and set **both** maps only once **both** resolved,
+   so the slowest call gated every card in the app. `GET
+   /api/escrow/campaigns` measured **200s cold, 31s warm** — it runs a
+   chain scan plus a read per campaign. Throughout that window the pool
+   data was already fetched and unused. Now three independent loads, each
+   publishing its signal as it lands. Dashboard went from "$0 after 90s"
+   to "$13k after 25s".
+
+Every request returned 200 the whole time. Nothing failed, and no log
+would have shown it — the defect was entirely in what the client waited
+for before believing any of it.
+
+**Still open:** `/api/escrow/campaigns` taking up to 200s is a backend
+problem in its own right. It scans the chain and then reads every campaign
+serially; the local `escrow_campaigns` table already knows the asset ids.
+Worth a bounded-concurrency pass or dropping the scan on the read path.
