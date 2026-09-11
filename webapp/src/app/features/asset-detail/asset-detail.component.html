@@ -19,7 +19,7 @@
         <div class="detail-cover"><app-cover [asset]="a" [playSize]="38" [motifSize]="52" [previewable]="!!audioPreviewUrl" [playing]="audioPreviewPlaying()" (previewToggle)="toggleCoverAudioPreview()"></app-cover></div>
         <div class="detail-heading">
           <div class="chips">
-            <app-status-chip [asset]="a"></app-status-chip>
+            <app-status-chip [asset]="a" [soldOut]="soldOut(a)"></app-status-chip>
             @if (a.verified) {
               <span class="chip chip-good"><app-icon name="shield"></app-icon> {{ 'asset.verified' | translate }}</span>
             } @else {

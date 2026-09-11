@@ -709,9 +709,23 @@ Verified against all four live campaigns' real on-chain state, asserting
 the percentage equals both the token fraction and the dollar fraction,
 plus every fallback and both clamping edges.
 
-**Added to the open items:** `campaign-card.component.ts` still uses the
-chain-unaware `fundingPct(a)` reading the never-persisted mock
-`tokensSold` counter. Same class of staleness (§2.32), different surface;
-it needs the store's on-chain maps threaded in rather than a patch to
-`format.util.ts`. Also worth checking: the wizard lets a preproduction
-campaign be created with a zero budget, which mints a zero supply.
+**Then fixed the rest of the same class (§2.50).** Rather than wait for
+each surface to be reported, went looking for everything else still
+reading the mock counter. Two more, one of them worse than the reported
+bug: `campaign-card.component.ts`, on the artist's own dashboard, showed
+Guns at **0% and $0** while the marketplace card for the same campaign
+showed **100% and $13,000**. And `status-chip.component.ts`'s sold-out
+branch was unreachable code — it tested `asset.status === 'sold-out'`,
+and nothing in the app ever assigns that value, so a fully sold campaign
+kept advertising itself as open. Both now read the real pool balance;
+`asset-detail` passes its own fresher reading in through a new optional
+input. `StoreService` gained `onchainFor`/`escrowFor` so three components
+stop repeating the same map lookup.
+
+**Still open, and not fixable from the frontend:** `Campaign.holders` is
+written as `0` by the wizard and never updated, so the artist dashboard's
+"total holders" is always zero. A real count needs the addresses holding
+each token id, which no endpoint exposes — event indexing or a per-wallet
+scan. Left at zero rather than faked. Also worth fixing: the wizard lets
+a preproduction campaign be created with a zero budget, which mints a
+zero supply.
