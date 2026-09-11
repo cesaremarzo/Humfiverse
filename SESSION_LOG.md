@@ -729,3 +729,28 @@ each token id, which no endpoint exposes — event indexing or a per-wallet
 scan. Left at zero rather than faked. Also worth fixing: the wizard lets
 a preproduction campaign be created with a zero budget, which mints a
 zero supply.
+
+### Same day, second follow-up: a loading-race showed the old number (§2.51)
+
+The user reported 96.53% again with the fix already live on Pages. It was
+real. `null` (read not back yet) and `{ onchain: false }` (read back, no
+token) were treated alike, and only the second justifies falling back to
+the escrow's ETH ratio. `refreshOnchainState` fires two independent
+requests, so whenever the escrow response won the race the page rendered
+the pre-fix figure and then corrected itself. Warm that window is ~150ms;
+on a cold Render instance it is seconds. Both fallbacks are now gated on a
+known answer, and had to change together — gating one alone would have
+reintroduced the bar-versus-tile contradiction inside the loading window.
+
+Verified across all five load states. Also confirmed before touching
+anything that the deploy itself was genuine: the live bundle is
+byte-identical to what `main` committed, the old basis-point form is down
+from 4 occurrences to 2 across every live chunk, and the API answers
+correctly from the Pages origin with CORS open.
+
+**Workflow change the user asked for, now in `CLAUDE.md` so it binds both
+collaborators:** a bug fix goes through to `main` and gets merged without
+asking; the PR is still opened so the other person can see the change.
+Features, refactors and docs still need an explicit go-ahead. The reason
+is recorded there too: three consecutive "still broken" reports in this
+session were caused purely by nothing having been deployed.

@@ -32,7 +32,17 @@ export function remainingFor(a: Asset, onchain: OnchainInfo | null, escrow: Escr
   if (onchain?.onchain) {
     return Number(BigInt(onchain.poolBalance));
   }
-  if (isPre(a) && escrow?.escrow) {
+  // `null` and `{ onchain: false }` are not the same answer and must not
+  // be treated alike. `null` means the read hasn't come back yet — the
+  // page is still loading, or this asset isn't in the store's map. Only
+  // `{ onchain: false }` means "asked, and there is no token", which is
+  // the single case where the escrow's ETH ratio is the best available
+  // measure. Falling back to it while the answer is merely unknown put
+  // the pre-fix number back on screen for the length of the request: on
+  // Guns, 96.53% and "1,255/1,300", flipping to 100% and "1,300/1,300"
+  // once the pool balance arrived. On a cold Render instance that window
+  // is seconds long, which is quite long enough to read and report.
+  if (onchain && !onchain.onchain && isPre(a) && escrow?.escrow) {
     const goal = BigInt(escrow.fundingGoal);
     if (goal > 0n) {
       const raised = BigInt(escrow.raised);
@@ -79,7 +89,10 @@ export function fundingPctFor(a: Asset, onchain: OnchainInfo | null, escrow: Esc
     const bps = Math.floor((sold * 10000) / a.tokensTotal);
     return Math.min(100, Math.max(0, bps / 100));
   }
-  if (isPre(a) && escrow?.escrow) {
+  // Same gate as remainingFor above, and it has to be the same: these two
+  // are printed side by side, so a fallback one takes and the other
+  // doesn't is how they contradicted each other in the first place.
+  if (onchain && !onchain.onchain && isPre(a) && escrow?.escrow) {
     const goal = BigInt(escrow.fundingGoal);
     if (goal > 0n) {
       const raised = BigInt(escrow.raised);
