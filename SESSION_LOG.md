@@ -817,3 +817,39 @@ for before believing any of it.
 problem in its own right. It scans the chain and then reads every campaign
 serially; the local `escrow_campaigns` table already knows the asset ids.
 Worth a bounded-concurrency pass or dropping the scan on the read path.
+
+### The backend half: the chain scan on the read path (§2.55)
+
+`GET /api/escrow/campaigns` at 200s cold was the thing gating every funding
+figure in the app. Measured the pieces against the live RPC rather than
+guessing: the recent-blocks scan cost **3.4s**, reading *all five*
+campaigns in parallel cost **0.35s**. The scan walks 500 blocks in 10-block
+steps, because that is the free-tier `eth_getLogs` cap — **50 sequential
+round trips**, each wrapped in a retry. `GET /api/onchain/list` carried an
+identical scan.
+
+It was looking for a record the local table hasn't cached, but campaigns
+and mints are only ever created through this backend, which writes the row
+in the same call. And its window covers ~500 blocks, about 1.7 hours of
+Sepolia: against an emptied cache it recovers **zero** of this project's
+real campaigns. Both listings now scan only when their table is empty.
+
+| | before | after |
+|---|---|---|
+| `listCampaigns` (local) | 3,812 ms | 299 ms, byte-identical output |
+| `listMintedAssetIds` (local) | 7,457 ms | 1 ms, same ids |
+| `/api/onchain/list` (production) | 28.4 s | 0.5 s |
+| `/api/escrow/campaigns` (production) | 200 s cold, 31 s warm | 1.8 s |
+
+Per-asset self-healing is untouched: `findTokenWithChainFallback` still
+scans on a single-asset miss and re-seeds the row.
+
+**Still slow, and the next thing worth doing.** The artist dashboard now
+settles in roughly 20–30s instead of 90s+, but it still shows "$0" and 0%
+until it does, because the frontend makes **one request per asset** to
+`/api/onchain/:id` and each does its own chain read (1.5–4s each, seven of
+them, competing on one free-tier instance). Two independent options: batch
+them into a single endpoint so it is one round trip the server can
+parallelize, and/or have the cards render a loading state instead of a
+confident zero they are about to replace. The second is arguably the more
+important lesson of this whole session.

@@ -99,4 +99,57 @@ async function listMintedAssetIds() {
   return { source: recent ? "local-table+recent-scan" : "local-table", assetIds: [...known] };
 }
 
-module.exports = { findTokenWithChainFallback, nextFreeTokenId, mintAsset, listMintedAssetIds };
+/** The full on-chain view of one asset, in the exact shape
+ * GET /api/onchain/:assetId returns — so the batch below and the
+ * single-asset route can never drift apart in what they report. */
+function describeToken(assetId, record, poolInfo) {
+  return {
+    onchain: true,
+    assetId,
+    slug: record.slug,
+    mintTxHash: record.tx_hash,
+    mintedAt: record.minted_at,
+    ...poolInfo
+  };
+}
+
+async function getTokenView(assetId) {
+  const record = await findTokenWithChainFallback(assetId);
+  if (!record) return { onchain: false };
+  return describeToken(assetId, record, await chain.getPoolInfo(record.token_id));
+}
+
+/** Many assets in one call, for the cards.
+ *
+ * The frontend used to ask for these one HTTP request at a time — seven
+ * requests on a page with seven campaigns, each doing its own chain read
+ * against a single free-tier instance, so the cards sat on placeholder
+ * numbers for twenty to thirty seconds. One request now, with the chain
+ * reads issued in parallel here.
+ *
+ * Deliberately reads the local table directly rather than going through
+ * findTokenWithChainFallback: that fallback scans the chain on a miss,
+ * which is fifty sequential round trips (§2.55), and doing it once per
+ * missing asset would put the very cost this endpoint exists to remove
+ * back into the batch. An asset with no cached row is simply omitted,
+ * which the client reads as unknown rather than as "no token". The
+ * single-asset route keeps the fallback, and the client requests any
+ * asset it actually opens, so a lost row still heals. */
+async function getTokenViews(assetIds) {
+  const entries = await Promise.all(
+    assetIds.map(async (assetId) => {
+      try {
+        const record = await onchainRepo.findTokenByAssetId(assetId);
+        if (!record) return null;
+        return [assetId, describeToken(assetId, record, await chain.getPoolInfo(record.token_id))];
+      } catch {
+        // One unreadable asset must not fail the whole batch. Omitted,
+        // so the client treats it as unknown and keeps its own counter.
+        return null;
+      }
+    })
+  );
+  return Object.fromEntries(entries.filter(Boolean));
+}
+
+module.exports = { findTokenWithChainFallback, nextFreeTokenId, mintAsset, listMintedAssetIds, getTokenView, getTokenViews };

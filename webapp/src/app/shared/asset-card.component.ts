@@ -48,6 +48,13 @@ export class AssetCardComponent {
    * pattern as the asset-detail page this now shares logic with. Without
    * this, a card's funding bar never moved after a real on-chain purchase
    * even though the detail page for the same asset showed the update. */
+  /** True while the batched pool read is still in flight and this asset
+   * has no entry yet. The card then shows a placeholder rather than the
+   * mock counter's zero, which is a real number the page is about to
+   * replace and reads exactly like a finished answer. */
+  get fundingUnknown(): boolean {
+    return this.store.onchainInfoLoading() && !this.store.onchainFor(this.asset.id);
+  }
   get pct(): number {
     return fundingPctFor(this.asset, this.store.onchainFor(this.asset.id), this.store.escrowFor(this.asset.id));
   }
