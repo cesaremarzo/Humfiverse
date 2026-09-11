@@ -218,7 +218,13 @@ export class StoreService {
        the map: absent reads as unknown, which is what it is, and is not
        the same claim as `{ onchain: false }`. */
     const onchainLoad = (knownAssetIds.length ? retrying(() => this.api.getOnchainBatch(knownAssetIds)) : Promise.resolve({ tokens: {} }))
-      .then((result) => this.onchainInfoMap.set(new Map(Object.entries(result.tokens))))
+      // `result.tokens ?? {}` guards the window between the two deploys:
+      // GitHub Pages publishes in a minute, Render takes several, and a
+      // backend that predates this endpoint answers the same URL from
+      // /api/onchain/:assetId with `{ onchain: false }` and a 200. Without
+      // the guard that is a TypeError on every page load until the backend
+      // catches up. It recurs on every release, not just this one.
+      .then((result) => this.onchainInfoMap.set(new Map(Object.entries(result?.tokens ?? {}))))
       .catch((err) => console.warn('Could not load per-asset on-chain state for the cards.', err))
       .finally(() => this.onchainInfoLoading.set(false));
 
