@@ -66,6 +66,7 @@
   "detail.moSuffix": "{{n}} か月",
   "detail.fullReportedHistory": "報告済み履歴の全体",
   "detail.sourcedFrom": "オンボーディング時のデューデリジェンスにおけるディストリビューター／PROの明細に基づきます（「書類」タブ参照）。過去の収入は将来のロイヤリティ支払いを保証するものではありません。",
+  "detail.royaltyDeclared": "アーティストが申請時に申告した内容です。Humfiverse は検証していません: ",
   "detail.royaltyHistoryPending": "このカタログにはまだロイヤリティ収入の報告がありません — 実際のディストリビューター／PRO明細が記録され次第表示されます。",
   "detail.royaltyReportTitle": "実際のロイヤリティ収入を報告",
   "detail.royaltyReportIntro": "このカタログの実際の日付付きロイヤリティ額を追加してください — お手元のディストリビューターまたはPROの明細に基づくものです。この数値は上記の過去利回り計算とグラフに直接反映されます。ここに推定値や架空の数値は含まれません。",

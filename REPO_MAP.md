@@ -8,6 +8,7 @@ A folder-by-folder index of this repo: what's where, and where to read the *why*
 
 | Path | What it is |
 |---|---|
+| `README.md` | Front door: what the project is, what's real versus simulated, prerequisites, setup, how to run each part locally, and how each part deploys. Start here if you've never run this repo. |
 | `CLAUDE.md` | Project rules Claude Code reads automatically every session: branch workflow, deploy notes, env var handling. Read this first if you're a new collaborator (human or AI). |
 | `SESSION_LOG.md` | Cross-session diary, most recent entry at the bottom. Read this first for *recent* context — what's live, what's in progress. |
 | `REPO_MAP.md` | This file. |
@@ -32,9 +33,17 @@ The only genuinely on-chain part of the project. Deployed to **Ethereum Sepolia*
 
 ## `server/` — backend API (Node, zero-framework `http`)
 
-Deployed on Render at `humfiverse-api.onrender.com`. No Express — hand-rolled routing in `server.js`.
+Deployed on Render at `humfiverse-api.onrender.com`. No Express: the routing layer one would provide is `lib/router.js`, at about forty lines.
 
-- `server.js` — the actual HTTP server and every route.
+**Read `server/STRUCTURE.md` before changing anything here** — it has the layer rule, the file-by-file table, and the steps for adding an endpoint. Short version: four layers, imports pointing one way only.
+
+- `server.js` — entry point. Loads `.env`, initialises the schema, opens the port. Nothing else.
+- `app.js` — builds the request handler: URL parsing, CORS preflight, dispatch, 404, and the 500 backstop.
+- `config.js` — every environment-derived constant, read once.
+- `lib/` — `router.js` (method+path matching, literal paths beat `:param` ones), `http.js` (send/read helpers and their size caps), `admin-auth.js` (`X-Admin-Key`, fails closed), `receipts.js`, `token-image.js`.
+- `data/` — one repository per group of tables, plus `schema.js`. **All SQL lives here**, nowhere else.
+- `services/` — domain logic, and the only layer that talks to the two contracts. Takes values, returns values, throws errors carrying a `code`.
+- `routes/` — one module per path prefix; `index.js` registers them and reads as a table of contents for the API.
 - `chain.js` — talks to `HumfiverseCatalogueToken` (reads always work; writes need `CHAIN_OPERATOR_PRIVATE_KEY`).
 - `chainEscrow.js` — talks to `HumfiverseMilestoneEscrow`.
 - `pinata.js` — uploads track audio files to IPFS (§2.43). No SDK — Node's built-in `fetch`/`FormData`/`Blob`.
@@ -52,9 +61,9 @@ Builds to `../docs` (see below) for GitHub Pages; Netlify builds it fresh from s
   - `api.service.ts` — every backend HTTP call.
   - `wallet.service.ts` — MetaMask/injected-wallet connect + on-chain tx signing (buy/contribute/confirm-milestone).
   - `models.ts` — shared TypeScript types.
-  - `*.util.ts` — pure helper functions (funding-% math, formatting, IPFS gateway URLs, yield calculation, etc.) — check here before re-deriving logic that already exists.
+  - `*.util.ts` — pure helper functions (funding-% math, formatting, IPFS gateway URLs, yield calculation, royalty aggregates, holdings upsert, on-chain error mapping, etc.) — **check here before re-deriving logic that already exists.**
   - `mock-data/` — bundled fallback data (assets, campaigns, i18n icons) used when the backend is unreachable.
-- `webapp/src/app/features/` — one folder per page/screen (`marketplace`, `asset-detail`, `onboarding`, `portfolio`, `kyc`, `studio`, `artist-dashboard`, `artist-milestones`, `admin-escrow`, `for-artists`, `landing`). Each is self-contained: `.component.ts` + `.component.html`.
+- `webapp/src/app/features/` — one folder per page/screen (`marketplace`, `asset-detail`, `onboarding`, `portfolio`, `kyc`, `studio`, `artist-dashboard`, `artist-milestones`, `admin-escrow`, `for-artists`, `landing`). Each is self-contained: `.component.ts` + `.component.html`, plus any `.model.ts`/`.util.ts` that only that page uses — `onboarding/` has both, holding the wizard's draft shape and its milestone templates (the single source of truth for both the displayed tranche amounts and the basis points sent to the escrow contract).
 - `webapp/src/app/shared/` — reusable presentational components (`asset-card`, `cover`, `icon`, chips, charts, etc.) used across multiple features.
 - `webapp/src/app/layout/` — top-level app shell (nav, topbar).
 - `webapp/public/assets/i18n/` — translation files, one JSON per locale (`en`, `it`, `fr`, `es`, `de`, `ru`, `ja`, `zh`, `ar`) — **always kept at matching key-count parity across all 9** when adding a key.

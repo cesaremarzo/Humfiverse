@@ -578,3 +578,154 @@ is no platform-wide Humfiverse coin — only per-catalogue ERC-1155 tokens.
   still collects a number that no longer feeds anything now that fake
   royalty-history generation is gone — cosmetic dead input, flagged
   during #5's fix but not resolved.
+
+## 2026-09-10 → 2026-09-11 — architectural restructure: backend split into layers, shared logic pulled out of the two biggest components, root README, open items closed
+
+No contract change, no redeploy, no on-chain state touched. The user
+asked for a full architectural pass — read the project, propose a better
+structure, optimise the code, and write proper documentation — and then
+said to work through it point by point. Four commits on `dev/cesare`,
+**none pushed and nothing merged to `main` yet**, awaiting the user's
+call. Full technical reasoning in `technical-architecture.md` §2.45–§2.48.
+
+**1. `server.js` split from 1,128 lines into a router plus four layers
+(§2.45).** Schema, every SQL statement, the chain calls, all validation
+and 27 endpoints lived in one file, with the endpoints as a chain of
+`if (method === … && pathname.match(…))` blocks. Three concrete problems,
+not aesthetics: route precedence was *positional* (`GET /api/onchain/list`
+worked only because its block sat above `/api/onchain/:assetId`, with
+nothing marking the dependency); `onchain_tokens` alone was queried from
+five places with different column lists; and nothing was reachable
+without opening a socket. Now `routes/` → `services/` → `data/` → `db.js`,
+imports pointing one way only, with `lib/` and `config.js` as leaves.
+`lib/router.js` (~40 lines, no framework) matches literal paths from a
+Map *before* any `:param` pattern, so precedence is structural. Two
+hangs became answers: routes without their own `try/catch` used to leave
+the request open forever, and a malformed percent-escape in a path param
+did the same. **Verified by running both versions side by side** on
+separate ports against separate copies of the same database and diffing
+status, `Content-Type` and body across **54 requests**: 54/54 identical.
+The new layout is documented file-by-file in `server/STRUCTURE.md`.
+
+**2. Root `README.md` (new).** The repo had no front door. `REPO_MAP.md`
+says where things live and `technical-architecture.md` says why, but
+nothing told a newcomer how to install, configure or start any of the
+four parts, or which parts of the product are real versus simulated.
+Everything in it was checked against the files rather than assumed.
+Two things it records that weren't written down anywhere: `run-dev.sh`
+on `main` serves the committed `docs/` build instead of running
+`ng serve`, so it loads the production API and the wrong base path (a
+corrected version already exists unmerged on `dev/vincenzo`); and
+`ng serve` inherits the GitHub Pages base href, so the local URL is
+`localhost:4200/Humfiverse`, not the bare host.
+
+**3. Shared logic pulled out of the two biggest components (§2.46).**
+`onboarding.component.ts` 482 → 368 lines, `asset-detail.component.ts`
+463 → 427. The find worth naming: **the four preproduction milestones
+were declared twice in the wizard** — once as display amounts
+(`Math.round(total * 0.2)` …) written onto `asset.milestones`, and again
+130 lines later as the basis points sent to the escrow contract, with
+the names retyped in both places and nothing checking they agreed.
+Editing one and forgetting the other would have shown every investor a
+tranche split the contract did not enforce, silently. One
+`PREPRODUCTION_MILESTONES` table is now the source of both. New pure
+utilities in `core/`: `portfolio-holdings.util.ts`, `royalty.util.ts`,
+`onchain-error.util.ts`; new feature-local `onboarding.model.ts` and
+`campaign-draft.util.ts`. **Verified by equivalence**: the extracted
+functions were compiled and run against the original inline code
+transcribed from git — 1,800 checks, 0 differing — plus the basis-point
+arithmetic matching the old fraction arithmetic for every integer total
+from 0 to 200,000.
+
+**4. The wizard's two dead catalogue fields now reach the record
+(§2.47).** The distributor/PRO select and the "months of reported
+history" input were both collected, both shown back on the review step,
+and both discarded on reset. They are exactly the provenance of the
+self-reported royalty figures that replaced the fake generator, so
+`Asset` gained `royaltySource` and `royaltyHistoryMonths` and the asset
+page's royalty tab shows them — beside the reported history *and*
+beside the "nothing reported yet" state, labelled as artist-declared and
+unverified. One new i18n key in all 9 locales (432/432 parity). The user
+chose this over removing the two inputs.
+
+**5. The 8 Sep open items, checked against live state (§2.48).** The
+fake royalty history is already gone from all 7 production assets.
+**Buying Guns on-chain now works** — `poolBalance: 0` against a supply
+of 1,300, with 1.255 ETH raised, which is exactly the 1,255 tokens bought
+through `contribute()` plus the 45 manually re-released across redeploys.
+The GitBook whitepaper is published, all 10 chapters, sync working. The
+root `.gitbook.yaml` decision: keep it, since the sync demonstrably works
+with both files present and verifying a removal means re-triggering a
+sync against the live published whitepaper.
+
+**Open items for next session:**
+- **Nothing has been pushed.** Four commits sit on local `dev/cesare`.
+  The user hasn't been asked whether to push or open a PR yet.
+- **GitBook Git Sync reads from `dev/cesare`, and should read from
+  `main`** — a branch `CLAUDE.md` itself calls personal and expected to
+  be force-pushed, so a rebase could alter the published whitepaper.
+  `main` already carries `whitepaper/` and both config files. This can
+  only be changed in the GitBook dashboard: the API exposes no Git Sync
+  configuration at all (the space lists zero integrations, and the
+  git-sync installation isn't addressable through the integration
+  endpoints). Space "Whitepaper", Git Sync settings, switch the branch.
+- **Nothing in points 3 or 4 has been clicked through in a browser.**
+  The equivalence proof and the passing build are what it rests on; the
+  Chrome extension wasn't available this session. Worth a real pass over
+  the wizard and the asset page — `CLAUDE.md` asks for exactly that.
+- ~~Guns shows sold out while its funding bar reads 96.5% … left as is,
+  deliberately.~~ **Wrong call, fixed the same day — see below.**
+- The backend still has no automated test suite. The new layering is
+  what makes one possible: `app.js` builds a handler without opening a
+  port, and every service and repository can be required directly.
+
+### Same day, follow-up: the funding bar was a real bug (§2.49)
+
+The user pushed back on the item above straight away: "su guns sono stati
+venduti tutti i token ma il sito mostra il 96,53% venduti, trova il bug."
+They were right and the entry above was wrong to file it as acceptable.
+
+`onchain-progress.util.ts` exports four functions that all answer "how far
+along is this campaign", drawing on **two different sources**.
+`remainingFor` prefers the token contract's real `poolBalance`;
+`tokensSoldFor` and `fundingRaisedFor` derive from it. `fundingPctFor` did
+not — for a preproduction campaign it used the escrow's `raised/fundingGoal`
+ratio, which only counts ETH that came through `contribute()`. Tokens
+released any other way never touch `raised`, and the manual
+`releaseFromPool` re-issues done after each redeploy are exactly that: 45
+tokens for Guns, 9 for Black Sail. So the page showed "1,300/1,300 tokens",
+"0 remaining" and "$13,000 of $13,000" beside a bar at 96.53%. Black Sail
+was the mirror image: 9 tokens out, $90 raised, bar at 0%.
+
+`fundingPctFor` is now the percentage form of `tokensSoldFor()/tokensTotal`,
+the same two numbers printed beside it, clamped to 0–100 since it drives a
+CSS width. The escrow ratio stays as the fallback when there is no on-chain
+token data. Testing the fix surfaced a second defect: `format.util.ts`'s
+`fundingPct` divided by `tokensTotal` with no zero guard, and the wizard
+can produce `tokensTotal: 0` because it never requires a preproduction
+budget above zero. Guarded.
+
+Verified against all four live campaigns' real on-chain state, asserting
+the percentage equals both the token fraction and the dollar fraction,
+plus every fallback and both clamping edges.
+
+**Then fixed the rest of the same class (§2.50).** Rather than wait for
+each surface to be reported, went looking for everything else still
+reading the mock counter. Two more, one of them worse than the reported
+bug: `campaign-card.component.ts`, on the artist's own dashboard, showed
+Guns at **0% and $0** while the marketplace card for the same campaign
+showed **100% and $13,000**. And `status-chip.component.ts`'s sold-out
+branch was unreachable code — it tested `asset.status === 'sold-out'`,
+and nothing in the app ever assigns that value, so a fully sold campaign
+kept advertising itself as open. Both now read the real pool balance;
+`asset-detail` passes its own fresher reading in through a new optional
+input. `StoreService` gained `onchainFor`/`escrowFor` so three components
+stop repeating the same map lookup.
+
+**Still open, and not fixable from the frontend:** `Campaign.holders` is
+written as `0` by the wizard and never updated, so the artist dashboard's
+"total holders" is always zero. A real count needs the addresses holding
+each token id, which no endpoint exposes — event indexing or a per-wallet
+scan. Left at zero rather than faked. Also worth fixing: the wizard lets
+a preproduction campaign be created with a zero budget, which mints a
+zero supply.

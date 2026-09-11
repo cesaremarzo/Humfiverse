@@ -66,6 +66,7 @@
   "detail.moSuffix": "{{n}} mois",
   "detail.fullReportedHistory": "Historique complet déclaré",
   "detail.sourcedFrom": "Source : relevés du distributeur/de la PRO recueillis lors de la vérification d’onboarding (voir l’onglet Documents). Les revenus historiques ne garantissent pas les paiements futurs de royalties.",
+  "detail.royaltyDeclared": "Déclaré par l'artiste lors de la soumission, non vérifié par Humfiverse : ",
   "detail.royaltyHistoryPending": "Aucun revenu de redevances n'a encore été déclaré pour ce catalogue — ces données apparaîtront une fois que de vrais relevés du distributeur/de la PRO seront enregistrés.",
   "detail.royaltyReportTitle": "Déclarer un revenu réel de redevances",
   "detail.royaltyReportIntro": "Ajoutez un montant réel et daté de redevances pour ce catalogue — issu d'un relevé du distributeur ou de la PRO que vous détenez. Il alimente directement le calcul du rendement historique et le graphique ci-dessus ; rien ici n'est estimé ni inventé.",

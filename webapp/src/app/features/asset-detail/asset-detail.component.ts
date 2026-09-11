@@ -19,6 +19,9 @@ import { ipfsGatewayUrl } from '../../core/ipfs.util';
 import { computeYieldBreakdown } from '../../core/yield.util';
 import { platformFeeTokens } from '../../core/marketplace-fee.util';
 import { weiToUsd, usdToWei } from '../../core/usd-eth.util';
+import { isValidRoyaltyMonth, royaltyAvg, royaltyTotal } from '../../core/royalty.util';
+import { onchainErrorTranslation } from '../../core/onchain-error.util';
+import { addHolding } from '../../core/portfolio-holdings.util';
 
 type TabKey = 'overview' | 'royalty' | 'milestones' | 'disclosure' | 'documents' | 'risk';
 
@@ -207,13 +210,8 @@ export class AssetDetailComponent {
     return computeYieldBreakdown(a);
   }
 
-  royaltyTotal(a: Asset): number {
-    return (a.royaltyHistory || []).reduce((s, d) => s + d.royaltyUSD, 0);
-  }
-  royaltyAvg(a: Asset): number {
-    const h = a.royaltyHistory || [];
-    return h.length ? Math.round(this.royaltyTotal(a) / h.length) : 0;
-  }
+  royaltyTotal = royaltyTotal;
+  royaltyAvg = royaltyAvg;
 
   // --- real royalty self-reporting (replaces the fabricated random-walk
   // history generator removed after the fake-yield fix) — a connected
@@ -235,7 +233,7 @@ export class AssetDetailComponent {
 
   canSubmitRoyaltyReport(): boolean {
     if (!this.wallet.state().address) return false;
-    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(this.royaltyMonthInput())) return false;
+    if (!isValidRoyaltyMonth(this.royaltyMonthInput())) return false;
     const n = Number(this.royaltyUsdInput());
     return Number.isFinite(n) && n >= 0;
   }
@@ -381,28 +379,12 @@ export class AssetDetailComponent {
 
   weiToUsd = weiToUsd;
 
-  /** Was a single catch-all "failed or was rejected" message regardless of
-   * why — indistinguishable whether the user just declined the signature,
-   * their wallet couldn't cover the ETH, or the contract itself reverted
-   * (and if it reverted, for what reason). That collapsed every real
-   * diagnosis into "open devtools and read the console", which is exactly
-   * what made a real on-chain-capacity bug (§ the Guns remaining-tokens
-   * fix) take several rounds to actually pin down. Distinguishes the
-   * cases ethers v6 (and this service's own pre-flight checks) actually
-   * report, and surfaces the raw on-chain revert reason verbatim when
-   * there is one — untranslated by design, same as the backend's own
-   * error responses elsewhere in this app, since it's a fixed Solidity
-   * string, not user-facing copy this app authored. */
+  /** The component still owns the translating; which message applies is
+   * decided in core/onchain-error.util.ts, where it can be reasoned about
+   * without a wallet or a TranslateService. */
   private onchainErrorMessage(err: unknown): string {
-    const e = err as { message?: string; code?: string; reason?: string; shortMessage?: string };
-    if (e?.message === 'wrong-network') return this.translate.instant('toast.onchainWrongNetwork');
-    if (e?.message === 'no-wallet') return this.translate.instant('toast.noWalletDetected');
-    if (e?.code === 'ACTION_REJECTED') return this.translate.instant('toast.onchainRejected');
-    if (e?.code === 'INSUFFICIENT_FUNDS') return this.translate.instant('toast.onchainInsufficientFunds');
-    if (e?.message === 'tx-failed') return this.translate.instant('toast.onchainReverted');
-    const reason = e?.reason || e?.shortMessage;
-    if (reason) return this.translate.instant('toast.onchainBuyFailedReason', { reason });
-    return this.translate.instant('toast.onchainBuyFailed');
+    const { key, params } = onchainErrorTranslation(err);
+    return this.translate.instant(key, params);
   }
 
   private applyPurchase(a: Asset, qty: number, total: number): void {
@@ -413,16 +395,7 @@ export class AssetDetailComponent {
     // until an unrelated re-render happened to expose the same-reference
     // mutation) so every view reading this asset re-renders correctly.
     this.store.assets.update((assets) => assets.map((x) => (x.id === a.id ? { ...x, tokensSold: x.tokensSold + qty } : x)));
-    this.store.portfolio.update((p) => {
-      const existing = p.holdings.find((h) => h.assetId === a.id);
-      if (existing) {
-        existing.tokens += qty;
-        existing.costBasis += total;
-      } else {
-        p.holdings.push({ assetId: a.id, tokens: qty, costBasis: total, unclaimed: 0 });
-      }
-      return { ...p, holdings: [...p.holdings] };
-    });
+    this.store.portfolio.update((p) => addHolding(p, { assetId: a.id, tokens: qty, costBasis: total }));
     this.qty.set(1);
     this.ack.set(false);
   }
@@ -442,16 +415,7 @@ export class AssetDetailComponent {
     const received = listing.qty - fee;
     const paid = listing.qty * listing.pricePerToken;
 
-    this.store.portfolio.update((p) => {
-      const existing = p.holdings.find((h) => h.assetId === listing.assetId);
-      if (existing) {
-        existing.tokens += received;
-        existing.costBasis += paid;
-      } else {
-        p.holdings.push({ assetId: listing.assetId, tokens: received, costBasis: paid, unclaimed: 0 });
-      }
-      return { ...p, holdings: [...p.holdings] };
-    });
+    this.store.portfolio.update((p) => addHolding(p, { assetId: listing.assetId, tokens: received, costBasis: paid }));
 
     this.store.secondaryListings.update((listings) => listings.filter((l) => l.id !== listing.id));
     this.resaleResult.set({ listing, received, fee, paid });

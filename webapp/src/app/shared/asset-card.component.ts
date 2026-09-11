@@ -49,10 +49,10 @@ export class AssetCardComponent {
    * this, a card's funding bar never moved after a real on-chain purchase
    * even though the detail page for the same asset showed the update. */
   get pct(): number {
-    return fundingPctFor(this.asset, this.store.onchainInfoMap().get(this.asset.id) ?? null, this.store.escrowInfoMap().get(this.asset.id) ?? null);
+    return fundingPctFor(this.asset, this.store.onchainFor(this.asset.id), this.store.escrowFor(this.asset.id));
   }
   get raisedShort(): string {
-    return fmtUSDShort(fundingRaisedFor(this.asset, this.store.onchainInfoMap().get(this.asset.id) ?? null, this.store.escrowInfoMap().get(this.asset.id) ?? null));
+    return fmtUSDShort(fundingRaisedFor(this.asset, this.store.onchainFor(this.asset.id), this.store.escrowFor(this.asset.id)));
   }
   get goalShort(): string {
     return fmtUSDShort(fundingGoal(this.asset));

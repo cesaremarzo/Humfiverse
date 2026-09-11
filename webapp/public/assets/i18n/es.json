@@ -66,6 +66,7 @@
   "detail.moSuffix": "{{n}} meses",
   "detail.fullReportedHistory": "Historial completo declarado",
   "detail.sourcedFrom": "Procedente de extractos del distribuidor/PRO durante la diligencia de onboarding (ver pestaña Documentos). El ingreso histórico no garantiza pagos de royalties futuros.",
+  "detail.royaltyDeclared": "Declarado por el artista al enviar la campaña, sin verificación de Humfiverse: ",
   "detail.royaltyHistoryPending": "Aún no se han declarado ingresos por regalías para este catálogo — esto se completará cuando se registren extractos reales del distribuidor/PRO.",
   "detail.royaltyReportTitle": "Declarar ingresos reales por regalías",
   "detail.royaltyReportIntro": "Añade una cifra real y fechada de regalías para este catálogo — procedente de un extracto del distribuidor o PRO que poseas. Alimenta directamente el cálculo del rendimiento histórico y el gráfico anterior; nada aquí es estimado o inventado.",

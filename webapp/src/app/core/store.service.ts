@@ -130,6 +130,20 @@ export class StoreService {
     return this.assets().find((a) => a.id === id);
   }
 
+  /** The two lookups every card needs before it can show real funding
+   * progress instead of the mock `tokensSold` counter. Both maps are
+   * populated once during hydrate(); a miss means this asset has no
+   * chain state to read, which the progress helpers handle by falling
+   * back. Here rather than repeated at each call site, because getting
+   * the `?? null` wrong turns a miss into `undefined` and silently
+   * changes which branch the helper takes. */
+  onchainFor(assetId: string): OnchainInfo | null {
+    return this.onchainInfoMap().get(assetId) ?? null;
+  }
+  escrowFor(assetId: string): EscrowCampaignInfo | null {
+    return this.escrowInfoMap().get(assetId) ?? null;
+  }
+
   /** Active resale listings for an asset, cheapest first. */
   activeListingsFor(assetId: string): SecondaryListing[] {
     return this.secondaryListings()

@@ -6,83 +6,29 @@ import { StoreService } from '../../core/store.service';
 import { WalletService } from '../../core/wallet.service';
 import { ApiService } from '../../core/api.service';
 import { ToastService } from '../../core/toast.service';
-import { AiDisclosure, Asset, Campaign, DisclosureLevel } from '../../core/models';
+import { AiDisclosure, DisclosureLevel } from '../../core/models';
 import { fmtUSD } from '../../core/format.util';
 import { usdToWei } from '../../core/usd-eth.util';
 import { clauseCategory, clauseText, contractLegalBasisNote, vessatoriaClauseIds } from '../../core/contract-text.util';
-
-type ModelKind = 'catalogue' | 'preproduction' | null;
-type WizardStepKey = 'basics' | 'model' | 'source' | 'disclosure' | 'contract' | 'review';
-
-interface WizardData {
-  model: ModelKind;
-  title: string;
-  artistName: string;
-  genre: string;
-  description: string;
-  catalogue: { dsp: string; months: string; history: string };
-  preprod: { studio: number; session: number; mix: number; extra: number; studioName: string; studioWallet: string };
-  /** Optional, catalogue-kind only: an already-tokenized, already-earning
-   * catalogue can *additionally* raise a small milestone-gated fund for
-   * post-launch production work (a video, a marketing push) — the same
-   * escrow mechanism preproduction campaigns use for financing the track
-   * itself, reused here for financing extras around an already-finished
-   * one. `goal` is USD, same illustrative mapping as everywhere else in
-   * this wizard. */
-  catalogueCampaign: { enabled: boolean; goal: number; studioName: string; studioWallet: string };
-  disclosure: AiDisclosure;
-  contract: { generalAccepted: boolean; vessatoriaAccepted: Record<string, boolean> };
-  ack: boolean;
-}
-
-const WIZARD_STEPS: { key: WizardStepKey; labelKey: string }[] = [
-  { key: 'basics', labelKey: 'wizStep.basics' },
-  { key: 'model', labelKey: 'wizStep.model' },
-  { key: 'source', labelKey: 'wizStep.source' },
-  { key: 'disclosure', labelKey: 'wizStep.disclosure' },
-  { key: 'contract', labelKey: 'wizStep.contract' },
-  { key: 'review', labelKey: 'wizStep.review' }
-];
-
-function freshWizardData(): WizardData {
-  return {
-    model: null,
-    title: '',
-    artistName: '',
-    genre: 'Indie Pop',
-    description: '',
-    catalogue: { dsp: 'Spotify for Artists', months: '12', history: '' },
-    preprod: { studio: 5000, session: 4000, mix: 3000, extra: 1000, studioName: '', studioWallet: '' },
-    catalogueCampaign: { enabled: false, goal: 2000, studioName: '', studioWallet: '' },
-    disclosure: { vocals: 'human', instrumentation: 'human', composition: 'human', postProduction: 'human', lyrics: 'human' },
-    contract: { generalAccepted: false, vessatoriaAccepted: {} },
-    ack: false
-  };
-}
-
-const GENRES: [string, string][] = [
-  ['Indie Pop', 'genre.indiePop'],
-  ['Electronic', 'genre.electronic'],
-  ['Alt R&B', 'genre.altRnb'],
-  ['Lo-fi / Ambient', 'genre.lofiAmbient'],
-  ['Cinematic / Orchestral', 'genre.cinematic'],
-  ['Rock', 'genre.rock'],
-  ['Hip-Hop', 'genre.hiphop'],
-  ['Other', 'genre.other']
-];
-const DISTRIBUTORS = ['Spotify for Artists', 'Apple Music for Artists', 'DistroKid', 'Believe', 'SIAE'];
-const DISCLOSURE_ROWS: [keyof AiDisclosure, string][] = [
-  ['vocals', 'disclosure.vocals'],
-  ['instrumentation', 'disclosure.instrumentation'],
-  ['composition', 'disclosure.composition'],
-  ['postProduction', 'disclosure.postProduction'],
-  ['lyrics', 'disclosure.lyrics']
-];
-const DISCLOSURE_VALUES: [DisclosureLevel, string][] = [
-  ['human', 'disclosure.human'],
-  ['ai-assisted', 'disclosure.aiAssisted'],
-  ['ai', 'disclosure.ai']
-];
+import {
+  DISCLOSURE_ROWS,
+  DISCLOSURE_VALUES,
+  DISTRIBUTORS,
+  GENRES,
+  WIZARD_STEPS,
+  WizardData,
+  freshWizardData,
+  isValidWalletAddress
+} from './onboarding.model';
+import {
+  CATALOGUE_EXTRA_MILESTONES,
+  PREPRODUCTION_MILESTONES,
+  buildAssetDraft,
+  buildCampaignDraft,
+  canAdvanceFrom,
+  draftAssetId,
+  draftRaiseTotal
+} from './campaign-draft.util';
 
 @Component({
   selector: 'app-onboarding',
@@ -159,9 +105,9 @@ export class OnboardingComponent {
     this.data.update((d) => ({ ...d, catalogueCampaign: { ...d.catalogueCampaign, [field]: value } }));
   }
 
-  isValidWalletAddress(value: string): boolean {
-    return /^0x[a-fA-F0-9]{40}$/.test(value.trim());
-  }
+  /** Exposed as a member because the template calls it directly on both
+   * studio-wallet fields; the rule itself lives in onboarding.model.ts. */
+  isValidWalletAddress = isValidWalletAddress;
 
   setDisclosure(key: keyof AiDisclosure, value: DisclosureLevel): void {
     this.data.update((d) => ({ ...d, disclosure: { ...d.disclosure, [key]: value } }));
@@ -198,18 +144,11 @@ export class OnboardingComponent {
   }
 
   canAdvance(): boolean {
-    const d = this.data();
     const key = this.stepKey();
-    if (key === 'basics') return !!d.title.trim() && !!d.artistName.trim();
-    if (key === 'model') return !!d.model;
-    if (key === 'source' && d.model === 'preproduction') {
-      return !!d.preprod.studioName.trim() && this.isValidWalletAddress(d.preprod.studioWallet);
-    }
-    if (key === 'source' && d.model === 'catalogue' && d.catalogueCampaign.enabled) {
-      return d.catalogueCampaign.goal > 0 && !!d.catalogueCampaign.studioName.trim() && this.isValidWalletAddress(d.catalogueCampaign.studioWallet);
-    }
+    // The contract step is the one check that can't be a pure function: it
+    // needs the clause list off the loaded template, not just the draft.
     if (key === 'contract') return this.isContractComplete();
-    return true;
+    return canAdvanceFrom(key, this.data());
   }
 
   back(): void {
@@ -265,56 +204,11 @@ export class OnboardingComponent {
     }
 
     const isPre = d.model === 'preproduction';
-    const id = (d.title || 'untitled').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + '-' + Math.floor(Math.random() * 900 + 100);
-    const total = isPre ? this.preprodTotal() : 30000;
+    const id = draftAssetId(d.title);
+    const total = draftRaiseTotal(d, this.preprodTotal());
+    const asset = buildAssetDraft(d, id, total);
+    const campaign = buildCampaignDraft(asset);
 
-    const asset: Asset = {
-      id,
-      kind: isPre ? 'preproduction' : 'catalogue',
-      title: d.title || 'Untitled campaign',
-      artistName: d.artistName || 'Independent artist',
-      genre: d.genre || 'Other',
-      description: d.description || 'No description provided.',
-      verified: false,
-      tokenPrice: isPre ? 10 : 20,
-      tokensTotal: isPre ? Math.ceil(total / 10) : 1500,
-      tokensSold: 0,
-      aiDisclosure: { ...d.disclosure },
-      dspPolicy: 'Policy exposure to be re-checked at listing review.',
-      riskFactors: [
-        'This is a newly submitted campaign — diligence has not been completed yet.',
-        isPre ? 'Unreleased track: no royalty history, venture-style risk.' : 'Recently submitted: limited royalty history collected so far.'
-      ],
-      documents: [
-        isPre
-          ? { name: 'Production budget breakdown', type: 'PDF', date: 'Aug 2026' }
-          : { name: d.catalogue.history || 'Royalty statement (pending)', type: 'PDF', date: 'Aug 2026' }
-      ],
-      status: 'funding'
-    };
-
-    if (isPre) {
-      asset.targetRaiseUse = 'Studio time, session musicians, mix & master, release';
-      asset.milestones = [
-        { name: 'Funding goal reached', trancheAmount: Math.round(total * 0.2), status: 'pending' },
-        { name: 'Studio & collaborators booked', trancheAmount: Math.round(total * 0.4), status: 'pending' },
-        { name: 'Mix & master delivered', trancheAmount: Math.round(total * 0.3), status: 'pending' },
-        { name: 'Release confirmed on DSPs', trancheAmount: Math.round(total * 0.1), status: 'pending' }
-      ];
-    }
-    // Catalogue-kind campaigns deliberately get no royaltyHistory here — a
-    // track just uploaded through this wizard has no real distribution
-    // history yet. This used to call buildRoyaltyHistory() to fabricate one
-    // (a random-walk generator never calibrated against this wizard's own
-    // fixed $20 x 1,500-token catalogue economics), which is exactly what
-    // produced the ~72-75% "projected yield" the user flagged as fake —
-    // recalibrating the generator's numbers would have just produced a
-    // more convincing fake one. A real yield needs a real trailing-12-month
-    // royalty statement (§2.1/§2.9), which this prototype has no way to
-    // collect yet; every place that reads royaltyHistory shows an honest
-    // "not yet reported" state instead of a number when it's absent.
-
-    const campaign: Campaign = { id, assetId: id, title: asset.title, artistName: asset.artistName, holders: 0, milestones: asset.milestones };
     this.store.assets.update((assets) => [asset, ...assets]);
     this.store.campaigns.update((campaigns) => [campaign, ...campaigns]);
 
@@ -427,12 +321,7 @@ export class OnboardingComponent {
               fundingGoalWei,
               studioName: d.preprod.studioName,
               studioWallet: d.preprod.studioWallet,
-              milestones: [
-                { name: 'Funding goal reached', bps: 2000, payee: 'artist' },
-                { name: 'Studio & collaborators booked', bps: 4000, payee: 'studio' },
-                { name: 'Mix & master delivered', bps: 3000, payee: 'artist' },
-                { name: 'Release confirmed on DSPs', bps: 1000, payee: 'artist' }
-              ]
+              milestones: PREPRODUCTION_MILESTONES
             });
             this.toast.show(this.translate.instant('toast.escrowCreated'), 'checkCircle');
           } catch (err) {
@@ -462,10 +351,7 @@ export class OnboardingComponent {
               fundingGoalWei,
               studioName: d.catalogueCampaign.studioName,
               studioWallet: d.catalogueCampaign.studioWallet,
-              milestones: [
-                { name: 'Music video produced', bps: 5000, payee: 'studio' },
-                { name: 'Marketing campaign launched', bps: 5000, payee: 'studio' }
-              ]
+              milestones: CATALOGUE_EXTRA_MILESTONES
             });
             this.toast.show(this.translate.instant('toast.escrowCreated'), 'checkCircle');
           } catch (err) {

@@ -19,7 +19,7 @@
         <div class="detail-cover"><app-cover [asset]="a" [playSize]="38" [motifSize]="52" [previewable]="!!audioPreviewUrl" [playing]="audioPreviewPlaying()" (previewToggle)="toggleCoverAudioPreview()"></app-cover></div>
         <div class="detail-heading">
           <div class="chips">
-            <app-status-chip [asset]="a"></app-status-chip>
+            <app-status-chip [asset]="a" [soldOut]="soldOut(a)"></app-status-chip>
             @if (a.verified) {
               <span class="chip chip-good"><app-icon name="shield"></app-icon> {{ 'asset.verified' | translate }}</span>
             } @else {
@@ -208,9 +208,15 @@
               <app-line-chart [royaltyHistory]="a.royaltyHistory!"></app-line-chart>
             </div>
             <div class="prose">{{ 'detail.sourcedFrom' | translate }}</div>
+            @if (a.royaltySource || a.royaltyHistoryMonths) {
+              <div class="prose" style="font-size:12.5px;">{{ 'detail.royaltyDeclared' | translate }}@if (a.royaltySource) { <strong>{{ a.royaltySource }}</strong> }@if (a.royaltyHistoryMonths) { · {{ 'detail.moSuffix' | translate: { n: a.royaltyHistoryMonths } }} }</div>
+            }
           } @else {
             <div class="card panel">
               <p class="prose" style="font-size:13px;">{{ 'detail.royaltyHistoryPending' | translate }}</p>
+              @if (a.royaltySource || a.royaltyHistoryMonths) {
+                <div class="prose" style="font-size:12.5px;">{{ 'detail.royaltyDeclared' | translate }}@if (a.royaltySource) { <strong>{{ a.royaltySource }}</strong> }@if (a.royaltyHistoryMonths) { · {{ 'detail.moSuffix' | translate: { n: a.royaltyHistoryMonths } }} }</div>
+              }
             </div>
           }
 

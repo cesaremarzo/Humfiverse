@@ -66,6 +66,7 @@
   "detail.moSuffix": "{{n}} mo.",
   "detail.fullReportedHistory": "Full reported history",
   "detail.sourcedFrom": "Sourced from distributor/PRO statements during onboarding diligence (see Documents tab). Historical income is not a guarantee of future royalty payments.",
+  "detail.royaltyDeclared": "Declared by the artist at submission, not verified by Humfiverse: ",
   "detail.royaltyHistoryPending": "No royalty income has been reported for this catalogue yet — this will populate once real distributor/PRO statements are recorded.",
   "detail.royaltyReportTitle": "Report real royalty income",
   "detail.royaltyReportIntro": "Add a real, dated royalty figure for this catalogue — sourced from a distributor or PRO statement you hold. It feeds directly into the trailing-yield calculation and the chart above; nothing here is estimated or invented.",

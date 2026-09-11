@@ -16,5 +16,12 @@ export function fundingGoal(a: Asset): number {
   return a.tokenPrice * a.tokensTotal;
 }
 export function fundingPct(a: Asset): number {
+  // tokensTotal can genuinely be 0: the wizard computes a preproduction
+  // campaign's supply as budget/10 and does not require a budget above
+  // zero, so a campaign created with every budget field emptied lands
+  // here and used to divide by it. The result drives a CSS width, and
+  // `width: NaN%` is silently ignored by the browser, leaving a bar that
+  // simply never renders rather than an error anyone would notice.
+  if (!a.tokensTotal) return 0;
   return Math.min(100, Math.round((a.tokensSold / a.tokensTotal) * 100));
 }
