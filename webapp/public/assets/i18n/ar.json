@@ -296,6 +296,7 @@
   "artistDash.connectBody": "تُعرَّف حملاتك بالمحفظة التي أنشأتها. اربطها لعرض حملاتك.",
   "artistDash.unattributed": "{{n}} من الحملات أُنشئت قبل تسجيل الملكية ولا يوجد لها ضمان يعرّفها، لذا لا تظهر تحت أي حساب.",
   "artistDash.holdersUnknownNote": "غير متتبَّع: عدّ الحائزين يتطلب حصر كل عنوان يملك الرمز، وهو ما يحتاج مفهرسًا لا يملكه هذا النموذج.",
+  "artistDash.holdersIndexing": "ما زال فهرسة سجل التحويلات جارية — سيظهر العدد بمجرد اكتماله.",
   "artistDash.startCampaign": "ابدأ حملة",
   "campaignCard.tokenHolders": "{{n}} من حاملي الرموز",
   "campaignCard.holdersUnknown": "عدد الحائزين غير متتبَّع",

@@ -296,6 +296,7 @@
   "artistDash.connectBody": "キャンペーンは作成したウォレットで識別されます。接続するとご自身のものが表示されます。",
   "artistDash.unattributed": "{{n}} 件のキャンペーンは所有者の記録が始まる前に作成され、識別できるエスクローもないため、どのアカウントにも表示されません。",
   "artistDash.holdersUnknownNote": "未集計です。保有者を数えるにはそのトークンを持つ全アドレスの列挙が必要で、このプロトタイプにはそのためのインデクサーがありません。",
+  "artistDash.holdersIndexing": "トークンの転送履歴をまだ索引化しています。追いつき次第、件数が表示されます。",
   "artistDash.startCampaign": "キャンペーンを開始",
   "campaignCard.tokenHolders": "トークン保有者 {{n}} 人",
   "campaignCard.holdersUnknown": "保有者数は集計していません",

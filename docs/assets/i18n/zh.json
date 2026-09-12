@@ -296,6 +296,7 @@
   "artistDash.connectBody": "你的项目由创建它的钱包标识。连接钱包即可看到属于你的项目。",
   "artistDash.unattributed": "有 {{n}} 个项目创建于记录归属之前，也没有可用于识别的托管合约，因此不会出现在任何账户下。",
   "artistDash.holdersUnknownNote": "未统计：统计持有人需要枚举持有该代币的每个地址，这需要本原型尚不具备的索引服务。",
+  "artistDash.holdersIndexing": "仍在索引代币转移历史，追平后会显示数量。",
   "artistDash.startCampaign": "发起项目",
   "campaignCard.tokenHolders": "{{n}} 位代币持有人",
   "campaignCard.holdersUnknown": "未统计持有人数",

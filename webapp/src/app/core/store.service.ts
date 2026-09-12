@@ -40,6 +40,12 @@ export class StoreService {
   /** False when this deployment has no marketplace contract configured.
    * The UI says resale is unavailable rather than implying nobody is
    * selling. */
+  /** Holders per asset, from the backend's event index. Empty until it
+   * answers; `holderCountsComplete` says whether the index has caught up,
+   * because a count from a half-finished backfill is a lower bound rather
+   * than an answer. */
+  readonly holderCounts = signal<Record<string, number>>({});
+  readonly holderCountsComplete = signal(false);
   readonly marketplaceEnabled = signal(false);
   /** Which contract a seller's `list()` transaction goes to. Needed before
    * any listing exists, so it cannot be read off one. */
@@ -145,6 +151,16 @@ export class StoreService {
 
   assetById(id: string): Asset | undefined {
     return this.assets().find((a) => a.id === id);
+  }
+
+  /** The holder count for an asset, or null when the index cannot yet
+   * answer — either it has no entry or the backfill is still running. The
+   * caller shows "not tracked" rather than a number it would have to
+   * retract. */
+  holderCountFor(assetId: string): number | null {
+    if (!this.holderCountsComplete()) return null;
+    const n = this.holderCounts()[assetId];
+    return typeof n === 'number' ? n : null;
   }
 
   /** Who owns a campaign, as a lowercased wallet address, or null when it
@@ -276,11 +292,19 @@ export class StoreService {
       })
       .catch((err) => console.warn('Could not load resale listings.', err));
 
+    const holdersLoad = (knownAssetIds.length ? this.api.getHolderCounts(knownAssetIds) : Promise.resolve(null))
+      .then((result) => {
+        if (!result) return;
+        this.holderCounts.set(result.counts ?? {});
+        this.holderCountsComplete.set(Boolean(result.complete));
+      })
+      .catch((err) => console.warn('Could not load holder counts.', err));
+
     const escrowLoad = this.api
       .getEscrowCampaigns()
       .then((result) => this.escrowInfoMap.set(new Map(result.campaigns.map((c) => [c.assetId, c] as const))))
       .catch((err) => console.warn('Could not load escrow campaign state for the cards.', err));
 
-    await Promise.allSettled([listLoad, onchainLoad, escrowLoad, listingsLoad]);
+    await Promise.allSettled([listLoad, onchainLoad, escrowLoad, listingsLoad, holdersLoad]);
   }
 }

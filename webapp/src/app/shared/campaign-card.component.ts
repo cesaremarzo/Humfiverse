@@ -19,7 +19,7 @@ import { coverBackground } from '../core/cover.util';
 export class CampaignCardComponent {
   @Input({ required: true }) campaign!: Campaign;
 
-  constructor(private store: StoreService) {}
+  constructor(public store: StoreService) {}
 
   get asset() {
     return this.store.assetById(this.campaign.assetId);
@@ -33,6 +33,13 @@ export class CampaignCardComponent {
      now, off the same two store maps. */
   /** See asset-card: a placeholder while the pool read is in flight beats
    * a zero that reads like a finished answer. */
+  /** null while the index is still catching up, so the card says the count
+   * is not tracked rather than showing a number that will change. */
+  holderCount(): number | null {
+    const a = this.asset;
+    return a ? this.store.holderCountFor(a.id) : null;
+  }
+
   fundingUnknown(): boolean {
     const a = this.asset;
     return this.store.onchainInfoLoading() && (!a || !this.store.onchainFor(a.id));

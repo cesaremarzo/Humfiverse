@@ -15,6 +15,7 @@ const registerTokenMetadataRoutes = require("./token-metadata.routes");
 const registerPortfolioRoutes = require("./portfolio.routes");
 const registerEscrowRoutes = require("./escrow.routes");
 const registerListingRoutes = require("./listings.routes");
+const registerHolderRoutes = require("./holders.routes");
 const registerAdminRoutes = require("./admin.routes");
 
 module.exports = function registerRoutes(router) {
@@ -26,5 +27,6 @@ module.exports = function registerRoutes(router) {
   registerPortfolioRoutes(router);
   registerEscrowRoutes(router);
   registerListingRoutes(router);
+  registerHolderRoutes(router);
   registerAdminRoutes(router);
 };
