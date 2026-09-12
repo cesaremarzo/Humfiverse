@@ -6,6 +6,7 @@ import { WalletService } from '../../core/wallet.service';
 import { ToastService } from '../../core/toast.service';
 import { EscrowCampaignInfo } from '../../core/models';
 import { fmtUSD } from '../../core/format.util';
+import { onchainErrorTranslation } from '../../core/onchain-error.util';
 import { weiToUsd } from '../../core/usd-eth.util';
 
 type CampaignRow = EscrowCampaignInfo & { assetId: string };
@@ -92,8 +93,15 @@ export class ArtistMilestonesComponent {
       });
       this.toast.show(this.translate.instant('artistMilestones.confirmSuccess'), 'checkCircle');
       this.load();
-    } catch {
-      this.toast.show(this.translate.instant('artistMilestones.confirmError'), 'alert');
+    } catch (err) {
+      // This used to be a bare `catch {}` that discarded the error and
+      // showed one fixed string, so a declined signature, a wrong network,
+      // a nonce clash with another transaction from the same wallet and a
+      // contract revert were all indistinguishable — including the
+      // contract's own revert reason, which never reached the screen.
+      console.warn('Milestone confirmation did not complete.', err);
+      const { key, params } = onchainErrorTranslation(err);
+      this.toast.show(this.translate.instant(key, params), 'alert');
     } finally {
       this.confirming.set(null);
     }
