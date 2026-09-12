@@ -2,6 +2,7 @@ import { Component, Input, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { CoverComponent } from './cover.component';
+import { IconComponent } from './icon.component';
 import { StatusChipComponent } from './status-chip.component';
 import { VerifiedChipComponent } from './verified-chip.component';
 import { SparklineComponent } from './sparkline.component';
@@ -16,7 +17,7 @@ import { ipfsGatewayUrl } from '../core/ipfs.util';
 @Component({
   selector: 'app-asset-card',
   standalone: true,
-  imports: [RouterLink, TranslatePipe, CoverComponent, StatusChipComponent, VerifiedChipComponent, SparklineComponent],
+  imports: [RouterLink, TranslatePipe, CoverComponent, IconComponent, StatusChipComponent, VerifiedChipComponent, SparklineComponent],
   templateUrl: './asset-card.component.html'
 })
 export class AssetCardComponent {
@@ -52,6 +53,15 @@ export class AssetCardComponent {
    * has no entry yet. The card then shows a placeholder rather than the
    * mock counter's zero, which is a real number the page is about to
    * replace and reads exactly like a finished answer. */
+  /** How many wallets hold this token, or null while the event index is
+   * still catching up. Shown on the card because it is a material fact at
+   * the moment someone is deciding to buy — a token held by one wallet and
+   * one held by fifty are different things, and the card is where that
+   * decision starts. */
+  get holderCount(): number | null {
+    return this.store.holderCountFor(this.asset.id);
+  }
+
   get fundingUnknown(): boolean {
     return this.store.onchainInfoLoading() && !this.store.onchainFor(this.asset.id);
   }
