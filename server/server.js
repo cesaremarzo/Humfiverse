@@ -42,17 +42,40 @@ const indexer = require("./services/indexer.service");
 
 const server = http.createServer(createRequestHandler());
 
-/* Keeps the holder index moving while this process is awake.
+/* Two background jobs keep the holder index honest, and they do different
+ * jobs. The reconciler re-reads every holding from the contract and checks
+ * it adds up; the walker follows the transfer log for movement between
+ * reconciliations. The reconciler runs first on purpose — it leaves the
+ * cursor at a verified head, so the walker never grinds through a
+ * backfill that has already been accounted for.
  *
- * It cannot be a one-shot backfill: the free-tier RPC caps eth_getLogs at
- * 10 blocks, so catching up is thousands of sequential calls, and a
- * free-tier instance sleeps long before that finishes. The cursor lives in
- * the database, so every run picks up where the last one stopped — this
- * just keeps nudging it, quickly while behind and slowly once caught up.
- * Deliberately fire-and-forget: indexing must never delay or fail a
- * request, and a failed tick is retried by the next one. */
+ * Both are deliberately fire-and-forget: indexing must never delay or fail
+ * a request, and a failed tick is retried by the next one. */
 const INDEX_TICK_BEHIND_MS = 2_000;
 const INDEX_TICK_CAUGHT_UP_MS = 60_000;
+/* How often holdings are re-read from the contract and checked against
+   total supply. The walk above keeps the index current between passes;
+   this is what makes it *verified*, and what repairs it when a log was
+   missed. Cheap enough to run often: one transfer-index call plus a
+   couple of reads per token. */
+const RECONCILE_TICK_MS = 10 * 60_000;
+
+function startReconciler() {
+  const tick = async () => {
+    let result = null;
+    try {
+      result = await indexer.reconcile();
+      if (result.enabled === false) return;
+      if (result.unbalanced) console.warn(`Indexer: ${result.unbalanced} token(s) do not reconcile with total supply.`);
+    } catch (err) {
+      console.warn("Indexer reconcile failed; will retry.", err.message || err);
+    }
+    // A pass blocked by the other writer is worth retrying soon rather
+    // than leaving counts unverified for ten minutes.
+    setTimeout(tick, result && result.busy ? 30_000 : RECONCILE_TICK_MS).unref();
+  };
+  setTimeout(tick, 1_000).unref();
+}
 
 function startIndexer() {
   const tick = async () => {
@@ -66,7 +89,7 @@ function startIndexer() {
     }
     setTimeout(tick, delay).unref();
   };
-  setTimeout(tick, 1_000).unref();
+  setTimeout(tick, 20_000).unref();
 }
 
 initSchema()
@@ -75,6 +98,7 @@ initSchema()
     server.listen(PORT, () => {
       console.log(`Humfiverse backend listening on http://localhost:${PORT} (storage: ${db.usingTurso ? "Turso" : "local file"})`);
       startIndexer();
+      startReconciler();
     });
   })
   .catch((err) => {
