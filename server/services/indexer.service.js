@@ -75,6 +75,10 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
  * process. A second instance would need a real lock; there is only ever
  * one here. */
 let stepping = false;
+/** How long a claimed lease lasts. A step is 40 calls at 250ms, so ~10-20s
+ * in practice; three minutes leaves room for retries while still freeing
+ * the indexer quickly if a process dies mid-step. */
+const LEASE_MS = 180_000;
 
 const provider = new ethers.JsonRpcProvider(RPC_URL);
 const iface = new ethers.Interface([
@@ -117,10 +121,21 @@ async function applyLog(log) {
  */
 async function step(maxCalls = DEFAULT_MAX_CALLS) {
   if (!TOKEN_ADDRESS) return { enabled: false };
+  // Two guards, because they stop different things. The flag stops the
+  // ticker racing an admin call inside this process; the database lease
+  // stops two processes racing each other, which is what a Render deploy
+  // creates and what silently corrupted the index twice.
   if (stepping) return { enabled: true, busy: true };
   stepping = true;
   try {
-    return await runStep(maxCalls);
+    if (!(await indexerRepo.claimLease(TOKEN_ADDRESS, LEASE_MS, DEPLOY_BLOCK - 1))) {
+      return { enabled: true, busy: true, heldElsewhere: true };
+    }
+    try {
+      return await runStep(maxCalls);
+    } finally {
+      await indexerRepo.releaseLease(TOKEN_ADDRESS).catch(() => {});
+    }
   } finally {
     stepping = false;
   }
