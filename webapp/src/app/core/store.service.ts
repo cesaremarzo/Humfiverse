@@ -147,6 +147,20 @@ export class StoreService {
     return this.assets().find((a) => a.id === id);
   }
 
+  /** Who owns a campaign, as a lowercased wallet address, or null when it
+   * cannot be known. Prefers the asset's own `artistWallet`; falls back to
+   * the escrow contract's `artist`, which is authoritative but only exists
+   * for campaigns that have an escrow. Campaigns predating both are
+   * genuinely unattributable — there is no record anywhere of who made
+   * them, and guessing from the display name would be worse than saying
+   * so. */
+  campaignOwner(assetId: string): string | null {
+    const stored = this.assetById(assetId)?.artistWallet;
+    if (stored) return stored.toLowerCase();
+    const escrow = this.escrowFor(assetId);
+    return escrow?.escrow && escrow.artist ? escrow.artist.toLowerCase() : null;
+  }
+
   /** The two lookups every card needs before it can show real funding
    * progress instead of the mock `tokensSold` counter. Both maps are
    * populated once during hydrate(); a miss means this asset has no

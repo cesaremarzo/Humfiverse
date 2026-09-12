@@ -206,7 +206,7 @@ export class OnboardingComponent {
     const isPre = d.model === 'preproduction';
     const id = draftAssetId(d.title);
     const total = draftRaiseTotal(d, this.preprodTotal());
-    const asset = buildAssetDraft(d, id, total);
+    const asset = buildAssetDraft(d, id, total, this.wallet.state().address ?? undefined);
     const campaign = buildCampaignDraft(asset);
 
     this.store.assets.update((assets) => [asset, ...assets]);

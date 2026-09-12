@@ -1,4 +1,14 @@
-@if (!store.campaigns().length) {
+@if (!wallet.state().address) {
+  <div class="page-head"><div><span class="page-kicker">{{ 'artistDash.kicker' | translate }}</span><h1>{{ 'artistDash.title' | translate }}</h1></div></div>
+  <div class="empty-state card">
+    <app-icon name="wallet"></app-icon>
+    <h3>{{ 'artistDash.connectTitle' | translate }}</h3>
+    <p>{{ 'artistDash.connectBody' | translate }}</p>
+    <button class="btn btn-primary" [disabled]="wallet.state().connecting" (click)="wallet.connect()">
+      <app-icon name="wallet"></app-icon> {{ (wallet.state().connecting ? 'wallet.connecting' : 'wallet.connect') | translate }}
+    </button>
+  </div>
+} @else if (!myCampaigns().length) {
   <div class="page-head"><div><span class="page-kicker">{{ 'artistDash.kicker' | translate }}</span><h1>{{ 'artistDash.title' | translate }}</h1></div></div>
   <div class="empty-state card">
     <app-icon name="music"></app-icon>
@@ -11,13 +21,16 @@
     <a class="btn btn-primary" routerLink="/artist/onboarding"><app-icon name="sparkles"></app-icon> {{ 'artistDash.newCampaign' | translate }}</a>
   </div>
   <div class="stat-grid">
-    <div class="card stat-tile"><div class="label">{{ 'artistDash.activeCampaigns' | translate }}</div><div class="value">{{ store.campaigns().length }}</div></div>
+    <div class="card stat-tile"><div class="label">{{ 'artistDash.activeCampaigns' | translate }}</div><div class="value">{{ myCampaigns().length }}</div></div>
     <div class="card stat-tile"><div class="label">{{ 'artistDash.totalRaised' | translate }}</div><div class="value">{{ store.onchainInfoLoading() ? '—' : totalRaisedShort() }}</div></div>
     <div class="card stat-tile"><div class="label">{{ 'artistDash.tokenHolders' | translate }}</div><div class="value">{{ totalHolders() }}</div></div>
   </div>
   <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(340px,1fr));">
-    @for (c of store.campaigns(); track c.id) {
+    @for (c of myCampaigns(); track c.id) {
       <app-campaign-card [campaign]="c"></app-campaign-card>
     }
   </div>
+  @if (unattributedCount()) {
+    <p class="prose" style="font-size:12px; margin-top:16px;">{{ 'artistDash.unattributed' | translate: { n: unattributedCount() } }}</p>
+  }
 }

@@ -34,6 +34,13 @@ export interface Asset {
   kind: AssetKind;
   title: string;
   artistName: string;
+  /** The wallet that created this campaign, lowercased. A display name is
+   * not ownership: until this field existed the app had no notion of whose
+   * a campaign was, so "Your campaigns" listed every campaign in the
+   * system to every visitor. Recorded at creation from the connected
+   * wallet; absent on campaigns created before this, which fall back to
+   * the escrow contract's own `artist` address where one exists. */
+  artistWallet?: string;
   genre: string;
   description: string;
   verified: boolean;

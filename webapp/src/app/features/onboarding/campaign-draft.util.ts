@@ -72,13 +72,17 @@ export function draftRaiseTotal(d: WizardData, preprodTotal: number): number {
   return d.model === 'preproduction' ? preprodTotal : 30000;
 }
 
-export function buildAssetDraft(d: WizardData, id: string, total: number): Asset {
+export function buildAssetDraft(d: WizardData, id: string, total: number, artistWallet?: string): Asset {
   const isPre = d.model === 'preproduction';
   const asset: Asset = {
     id,
     kind: isPre ? 'preproduction' : 'catalogue',
     title: d.title || 'Untitled campaign',
     artistName: d.artistName || 'Independent artist',
+    // Whose campaign this is. Only knowable if a wallet was connected at
+    // creation; the dashboard falls back to the escrow's on-chain artist
+    // when it is missing.
+    ...(artistWallet ? { artistWallet: artistWallet.toLowerCase() } : {}),
     genre: d.genre || 'Other',
     description: d.description || 'No description provided.',
     verified: false,
