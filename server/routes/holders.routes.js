@@ -49,6 +49,18 @@ module.exports = function registerHolderRoutes(router) {
     }
   });
 
+  /* Admin-only: re-read every holding from the contract and check that
+     holdings plus pool equal supply. This is the repair path — a replayed
+     balance cannot be patched, only overwritten with the real one. */
+  router.post("/api/admin/indexer/reconcile", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      sendJson(res, 200, await indexer.reconcile());
+    } catch (e) {
+      sendJson(res, 502, { error: "reconcile failed", detail: String(e.message || e) });
+    }
+  });
+
   /* Admin-only: wipe and replay. Balances are running deltas, so an index
      corrupted by a bad run cannot be patched — only rebuilt. */
   router.post("/api/admin/indexer/reindex", async (req, res) => {

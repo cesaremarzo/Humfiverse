@@ -40,10 +40,13 @@ export class StoreService {
   /** False when this deployment has no marketplace contract configured.
    * The UI says resale is unavailable rather than implying nobody is
    * selling. */
-  /** Holders per asset, from the backend's event index. Empty until it
-   * answers; `holderCountsComplete` says whether the index has caught up,
-   * because a count from a half-finished backfill is a lower bound rather
-   * than an answer. */
+  /** Holders per asset, from the backend's event index.
+   *
+   * An asset appears here only once the server has checked that token's
+   * holdings against the contract and they add up to total supply. An
+   * unverified asset is simply absent, which is why the presence of a key
+   * is the whole test below. `holderCountsComplete` describes the index's
+   * own progress and is kept for diagnostics, not for gating a number. */
   readonly holderCounts = signal<Record<string, number>>({});
   readonly holderCountsComplete = signal(false);
   readonly marketplaceEnabled = signal(false);
@@ -153,12 +156,11 @@ export class StoreService {
     return this.assets().find((a) => a.id === id);
   }
 
-  /** The holder count for an asset, or null when the index cannot yet
-   * answer — either it has no entry or the backfill is still running. The
-   * caller shows "not tracked" rather than a number it would have to
-   * retract. */
+  /** The holder count for an asset, or null when it is not known — the
+   * index has no entry, or the server could not verify the one it has
+   * against the contract. The caller shows "not tracked" rather than a
+   * number it would have to retract. */
   holderCountFor(assetId: string): number | null {
-    if (!this.holderCountsComplete()) return null;
     const n = this.holderCounts()[assetId];
     return typeof n === 'number' ? n : null;
   }
