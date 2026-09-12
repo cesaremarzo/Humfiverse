@@ -4,7 +4,7 @@ import { ApiService } from './api.service';
 import { Asset, Campaign, ContractTemplate, EscrowCampaignInfo, InvestorState, Locale, OnchainInfo, Portfolio, SecondaryListing } from './models';
 import { SUPPORTED_LOCALES, RTL_LOCALES } from './locales';
 import { retrying } from './retry.util';
-import { weiToUsd } from './usd-eth.util';
+import { weiToUsdPrecise } from './usd-eth.util';
 
 import assetsJson from './mock-data/assets.json';
 import campaignsJson from './mock-data/campaigns.json';
@@ -173,7 +173,7 @@ export class StoreService {
    * an automatically-matched/algorithmic price (see planning doc §7.8). */
   lowestAsk(assetId: string): number | null {
     const listings = this.activeListingsFor(assetId);
-    return listings.length ? weiToUsd(listings[0].pricePerTokenWei) : null;
+    return listings.length ? weiToUsdPrecise(listings[0].pricePerTokenWei) : null;
   }
 
   /** Re-pulls the offer board after any write, so the portfolio, the

@@ -180,7 +180,7 @@
                       <tr>
                         <td class="mono">{{ l.seller.toLowerCase() === mySeller() ? ('detail.resaleYou' | translate) : wallet.truncateAddr(l.seller) }}</td>
                         <td class="cell-num mono">{{ l.qty }}@if (!l.deliverable) { <span class="chip chip-neutral" style="margin-left:6px;">{{ 'detail.resaleNotDeliverable' | translate }}</span> }</td>
-                        <td class="cell-num mono">{{ fmt(weiToUsd(l.pricePerTokenWei)) }}</td>
+                        <td class="cell-num mono">{{ fmt(weiToUsdPrecise(l.pricePerTokenWei)) }}</td>
                         <td style="text-align:right;">
                           @if (l.seller.toLowerCase() === mySeller()) {
                             <button class="btn btn-ghost btn-sm" (click)="cancelMyListing(l)">{{ 'portfolio.cancelListingBtn' | translate }}</button>
