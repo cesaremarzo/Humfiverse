@@ -49,6 +49,17 @@ module.exports = function registerHolderRoutes(router) {
     }
   });
 
+  /* Admin-only: wipe and replay. Balances are running deltas, so an index
+     corrupted by a bad run cannot be patched — only rebuilt. */
+  router.post("/api/admin/indexer/reindex", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      sendJson(res, 200, await indexer.reindex());
+    } catch (e) {
+      sendJson(res, 502, { error: "reindex failed", detail: String(e.message || e) });
+    }
+  });
+
   /* Admin-only manual nudge. The indexer runs on its own while the process
      is awake, but a free-tier instance sleeps, so being able to push it
      along without waiting for traffic is worth the one endpoint. */
