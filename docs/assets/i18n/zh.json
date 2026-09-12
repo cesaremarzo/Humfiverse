@@ -114,7 +114,7 @@
   "buy.ackLabel": "我理解这是一个试点结构，并非投资建议，并已阅读风险因素。",
   "buy.fundCampaign": "为该项目出资",
   "buy.buyTokens": "购买代币",
-  "buy.fundsExtraCampaignNote": "现在购买也会帮助资助该目录的视频/营销活动——一旦达到目标，购买款项将重新直接支付给版权方。",
+  "buy.fundsExtraCampaignNote": "现在购买也会资助本项目的视频与营销计划：你的付款会留在里程碑托管中，只有艺人和工作室双方确认后才会释放。目标达成后，付款不再经过托管，而是直接进入代币合约的收款地址——那是 Humfiverse 为所有项目统一设置的单一地址，并非艺人本人的地址。",
   "buy.kycNote": "资金结算前需完成（模拟的）KYC/AML 验证。无需加密钱包——法币入金以模拟步骤展示。",
   "buy.kycRequired": "购买前需完成身份验证及 MiFID II 投资者适当性评估。",
   "buy.completeVerification": "完成投资者验证",

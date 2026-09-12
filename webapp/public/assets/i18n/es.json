@@ -114,7 +114,7 @@
   "buy.ackLabel": "Entiendo que se trata de una estructura piloto, no de asesoramiento de inversión, y que he revisado los factores de riesgo.",
   "buy.fundCampaign": "Financiar esta campaña",
   "buy.buyTokens": "Comprar tokens",
-  "buy.fundsExtraCampaignNote": "Comprar ahora también ayuda a financiar la campaña de video/marketing de este catálogo — una vez alcanzado el objetivo, las compras volverán directamente al titular de los derechos.",
+  "buy.fundsExtraCampaignNote": "Comprar ahora también financia la campaña de vídeo/marketing de este catálogo: tu pago queda en el depósito por hitos y solo se libera cuando el artista y el estudio confirman ambos. Alcanzado ese objetivo los pagos dejan de depositarse: van directos a la dirección de cobro del contrato del token, una única dirección que Humfiverse fija para todos los catálogos, no la del artista.",
   "buy.kycNote": "Se requiere verificación KYC/AML (simulada) antes de liquidar los fondos. No se necesita wallet cripto — la rampa fiat se muestra como paso simulado.",
   "buy.kycRequired": "Antes de comprar se requiere verificación de identidad y una evaluación de idoneidad MiFID II.",
   "buy.completeVerification": "Completar verificación de inversor",
