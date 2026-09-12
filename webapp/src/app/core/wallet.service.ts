@@ -34,7 +34,20 @@ const SEPOLIA_ADD_PARAMS = {
   blockExplorerUrls: ['https://sepolia.etherscan.io']
 };
 
+const EXPLORER_BASE = 'https://sepolia.etherscan.io';
 const BUY_ABI = ['function buy(uint256 tokenId, uint256 amount) external payable'];
+/* Secondary market. `setApprovalForAll` is on the token contract, the rest
+   on HumfiverseMarketplace — two different addresses, hence two ABIs. */
+const ERC1155_APPROVAL_ABI = [
+  'function setApprovalForAll(address operator, bool approved) external',
+  'function isApprovedForAll(address account, address operator) external view returns (bool)'
+];
+const MARKETPLACE_ABI = [
+  'function list(address token, uint256 tokenId, uint256 amount, uint256 pricePerToken) external returns (uint256)',
+  'function cancelListing(uint256 listingId) external',
+  'function buyListing(uint256 listingId, uint256 amount) external payable',
+  'event Listed(uint256 indexed listingId, address indexed seller, address indexed token, uint256 tokenId, uint256 amount, uint256 pricePerToken)'
+];
 const CONTRIBUTE_ABI = ['function contribute(uint256 campaignId) external payable'];
 const CONFIRM_MILESTONE_ABI = [
   'function confirmMilestoneAsArtist(uint256 campaignId, uint256 milestoneIndex) external',
@@ -133,15 +146,81 @@ export class WalletService {
    * HumfiverseCatalogueToken, paying `amount * priceWei`. Throws on
    * rejection, wrong network, or a reverted/failed transaction — callers
    * are expected to catch and show the user what happened. */
-  /** Plain-text signature, no transaction and no gas. Used to prove the
-   * wallet authorised a resale listing — see core/listing-signature.util.ts
-   * for what the signer is actually agreeing to. */
-  async signMessage(message: string): Promise<string> {
+  /* --- secondary market (HumfiverseMarketplace) ---
+     Every one of these is a transaction from the user's own wallet. The
+     backend has no operator function on that contract, so it cannot list,
+     cancel or move anyone's tokens — which is what the previous
+     server-side listing design got wrong (§2.58). */
+
+  private async signerFor(address: string, abi: string[]): Promise<ethers.Contract> {
     if (!window.ethereum) throw new Error('no-wallet');
     if (!(await this.ensureSepolia())) throw new Error('wrong-network');
     const provider = new ethers.BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
-    const signer = await provider.getSigner();
-    return signer.signMessage(message);
+    return new ethers.Contract(address, abi, await provider.getSigner());
+  }
+
+  /** Has this wallet already let the marketplace move its tokens? The
+   * contract refuses to create a listing without it, so the UI asks for
+   * this first rather than letting `list` revert. */
+  async isMarketplaceApproved(tokenContract: string, marketplace: string): Promise<boolean> {
+    const owner = this.state().address;
+    if (!owner) return false;
+    const token = await this.signerFor(tokenContract, ERC1155_APPROVAL_ABI);
+    return token['isApprovedForAll'](owner, marketplace);
+  }
+
+  /** One approval covers every future listing of every token in this
+   * contract, which is the standard ERC-1155 pattern and why it is a
+   * separate step the user consents to once. It does not transfer
+   * anything by itself. */
+  async approveMarketplace(tokenContract: string, marketplace: string): Promise<{ txHash: string; explorerUrl: string }> {
+    const token = await this.signerFor(tokenContract, ERC1155_APPROVAL_ABI);
+    const tx = await token['setApprovalForAll'](marketplace, true);
+    const receipt = await tx.wait();
+    if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
+    return { txHash: tx.hash, explorerUrl: `${EXPLORER_BASE}/tx/${tx.hash}` };
+  }
+
+  /** Creates the listing on chain and reads the new id back out of the
+   * Listed event, which is what the backend then indexes. */
+  async listOnMarketplace(params: { marketplace: string; tokenContract: string; tokenId: number; qty: number; pricePerTokenWei: string }):
+    Promise<{ listingId: number; txHash: string; explorerUrl: string }> {
+    const contract = await this.signerFor(params.marketplace, MARKETPLACE_ABI);
+    const tx = await contract['list'](params.tokenContract, params.tokenId, params.qty, BigInt(params.pricePerTokenWei));
+    const receipt = await tx.wait();
+    if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
+
+    let listingId = 0;
+    for (const log of receipt.logs ?? []) {
+      try {
+        const parsed = contract.interface.parseLog({ topics: [...log.topics], data: log.data });
+        if (parsed?.name === 'Listed') { listingId = Number(parsed.args['listingId']); break; }
+      } catch {
+        /* a log from another contract in the same transaction */
+      }
+    }
+    if (!listingId) throw new Error('tx-failed');
+    return { listingId, txHash: tx.hash, explorerUrl: `${EXPLORER_BASE}/tx/${tx.hash}` };
+  }
+
+  async cancelListingOnchain(params: { marketplace: string; listingId: number }): Promise<{ txHash: string; explorerUrl: string }> {
+    const contract = await this.signerFor(params.marketplace, MARKETPLACE_ABI);
+    const tx = await contract['cancelListing'](params.listingId);
+    const receipt = await tx.wait();
+    if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
+    return { txHash: tx.hash, explorerUrl: `${EXPLORER_BASE}/tx/${tx.hash}` };
+  }
+
+  /** Pays exactly qty x pricePerToken; the contract rejects anything else.
+   * Tokens and ETH move in this one transaction. */
+  async buyListingOnchain(params: { marketplace: string; listingId: number; qty: number; pricePerTokenWei: string }):
+    Promise<{ txHash: string; explorerUrl: string }> {
+    const contract = await this.signerFor(params.marketplace, MARKETPLACE_ABI);
+    const value = BigInt(params.pricePerTokenWei) * BigInt(params.qty);
+    const tx = await contract['buyListing'](params.listingId, params.qty, { value });
+    const receipt = await tx.wait();
+    if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
+    return { txHash: tx.hash, explorerUrl: `${EXPLORER_BASE}/tx/${tx.hash}` };
   }
 
   async buyOnchain(params: { contractAddress: string; tokenId: number; amount: number; priceWei: string }): Promise<{ txHash: string; explorerUrl: string }> {

@@ -1,1 +1,0 @@
-var t=100000000000000n;function r(n){return Number(BigInt(n)/t)}function e(n){return BigInt(Math.round(n))*t}export{r as n,e as t};

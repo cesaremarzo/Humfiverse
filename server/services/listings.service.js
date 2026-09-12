@@ -1,116 +1,127 @@
 "use strict";
-/* Secondary-market resale listings.
+/* Secondary-market resale, now genuinely on chain.
  *
- * What this is honestly: an *offer* board. Creating a listing does not
- * move, lock, or escrow anything on chain — HumfiverseMarketplace.sol is
- * written and tested but has never been deployed, so nothing here can
- * hold a seller to their offer or settle a trade. Buying a listing is a
- * simulated transfer, exactly as it was before these rows were persisted.
+ * What changed, and why it matters. Until §2.58 a listing was a row this
+ * server wrote on request, with `seller` supplied as a string in the body
+ * — so anyone could publish an offer on any wallet's behalf, and cancel
+ * anyone else's. A signed message closed the impersonation hole but still
+ * only proved *who asked*: the offer itself remained non-binding, because
+ * nothing could make a seller hand over tokens when a buyer turned up.
  *
- * Two things it does check. First, that the wallet named as the seller
- * actually authorised the offer, by signing its exact terms — see
- * lib/listing-signature.js for why that was not optional. Second, that
- * the offer is *possible*: the seller
- * really holds at least the quantity they are listing, read from the
- * token contract at creation time. That turns a listing from an
- * unverifiable claim into a verified one, which is the most this can
- * honestly be until the marketplace contract is deployed. The balance is
- * checked once, at creation — nothing stops the seller moving the tokens
- * afterwards, and the UI says so. */
+ * Now `HumfiverseMarketplace.list()` is a transaction from the seller's
+ * own wallet. `msg.sender` is the authentication, and the contract also
+ * requires `isApprovedForAll`, so it can actually move the tokens at
+ * purchase time. Humfiverse has no function on that contract at all —
+ * this server cannot list, cancel, or transfer anything for anyone.
+ *
+ * Which leaves this module doing one narrow job: keeping the list of
+ * listing ids that exist, and reading each one's live state back off the
+ * contract. It is an index, not a ledger.
+ *
+ * The contract is non-custodial by design: tokens stay in the seller's
+ * wallet until someone buys, and transfer atomically at that moment. So a
+ * seller can still move their tokens after listing, and a listing can
+ * outlive the balance behind it — `buyListing` then reverts rather than
+ * half-completing. Surfaced to buyers rather than hidden. */
 
-const crypto = require("node:crypto");
+const chainMarketplace = require("../chainMarketplace");
 const chain = require("../chain");
 const listingsRepo = require("../data/listings.repo");
 const onchainRepo = require("../data/onchain.repo");
-const { buildListingMessage, buildCancelMessage, checkSignature } = require("../lib/listing-signature");
 
-const WALLET_PATTERN = /^0x[0-9a-fA-F]{40}$/;
-
-function listActive() {
-  return listingsRepo.listActive();
-}
-
-/** Throws an error carrying a `code` the route maps to a status. */
 function invalid(message, code = "invalid") {
   return Object.assign(new Error(message), { code });
 }
 
-async function create({ assetId, seller, qty, pricePerToken, issuedAt, signature }) {
+function marketplaceEnabled() {
+  return chainMarketplace.marketplaceEnabled();
+}
+
+function marketplaceAddress() {
+  return chainMarketplace.MARKETPLACE_ADDRESS || null;
+}
+
+/**
+ * Every open listing, read from the contract.
+ *
+ * `deliverable` says whether the seller still holds what they are
+ * offering. The contract checks the balance when a listing is created,
+ * not continuously, so this can go false afterwards — the buy would
+ * revert. Better shown than discovered at signing time.
+ */
+async function listActive() {
+  if (!marketplaceEnabled()) return [];
+  const indexed = await listingsRepo.listIndexed();
+
+  const results = await Promise.all(
+    indexed.map(async (row) => {
+      let listing;
+      try {
+        listing = await chainMarketplace.getListing(row.listing_id);
+      } catch {
+        // An unreadable listing is omitted rather than guessed at. It stays
+        // indexed, so the next request tries again.
+        return null;
+      }
+      if (!listing) {
+        // Cancelled or fully sold. Stop re-reading it.
+        await listingsRepo.forget(row.listing_id).catch(() => {});
+        return null;
+      }
+      let deliverable = true;
+      try {
+        deliverable = (await chain.getBalance(listing.tokenId, listing.seller)) >= listing.qty;
+      } catch {
+        /* leave it true rather than accuse a seller on a failed read */
+      }
+      return {
+        id: String(listing.listingId),
+        listingId: listing.listingId,
+        assetId: row.asset_id,
+        seller: listing.seller,
+        qty: listing.qty,
+        pricePerTokenWei: listing.pricePerTokenWei,
+        deliverable,
+        contractAddress: chainMarketplace.MARKETPLACE_ADDRESS,
+        explorerUrl: `${chainMarketplace.EXPLORER_BASE}/address/${chainMarketplace.MARKETPLACE_ADDRESS}`,
+        txHash: row.tx_hash,
+        createdAt: row.created_at
+      };
+    })
+  );
+  return results.filter(Boolean).sort((a, b) => Number(BigInt(a.pricePerTokenWei) - BigInt(b.pricePerTokenWei)) || a.listingId - b.listingId);
+}
+
+/**
+ * Records a listing id the seller has just created on chain.
+ *
+ * Needs no authentication, which is worth stating plainly: the id is
+ * checked against the contract, and a listing that does not exist there,
+ * or whose token id is not this asset's, never enters the index. The
+ * thing being trusted is the contract, not the caller. The worst a bad
+ * actor can do is index a real listing that already exists, which is
+ * where it was heading anyway.
+ */
+async function indexListing({ listingId, assetId }) {
+  if (!marketplaceEnabled()) throw invalid("the marketplace contract is not configured on this server", "unavailable");
+  const id = Number(listingId);
+  if (!Number.isInteger(id) || id <= 0) throw invalid("listingId must be a positive whole number");
   if (!assetId || typeof assetId !== "string") throw invalid("assetId is required");
-  if (typeof seller !== "string" || !WALLET_PATTERN.test(seller)) {
-    throw invalid("seller must be a wallet address");
-  }
-  const quantity = Number(qty);
-  if (!Number.isInteger(quantity) || quantity <= 0) throw invalid("qty must be a positive whole number");
-  const price = Number(pricePerToken);
-  if (!Number.isFinite(price) || price <= 0) throw invalid("pricePerToken must be a positive number");
 
-  // The seller has to have signed these exact terms. The message is
-  // rebuilt here from the submitted fields, so a signature obtained for
-  // one offer cannot be replayed for a different asset, quantity, price
-  // or wallet.
-  const signatureError = checkSignature({
-    message: buildListingMessage({ assetId, seller, qty: quantity, pricePerToken: price, issuedAt }),
-    signature,
-    expectedSigner: seller,
-    issuedAt
-  });
-  if (signatureError) throw invalid(signatureError, "unauthorised");
-
-  // Verify the seller can actually deliver. A missing token record means
-  // this asset was never minted, which makes the offer meaningless.
   const token = await onchainRepo.findTokenByAssetId(assetId);
-  if (!token) throw invalid("this asset has no on-chain token to resell", "no_token");
+  if (!token) throw invalid("this asset has no on-chain token", "no_token");
 
-  const balance = await chain.getBalance(token.token_id, seller);
-  if (balance < quantity) {
-    throw invalid(`wallet holds ${balance} token(s) of this asset, cannot list ${quantity}`, "insufficient_balance");
-  }
+  const listing = await chainMarketplace.verifyListingMatches(id, token.token_id);
+  if (!listing) throw invalid("no active listing with this id for this asset on the marketplace contract", "not_found");
 
-  const listing = {
-    id: `listing-${crypto.randomUUID()}`,
+  await listingsRepo.index({
+    listingId: id,
     assetId,
-    seller: seller.toLowerCase(),
-    qty: quantity,
-    pricePerToken: price,
+    tokenId: token.token_id,
+    txHash: null,
     createdAt: new Date().toISOString()
-  };
-  await listingsRepo.insert(listing);
-  return listing;
-}
-
-/** Cancelling is gated on being the seller, since a listing is now shared
- * state rather than one tab's own signal. Not real authentication — this
- * backend has none — but it does stop one wallet removing another's
- * listing by guessing an id. */
-async function cancel(id, { seller, issuedAt, signature }) {
-  const listing = await listingsRepo.findById(id);
-  if (!listing) throw invalid("no listing with this id", "not_found");
-  if (typeof seller !== "string" || listing.seller !== seller.toLowerCase()) {
-    throw invalid("only the wallet that created a listing can cancel it", "not_seller");
-  }
-  // Naming the seller is not proof of being them — the address is public
-  // in every listing this API returns, so the check above alone let any
-  // caller cancel any offer.
-  const signatureError = checkSignature({
-    message: buildCancelMessage({ listingId: id, seller, issuedAt }),
-    signature,
-    expectedSigner: seller,
-    issuedAt
   });
-  if (signatureError) throw invalid(signatureError, "unauthorised");
-  await listingsRepo.remove(id);
   return listing;
 }
 
-/** Buying takes the whole listing, which is what the UI offers. The token
- * movement itself is simulated; this only retires the offer so it stops
- * being shown to everyone else. */
-async function buy(id) {
-  const listing = await listingsRepo.findById(id);
-  if (!listing) throw invalid("no listing with this id", "not_found");
-  await listingsRepo.remove(id);
-  return listing;
-}
-
-module.exports = { listActive, create, cancel, buy };
+module.exports = { marketplaceEnabled, marketplaceAddress, listActive, indexListing };

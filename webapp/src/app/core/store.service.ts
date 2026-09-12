@@ -4,12 +4,12 @@ import { ApiService } from './api.service';
 import { Asset, Campaign, ContractTemplate, EscrowCampaignInfo, InvestorState, Locale, OnchainInfo, Portfolio, SecondaryListing } from './models';
 import { SUPPORTED_LOCALES, RTL_LOCALES } from './locales';
 import { retrying } from './retry.util';
+import { weiToUsd } from './usd-eth.util';
 
 import assetsJson from './mock-data/assets.json';
 import campaignsJson from './mock-data/campaigns.json';
 import portfolioJson from './mock-data/portfolio.json';
 import contractTemplateJson from './mock-data/contract-template.json';
-import secondaryListingsJson from './mock-data/secondary-listings.json';
 
 function detectInitialLocale(): Locale {
   try {
@@ -32,12 +32,18 @@ export class StoreService {
   readonly campaigns = signal<Campaign[]>(campaignsJson as unknown as Campaign[]);
   readonly portfolio = signal<Portfolio>(portfolioJson as unknown as Portfolio);
   readonly contractTemplate = signal<ContractTemplate>(contractTemplateJson as unknown as ContractTemplate);
-  /** Bundled rows are the offline seed only. Once the backend answers,
-   * its list replaces them outright — including when it answers with
-   * nothing, because three fictional offers are worse than an honest
-   * empty board. Until these were persisted server-side, a listing lived
-   * in the creating tab's memory and was gone on the next reload. */
-  readonly secondaryListings = signal<SecondaryListing[]>(secondaryListingsJson as unknown as SecondaryListing[]);
+  /** Open offers on HumfiverseMarketplace. Starts empty and stays empty
+   * unless the contract has some: there is no bundled fallback any more,
+   * because a fictional offer on a board where every other row is a real,
+   * signed, on-chain listing is worse than an empty board. */
+  readonly secondaryListings = signal<SecondaryListing[]>([]);
+  /** False when this deployment has no marketplace contract configured.
+   * The UI says resale is unavailable rather than implying nobody is
+   * selling. */
+  readonly marketplaceEnabled = signal(false);
+  /** Which contract a seller's `list()` transaction goes to. Needed before
+   * any listing exists, so it cannot be read off one. */
+  readonly marketplaceAddress = signal<string | null>(null);
   readonly backendAvailable = signal(false);
 
   /** Every assetId with a real, chain-verified token (technical-architecture.md
@@ -159,7 +165,7 @@ export class StoreService {
   activeListingsFor(assetId: string): SecondaryListing[] {
     return this.secondaryListings()
       .filter((l) => l.assetId === assetId && l.qty > 0)
-      .sort((a, b) => a.pricePerToken - b.pricePerToken);
+      .sort((a, b) => Number(BigInt(a.pricePerTokenWei) - BigInt(b.pricePerTokenWei)));
   }
 
   /** The platform's displayed "current market price" for an asset: the
@@ -167,7 +173,7 @@ export class StoreService {
    * an automatically-matched/algorithmic price (see planning doc §7.8). */
   lowestAsk(assetId: string): number | null {
     const listings = this.activeListingsFor(assetId);
-    return listings.length ? listings[0].pricePerToken : null;
+    return listings.length ? weiToUsd(listings[0].pricePerTokenWei) : null;
   }
 
   /** Re-pulls the offer board after any write, so the portfolio, the
@@ -176,7 +182,9 @@ export class StoreService {
   async refreshListings(): Promise<void> {
     try {
       const result = await this.api.getListings();
-      this.secondaryListings.set(result.listings ?? []);
+      this.marketplaceEnabled.set(Boolean(result?.marketplaceEnabled));
+      this.marketplaceAddress.set(result?.marketplaceAddress ?? null);
+      this.secondaryListings.set(result?.listings ?? []);
     } catch (err) {
       console.warn('Could not refresh resale listings.', err);
     }
@@ -247,8 +255,12 @@ export class StoreService {
 
     const listingsLoad = this.api
       .getListings()
-      .then((result) => this.secondaryListings.set(result.listings ?? []))
-      .catch((err) => console.warn('Could not load resale listings — showing the bundled sample instead.', err));
+      .then((result) => {
+        this.marketplaceEnabled.set(Boolean(result?.marketplaceEnabled));
+        this.marketplaceAddress.set(result?.marketplaceAddress ?? null);
+        this.secondaryListings.set(result?.listings ?? []);
+      })
+      .catch((err) => console.warn('Could not load resale listings.', err));
 
     const escrowLoad = this.api
       .getEscrowCampaigns()

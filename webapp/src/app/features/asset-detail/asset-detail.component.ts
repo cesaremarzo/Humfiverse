@@ -13,7 +13,6 @@ import { ApiService } from '../../core/api.service';
 import { WalletService } from '../../core/wallet.service';
 import { ToastService } from '../../core/toast.service';
 import { Asset, DisclosureLevel, EscrowCampaignInfo, OnchainInfo, SecondaryListing } from '../../core/models';
-import { buildListingMessage, buildCancelMessage } from '../../core/listing-signature.util';
 import { fmtUSD, fmtUSDShort } from '../../core/format.util';
 import { fundingPctFor, remainingFor, tokensSoldFor } from '../../core/onchain-progress.util';
 import { ipfsGatewayUrl } from '../../core/ipfs.util';
@@ -42,7 +41,7 @@ export class AssetDetailComponent {
   tab = signal<TabKey>('overview');
   qty = signal(1);
   ack = signal(false);
-  success = signal<{ qty: number; total: number; txHash?: string; explorerUrl?: string } | null>(null);
+  success = signal<{ qty: number; total: number; txHash?: string; explorerUrl?: string; simulated?: boolean } | null>(null);
   yieldInfoOpen = signal(false);
   onchainInfo = signal<OnchainInfo | null>(null);
   onchainLoading = signal(false);
@@ -51,7 +50,7 @@ export class AssetDetailComponent {
 
   listings = computed(() => this.store.activeListingsFor(this.id()));
   marketPrice = computed(() => this.store.lowestAsk(this.id()));
-  resaleResult = signal<{ listing: SecondaryListing; received: number; fee: number; paid: number } | null>(null);
+  resaleResult = signal<{ listing: SecondaryListing; received: number; fee: number; paid: number; txHash?: string; explorerUrl?: string } | null>(null);
 
   /* --- listing your own tokens, from the page the tokens are on ---
      Until now the only way to offer tokens for resale was the Portfolio
@@ -68,6 +67,9 @@ export class AssetDetailComponent {
   sellQty = signal(1);
   sellPrice = signal(1);
   sellSubmitting = signal(false);
+  /** Which wallet prompt is in flight, so the dialog can say whether it
+   * is asking for the one-off approval or the listing itself. */
+  sellStep = signal<'approving' | 'listing' | null>(null);
   sellResult = signal<{ qty: number; price: number } | null>(null);
 
   disclosureRows: [keyof Asset['aiDisclosure'], string][] = [
@@ -373,7 +375,44 @@ export class AssetDetailComponent {
     return !!escrowInfo?.escrow && escrowInfo.status === 'active' && BigInt(escrowInfo.raised) < BigInt(escrowInfo.fundingGoal);
   }
 
+  /** Is there a real on-chain path for this asset — an active escrow
+   * campaign to contribute to, or a token with a price to buy from? */
+  hasOnchainPath(a: Asset): boolean {
+    const escrowInfo = this.escrowInfo();
+    const onchain = this.onchainInfo();
+    if (this.isPre(a) && escrowInfo?.escrow && escrowInfo.status === 'active') return true;
+    if (this.catalogueEscrowStillOpen(escrowInfo)) return true;
+    return !!(onchain?.onchain && onchain.priceWei !== '0');
+  }
+
+  /**
+   * Why the buy button is not available, or null when it is.
+   *
+   * This exists because the button used to require only the
+   * acknowledgement checkbox. With no wallet connected, every real path
+   * below was skipped and the click fell through to a *simulated*
+   * purchase that updated local state and opened the same "Purchase
+   * confirmed" dialog — minus the transaction hash, which is the only
+   * thing distinguishing it. A buyer could reasonably conclude they owned
+   * tokens they did not.
+   *
+   * `'loading'` is its own case for the same reason `null` and
+   * `{ onchain: false }` had to be separated elsewhere: while the chain
+   * read is in flight, this app does not yet know whether a real path
+   * exists, and acting on that is how it invented one.
+   */
+  buyBlockedReason(a: Asset): 'loading' | 'wallet' | null {
+    if (this.onchainInfo() === null) return 'loading';
+    if (this.hasOnchainPath(a) && !this.wallet.state().address) return 'wallet';
+    return null;
+  }
+
   async buy(a: Asset): Promise<void> {
+    const blocked = this.buyBlockedReason(a);
+    if (blocked) {
+      this.toast.show(this.translate.instant(blocked === 'loading' ? 'buy.stillLoading' : 'buy.connectFirst'), 'alert');
+      return;
+    }
     const qty = this.qty();
     const total = qty * a.tokenPrice;
     const escrowInfo = this.escrowInfo();
@@ -410,8 +449,12 @@ export class AssetDetailComponent {
       return;
     }
 
+    /* Only reachable when the chain has told us this asset has no token
+       at all — bundled demo data, or a backend that could not be reached.
+       Still simulated, but now it says so instead of borrowing the real
+       dialog's authority. */
     this.applyPurchase(a, qty, total);
-    this.success.set({ qty, total });
+    this.success.set({ qty, total, simulated: true });
   }
 
   weiToUsd = weiToUsd;
@@ -469,28 +512,48 @@ export class AssetDetailComponent {
     return platformFeeTokens(this.sellQty());
   }
 
-  /** Persisted server-side, so the offer survives a reload and every
-   * visitor sees it. The backend re-checks the wallet really holds what
-   * it is listing, so this can fail and has to be awaited. */
+  /** The listing is the seller's own transaction against
+   * HumfiverseMarketplace, so this is two wallet prompts at most: a
+   * one-off approval letting the contract move this token when a buyer
+   * arrives, then `list` itself. Humfiverse signs nothing and cannot
+   * create, cancel or move anything here. */
   async confirmSell(a: Asset): Promise<void> {
     const seller = this.mySeller();
+    const marketplace = this.store.marketplaceAddress();
+    const onchain = this.onchainInfo();
     if (!seller || this.sellSubmitting()) return;
+    if (!marketplace || !onchain?.onchain) {
+      this.toast.show(this.translate.instant('detail.resaleUnavailable'), 'alert');
+      return;
+    }
     const qty = this.sellQty();
     const price = this.sellPrice();
     this.sellSubmitting.set(true);
     try {
-      const issuedAt = new Date().toISOString();
-      const signature = await this.wallet.signMessage(
-        buildListingMessage({ assetId: a.id, seller, qty, pricePerToken: price, issuedAt })
-      );
-      await this.api.createListing({ assetId: a.id, seller, qty, pricePerToken: price, issuedAt, signature });
+      const approved = await this.wallet.isMarketplaceApproved(onchain.contractAddress, marketplace);
+      if (!approved) {
+        this.sellStep.set('approving');
+        await this.wallet.approveMarketplace(onchain.contractAddress, marketplace);
+      }
+      this.sellStep.set('listing');
+      const { listingId } = await this.wallet.listOnMarketplace({
+        marketplace,
+        tokenContract: onchain.contractAddress,
+        tokenId: onchain.tokenId,
+        qty,
+        pricePerTokenWei: usdToWei(price).toString()
+      });
+      // Tell the backend the id so the board can find it without an event
+      // scan. Best-effort: the listing exists on chain either way.
+      await this.api.indexListing({ listingId, assetId: a.id }).catch((err) => console.warn('Listing created on chain but not indexed.', err));
       await this.store.refreshListings();
       this.sellOpen.set(false);
       this.sellResult.set({ qty, price });
     } catch (err) {
       console.warn('Could not create the listing.', err);
-      this.toast.show(this.translate.instant('portfolio.listingFailed'), 'alert');
+      this.toast.show(this.onchainErrorMessage(err), 'alert');
     } finally {
+      this.sellStep.set(null);
       this.sellSubmitting.set(false);
     }
   }
@@ -498,38 +561,53 @@ export class AssetDetailComponent {
     this.sellResult.set(null);
   }
 
-  async cancelMyListing(id: string): Promise<void> {
-    const seller = this.mySeller();
-    if (!seller) return;
+  async cancelMyListing(listing: SecondaryListing): Promise<void> {
+    const marketplace = this.store.marketplaceAddress();
+    if (!this.mySeller() || !marketplace) return;
     try {
-      const issuedAt = new Date().toISOString();
-      const signature = await this.wallet.signMessage(buildCancelMessage({ listingId: id, seller, issuedAt }));
-      await this.api.cancelListing(id, { seller, issuedAt, signature });
+      await this.wallet.cancelListingOnchain({ marketplace, listingId: listing.listingId });
       await this.store.refreshListings();
     } catch (err) {
       console.warn('Could not cancel the listing.', err);
-      this.toast.show(this.translate.instant('portfolio.listingFailed'), 'alert');
+      this.toast.show(this.onchainErrorMessage(err), 'alert');
     }
   }
 
-  // --- buy from a resale listing (secondary purchase, 1% platform token fee) ---
+  /** A real trade: `buyListing` moves the tokens from the seller and the
+   * ETH to them in one transaction, with the platform's 1% token fee
+   * diverted by the contract. Nothing here simulates a transfer any more,
+   * so there is also nothing to undo if it fails. */
   async buyFromListing(listing: SecondaryListing): Promise<void> {
-    const fee = platformFeeTokens(listing.qty);
-    const received = listing.qty - fee;
-    const paid = listing.qty * listing.pricePerToken;
-
-    this.store.portfolio.update((p) => addHolding(p, { assetId: listing.assetId, tokens: received, costBasis: paid }));
-
-    try {
-      await this.api.buyListing(listing.id);
-      await this.store.refreshListings();
-    } catch (err) {
-      // The offer board is shared now, so retiring the listing has to
-      // reach the server; the simulated transfer above already happened.
-      console.warn('Could not retire the listing on the server.', err);
-      this.store.secondaryListings.update((l) => l.filter((x) => x.id !== listing.id));
+    const marketplace = this.store.marketplaceAddress();
+    if (!marketplace || !this.wallet.state().address) {
+      this.toast.show(this.translate.instant('toast.escrowNeedsWallet'), 'alert');
+      return;
     }
-    this.resaleResult.set({ listing, received, fee, paid });
+    this.onchainBuyPending.set(true);
+    try {
+      const result = await this.wallet.buyListingOnchain({
+        marketplace,
+        listingId: listing.listingId,
+        qty: listing.qty,
+        pricePerTokenWei: listing.pricePerTokenWei
+      });
+      const fee = platformFeeTokens(listing.qty);
+      await this.store.refreshListings();
+      this.scheduleOnchainRefresh(listing.assetId);
+      this.resaleResult.set({
+        listing,
+        received: listing.qty - fee,
+        fee,
+        paid: weiToUsd((BigInt(listing.pricePerTokenWei) * BigInt(listing.qty)).toString()),
+        txHash: result.txHash,
+        explorerUrl: result.explorerUrl
+      });
+    } catch (err) {
+      console.warn('On-chain resale purchase did not complete.', err);
+      this.toast.show(this.onchainErrorMessage(err), 'alert');
+    } finally {
+      this.onchainBuyPending.set(false);
+    }
   }
 
   closeResaleResult(): void {
