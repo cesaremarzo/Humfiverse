@@ -52,13 +52,13 @@
   </div>
 </div>
 
-@if (store.campaigns().length) {
+@if (myCampaigns().length) {
   <div class="page-head" style="margin-top:40px; margin-bottom:14px;">
     <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:17px;">{{ 'forArtists.yourCampaigns' | translate }}</h3>
     <a routerLink="/artist/dashboard" style="font-size:13px;">{{ 'forArtists.viewAll' | translate }} <app-icon name="arrowRight"></app-icon></a>
   </div>
   <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));">
-    @for (c of store.campaigns().slice(0, 3); track c.id) {
+    @for (c of myCampaigns().slice(0, 3); track c.id) {
       <app-campaign-card [campaign]="c"></app-campaign-card>
     }
   </div>

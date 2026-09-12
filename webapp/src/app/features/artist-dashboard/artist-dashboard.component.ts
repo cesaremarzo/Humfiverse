@@ -49,5 +49,12 @@ export class ArtistDashboardComponent {
     return fmtUSDShort(total);
   });
 
-  totalHolders = computed(() => this.myCampaigns().reduce((s, c) => s + c.holders, 0));
+  /* `Campaign.holders` is written as 0 by the onboarding wizard and never
+     updated by anything, so summing it produced a confident "0 token
+     holders" for campaigns that demonstrably have some. Counting them for
+     real means enumerating every address holding an ERC-1155 token id,
+     which needs either a full TransferSingle history (impractical under a
+     free-tier RPC's 10-block eth_getLogs cap, §2.55) or an indexer. Until
+     one exists the honest answer is that this is not tracked — see the
+     em dash in the template. */
 }
