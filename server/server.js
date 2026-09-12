@@ -38,14 +38,43 @@ const { PORT } = require("./config");
 const db = require("./db");
 const { initSchema, seedIfEmpty } = require("./data/schema");
 const { createRequestHandler } = require("./app");
+const indexer = require("./services/indexer.service");
 
 const server = http.createServer(createRequestHandler());
+
+/* Keeps the holder index moving while this process is awake.
+ *
+ * It cannot be a one-shot backfill: the free-tier RPC caps eth_getLogs at
+ * 10 blocks, so catching up is thousands of sequential calls, and a
+ * free-tier instance sleeps long before that finishes. The cursor lives in
+ * the database, so every run picks up where the last one stopped — this
+ * just keeps nudging it, quickly while behind and slowly once caught up.
+ * Deliberately fire-and-forget: indexing must never delay or fail a
+ * request, and a failed tick is retried by the next one. */
+const INDEX_TICK_BEHIND_MS = 2_000;
+const INDEX_TICK_CAUGHT_UP_MS = 60_000;
+
+function startIndexer() {
+  const tick = async () => {
+    let delay = INDEX_TICK_CAUGHT_UP_MS;
+    try {
+      const result = await indexer.step();
+      if (result.enabled === false) return; // no token contract configured; nothing to index
+      delay = result.caughtUp ? INDEX_TICK_CAUGHT_UP_MS : INDEX_TICK_BEHIND_MS;
+    } catch (err) {
+      console.warn("Indexer step failed; will retry.", err.message || err);
+    }
+    setTimeout(tick, delay).unref();
+  };
+  setTimeout(tick, 1_000).unref();
+}
 
 initSchema()
   .then(seedIfEmpty)
   .then(() => {
     server.listen(PORT, () => {
       console.log(`Humfiverse backend listening on http://localhost:${PORT} (storage: ${db.usingTurso ? "Turso" : "local file"})`);
+      startIndexer();
     });
   })
   .catch((err) => {

@@ -90,6 +90,15 @@ export class ApiService {
   }
 
   /** Every assetId with a real, chain-verified token — see StoreService.onchainAssetIds. */
+  /** Holder counts for many assets in one call, from the event index.
+   * `complete` says whether the backfill has caught up — a count taken
+   * mid-backfill is a lower bound, and the UI must not present it as a
+   * settled number. */
+  getHolderCounts(assetIds: string[]): Promise<{ complete: boolean; indexedToBlock: number | null; counts: Record<string, number> }> {
+    const ids = assetIds.map((id) => encodeURIComponent(id)).join(',');
+    return firstValueFrom(this.http.get<{ complete: boolean; indexedToBlock: number | null; counts: Record<string, number> }>(`${this.base}/api/holders?ids=${ids}`));
+  }
+
   /* --- secondary-market listings (persisted, shared across visitors) --- */
 
   /** The open offers, read off HumfiverseMarketplace. `marketplaceEnabled`

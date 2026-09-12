@@ -49,12 +49,16 @@ export class ArtistDashboardComponent {
     return fmtUSDShort(total);
   });
 
-  /* `Campaign.holders` is written as 0 by the onboarding wizard and never
-     updated by anything, so summing it produced a confident "0 token
-     holders" for campaigns that demonstrably have some. Counting them for
-     real means enumerating every address holding an ERC-1155 token id,
-     which needs either a full TransferSingle history (impractical under a
-     free-tier RPC's 10-block eth_getLogs cap, §2.55) or an indexer. Until
-     one exists the honest answer is that this is not tracked — see the
-     em dash in the template. */
+  /* Real now, from the backend's event index (§2.65). `Campaign.holders`
+     is still written as 0 by the wizard and updated by nothing, so it is
+     ignored entirely: this sums distinct holders per campaign, counted by
+     replaying the token's transfer log.
+     
+     null while the backfill is still catching up. A count from a
+     half-finished replay is a lower bound, and showing it as a total is
+     the exact mistake this whole feature was built to stop making. */
+  totalHolders = computed(() => {
+    if (!this.store.holderCountsComplete()) return null;
+    return this.myCampaigns().reduce((sum, c) => sum + (this.store.holderCountFor(c.assetId) ?? 0), 0);
+  });
 }

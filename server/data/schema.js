@@ -73,6 +73,24 @@ async function initSchema() {
       tx_hash TEXT,
       created_at TEXT NOT NULL
     );
+    -- Event indexer (§2.65). indexer_state is the resume cursor: this
+    -- backfill is ~4,100 sequential eth_getLogs calls under the free RPC's
+    -- hard 10-block cap, far longer than a free-tier instance stays awake,
+    -- so progress has to survive a restart.
+    CREATE TABLE IF NOT EXISTS indexer_state (
+      contract TEXT PRIMARY KEY,
+      last_block INTEGER NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    -- Derived from TransferSingle/TransferBatch. The only way to answer
+    -- "how many wallets hold this token" without an archive node: ERC-1155
+    -- has balanceOf but no holder enumeration.
+    CREATE TABLE IF NOT EXISTS token_holders (
+      token_id INTEGER NOT NULL,
+      wallet TEXT NOT NULL,
+      balance TEXT NOT NULL,
+      PRIMARY KEY (token_id, wallet)
+    );
     CREATE TABLE IF NOT EXISTS portfolio_snapshots (
       wallet TEXT NOT NULL,
       snapshot_date TEXT NOT NULL,

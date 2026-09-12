@@ -296,6 +296,7 @@
   "artistDash.connectBody": "Ihre Kampagnen werden über die Wallet identifiziert, die sie erstellt hat. Verbinden Sie sie, um Ihre zu sehen.",
   "artistDash.unattributed": "{{n}} Kampagne(n) stammen aus der Zeit vor der Eigentumserfassung und haben kein Escrow zur Identifikation — sie erscheinen unter keinem Konto.",
   "artistDash.holdersUnknownNote": "Nicht erfasst: Inhaber zu zählen hieße, jede Adresse mit diesem Token aufzuzählen — dafür braucht es einen Indexer, den dieser Prototyp nicht hat.",
+  "artistDash.holdersIndexing": "Die Transferhistorie wird noch indexiert — die Zahl erscheint, sobald der Index aufgeholt hat.",
   "artistDash.startCampaign": "Kampagne starten",
   "campaignCard.tokenHolders": "{{n}} Token-Inhaber",
   "campaignCard.holdersUnknown": "Anzahl der Inhaber wird nicht erfasst",

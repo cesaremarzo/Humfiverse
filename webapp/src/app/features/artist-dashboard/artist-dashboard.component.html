@@ -23,7 +23,7 @@
   <div class="stat-grid">
     <div class="card stat-tile"><div class="label">{{ 'artistDash.activeCampaigns' | translate }}</div><div class="value">{{ myCampaigns().length }}</div></div>
     <div class="card stat-tile"><div class="label">{{ 'artistDash.totalRaised' | translate }}</div><div class="value">{{ store.onchainInfoLoading() ? '—' : totalRaisedShort() }}</div></div>
-    <div class="card stat-tile"><div class="label">{{ 'artistDash.tokenHolders' | translate }}</div><div class="value" [title]="'artistDash.holdersUnknownNote' | translate">&mdash;</div></div>
+    <div class="card stat-tile"><div class="label">{{ 'artistDash.tokenHolders' | translate }}</div><div class="value" [title]="totalHolders() === null ? ('artistDash.holdersIndexing' | translate) : ''">{{ totalHolders() === null ? '—' : totalHolders() }}</div></div>
   </div>
   <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(340px,1fr));">
     @for (c of myCampaigns(); track c.id) {

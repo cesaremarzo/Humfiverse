@@ -296,6 +296,7 @@
   "artistDash.connectBody": "Vos campagnes sont identifiées par le portefeuille qui les a créées. Connectez-le pour voir les vôtres.",
   "artistDash.unattributed": "{{n}} campagne(s) sont antérieures à l'enregistrement de la propriété et n'ont pas d'escrow pour les identifier : elles n'apparaissent sous aucun compte.",
   "artistDash.holdersUnknownNote": "Non suivi : compter les détenteurs suppose d'énumérer chaque adresse détenant le jeton, ce qui demande un indexeur dont ce prototype ne dispose pas.",
+  "artistDash.holdersIndexing": "Historique des transferts encore en cours d'indexation — le compte apparaîtra une fois à jour.",
   "artistDash.startCampaign": "Démarrer une campagne",
   "campaignCard.tokenHolders": "{{n}} détenteurs de tokens",
   "campaignCard.holdersUnknown": "Nombre de détenteurs non suivi",

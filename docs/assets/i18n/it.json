@@ -296,6 +296,7 @@
   "artistDash.connectBody": "Le tue campagne sono identificate dal wallet che le ha create. Collegalo per vedere le tue.",
   "artistDash.unattributed": "{{n}} campagne su questa piattaforma sono precedenti alla registrazione della proprietà e non hanno un escrow che le identifichi, quindi non compaiono sotto nessun account.",
   "artistDash.holdersUnknownNote": "Non tracciato: contare i possessori richiede enumerare ogni indirizzo che detiene il token, cosa che richiede un indicizzatore che questo prototipo non ha.",
+  "artistDash.holdersIndexing": "Sto ancora indicizzando la cronologia dei trasferimenti: il conteggio comparirà quando avrà recuperato.",
   "artistDash.startCampaign": "Avvia una campagna",
   "campaignCard.tokenHolders": "{{n}} token holder",
   "campaignCard.holdersUnknown": "Numero di possessori non tracciato",
