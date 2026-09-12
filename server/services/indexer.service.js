@@ -60,6 +60,22 @@ const HEAD_TOLERANCE_BLOCKS = 25;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/* Only one step at a time.
+ *
+ * Without this, the background ticker and a manual /api/admin/indexer/step
+ * call ran concurrently in the same process: both read the cursor, both
+ * scanned from it, both wrote it back. Interleaved at their await points
+ * they duplicated some windows and skipped others, and since each log is
+ * applied as a *delta* to a running balance, both errors corrupt the
+ * result silently. It did exactly that to production — the index claimed
+ * 45 tokens where the contract held 1300, and invented a holder with 1
+ * where the contract held none.
+ *
+ * A module-level flag is enough because both callers live in this one
+ * process. A second instance would need a real lock; there is only ever
+ * one here. */
+let stepping = false;
+
 const provider = new ethers.JsonRpcProvider(RPC_URL);
 const iface = new ethers.Interface([
   "event TransferSingle(address indexed operator, address indexed from, address indexed to, uint256 id, uint256 value)",
@@ -101,6 +117,16 @@ async function applyLog(log) {
  */
 async function step(maxCalls = DEFAULT_MAX_CALLS) {
   if (!TOKEN_ADDRESS) return { enabled: false };
+  if (stepping) return { enabled: true, busy: true };
+  stepping = true;
+  try {
+    return await runStep(maxCalls);
+  } finally {
+    stepping = false;
+  }
+}
+
+async function runStep(maxCalls) {
   const latest = await provider.getBlockNumber();
   let from = (await indexerRepo.getCursor(TOKEN_ADDRESS)) ?? DEPLOY_BLOCK - 1;
   if (from >= latest) return { enabled: true, caughtUp: true, lastBlock: from, latest, scanned: 0, logs: 0 };
@@ -168,4 +194,12 @@ async function holderCounts(tokenIdsByAsset) {
   return { complete: Boolean(state.complete), indexedToBlock: state.lastBlock ?? null, counts };
 }
 
-module.exports = { step, status, holders, holderCounts, DEPLOY_BLOCK, WINDOW };
+/** Wipes the index and the cursor so the next step replays from the
+ * deploy block. Balances are running deltas, so a corrupted index cannot
+ * be repaired in place — only rebuilt. */
+async function reindex() {
+  await indexerRepo.clearAll();
+  return { cleared: true, resumesFrom: DEPLOY_BLOCK };
+}
+
+module.exports = { step, status, holders, holderCounts, reindex, DEPLOY_BLOCK, WINDOW };
