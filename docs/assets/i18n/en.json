@@ -114,7 +114,7 @@
   "buy.ackLabel": "I understand this is a pilot structure, not investment advice, and I’ve reviewed the risk factors.",
   "buy.fundCampaign": "Fund this campaign",
   "buy.buyTokens": "Buy tokens",
-  "buy.fundsExtraCampaignNote": "Buying right now also helps fund this catalogue's video/marketing campaign — once its goal is met, purchases go straight to the rights holder again.",
+  "buy.fundsExtraCampaignNote": "Buying now also funds this catalogue's video/marketing campaign: your payment is held in the milestone escrow and released only when the artist and the studio both confirm. Once that goal is met, payments are no longer escrowed — they go straight to the token contract's payout address, a single address Humfiverse sets for every catalogue rather than the artist's own.",
   "buy.kycNote": "KYC/AML verification (simulated) is required before funds settle. No crypto wallet needed — fiat on-ramp shown as a mock step.",
   "buy.kycRequired": "Identity verification and a MiFID II investor-appropriateness check are required before buying.",
   "buy.completeVerification": "Complete investor verification",
