@@ -34,9 +34,12 @@ async function main() {
   console.log("\nHumfiverseMarketplace deployed to:", address);
   console.log("Deploy block:", receipt.blockNumber);
   console.log("Network:", hre.network.name);
-  console.log("\nSet these in server/.env and on Render:");
+  console.log("\nSet this in server/.env and on Render:");
   console.log("  CHAIN_MARKETPLACE_ADDRESS=" + address);
-  console.log("  CHAIN_MARKETPLACE_DEPLOY_BLOCK=" + receipt.blockNumber);
+  console.log("\n(No deploy block needed: the backend reads listings by id");
+  console.log(" straight from the contract and never scans events, so there");
+  console.log(" is no starting block to remember — see §2.55 for why that");
+  console.log(" matters on a free-tier RPC.)");
 }
 
 main().catch((err) => {
