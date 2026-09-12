@@ -974,3 +974,68 @@ new logic — they were refusing to let the substitute look like the original.
 end to end — only from Node against the live contract. Worth a real click
 through. Deploying the marketplace was blocked by this environment's
 permission classifier and was run by the user by hand.
+
+### Listing prices with cents were rejected outright (§2.61)
+
+Reported as "it tells me the listing could not be updated". Two defects,
+both mine, both introduced with the on-chain listing flow the same day.
+
+The resale dialog invites a price in cents (`min="0.01" step="0.01"`) but
+the conversion reused `usdToWei`, written for whole-dollar mint prices. So
+**$15.50 listed at $16 without saying so, and anything under $0.50 became
+zero wei**, which the contract rejects with `require(pricePerToken > 0)`.
+Fixed with `usdToWeiPrecise`/`weiToUsdPrecise` — a cent is 1e12 wei here,
+an exact integer, so nothing needs to round. The originals stay for mint
+prices and escrow contributions, which really are whole-dollar. Verified on
+the live contract with $0.25 and $15.50, then cancelled.
+
+The second half was the message: the portfolio showed one generic string
+for every failure, so a declined signature, wrong network, insufficient gas
+and a contract revert looked identical, and the contract's own
+`"price must be > 0"` never reached the screen. Now on
+`onchainErrorTranslation`, as the campaign page already was.
+
+---
+
+## State at the end of 2026-09-12
+
+**Live and verified.** GitHub Pages and Render both on `main`. All work
+from 10–12 Sep is merged (PRs #18–#30).
+
+- **Backend** split into `routes/ → services/ → data/ → db.js` with `lib/`
+  and `config.js` as leaves. `server.js` is 54 lines. See
+  `server/STRUCTURE.md` before touching it.
+- **New at the repo root**: `README.md` — what's real vs simulated, setup,
+  how to run each part, how each deploys.
+- **`HumfiverseMarketplace` deployed** at
+  `0x88af7374622cb99C015C2435202d3f1392264356` (block 11688640). **No
+  redeploy of the token or escrow was needed** — the first contract change
+  here that didn't cascade. `CHAIN_MARKETPLACE_ADDRESS` is set locally and
+  on Render.
+- Resale is genuinely on chain: `list()`/`cancelListing()`/`buyListing()`
+  are the user's own transactions; the backend only indexes listing ids and
+  reads state off the contract.
+
+**Open items for next session:**
+- **`buyListing()` has never been exercised from MetaMask in a browser** —
+  only from Node against the live contract. The wallet code follows the
+  same shape as the four transaction types that do work, but a real click
+  through is the only thing that proves it.
+- **Nothing in §2.56–§2.61 has been clicked through by hand either.** The
+  equivalence suites, the live-contract round trips and the CDP renders are
+  what it rests on.
+- `Campaign.holders` is written as `0` by the wizard and never updated, so
+  the artist dashboard's "total holders" is always zero. Needs the set of
+  addresses holding each token id, which no endpoint exposes — event
+  indexing or a per-wallet scan. Left at zero rather than faked.
+- The onboarding wizard still lets a preproduction campaign be created with
+  a **zero budget**, which mints a zero supply.
+- GitBook's Git Sync still reads the whitepaper from **`dev/cesare`**, a
+  branch `CLAUDE.md` calls personal and force-pushable. It should read
+  `main`, which already carries `whitepaper/` and both config files. The
+  API exposes no Git Sync configuration, so it is a dashboard change.
+- No automated test suite for the backend or frontend. The layering from
+  §2.45 is what makes one possible: `app.js` builds a handler without
+  opening a port, and every service, repository and util can be required
+  directly. Several ad-hoc suites written this session live in the
+  scratchpad and were not kept — worth rebuilding properly in-repo.
