@@ -41,7 +41,7 @@ export class AssetDetailComponent {
   tab = signal<TabKey>('overview');
   qty = signal(1);
   ack = signal(false);
-  success = signal<{ qty: number; total: number; txHash?: string; explorerUrl?: string } | null>(null);
+  success = signal<{ qty: number; total: number; txHash?: string; explorerUrl?: string; simulated?: boolean } | null>(null);
   yieldInfoOpen = signal(false);
   onchainInfo = signal<OnchainInfo | null>(null);
   onchainLoading = signal(false);
@@ -375,7 +375,44 @@ export class AssetDetailComponent {
     return !!escrowInfo?.escrow && escrowInfo.status === 'active' && BigInt(escrowInfo.raised) < BigInt(escrowInfo.fundingGoal);
   }
 
+  /** Is there a real on-chain path for this asset — an active escrow
+   * campaign to contribute to, or a token with a price to buy from? */
+  hasOnchainPath(a: Asset): boolean {
+    const escrowInfo = this.escrowInfo();
+    const onchain = this.onchainInfo();
+    if (this.isPre(a) && escrowInfo?.escrow && escrowInfo.status === 'active') return true;
+    if (this.catalogueEscrowStillOpen(escrowInfo)) return true;
+    return !!(onchain?.onchain && onchain.priceWei !== '0');
+  }
+
+  /**
+   * Why the buy button is not available, or null when it is.
+   *
+   * This exists because the button used to require only the
+   * acknowledgement checkbox. With no wallet connected, every real path
+   * below was skipped and the click fell through to a *simulated*
+   * purchase that updated local state and opened the same "Purchase
+   * confirmed" dialog — minus the transaction hash, which is the only
+   * thing distinguishing it. A buyer could reasonably conclude they owned
+   * tokens they did not.
+   *
+   * `'loading'` is its own case for the same reason `null` and
+   * `{ onchain: false }` had to be separated elsewhere: while the chain
+   * read is in flight, this app does not yet know whether a real path
+   * exists, and acting on that is how it invented one.
+   */
+  buyBlockedReason(a: Asset): 'loading' | 'wallet' | null {
+    if (this.onchainInfo() === null) return 'loading';
+    if (this.hasOnchainPath(a) && !this.wallet.state().address) return 'wallet';
+    return null;
+  }
+
   async buy(a: Asset): Promise<void> {
+    const blocked = this.buyBlockedReason(a);
+    if (blocked) {
+      this.toast.show(this.translate.instant(blocked === 'loading' ? 'buy.stillLoading' : 'buy.connectFirst'), 'alert');
+      return;
+    }
     const qty = this.qty();
     const total = qty * a.tokenPrice;
     const escrowInfo = this.escrowInfo();
@@ -412,8 +449,12 @@ export class AssetDetailComponent {
       return;
     }
 
+    /* Only reachable when the chain has told us this asset has no token
+       at all — bundled demo data, or a backend that could not be reached.
+       Still simulated, but now it says so instead of borrowing the real
+       dialog's authority. */
     this.applyPurchase(a, qty, total);
-    this.success.set({ qty, total });
+    this.success.set({ qty, total, simulated: true });
   }
 
   weiToUsd = weiToUsd;

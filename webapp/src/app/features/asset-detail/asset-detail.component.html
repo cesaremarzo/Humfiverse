@@ -394,9 +394,13 @@
           </div>
         }
 
-        <button class="btn btn-primary btn-block btn-lg" [disabled]="!ack() || onchainBuyPending()" (click)="buy(a)">
+        <button class="btn btn-primary btn-block btn-lg" [disabled]="!ack() || onchainBuyPending() || !!buyBlockedReason(a)" (click)="buy(a)">
           @if (onchainBuyPending()) {
             {{ 'buy.onchainPending' | translate }}
+          } @else if (buyBlockedReason(a) === 'loading') {
+            {{ 'buy.stillLoading' | translate }}
+          } @else if (buyBlockedReason(a) === 'wallet') {
+            {{ 'buy.connectFirst' | translate }}
           } @else {
             {{ (a.kind === 'preproduction' ? 'buy.fundCampaign' : 'buy.buyTokens') | translate }} <app-icon name="arrowRight"></app-icon>
           }
@@ -414,6 +418,12 @@
         <p style="font-size:13.5px; color:var(--text-secondary);"
            [innerHTML]="'success.body' | translate: { qty: s.qty + ' ' + (successQtyKey() | translate), title: a.title, total: fmt(s.total) }">
         </p>
+        @if (s.simulated) {
+          <div class="risk-item" style="text-align:left; margin-bottom:14px;">
+            <app-icon name="alert"></app-icon>
+            <div>{{ 'buy.simulatedNote' | translate }}</div>
+          </div>
+        }
         @if (s.txHash) {
           <div class="card panel" style="text-align:left; font-size:12px; margin-bottom:14px;">
             <div style="color:var(--text-secondary); margin-bottom:4px;">{{ 'buy.onchainTxLabel' | translate }}</div>
