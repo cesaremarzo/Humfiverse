@@ -142,6 +142,14 @@ export class AssetDetailComponent {
       .catch(() => this.escrowInfo.set({ escrow: false }));
   }
 
+  /** How many wallets hold this token, or null while the event index is
+   * catching up. A buyer is deciding here, so concentration is a material
+   * fact: one holder with everything and fifty holders are not the same
+   * asset. */
+  holderCount(): number | null {
+    return this.store.holderCountFor(this.id());
+  }
+
   isPre(a: Asset): boolean {
     return a.kind === 'preproduction';
   }
