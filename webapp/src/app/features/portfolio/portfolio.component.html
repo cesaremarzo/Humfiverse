@@ -114,7 +114,7 @@
                   <tr>
                     <td>{{ l.assetId }}</td>
                     <td class="cell-num mono">{{ l.qty }}</td>
-                    <td class="cell-num mono">{{ fmt(weiToUsd(l.pricePerTokenWei)) }}</td>
+                    <td class="cell-num mono">{{ fmt(weiToUsdPrecise(l.pricePerTokenWei)) }}</td>
                     <td style="text-align:right;">
                       <button class="btn btn-ghost btn-sm" (click)="cancelListing(l)">{{ 'portfolio.cancelListingBtn' | translate }}</button>
                     </td>

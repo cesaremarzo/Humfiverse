@@ -14,3 +14,24 @@ export function weiToUsd(wei: string): number {
 export function usdToWei(usd: number): bigint {
   return BigInt(Math.round(usd)) * WEI_PER_USD;
 }
+
+/* --- resale prices ---
+ * The two above round to whole dollars, which is right for the places they
+ * were written for: mint-time prices and pool/escrow amounts are always
+ * whole numbers. Reusing them for a seller's own asking price was a
+ * mistake. The resale dialog invites cents (`min="0.01" step="0.01"`), so
+ * $15.50 silently listed at $16, and anything under $0.50 converted to
+ * **zero wei** — which HumfiverseMarketplace rejects outright
+ * (`require(pricePerToken > 0)`), surfacing only as a failed transaction.
+ *
+ * A cent is 1e12 wei at this mapping, still an exact integer, so nothing
+ * needs to round at all. */
+const WEI_PER_CENT = WEI_PER_USD / 100n;
+
+export function usdToWeiPrecise(usd: number): bigint {
+  return BigInt(Math.round(usd * 100)) * WEI_PER_CENT;
+}
+
+export function weiToUsdPrecise(wei: string): number {
+  return Number(BigInt(wei) / WEI_PER_CENT) / 100;
+}

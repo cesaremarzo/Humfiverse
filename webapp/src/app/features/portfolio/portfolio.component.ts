@@ -12,7 +12,8 @@ import { fmtUSD } from '../../core/format.util';
 import { coverBackground } from '../../core/cover.util';
 import { RoyaltyMonth, SecondaryListing } from '../../core/models';
 import { platformFeeTokens } from '../../core/marketplace-fee.util';
-import { weiToUsd, usdToWei } from '../../core/usd-eth.util';
+import { onchainErrorTranslation } from '../../core/onchain-error.util';
+import { weiToUsd, usdToWeiPrecise, weiToUsdPrecise } from '../../core/usd-eth.util';
 import { lowestAvailablePrice, bucketSnapshots, ChartGranularity } from '../../core/token-value.util';
 
 /** A real on-chain holding — replaces the fictional Portfolio.holdings mock
@@ -77,6 +78,14 @@ export class PortfolioComponent {
   sellSubmitting = signal(false);
   sellStep = signal<'approving' | 'listing' | null>(null);
   weiToUsd = weiToUsd;
+
+  /** Same mapping the campaign page uses: the component translates, the
+   * util decides which message applies. */
+  private onchainErrorMessage(err: unknown): string {
+    const { key, params } = onchainErrorTranslation(err);
+    return this.translate.instant(key, params);
+  }
+  weiToUsdPrecise = weiToUsdPrecise;
 
   totalTokens = computed(() => this.holdings().reduce((s, h) => s + h.tokens, 0));
   totalValue = computed(() => this.holdings().reduce((s, h) => s + h.valueUsd, 0));
@@ -270,7 +279,7 @@ export class PortfolioComponent {
         tokenContract: onchain.contractAddress,
         tokenId: onchain.tokenId,
         qty,
-        pricePerTokenWei: usdToWei(price).toString()
+        pricePerTokenWei: usdToWeiPrecise(price).toString()
       });
       await this.api.indexListing({ listingId, assetId: draft.assetId }).catch((err) => console.warn('Listing created on chain but not indexed.', err));
       await this.store.refreshListings();
@@ -278,7 +287,10 @@ export class PortfolioComponent {
       this.sellResult.set({ assetId: draft.assetId, qty, price });
     } catch (err) {
       console.warn('Could not create the listing.', err);
-      this.toast.show(this.translate.instant('portfolio.listingFailed'), 'alert');
+      // Say which of declined-signature, wrong network, insufficient funds
+      // or an on-chain revert it was. The generic message here hid the
+      // real reason — including the contract's own "price must be > 0".
+      this.toast.show(this.onchainErrorMessage(err), 'alert');
     } finally {
       this.sellStep.set(null);
       this.sellSubmitting.set(false);
@@ -297,7 +309,7 @@ export class PortfolioComponent {
       await this.store.refreshListings();
     } catch (err) {
       console.warn('Could not cancel the listing.', err);
-      this.toast.show(this.translate.instant('portfolio.listingFailed'), 'alert');
+      this.toast.show(this.onchainErrorMessage(err), 'alert');
     }
   }
 }

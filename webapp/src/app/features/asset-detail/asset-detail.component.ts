@@ -18,7 +18,7 @@ import { fundingPctFor, remainingFor, tokensSoldFor } from '../../core/onchain-p
 import { ipfsGatewayUrl } from '../../core/ipfs.util';
 import { computeYieldBreakdown } from '../../core/yield.util';
 import { platformFeeTokens } from '../../core/marketplace-fee.util';
-import { weiToUsd, usdToWei } from '../../core/usd-eth.util';
+import { weiToUsd, usdToWei, usdToWeiPrecise, weiToUsdPrecise } from '../../core/usd-eth.util';
 import { isValidRoyaltyMonth, royaltyAvg, royaltyTotal } from '../../core/royalty.util';
 import { onchainErrorTranslation } from '../../core/onchain-error.util';
 import { addHolding } from '../../core/portfolio-holdings.util';
@@ -458,6 +458,7 @@ export class AssetDetailComponent {
   }
 
   weiToUsd = weiToUsd;
+  weiToUsdPrecise = weiToUsdPrecise;
 
   /** The component still owns the translating; which message applies is
    * decided in core/onchain-error.util.ts, where it can be reasoned about
@@ -541,7 +542,7 @@ export class AssetDetailComponent {
         tokenContract: onchain.contractAddress,
         tokenId: onchain.tokenId,
         qty,
-        pricePerTokenWei: usdToWei(price).toString()
+        pricePerTokenWei: usdToWeiPrecise(price).toString()
       });
       // Tell the backend the id so the board can find it without an event
       // scan. Best-effort: the listing exists on chain either way.
