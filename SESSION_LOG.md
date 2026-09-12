@@ -926,3 +926,51 @@ on the published campaign page with a truncated seller, then cancelled it.
 **The honest next step**, unchanged: a real resale needs
 `HumfiverseMarketplace.sol` deployed and the tokens actually escrowed.
 Until then this is an offer board with a verified balance, labelled as one.
+
+## 2026-09-12 (cont.) — resale moved on chain, and a buy button that faked purchases (§2.58–§2.60)
+
+Three rounds, each started by the user catching something.
+
+**1. The listings shipped that morning let anyone list or cancel on any
+wallet's behalf.** `seller` was a string in the request body. Demonstrated:
+a caller holding nothing published 500 of another wallet's tokens at $0.01
+and cancelled that wallet's own listing — the seller address is returned by
+`GET /api/listings`, so there was nothing to guess. Closed with a signed
+message (§2.58).
+
+**2. The user's actual proposal was better, and the contract already did
+it.** `HumfiverseMarketplace.list()` takes `msg.sender` as the seller, so
+the transaction *is* the authentication, and it requires
+`isApprovedForAll`, so the contract can really move the tokens at purchase.
+A signature only proves who asked. Deployed at
+`0x88af7374622cb99C015C2435202d3f1392264356` — and **no redeploy of the
+token or escrow**, the first contract change here that didn't cascade.
+Backend demoted to an index: `marketplace_listings` holds only which ids
+exist. Verified on the live system, including cancelling directly on the
+contract without telling the backend and watching the board drop it unaided
+(§2.59). One correction to the mental model worth keeping: the contract is
+**non-custodial** — tokens stay with the seller and move atomically at
+purchase, not into escrow at listing time.
+
+**3. The buy button completed a purchase with no wallet and no
+transaction.** All three real routes in `buy()` required a connected
+wallet; with none they were all skipped and control fell through to
+`applyPurchase()` + the same "Purchase confirmed" dialog, minus only the
+transaction-hash block — which is *absent*, not contradicted. The button
+was gated on the acknowledgement checkbox alone, and the investor
+verification above it is itself simulated and needs no wallet. Now gated on
+a reason: no wallet, still loading, or genuinely no on-chain token — and
+that last branch says it simulated (§2.60).
+
+**The thread running through the whole session**, worth applying anywhere
+else: every defect was a *fallback presented with the authority of the real
+thing*. An escrow ratio standing in for a pool balance (96.53%). A `$0`
+that meant "not loaded". A `{ onchain: false }` that meant "the request
+failed". A success dialog that meant "we pretended". None of the fixes were
+new logic — they were refusing to let the substitute look like the original.
+
+**Open:** a real resale still needs a buyer to go through
+`buyListing()` in the browser, which has not been exercised with MetaMask
+end to end — only from Node against the live contract. Worth a real click
+through. Deploying the marketplace was blocked by this environment's
+permission classifier and was run by the user by hand.
