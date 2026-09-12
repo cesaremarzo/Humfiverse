@@ -85,7 +85,7 @@
           @if (isPre(a)) {
             <div class="card panel">
               <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:15px; margin-bottom:10px;">{{ 'detail.milestoneSnapshot' | translate }}</h3>
-              <app-milestone-track [milestones]="a.milestones!"></app-milestone-track>
+              <app-milestone-track [milestones]="liveMilestones(a)"></app-milestone-track>
             </div>
           } @else {
             <div class="card chart-card">
@@ -296,7 +296,7 @@
         @if (tab() === 'milestones' && isPre(a)) {
           <div class="card panel">
             <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:15px; margin-bottom:14px;">{{ 'detail.milestoneGatedEscrow' | translate }}</h3>
-            <app-milestone-track [milestones]="a.milestones!"></app-milestone-track>
+            <app-milestone-track [milestones]="liveMilestones(a)"></app-milestone-track>
             <div class="prose" style="margin-top:16px;">{{ 'detail.escrowProse' | translate }}</div>
           </div>
           <div class="card panel">

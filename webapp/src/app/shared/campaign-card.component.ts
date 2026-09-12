@@ -8,6 +8,7 @@ import { Campaign } from '../core/models';
 import { StoreService } from '../core/store.service';
 import { fmtUSDShort, fundingGoal } from '../core/format.util';
 import { fundingPctFor, fundingRaisedFor } from '../core/onchain-progress.util';
+import { milestonesWithOnchainStatus } from '../core/milestone-status.util';
 import { coverBackground } from '../core/cover.util';
 
 @Component({
@@ -35,6 +36,11 @@ export class CampaignCardComponent {
    * a zero that reads like a finished answer. */
   /** null while the index is still catching up, so the card says the count
    * is not tracked rather than showing a number that will change. */
+  liveMilestones() {
+    const a = this.asset;
+    return milestonesWithOnchainStatus(a?.milestones, a ? this.store.escrowFor(a.id) : null);
+  }
+
   holderCount(): number | null {
     const a = this.asset;
     return a ? this.store.holderCountFor(a.id) : null;
