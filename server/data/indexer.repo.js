@@ -8,6 +8,34 @@
 
 const db = require("../db");
 
+/**
+ * Claims the right to step this contract, for `ttlMs`.
+ *
+ * The conditional UPDATE is the whole mechanism: SQLite applies it
+ * atomically, so of two processes racing, exactly one sees `changes > 0`.
+ * An in-process flag could not do this — Render boots the new instance
+ * before retiring the old one, so a deploy briefly runs two tickers
+ * against the same database, and both stepped the same cursor.
+ *
+ * The lease expires rather than being held, so a process that dies
+ * mid-step does not block the indexer forever.
+ */
+async function claimLease(contract, ttlMs, startBlock) {
+  const key = contract.toLowerCase();
+  const now = Date.now();
+  await db.prepare(
+    "INSERT OR IGNORE INTO indexer_state (contract, last_block, updated_at, locked_until) VALUES (?, ?, ?, 0)"
+  ).run(key, startBlock, new Date().toISOString());
+  const result = await db.prepare(
+    "UPDATE indexer_state SET locked_until = ? WHERE contract = ? AND locked_until < ?"
+  ).run(now + ttlMs, key, now);
+  return result.changes > 0;
+}
+
+async function releaseLease(contract) {
+  await db.prepare("UPDATE indexer_state SET locked_until = 0 WHERE contract = ?").run(contract.toLowerCase());
+}
+
 async function getCursor(contract) {
   const row = await db.prepare("SELECT last_block FROM indexer_state WHERE contract = ?").get(contract.toLowerCase());
   return row ? Number(row.last_block) : null;
@@ -48,4 +76,4 @@ async function clearAll() {
   await db.prepare("DELETE FROM indexer_state").run();
 }
 
-module.exports = { getCursor, setCursor, applyDelta, holdersOf, clearAll };
+module.exports = { claimLease, releaseLease, getCursor, setCursor, applyDelta, holdersOf, clearAll };

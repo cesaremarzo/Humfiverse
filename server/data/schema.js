@@ -80,7 +80,11 @@ async function initSchema() {
     CREATE TABLE IF NOT EXISTS indexer_state (
       contract TEXT PRIMARY KEY,
       last_block INTEGER NOT NULL,
-      updated_at TEXT NOT NULL
+      updated_at TEXT NOT NULL,
+      -- Cross-process lease (§2.69). An in-process flag was not enough:
+      -- Render boots the new instance before retiring the old one, so
+      -- during a deploy two tickers step the same database.
+      locked_until INTEGER NOT NULL DEFAULT 0
     );
     -- Derived from TransferSingle/TransferBatch. The only way to answer
     -- "how many wallets hold this token" without an archive node: ERC-1155
@@ -104,6 +108,12 @@ async function initSchema() {
   // only sets the new schema for a table that doesn't exist yet.
   try {
     await db.exec("ALTER TABLE kyc_records ADD COLUMN wallet_address TEXT;");
+  } catch {
+    /* column already exists — fine */
+  }
+  // Same reason: indexer_state predates the lease column.
+  try {
+    await db.exec("ALTER TABLE indexer_state ADD COLUMN locked_until INTEGER NOT NULL DEFAULT 0;");
   } catch {
     /* column already exists — fine */
   }
