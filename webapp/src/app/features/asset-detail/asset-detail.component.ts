@@ -12,7 +12,7 @@ import { StoreService } from '../../core/store.service';
 import { ApiService } from '../../core/api.service';
 import { WalletService } from '../../core/wallet.service';
 import { ToastService } from '../../core/toast.service';
-import { Asset, DisclosureLevel, EscrowCampaignInfo, OnchainInfo, SecondaryListing } from '../../core/models';
+import { Asset, DisclosureLevel, EscrowCampaignInfo, Milestone, OnchainInfo, SecondaryListing } from '../../core/models';
 import { fmtUSD, fmtUSDShort } from '../../core/format.util';
 import { fundingPctFor, remainingFor, tokensSoldFor } from '../../core/onchain-progress.util';
 import { ipfsGatewayUrl } from '../../core/ipfs.util';
@@ -22,6 +22,7 @@ import { weiToUsd, usdToWei, usdToWeiPrecise, weiToUsdPrecise } from '../../core
 import { isValidRoyaltyMonth, royaltyAvg, royaltyTotal } from '../../core/royalty.util';
 import { onchainErrorTranslation } from '../../core/onchain-error.util';
 import { addHolding } from '../../core/portfolio-holdings.util';
+import { milestonesWithOnchainStatus } from '../../core/milestone-status.util';
 import { retrying } from '../../core/retry.util';
 
 type TabKey = 'overview' | 'royalty' | 'milestones' | 'disclosure' | 'documents' | 'risk';
@@ -148,6 +149,12 @@ export class AssetDetailComponent {
    * asset. */
   holderCount(): number | null {
     return this.store.holderCountFor(this.id());
+  }
+
+  /** The milestone track, with statuses from the escrow contract rather
+   * than the stored copy that is always 'pending'. */
+  liveMilestones(a: Asset): Milestone[] {
+    return milestonesWithOnchainStatus(a.milestones, this.escrowInfo());
   }
 
   isPre(a: Asset): boolean {
