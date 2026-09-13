@@ -1054,7 +1054,7 @@ only follows movement between passes, every ten minutes.
   what it rests on.
 - ~~`Campaign.holders` is written as `0` by the wizard and never updated~~ —
   done. Holder counts come from the index and are checked against the
-  contract; see below.
+  contract (§2.70).
 - The onboarding wizard still lets a preproduction campaign be created with
   a **zero budget**, which mints a zero supply.
 - GitBook's Git Sync still reads the whitepaper from **`dev/cesare`**, a
@@ -1066,3 +1066,60 @@ only follows movement between passes, every ten minutes.
   opening a port, and every service, repository and util can be required
   directly. Several ad-hoc suites written this session live in the
   scratchpad and were not kept — worth rebuilding properly in-repo.
+
+---
+
+## State at the end of 2026-09-13
+
+Short session. PR #41 merged, both deploys verified, holder counts now
+correct in production for the first time.
+
+**Verified against the live contract**, every on-chain asset, after the
+Render deploy settled:
+
+| Asset | Holders | Held | Pool | Supply |
+|---|---|---|---|---|
+| Guns | 1 | 1,300 | 0 | 1,300 |
+| Black Sail | 1 | 9 | 1,491 | 1,500 |
+| Secondo Pezzo | 1 | 5 | 1,495 | 1,500 |
+| Darios, Primo Pezzo, Sburricchio, Fammi fare il video, I wanna fly | 0 | 0 | full | full |
+
+Every holding matches `balanceOf`, every token's holdings plus pool equal
+total supply, and `/api/holders` returns an empty `unverified` list. Guns
+read **45** through three consecutive rebuilds; it now reads 1,300.
+
+Frontend bundle on GitHub Pages is `main-2U6ZLS6Q.js`.
+
+**What changed, in one line each:**
+- `reconcile` in `server/services/indexer.service.js` is the authority for
+  holdings; the eth_getLogs walk only follows movement between passes.
+- `setCursor` no longer writes with `INSERT OR REPLACE`, which had been
+  resetting `locked_until` and dropping §2.69's lease after every window.
+- `token_holder_audit` records whether each token's holdings were checked
+  against supply; an unverified token's count is withheld, not shown.
+- `server/STRUCTURE.md` gained the six modules it was missing — the
+  indexer, listings and holders files added after it was written.
+
+**Operational note that is now obsolete:** §2.69 said not to merge while
+the index rebuilds. There is no backfill any more — a fresh index is
+correct within seconds of boot and `reconcile` is idempotent, so a deploy
+mid-run is harmless.
+
+**Open items carried forward** (unchanged from 12 Sep except where noted):
+- **`buyListing()` still has never been exercised from MetaMask in a
+  browser** — only from Node against the live contract.
+- **Nothing in §2.56–§2.61 has been clicked through by hand.**
+- The onboarding wizard still lets a preproduction campaign be created with
+  a **zero budget**, which mints a zero supply.
+- GitBook's Git Sync still reads the whitepaper from **`dev/cesare`**
+  rather than `main`. Dashboard-only change; the API exposes no Git Sync
+  configuration.
+- No automated test suite for the backend or frontend. `reconcile` is the
+  first thing here with an obvious unit test — its failure path was
+  verified by hand this session (discovery disabled, a holder deleted,
+  count correctly withheld) and that check deserves to be permanent.
+- `payoutRecipient` is one address for the whole token contract with no
+  link to an asset's artist (§2.68). Contract-level work if proceeds are
+  ever meant to reach artists directly.
+- The Alchemy API key printed into a session on 12 Sep was never committed,
+  but rotating it is still the user's call.
