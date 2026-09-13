@@ -1,12 +1,20 @@
 "use strict";
-/* Replays HumfiverseCatalogueToken's transfer log into a holder table.
+/* Answers "who holds this token", from HumfiverseCatalogueToken.
  *
  * WHY THIS HAS TO EXIST. ERC-1155 offers `balanceOf(address, id)` and
  * nothing that enumerates holders. So "how many wallets hold this token"
  * — a question the artist dashboard has been answering with a hardcoded
- * zero (§2.64) — cannot be asked of the chain directly. The only source is
- * the TransferSingle/TransferBatch log, and the only way to use it is to
- * replay it and keep the running balances.
+ * zero (§2.64) — cannot be asked of the chain directly. Some record of who
+ * has ever touched the token has to be built and kept.
+ *
+ * TWO MECHANISMS, AND WHY BOTH. `reconcile` is the authority: it collects
+ * candidate wallets, reads each one's real balance with `balanceOf`, and
+ * checks that holdings plus the unsold pool equal total supply. The
+ * eth_getLogs walk below keeps the table current between those passes.
+ * The walk alone was not enough, and §2.70 is the story of why: a replayed
+ * balance is the sum of every event ever applied to it, so one missed log
+ * is permanent, invisible, and unrepairable — it read 45 where the
+ * contract held 1300, twice, and reported itself complete both times.
  *
  * WHY IT IS SLOW, AND WHY THAT IS NOT NEGOTIABLE. The RPC caps
  * `eth_getLogs` at a **hard 10-block range** on the free tier, so the
@@ -29,6 +37,7 @@ const { ethers } = require("ethers");
 const chain = require("../chain");
 const { withRetry } = require("../chainRetry");
 const indexerRepo = require("../data/indexer.repo");
+const onchainRepo = require("../data/onchain.repo");
 
 const RPC_URL = process.env.CHAIN_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com";
 const TOKEN_ADDRESS = chain.CONTRACT_ADDRESS;
@@ -87,6 +96,15 @@ const iface = new ethers.Interface([
 ]);
 const TOPICS = [[iface.getEvent("TransferSingle").topicHash, iface.getEvent("TransferBatch").topicHash]];
 
+/* Reads used by the reconciliation below. Deliberately separate from
+   chain.js's contract: this module needs them at a pinned block, and a
+   snapshot taken at one block is the whole point (see reconcile). */
+const token = new ethers.Contract(TOKEN_ADDRESS || ethers.ZeroAddress, [
+  "function balanceOf(address account, uint256 id) view returns (uint256)",
+  "function poolBalance(uint256 tokenId) view returns (uint256)",
+  "function totalSupplyOf(uint256 tokenId) view returns (uint256)"
+], provider);
+
 function isRealHolder(address) {
   const a = address.toLowerCase();
   return a !== ethers.ZeroAddress && a !== TOKEN_ADDRESS.toLowerCase();
@@ -119,12 +137,15 @@ async function applyLog(log) {
  * most one window. Re-applying a window would double-count, which is why
  * the cursor moves with the work rather than after it.
  */
-async function step(maxCalls = DEFAULT_MAX_CALLS) {
+/** Runs `work` as the only writer to the index.
+ *
+ * Two guards, because they stop different things. The flag stops the
+ * ticker racing an admin call inside this process; the database lease
+ * stops two processes racing each other, which is what a Render deploy
+ * creates and what silently corrupted the index twice. Both the walker
+ * and the reconciler write balances, so both take it. */
+async function withIndexLock(work) {
   if (!TOKEN_ADDRESS) return { enabled: false };
-  // Two guards, because they stop different things. The flag stops the
-  // ticker racing an admin call inside this process; the database lease
-  // stops two processes racing each other, which is what a Render deploy
-  // creates and what silently corrupted the index twice.
   if (stepping) return { enabled: true, busy: true };
   stepping = true;
   try {
@@ -132,13 +153,17 @@ async function step(maxCalls = DEFAULT_MAX_CALLS) {
       return { enabled: true, busy: true, heldElsewhere: true };
     }
     try {
-      return await runStep(maxCalls);
+      return await work();
     } finally {
       await indexerRepo.releaseLease(TOKEN_ADDRESS).catch(() => {});
     }
   } finally {
     stepping = false;
   }
+}
+
+async function step(maxCalls = DEFAULT_MAX_CALLS) {
+  return withIndexLock(() => runStep(maxCalls));
 }
 
 async function runStep(maxCalls) {
@@ -166,6 +191,120 @@ async function runStep(maxCalls) {
   return { enabled: true, caughtUp: from >= latest, lastBlock: from, latest, scanned: calls * WINDOW, logs: logsSeen };
 }
 
+/** Every wallet that has ever sent or received one of this contract's
+ * tokens, by token id, from the RPC's own transfer index.
+ *
+ * One paginated call covers the whole history, with no range cap — the
+ * opposite of the eth_getLogs walk below, which needs ~4,100 calls for
+ * the same ground. It is a vendor extension, so a provider that does not
+ * implement it throws and the caller falls back to whoever the walk has
+ * already found. Crucially, nothing here is trusted for *amounts*: this
+ * only answers "which wallets are worth asking about", and every balance
+ * comes from the contract. That is what makes a wide query safe here
+ * while the same shape of query silently lied in 2.39.
+ */
+async function discoverWallets(toBlock) {
+  const byToken = new Map();
+  let pageKey;
+  do {
+    const res = await withRetry(() => provider.send("alchemy_getAssetTransfers", [{
+      fromBlock: "0x0",
+      toBlock: ethers.toBeHex(toBlock),
+      contractAddresses: [TOKEN_ADDRESS],
+      category: ["erc1155"],
+      excludeZeroValue: false,
+      maxCount: "0x3e8",
+      ...(pageKey ? { pageKey } : {})
+    }]));
+    for (const transfer of res.transfers || []) {
+      for (const entry of transfer.erc1155Metadata || []) {
+        const tokenId = Number(entry.tokenId);
+        if (!byToken.has(tokenId)) byToken.set(tokenId, new Set());
+        for (const address of [transfer.from, transfer.to]) {
+          if (address && isRealHolder(address)) byToken.get(tokenId).add(address.toLowerCase());
+        }
+      }
+    }
+    pageKey = res.pageKey;
+  } while (pageKey);
+  return byToken;
+}
+
+/**
+ * Rebuilds every token's holdings from the contract, and checks the
+ * result adds up.
+ *
+ * WHY A REPLAY IS NOT ENOUGH. A balance here is the sum of every event
+ * ever applied to it, so a single missed log is permanent, invisible, and
+ * unrepairable in place. It happened twice in production and neither run
+ * reported anything wrong: the walk finished, the cursor reached the head,
+ * the flag said complete, and one token read 45 where the contract held
+ * 1300. Nothing in a replay can detect that, because the replay is the
+ * only thing that knows what the answer should be.
+ *
+ * WHAT MAKES THIS DIFFERENT. Two independent facts, both from the
+ * contract. balanceOf gives each wallet's real holding, so no amount is
+ * ever derived. And `held + pool == totalSupply` catches the one thing
+ * balanceOf alone cannot — a holder nobody knows to ask about — because a
+ * missing wallet's tokens leave a hole in the supply. A token that fails
+ * that check has its count withheld instead of shown.
+ *
+ * Everything is read at one pinned block so the snapshot is internally
+ * consistent, and the cursor is moved to that block: the walk then
+ * resumes from a verified state instead of re-applying history that is
+ * already accounted for.
+ */
+async function reconcile() {
+  return withIndexLock(async () => {
+    const block = await provider.getBlockNumber();
+    let discovered = new Map();
+    let discovery = "asset-transfers";
+    try {
+      discovered = await discoverWallets(block);
+    } catch {
+      // A provider without the transfer index: fall back to whatever the
+      // eth_getLogs walk has found. The supply check below is what says
+      // whether that was enough.
+      discovery = "indexed-only";
+    }
+
+    const tokens = await onchainRepo.listTokens();
+    const assets = {};
+    let unbalanced = 0;
+    for (const row of tokens) {
+      const tokenId = Number(row.token_id);
+      const known = (await indexerRepo.holdersOf(tokenId)).map((h) => h.wallet);
+      const wallets = [...new Set([...(discovered.get(tokenId) || []), ...known])];
+
+      const holders = [];
+      let held = 0n;
+      for (const wallet of wallets) {
+        const balance = await withRetry(() => token.balanceOf(wallet, tokenId, { blockTag: block }));
+        if (balance > 0n) { holders.push({ wallet, balance: balance.toString() }); held += balance; }
+        await sleep(CALL_SPACING_MS);
+      }
+      const pool = await withRetry(() => token.poolBalance(tokenId, { blockTag: block }));
+      await sleep(CALL_SPACING_MS);
+      const supply = await withRetry(() => token.totalSupplyOf(tokenId, { blockTag: block }));
+      await sleep(CALL_SPACING_MS);
+
+      const balanced = held + pool === supply;
+      if (!balanced) unbalanced += 1;
+      await indexerRepo.replaceHolders(tokenId, holders);
+      await indexerRepo.saveAudit(tokenId, {
+        balanced, held: held.toString(), pool: pool.toString(), supply: supply.toString(), block
+      });
+      assets[row.asset_id] = {
+        tokenId, holders: holders.length, balanced,
+        held: held.toString(), pool: pool.toString(), supply: supply.toString()
+      };
+    }
+
+    await indexerRepo.setCursor(TOKEN_ADDRESS, block);
+    return { enabled: true, block, discovery, tokens: tokens.length, unbalanced, assets };
+  });
+}
+
 async function status() {
   if (!TOKEN_ADDRESS) return { enabled: false };
   const lastBlock = await indexerRepo.getCursor(TOKEN_ADDRESS);
@@ -190,8 +329,21 @@ async function status() {
  * lower bound, and this project has spent a whole session learning not to
  * present a partial answer as a settled one. */
 async function holders(tokenId) {
-  const [rows, state] = await Promise.all([indexerRepo.holdersOf(tokenId), status()]);
-  return { holders: rows, count: rows.length, complete: Boolean(state.complete), indexedToBlock: state.lastBlock ?? null };
+  const [rows, state, audit] = await Promise.all([
+    indexerRepo.holdersOf(tokenId), status(), indexerRepo.getAudit(tokenId)
+  ]);
+  const verified = Boolean(audit && audit.balanced);
+  return {
+    holders: rows,
+    // Withheld rather than guessed when the supply check has not passed:
+    // an unverified count is the kind of number this project has already
+    // shipped twice and had to retract.
+    count: verified ? rows.length : null,
+    verified,
+    audit,
+    complete: Boolean(state.complete),
+    indexedToBlock: state.lastBlock ?? null
+  };
 }
 
 /** Counts for many assets at once, keyed by asset id.
@@ -203,10 +355,15 @@ async function holders(tokenId) {
 async function holderCounts(tokenIdsByAsset) {
   const state = await status();
   const counts = {};
+  const unverified = [];
   for (const [assetId, tokenId] of Object.entries(tokenIdsByAsset)) {
-    counts[assetId] = (await indexerRepo.holdersOf(tokenId)).length;
+    const audit = await indexerRepo.getAudit(tokenId);
+    if (audit && audit.balanced) counts[assetId] = (await indexerRepo.holdersOf(tokenId)).length;
+    else unverified.push(assetId);
   }
-  return { complete: Boolean(state.complete), indexedToBlock: state.lastBlock ?? null, counts };
+  // An asset simply absent from `counts` is the signal that its count is
+  // not known; callers render "not tracked" for it.
+  return { complete: Boolean(state.complete), indexedToBlock: state.lastBlock ?? null, counts, unverified };
 }
 
 /** Wipes the index and the cursor so the next step replays from the
@@ -217,4 +374,4 @@ async function reindex() {
   return { cleared: true, resumesFrom: DEPLOY_BLOCK };
 }
 
-module.exports = { step, status, holders, holderCounts, reindex, DEPLOY_BLOCK, WINDOW };
+module.exports = { step, reconcile, status, holders, holderCounts, reindex, DEPLOY_BLOCK, WINDOW };

@@ -98,6 +98,8 @@ deployment*, not a domain rule.
 | `compliance.repo.js` | `contract_acceptances`, `kyc_records` | Append-only in practice. They record what a user was shown and agreed to, at a point in time. |
 | `onchain.repo.js` | `onchain_tokens` | A **cache**, never the source of truth (§2.14). A miss means "not cached", not "no token". |
 | `escrow.repo.js` | `escrow_campaigns`, `escrow_studios` | Also caches, and only valid against the contract they were written for — which is why the admin reset endpoints exist. |
+| `listings.repo.js` | `marketplace_listings` | Listing ids only. The offer itself — price, seller, whether it is still open — is read off the contract. |
+| `indexer.repo.js` | `indexer_state`, `token_holders`, `token_holder_audit` | The resume cursor and its cross-process lease, the holder table, and the audit row that says whether that token's holdings were checked against supply (§2.70). |
 
 ### `services/` — domain logic
 
@@ -108,6 +110,8 @@ deployment*, not a domain rule.
 | `compliance.service.js` | Clause-by-clause contract acceptance (art. 1341 co.2 c.c.) and the MiFID II Art. 25(3) appropriateness scoring. Both re-validated server-side. |
 | `onchain.service.js` | The cache-versus-contract logic: chain-fallback lookup, next free token id, mint, and the listing that self-heals the cache from a bounded recent-blocks scan (§2.39). |
 | `escrow.service.js` | Campaign creation: studio registration, the already-minted-token precondition (§2.42), and the campaign listing. |
+| `listings.service.js` | Resale: records the ids of on-chain listings and reads each one's live state back off `HumfiverseMarketplace`. No price or seller is ever taken from a request body (§2.62). |
+| `indexer.service.js` | Who holds each token. `reconcile` is the authority — real balances from `balanceOf`, verified by `held + pool == totalSupply`; the eth_getLogs walk only follows movement between passes (§2.70). |
 
 ### `routes/` — one module per path prefix
 
@@ -121,6 +125,8 @@ deployment*, not a domain rule.
 | `token-metadata.routes.js` | The two ERC-1155 metadata endpoints wallets read (§2.36) |
 | `portfolio.routes.js` | `GET /api/portfolio/:wallet`, the snapshot pair, and `POST /api/redeem` |
 | `escrow.routes.js` | `POST /api/escrow/campaign`, `GET /api/escrow/campaigns`, `GET /api/escrow/campaign/:assetId`, and the deliberate `410` on `/api/escrow/confirm` (§2.27) |
+| `listings.routes.js` | `GET /api/listings`, `POST /api/listings`, `POST /api/listings/index`, and the `:id` cancel/buy pair |
+| `holders.routes.js` | `GET /api/holders`, `GET /api/holders/:assetId`, `GET /api/indexer/status`, and the admin reconcile/reindex/step trio |
 | `admin.routes.js` | The three `X-Admin-Key` reset endpoints, all of which exist because of contract redeploys |
 
 ### Not part of the split

@@ -10,6 +10,7 @@ import {
   ContractTemplate,
   EscrowCampaignCreateResult,
   EscrowCampaignInfo,
+  HolderCountsResponse,
   KycResult,
   OnchainInfo,
   OnchainMintResult,
@@ -94,9 +95,12 @@ export class ApiService {
    * `complete` says whether the backfill has caught up — a count taken
    * mid-backfill is a lower bound, and the UI must not present it as a
    * settled number. */
-  getHolderCounts(assetIds: string[]): Promise<{ complete: boolean; indexedToBlock: number | null; counts: Record<string, number> }> {
+  /** Counts for many assets at once. Only assets whose holdings the server
+   * has verified against the contract appear in `counts`; `unverified`
+   * lists the rest, which the UI renders as "not tracked". */
+  getHolderCounts(assetIds: string[]): Promise<HolderCountsResponse> {
     const ids = assetIds.map((id) => encodeURIComponent(id)).join(',');
-    return firstValueFrom(this.http.get<{ complete: boolean; indexedToBlock: number | null; counts: Record<string, number> }>(`${this.base}/api/holders?ids=${ids}`));
+    return firstValueFrom(this.http.get<HolderCountsResponse>(`${this.base}/api/holders?ids=${ids}`));
   }
 
   /* --- secondary-market listings (persisted, shared across visitors) --- */

@@ -95,6 +95,21 @@ async function initSchema() {
       balance TEXT NOT NULL,
       PRIMARY KEY (token_id, wallet)
     );
+    -- Proof that token_holders is right (2.70). A replayed balance is
+    -- derived; balanceOf is the fact, and twice now the two disagreed
+    -- without anything noticing. "balanced" records the one check that can
+    -- detect a *missing* holder as well as a wrong one: the sum of every
+    -- known holding plus the unsold pool must equal total supply. When it
+    -- doesn't, the count for that token is withheld rather than shown.
+    CREATE TABLE IF NOT EXISTS token_holder_audit (
+      token_id INTEGER PRIMARY KEY,
+      balanced INTEGER NOT NULL,
+      held TEXT NOT NULL,
+      pool TEXT NOT NULL,
+      supply TEXT NOT NULL,
+      block INTEGER,
+      checked_at TEXT NOT NULL
+    );
     CREATE TABLE IF NOT EXISTS portfolio_snapshots (
       wallet TEXT NOT NULL,
       snapshot_date TEXT NOT NULL,

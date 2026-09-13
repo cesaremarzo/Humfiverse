@@ -1016,6 +1016,34 @@ from 10–12 Sep is merged (PRs #18–#30).
   are the user's own transactions; the backend only indexes listing ids and
   reads state off the contract.
 
+### The holder index had to stop replaying and start verifying (§2.70)
+
+Three full rebuilds of the event index, three silent corruptions. The third
+ran with §2.69's cross-process lease, with nothing merged during it, and
+still reported itself complete while Guns read **45 tokens against 1,300**
+on chain.
+
+Pulling the contract's entire transfer history — 20 transfers across 8
+tokens — showed why: Guns was released in two tranches, 45 and 1,255, and
+the walk had captured only the first. Individual windows were being missed,
+not a contiguous stretch. A contributing bug turned up in the same look:
+`setCursor` wrote with `INSERT OR REPLACE`, which deletes the row before
+reinserting it and so reset `locked_until` to zero after **every** window —
+the §2.69 lease was being dropped a second after it was taken.
+
+Fixing the walk would not have been the fix. A replayed balance is the sum
+of every event ever applied to it, so one missed log is permanent,
+invisible and unrepairable in place, and nothing inside a replay can detect
+it. Each of the three failures was caught only by an external check.
+
+So `reconcile` is now the authority: candidate wallets are discovered in
+one call, every amount is read with `balanceOf`, and `held + pool ==
+totalSupply` catches a holder nobody knew to ask about. A token failing
+that check has its count withheld rather than shown. The 20-minute backfill
+is gone — a fresh index is correct in seconds, and the eth_getLogs walk now
+only follows movement between passes, every ten minutes.
+
+
 **Open items for next session:**
 - **`buyListing()` has never been exercised from MetaMask in a browser** —
   only from Node against the live contract. The wallet code follows the
@@ -1024,10 +1052,9 @@ from 10–12 Sep is merged (PRs #18–#30).
 - **Nothing in §2.56–§2.61 has been clicked through by hand either.** The
   equivalence suites, the live-contract round trips and the CDP renders are
   what it rests on.
-- `Campaign.holders` is written as `0` by the wizard and never updated, so
-  the artist dashboard's "total holders" is always zero. Needs the set of
-  addresses holding each token id, which no endpoint exposes — event
-  indexing or a per-wallet scan. Left at zero rather than faked.
+- ~~`Campaign.holders` is written as `0` by the wizard and never updated~~ —
+  done. Holder counts come from the index and are checked against the
+  contract; see below.
 - The onboarding wizard still lets a preproduction campaign be created with
   a **zero budget**, which mints a zero supply.
 - GitBook's Git Sync still reads the whitepaper from **`dev/cesare`**, a

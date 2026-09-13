@@ -306,3 +306,17 @@ export interface RealHoldingDto {
   poolBalance: string;
   totalSupply: string;
 }
+
+/** The holder-count endpoint's reply.
+ *
+ * `counts` carries only assets whose holdings the server checked against
+ * the contract and found to add up to total supply; anything it could not
+ * verify is named in `unverified` and left out of `counts`, so a missing
+ * key means "not known" rather than zero. `complete` and `indexedToBlock`
+ * describe the index's own progress and are diagnostics. */
+export interface HolderCountsResponse {
+  complete: boolean;
+  indexedToBlock: number | null;
+  counts: Record<string, number>;
+  unverified?: string[];
+}
