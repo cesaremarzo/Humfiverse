@@ -33,7 +33,9 @@ import {
   buildCampaignDraft,
   canAdvanceFrom,
   draftAssetId,
-  draftRaiseTotal
+  draftRaiseTotal,
+  draftSupply,
+  raiseTerms
 } from './campaign-draft.util';
 
 type MilestoneKind = 'preprod' | 'catalogue';
@@ -74,7 +76,12 @@ export class OnboardingComponent {
     const p = this.data().preprod;
     return p.studio + p.session + p.mix + p.extra;
   });
-  preprodTokenCount = computed(() => Math.ceil(this.preprodTotal() / 10).toLocaleString());
+  /** §2.79: price and effective raise, exactly as the token contract will
+   * compute them from the funding and supply the artist entered. */
+  raise = computed(() => {
+    const d = this.data();
+    return raiseTerms(draftRaiseTotal(d, this.preprodTotal()), draftSupply(d));
+  });
 
   isTranslated = computed(() => this.store.locale() !== (this.store.contractTemplate().authoritativeLanguage || 'it'));
 
@@ -97,6 +104,20 @@ export class OnboardingComponent {
   updatePreprodField(field: 'studio' | 'session' | 'mix' | 'extra', value: string): void {
     const n = Math.max(0, parseInt(value || '0', 10) || 0);
     this.data.update((d) => ({ ...d, preprod: { ...d.preprod, [field]: n } }));
+  }
+
+  /** Token supply, for whichever model is being drafted. Whole tokens only. */
+  updateSupply(value: string): void {
+    const n = Math.max(0, Math.floor(Number(value) || 0));
+    this.data.update((d) =>
+      d.model === 'preproduction' ? { ...d, preprod: { ...d.preprod, supply: n } } : { ...d, catalogue: { ...d.catalogue, supply: n } }
+    );
+  }
+
+  /** A catalogue's funding request, in dollars to the cent. */
+  updateCatalogueFunding(value: string): void {
+    const n = Math.max(0, Math.round((Number(value) || 0) * 100) / 100);
+    this.data.update((d) => ({ ...d, catalogue: { ...d.catalogue, funding: n } }));
   }
 
   updatePreprodTextField(field: 'studioName' | 'studioWallet', value: string): void {
@@ -172,8 +193,10 @@ export class OnboardingComponent {
     return d[this.milestoneKey(kind)].map((m) => ({ name: m.name, payee: m.payee, percent: m.bps / 100, ...milestoneBreakdown(goal, m.bps) }));
   }
 
-  private milestoneGoal(kind: MilestoneKind): number {
-    return kind === 'preprod' ? this.preprodTotal() : this.data().catalogueCampaign.goal;
+  /** What the escrow will aim for: price times supply (§2.79), the same
+   * figure whichever model is being drafted. */
+  private milestoneGoal(_kind: MilestoneKind): number {
+    return this.raise().effectiveUsd;
   }
 
   /** The whole campaign's split between Humfiverse's fees and what the artist
@@ -195,10 +218,6 @@ export class OnboardingComponent {
 
   toggleCatalogueCampaign(enabled: boolean): void {
     this.data.update((d) => ({ ...d, catalogueCampaign: { ...d.catalogueCampaign, enabled } }));
-  }
-  updateCatalogueCampaignGoal(value: string): void {
-    const n = Math.max(0, parseInt(value || '0', 10) || 0);
-    this.data.update((d) => ({ ...d, catalogueCampaign: { ...d.catalogueCampaign, goal: n } }));
   }
   updateCatalogueCampaignTextField(field: 'studioName' | 'studioWallet', value: string): void {
     this.data.update((d) => ({ ...d, catalogueCampaign: { ...d.catalogueCampaign, [field]: value } }));
@@ -259,6 +278,7 @@ export class OnboardingComponent {
       const d = this.data();
       let msg = this.stepKey() === 'contract' ? 'wizContract.requiredNote' : 'wizard.fillRequired';
       if (this.stepKey() === 'source' && d.model === 'preproduction' && this.preprodTotal() <= 0) msg = 'wizSource.budgetRequired';
+      else if (this.stepKey() === 'source' && !this.raise().valid) msg = 'wizRaise.invalid';
       else if (this.stepKey() === 'source' && d.model === 'preproduction' && !this.milestonesValid('preprod')) msg = 'wizMilestones.invalid';
       else if (this.stepKey() === 'source' && d.model === 'catalogue' && d.catalogueCampaign.enabled && !this.milestonesValid('catalogue')) msg = 'wizMilestones.invalid';
       this.toast.show(this.translate.instant(msg), 'alert');
@@ -350,7 +370,8 @@ export class OnboardingComponent {
     // which is what actually controls fund release — the token here is
     // just the claim/quantity record, same role it plays for catalogues.
     if (this.store.backendAvailable()) {
-      const priceUsdc = usdToUsdc(asset.tokenPrice).toString();
+      // §2.79: the funding and supply go on chain; the contract sets the price.
+      const fundingUsdc = usdToUsdc(total).toString();
       // Awaited now (§2.42) — createCampaign on the escrow contract
       // requires this token to already exist on-chain, since contribute()
       // releases tokens from this same pool atomically. The two calls used
@@ -359,7 +380,15 @@ export class OnboardingComponent {
       // creation would revert.
       let mintedTokenId: number | null = null;
       try {
-        const result = await this.api.mintOnchainToken({ assetId: id, slug: id, supply: asset.tokensTotal, priceUsdc, title: asset.title, artist: asset.artistName });
+        const result = await this.api.mintOnchainToken({
+          assetId: id,
+          slug: id,
+          supply: asset.tokensTotal,
+          fundingUsdc,
+          payoutWallet: this.wallet.state().address ?? undefined,
+          title: asset.title,
+          artist: asset.artistName
+        });
         mintedTokenId = result.tokenId;
         this.toast.show(this.translate.instant('toast.onchainMinted', { tokenId: result.tokenId }), 'checkCircle');
         // The marketplace only lists chain-verified assets (§2.14) — add
@@ -424,12 +453,10 @@ export class OnboardingComponent {
         if (!artistAddress) {
           this.toast.show(this.translate.instant('toast.escrowNeedsWallet'), 'alert');
         } else {
-          const fundingGoalUsdc = usdToUsdc(total).toString();
           try {
             await this.api.createEscrowCampaign({
               assetId: id,
               artistAddress,
-              fundingGoalUsdc,
               studioName: d.preprod.studioName,
               studioWallet: d.preprod.studioWallet,
               milestones: d.preprodMilestones
@@ -441,25 +468,18 @@ export class OnboardingComponent {
           }
         }
       } else if (!isPre && d.catalogueCampaign.enabled && mintedTokenId !== null) {
-        // Optional, catalogue-kind only: the same milestone-escrow
-        // mechanism preproduction uses to finance *making* a track, reused
-        // here to finance *extras* around one that's already made and
-        // already earning — a video, a marketing push. Contributing still
-        // atomically delivers tokens from this catalogue's own pool
-        // (contribute() doesn't distinguish why a campaign exists), so this
-        // is a real follow-on raise against the same catalogue, not a
-        // separate instrument. Same dual artist+studio confirmation gates
-        // every tranche — see planning/technical-architecture.md §2.27.
+        // Catalogue-kind, when the artist ties the release of the funding to
+        // milestones (§2.79): the whole raise goes through the escrow, whose
+        // goal the contract takes from this token's price times supply. The
+        // same dual artist+studio confirmation gates every tranche (§2.27).
         const artistAddress = this.wallet.state().address;
         if (!artistAddress) {
           this.toast.show(this.translate.instant('toast.escrowNeedsWallet'), 'alert');
         } else {
-          const fundingGoalUsdc = usdToUsdc(d.catalogueCampaign.goal).toString();
           try {
             await this.api.createEscrowCampaign({
               assetId: id,
               artistAddress,
-              fundingGoalUsdc,
               studioName: d.catalogueCampaign.studioName,
               studioWallet: d.catalogueCampaign.studioWallet,
               milestones: d.catalogueMilestones

@@ -61,10 +61,12 @@ module.exports = function registerOnchainRoutes(router) {
         sendJson(res, 503, { error: "on-chain minting is disabled on this server (no operator key configured)" });
         return;
       }
-      const result = await onchainService.mintAsset(body.assetId, body.slug, body.supply, body.priceUsdc, body.title, body.artist);
+      const result = await onchainService.mintAsset(body.assetId, body.slug, body.supply, body.fundingUsdc, body.title, body.artist, body.payoutWallet);
       sendJson(res, 200, result);
     } catch (e) {
-      if (e.code === "already_minted") {
+      if (e.code === "invalid") {
+        sendJson(res, 400, { error: e.message });
+      } else if (e.code === "already_minted") {
         sendJson(res, 409, { error: "asset already has an on-chain token", record: e.record });
       } else {
         sendJson(res, 502, { error: "on-chain mint failed", detail: String(e.message || e) });

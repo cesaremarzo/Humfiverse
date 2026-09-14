@@ -72,7 +72,7 @@ export class ApiService {
     return firstValueFrom(this.http.get<OnchainInfo>(`${this.base}/api/onchain/${encodeURIComponent(assetId)}`));
   }
 
-  mintOnchainToken(payload: { assetId: string; slug: string; supply: number; priceUsdc?: string; title?: string; artist?: string }): Promise<OnchainMintResult> {
+  mintOnchainToken(payload: { assetId: string; slug: string; supply: number; fundingUsdc: string; payoutWallet?: string; title?: string; artist?: string }): Promise<OnchainMintResult> {
     return firstValueFrom(this.http.post<OnchainMintResult>(`${this.base}/api/onchain/mint`, payload));
   }
 
@@ -177,7 +177,6 @@ export class ApiService {
   createEscrowCampaign(payload: {
     assetId: string;
     artistAddress: string;
-    fundingGoalUsdc: string;
     studioName: string;
     studioWallet: string;
     milestones: { name: string; bps: number; payee: 'artist' | 'studio' }[];

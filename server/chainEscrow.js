@@ -27,7 +27,11 @@ const ESCROW_DEPLOY_BLOCK = Number(process.env.CHAIN_ESCROW_DEPLOY_BLOCK || 1170
 // new contract without reading as unfunded and unreleased, so it is left
 // where its history is and looked up there when the current escrow has no
 // campaign for that asset. Nothing is ever written to it.
-const LEGACY_ESCROW_ADDRESS = process.env.CHAIN_ESCROW_LEGACY_ADDRESS || "0x170c825f68024D0b919BfacecD0D8FcFDc639f8d";
+// §2.79: no default. Guns, the one campaign read from there, was deleted in
+// the §2.78 cleanup; and a hard-coded fallback meant an empty variable could
+// not switch the lookup off — on any chain without that contract every
+// "does this asset have a campaign" check failed, blocking campaign creation.
+const LEGACY_ESCROW_ADDRESS = process.env.CHAIN_ESCROW_LEGACY_ADDRESS || "";
 // §2.39: Alchemy's free tier caps eth_getLogs at a 10-block range per call,
 // and the public-RPC default this project used before that started
 // silently returning *incomplete* results for a full-history scan instead
@@ -44,7 +48,8 @@ const ABI = [
   "function registerStudio(address wallet, string name) returns (uint256)",
   "function setStudioActive(uint256 studioId, bool active)",
   "function renameStudio(uint256 studioId, string name)",
-  "function createCampaign(address artist, uint256 fundingGoal, uint256 studioId, uint256 deadline, string assetId, uint256 tokenId, string[] milestoneNames, uint16[] milestoneBps, uint8[] milestonePayees) returns (uint256)",
+  // §2.79: no goal parameter — the contract takes it from the token.
+  "function createCampaign(address artist, uint256 studioId, uint256 deadline, string assetId, uint256 tokenId, string[] milestoneNames, uint16[] milestoneBps, uint8[] milestonePayees) returns (uint256)",
   "function campaignTokenId(uint256) view returns (uint256)",
   "function contribute(uint256 campaignId, uint256 amount)",
   "function paymentToken() view returns (address)",
@@ -170,10 +175,10 @@ async function renameStudioOnchain(studioId, name) {
   return { txHash: receipt.hash };
 }
 
-async function createCampaignOnchain(artist, fundingGoalUsdc, studioId, deadline, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees) {
+async function createCampaignOnchain(artist, studioId, deadline, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees) {
   if (!writeContract) throw new Error("escrow admin actions are disabled (no operator key configured)");
   const tx = await withRetry(() =>
-    writeContract.createCampaign(artist, fundingGoalUsdc, studioId, deadline, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees)
+    writeContract.createCampaign(artist, studioId, deadline, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees)
   );
   const receipt = await tx.wait();
   const parsed = receipt.logs.map((l) => { try { return readContract.interface.parseLog(l); } catch { return null; } }).find((e) => e && e.name === "CampaignCreated");

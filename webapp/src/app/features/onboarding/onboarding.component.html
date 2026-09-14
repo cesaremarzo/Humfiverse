@@ -78,7 +78,15 @@
         @if (preprodTotal() <= 0) {
           <span class="hint" style="color:var(--warning-ink, #b45309);">{{ 'wizSource.budgetRequired' | translate }}</span>
         }
-        <p class="prose" style="margin-top:14px; font-size:12.5px;">{{ 'wizSource.tokenNote' | translate: { n: preprodTokenCount() } }}</p>
+        <div class="budget-row" style="margin-top:10px;"><label>{{ 'wizRaise.supplyLabel' | translate }}</label><input type="number" min="1" step="1" class="mono" [value]="data().preprod.supply" (input)="updateSupply($any($event.target).value)"></div>
+        @if (raise().valid) {
+          <p class="prose" style="margin-top:8px; font-size:12.5px;">{{ 'wizRaise.priceNote' | translate: { price: fmtExact(raise().priceUsd), supply: raise().supply, raise: fmtExact(raise().effectiveUsd) } }}</p>
+          @if (raise().rounded) {
+            <p class="hint">{{ 'wizRaise.roundedNote' | translate: { requested: fmtExact(raise().requestedUsd), raise: fmtExact(raise().effectiveUsd) } }}</p>
+          }
+        } @else if (preprodTotal() > 0) {
+          <span class="hint" style="color:var(--warning-ink, #b45309);">{{ 'wizRaise.invalid' | translate }}</span>
+        }
         <div style="margin-top:20px;">
           <label style="font-weight:600; font-size:13px;">{{ 'wizMilestones.title' | translate }}</label>
           <p class="hint" style="margin:2px 0 6px;">{{ 'wizMilestones.hint' | translate }}</p>
@@ -120,6 +128,19 @@
           <span class="hint">{{ 'wizSource.statementHint' | translate }}</span>
         </div>
 
+        <div style="margin-top:18px;">
+          <div class="budget-row"><label>{{ 'wizRaise.fundingLabel' | translate }}</label><input type="number" min="0" step="0.01" class="mono" [value]="data().catalogue.funding" (input)="updateCatalogueFunding($any($event.target).value)"></div>
+          <div class="budget-row"><label>{{ 'wizRaise.supplyLabel' | translate }}</label><input type="number" min="1" step="1" class="mono" [value]="data().catalogue.supply" (input)="updateSupply($any($event.target).value)"></div>
+          @if (raise().valid) {
+            <p class="prose" style="margin-top:8px; font-size:12.5px;">{{ 'wizRaise.priceNote' | translate: { price: fmtExact(raise().priceUsd), supply: raise().supply, raise: fmtExact(raise().effectiveUsd) } }}</p>
+            @if (raise().rounded) {
+              <p class="hint">{{ 'wizRaise.roundedNote' | translate: { requested: fmtExact(raise().requestedUsd), raise: fmtExact(raise().effectiveUsd) } }}</p>
+            }
+          } @else {
+            <span class="hint" style="color:var(--warning-ink, #b45309);">{{ 'wizRaise.invalid' | translate }}</span>
+          }
+        </div>
+
         <label class="check-row" style="margin-top:18px;">
           <input type="checkbox" [checked]="data().catalogueCampaign.enabled" (change)="toggleCatalogueCampaign($any($event.target).checked)">
           <span>{{ 'wizSource.extraCampaignToggle' | translate }}</span>
@@ -127,10 +148,6 @@
         <p class="hint" style="margin-top:2px;">{{ 'wizSource.extraCampaignHint' | translate }}</p>
 
         @if (data().catalogueCampaign.enabled) {
-          <div class="field" style="margin-top:12px;">
-            <label>{{ 'wizSource.extraCampaignGoalLabel' | translate }}</label>
-            <input type="number" min="0" step="100" class="mono" [value]="data().catalogueCampaign.goal" (input)="updateCatalogueCampaignGoal($any($event.target).value)">
-          </div>
           <div class="field">
             <label>{{ 'wizSource.studioNameLabel' | translate }}</label>
             <input type="text" [value]="data().catalogueCampaign.studioName" (input)="updateCatalogueCampaignTextField('studioName', $any($event.target).value)" [placeholder]="'wizSource.studioNamePlaceholder' | translate">
@@ -267,9 +284,10 @@
       <div class="stat-row" style="margin:18px 0;">
         <div class="card stat-tile"><div class="label">{{ 'wizReview.titleField' | translate }}</div><div class="value" style="font-size:15px; font-family:'IBM Plex Sans',sans-serif;">{{ data().title || '—' }}</div></div>
         <div class="card stat-tile"><div class="label">{{ 'wizReview.modelField' | translate }}</div><div class="value" style="font-size:15px; font-family:'IBM Plex Sans',sans-serif;">{{ (data().model === 'preproduction' ? 'wizReview.modelPreprod' : 'wizReview.modelCatalogue') | translate }}</div></div>
-        @if (data().model === 'preproduction') {
-          <div class="card stat-tile"><div class="label">{{ 'wizReview.fundingGoalField' | translate }}</div><div class="value">{{ fmt(preprodTotal()) }}</div></div>
-        } @else {
+        <div class="card stat-tile"><div class="label">{{ 'wizReview.fundingGoalField' | translate }}</div><div class="value">{{ fmtExact(raise().effectiveUsd) }}</div></div>
+        <div class="card stat-tile"><div class="label">{{ 'wizRaise.supplyField' | translate }}</div><div class="value">{{ raise().supply }}</div></div>
+        <div class="card stat-tile"><div class="label">{{ 'wizRaise.priceField' | translate }}</div><div class="value">{{ fmtExact(raise().priceUsd) }}</div></div>
+        @if (data().model !== 'preproduction') {
           <div class="card stat-tile"><div class="label">{{ 'wizReview.historyField' | translate }}</div><div class="value">{{ 'detail.moSuffix' | translate: { n: data().catalogue.months } }}</div></div>
         }
       </div>
@@ -286,7 +304,6 @@
         </div>
       }
       @if (data().model === 'catalogue' && data().catalogueCampaign.enabled) {
-        <div class="card stat-tile" style="margin-bottom:16px;"><div class="label">{{ 'wizReview.extraCampaignGoalField' | translate }}</div><div class="value">{{ fmt(data().catalogueCampaign.goal) }}</div></div>
         <div class="table-wrap" style="margin-bottom:16px;">
           <table>
             <thead><tr><th>{{ 'wizMilestones.title' | translate }}</th><th class="cell-num">%</th><th class="cell-num">{{ 'wizMilestones.colShare' | translate }}</th><th class="cell-num">{{ 'wizMilestones.colFees' | translate }}</th><th class="cell-num">{{ 'wizMilestones.colNet' | translate }}</th></tr></thead>
