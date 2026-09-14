@@ -18,14 +18,15 @@ const RPC_URL = process.env.CHAIN_RPC_URL || "https://ethereum-sepolia-rpc.publi
 // contribute() can release tokens from that pool atomically — redeployed
 // again in §2.43 alongside the token (an immutable reference, so any token
 // redeploy forces an escrow redeploy too). See chain.js's CONTRACT_ADDRESS.
-const ESCROW_ADDRESS = process.env.CHAIN_ESCROW_ADDRESS || "0x170c825f68024D0b919BfacecD0D8FcFDc639f8d";
-const ESCROW_DEPLOY_BLOCK = Number(process.env.CHAIN_ESCROW_DEPLOY_BLOCK || 11647955);
+// Redeployed in §2.71 with the platform fee; the token was not.
+const ESCROW_ADDRESS = process.env.CHAIN_ESCROW_ADDRESS || "0x85555cf462149C8C106A966a34521eBa82E7Ea27";
+const ESCROW_DEPLOY_BLOCK = Number(process.env.CHAIN_ESCROW_DEPLOY_BLOCK || 11701896);
 // §2.71: the escrow this one replaced, read-only. A campaign that finished
 // there (Guns: funded, every tranche released) cannot be recreated on the
 // new contract without reading as unfunded and unreleased, so it is left
 // where its history is and looked up there when the current escrow has no
 // campaign for that asset. Nothing is ever written to it.
-const LEGACY_ESCROW_ADDRESS = process.env.CHAIN_ESCROW_LEGACY_ADDRESS || "";
+const LEGACY_ESCROW_ADDRESS = process.env.CHAIN_ESCROW_LEGACY_ADDRESS || "0x170c825f68024D0b919BfacecD0D8FcFDc639f8d";
 // §2.39: Alchemy's free tier caps eth_getLogs at a 10-block range per call,
 // and the public-RPC default this project used before that started
 // silently returning *incomplete* results for a full-history scan instead
