@@ -515,5 +515,11 @@
   "connect.emailSendFailed": "Der Code konnte nicht gesendet werden. Versuche es gleich noch einmal.",
   "connect.codeInvalid": "Dieser Code hat nicht funktioniert. Prüfe ihn oder fordere einen neuen an.",
   "connect.popupBlocked": "Der Browser hat das Anmeldefenster blockiert. Erlaube Pop-ups für diese Seite und versuche es erneut.",
-  "connect.failed": "Die Anmeldung wurde nicht abgeschlossen. Versuche es erneut."
+  "connect.failed": "Die Anmeldung wurde nicht abgeschlossen. Versuche es erneut.",
+  "portfolio.balanceUsdc": "USDC-Guthaben",
+  "portfolio.balanceEth": "ETH-Guthaben (Sepolia)",
+  "portfolio.gasSponsored": "Netzwerkgebühren übernimmt die Plattform",
+  "portfolio.copyAddress": "Adresse kopieren",
+  "portfolio.copied": "Kopiert",
+  "portfolio.copyFailed": "Kopieren fehlgeschlagen — markiere die Adresse und kopiere sie manuell."
 }

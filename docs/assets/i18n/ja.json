@@ -515,5 +515,11 @@
   "connect.emailSendFailed": "コードを送信できませんでした。しばらくしてからもう一度お試しください。",
   "connect.codeInvalid": "コードが正しくありません。確認するか、新しいコードをリクエストしてください。",
   "connect.popupBlocked": "ブラウザがログインウィンドウをブロックしました。このサイトのポップアップを許可してから、もう一度お試しください。",
-  "connect.failed": "サインインが完了しませんでした。もう一度お試しください。"
+  "connect.failed": "サインインが完了しませんでした。もう一度お試しください。",
+  "portfolio.balanceUsdc": "USDC残高",
+  "portfolio.balanceEth": "ETH残高（Sepolia）",
+  "portfolio.gasSponsored": "ネットワーク手数料はプラットフォームが負担します",
+  "portfolio.copyAddress": "アドレスをコピー",
+  "portfolio.copied": "コピーしました",
+  "portfolio.copyFailed": "コピーできませんでした。アドレスを選択して手動でコピーしてください。"
 }

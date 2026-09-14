@@ -530,6 +530,7 @@
   .connect-email input:focus{ outline:none; border-color: var(--focus-ring); }
   .connect-divider{ display:flex; align-items:center; gap:10px; font-size:12px; color:var(--text-muted); }
   .connect-divider::before, .connect-divider::after{ content:""; flex:1; height:1px; background: var(--border); }
+  .wallet-address{ user-select:all; word-break:break-all; }
   .link-btn{ background:none; border:0; padding:0; font:inherit; color: var(--accent); cursor:pointer; text-decoration:underline; }
 
   /* Landing (for-artists) */

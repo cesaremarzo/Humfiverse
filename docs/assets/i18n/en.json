@@ -515,5 +515,11 @@
   "connect.emailSendFailed": "Couldn't send the code. Try again in a moment.",
   "connect.codeInvalid": "That code didn't work. Check it or request a new one.",
   "connect.popupBlocked": "The browser blocked the login window. Allow pop-ups for this site, then try again.",
-  "connect.failed": "Sign-in didn't complete. Try again."
+  "connect.failed": "Sign-in didn't complete. Try again.",
+  "portfolio.balanceUsdc": "USDC balance",
+  "portfolio.balanceEth": "ETH balance (Sepolia)",
+  "portfolio.gasSponsored": "Network fees covered by the platform",
+  "portfolio.copyAddress": "Copy address",
+  "portfolio.copied": "Copied",
+  "portfolio.copyFailed": "Couldn't copy — select the address and copy it by hand."
 }

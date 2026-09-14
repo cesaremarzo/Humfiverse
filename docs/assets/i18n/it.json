@@ -515,5 +515,11 @@
   "connect.emailSendFailed": "Impossibile inviare il codice. Riprova tra poco.",
   "connect.codeInvalid": "Il codice non è valido. Controllalo o richiedine uno nuovo.",
   "connect.popupBlocked": "Il browser ha bloccato la finestra di accesso. Consenti i pop-up per questo sito e riprova.",
-  "connect.failed": "Accesso non completato. Riprova."
+  "connect.failed": "Accesso non completato. Riprova.",
+  "portfolio.balanceUsdc": "Saldo USDC",
+  "portfolio.balanceEth": "Saldo ETH (Sepolia)",
+  "portfolio.gasSponsored": "Commissioni di rete coperte dalla piattaforma",
+  "portfolio.copyAddress": "Copia indirizzo",
+  "portfolio.copied": "Copiato",
+  "portfolio.copyFailed": "Impossibile copiare — seleziona l’indirizzo e copialo a mano."
 }

@@ -515,5 +515,11 @@
   "connect.emailSendFailed": "تعذّر إرسال الرمز. أعد المحاولة بعد قليل.",
   "connect.codeInvalid": "لم يعمل هذا الرمز. تحقّق منه أو اطلب رمزًا جديدًا.",
   "connect.popupBlocked": "حظر المتصفح نافذة تسجيل الدخول. اسمح بالنوافذ المنبثقة لهذا الموقع ثم أعد المحاولة.",
-  "connect.failed": "لم يكتمل تسجيل الدخول. أعد المحاولة."
+  "connect.failed": "لم يكتمل تسجيل الدخول. أعد المحاولة.",
+  "portfolio.balanceUsdc": "رصيد USDC",
+  "portfolio.balanceEth": "رصيد ETH (Sepolia)",
+  "portfolio.gasSponsored": "تتحمّل المنصة رسوم الشبكة",
+  "portfolio.copyAddress": "نسخ العنوان",
+  "portfolio.copied": "تم النسخ",
+  "portfolio.copyFailed": "تعذّر النسخ — حدّد العنوان وانسخه يدويًا."
 }

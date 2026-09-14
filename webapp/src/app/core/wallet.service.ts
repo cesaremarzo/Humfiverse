@@ -100,6 +100,7 @@ export class WalletService {
   readonly hasInjected = typeof window !== 'undefined' && !!window.ethereum;
 
   private embedded: EmbeddedSession | null = null;
+  private readProvider: ethers.JsonRpcProvider | null = null;
   private pickerResolve: ((r: ConnectResult) => void) | null = null;
 
   chainName(hex: string | null): string {
@@ -243,6 +244,22 @@ export class WalletService {
       const chainId = args[0] as string;
       this.state.update((s) => ({ ...s, chainId }));
     });
+  }
+
+  /** ETH and USDC held by `address` on Sepolia, read straight from the
+   * chain rather than through the connected wallet, so it works whichever
+   * network MetaMask happens to be on. The USDC address comes from
+   * `paymentTokenSource`'s own paymentToken() (§2.73), never from config;
+   * `usdc` is null when there is no contract to ask. */
+  async readBalances(address: string, paymentTokenSource: string | null): Promise<{ eth: bigint; usdc: bigint | null }> {
+    const provider = (this.readProvider ??= new ethers.JsonRpcProvider(SEPOLIA_ADD_PARAMS.rpcUrls[0], 11155111, { staticNetwork: true }));
+    const usdc = async () => {
+      if (!paymentTokenSource) return null;
+      const token = await new ethers.Contract(paymentTokenSource, PAYMENT_TOKEN_ABI, provider)['paymentToken']();
+      return (await new ethers.Contract(token, ERC20_ABI, provider)['balanceOf'](address)) as bigint;
+    };
+    const [eth, usdcBalance] = await Promise.all([provider.getBalance(address), usdc()]);
+    return { eth, usdc: usdcBalance };
   }
 
   /** Switches the wallet to Sepolia, adding it first if the wallet doesn't

@@ -515,5 +515,11 @@
   "connect.emailSendFailed": "Не удалось отправить код. Повторите попытку чуть позже.",
   "connect.codeInvalid": "Код не подошёл. Проверьте его или запросите новый.",
   "connect.popupBlocked": "Браузер заблокировал окно входа. Разрешите всплывающие окна для этого сайта и повторите попытку.",
-  "connect.failed": "Вход не завершён. Повторите попытку."
+  "connect.failed": "Вход не завершён. Повторите попытку.",
+  "portfolio.balanceUsdc": "Баланс USDC",
+  "portfolio.balanceEth": "Баланс ETH (Sepolia)",
+  "portfolio.gasSponsored": "Сетевые комиссии оплачивает платформа",
+  "portfolio.copyAddress": "Скопировать адрес",
+  "portfolio.copied": "Скопировано",
+  "portfolio.copyFailed": "Не удалось скопировать — выделите адрес и скопируйте вручную."
 }

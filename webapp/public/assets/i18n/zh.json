@@ -515,5 +515,11 @@
   "connect.emailSendFailed": "无法发送验证码，请稍后重试。",
   "connect.codeInvalid": "验证码无效。请检查或重新获取。",
   "connect.popupBlocked": "浏览器拦截了登录窗口。请允许本网站弹出窗口后重试。",
-  "connect.failed": "登录未完成，请重试。"
+  "connect.failed": "登录未完成，请重试。",
+  "portfolio.balanceUsdc": "USDC 余额",
+  "portfolio.balanceEth": "ETH 余额（Sepolia）",
+  "portfolio.gasSponsored": "网络费用由平台承担",
+  "portfolio.copyAddress": "复制地址",
+  "portfolio.copied": "已复制",
+  "portfolio.copyFailed": "无法复制——请选中地址后手动复制。"
 }

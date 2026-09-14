@@ -515,5 +515,11 @@
   "connect.emailSendFailed": "No se pudo enviar el código. Inténtalo de nuevo en un momento.",
   "connect.codeInvalid": "Ese código no ha funcionado. Revísalo o solicita uno nuevo.",
   "connect.popupBlocked": "El navegador bloqueó la ventana de inicio de sesión. Permite las ventanas emergentes para este sitio y vuelve a intentarlo.",
-  "connect.failed": "No se completó el inicio de sesión. Inténtalo de nuevo."
+  "connect.failed": "No se completó el inicio de sesión. Inténtalo de nuevo.",
+  "portfolio.balanceUsdc": "Saldo USDC",
+  "portfolio.balanceEth": "Saldo ETH (Sepolia)",
+  "portfolio.gasSponsored": "Comisiones de red cubiertas por la plataforma",
+  "portfolio.copyAddress": "Copiar dirección",
+  "portfolio.copied": "Copiada",
+  "portfolio.copyFailed": "No se pudo copiar — selecciona la dirección y cópiala a mano."
 }

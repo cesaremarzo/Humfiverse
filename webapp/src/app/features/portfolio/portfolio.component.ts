@@ -1,5 +1,6 @@
 import { Component, computed, effect, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { ethers } from 'ethers';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { IconComponent } from '../../shared/icon.component';
 import { LineChartComponent } from '../../shared/line-chart.component';
@@ -59,6 +60,13 @@ export class PortfolioComponent {
    * a new wallet's chart starts genuinely empty and fills in for real,
    * one real visit at a time. */
   valueHistory = signal<{ date: string; valueUsd: number }[]>([]);
+
+  /** What the wallet holds besides Humfiverse tokens, shown even at zero:
+   * a new in-app wallet's first question is whether its test USDC arrived.
+   * null while loading or when the chain could not be read. */
+  copied = signal(false);
+
+  balances = signal<{ eth: bigint; usdc: bigint | null } | null>(null);
 
   sellDraft = signal<{ assetId: string; max: number } | null>(null);
   sellQty = signal(1);
@@ -141,10 +149,19 @@ export class PortfolioComponent {
     // Loads as soon as an address is present — covers both a fresh connect
     // and a wallet that was already connected when this page loaded (see
     // the same pattern in studio.component.ts / artist-milestones.component.ts).
+    // Separate effect: the marketplace address arrives with the backend's
+    // hydration, possibly after the wallet does.
+    effect(() => {
+      const address = this.wallet.state().address;
+      const marketplace = this.store.marketplaceAddress();
+      if (address) this.loadBalances(address, marketplace);
+    });
+
     effect(() => {
       const address = this.wallet.state().address;
       if (address) this.load(address);
       else {
+        this.balances.set(null);
         this.holdings.set([]);
         this.valueHistory.set([]);
         this.loaded.set(false);
@@ -177,6 +194,37 @@ export class PortfolioComponent {
       })
       .catch((err) => this.error.set(String(err?.message || err)))
       .finally(() => this.loading.set(false));
+  }
+
+  private loadBalances(address: string, marketplace: string | null): void {
+    this.wallet
+      .readBalances(address, marketplace)
+      .then((b) => {
+        if (this.wallet.state().address === address) this.balances.set(b);
+      })
+      .catch((err) => console.warn('Could not read wallet balances.', err));
+  }
+
+  /** The full address, so it can be pasted into a faucet or another
+   * wallet to receive USDC. */
+  async copyAddress(): Promise<void> {
+    const address = this.wallet.state().address;
+    if (!address) return;
+    try {
+      await navigator.clipboard.writeText(address);
+      this.copied.set(true);
+      setTimeout(() => this.copied.set(false), 2000);
+    } catch {
+      this.toast.show(this.translate.instant('portfolio.copyFailed'), 'alert');
+    }
+  }
+
+  fmtEth(wei: bigint): string {
+    return Number(ethers.formatEther(wei)).toLocaleString(undefined, { maximumFractionDigits: 4 });
+  }
+
+  fmtUsdc(units: bigint): string {
+    return Number(ethers.formatUnits(units, 6)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
   /** Best-effort on both ends — a failed snapshot write or history read
@@ -280,6 +328,7 @@ export class PortfolioComponent {
       });
       await this.api.indexListing({ listingId, assetId: draft.assetId }).catch((err) => console.warn('Listing created on chain but not indexed.', err));
       await this.store.refreshListings();
+      this.loadBalances(seller, marketplace);
       this.sellDraft.set(null);
       this.sellResult.set({ assetId: draft.assetId, qty, price });
     } catch (err) {

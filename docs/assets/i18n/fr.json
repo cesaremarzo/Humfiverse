@@ -515,5 +515,11 @@
   "connect.emailSendFailed": "Impossible d’envoyer le code. Réessayez dans un instant.",
   "connect.codeInvalid": "Ce code n’a pas fonctionné. Vérifiez-le ou demandez-en un nouveau.",
   "connect.popupBlocked": "Le navigateur a bloqué la fenêtre de connexion. Autorisez les pop-ups pour ce site, puis réessayez.",
-  "connect.failed": "La connexion n’a pas abouti. Réessayez."
+  "connect.failed": "La connexion n’a pas abouti. Réessayez.",
+  "portfolio.balanceUsdc": "Solde USDC",
+  "portfolio.balanceEth": "Solde ETH (Sepolia)",
+  "portfolio.gasSponsored": "Frais de réseau pris en charge par la plateforme",
+  "portfolio.copyAddress": "Copier l’adresse",
+  "portfolio.copied": "Copiée",
+  "portfolio.copyFailed": "Copie impossible — sélectionnez l’adresse et copiez-la à la main."
 }
