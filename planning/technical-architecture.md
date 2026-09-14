@@ -519,6 +519,11 @@ The Angular artist-onboarding wizard now calls the mint endpoint automatically r
 - Replaces the two escrow-only prompts, which only appeared for campaigns with an escrow and treated the wallet as optional. Two keys added, two removed; 482 in all 9 locales.
 - Verified in headless Chrome on the review step, in Italian, with the contract accepted: no wallet → prompt shown, button disabled; injected wallet → owner line with `0x142F…BfC6`, button enabled.
 
+**2.78 Listings no longer re-scan the chain when their table is empty (14 Sep 2026).** The user asked to delete every campaign created so far and start testing from fresh ones. Checking before deleting showed the deletion would not hold: `listMintedAssetIds` and `escrow.service.listCampaigns` re-scanned the last ~500 blocks whenever their local table was empty and re-inserted what they found. The USDC migration's recreated campaigns and a campaign created four minutes earlier were all inside that window, so emptying the tables would have brought them back on the next page load.
+
+- Both listings now return the local table and nothing else. §2.55 had already measured that the scan recovers nothing older than about 100 minutes; the one case it covered — a wiped database — is not one Turso has, and a single asset the catalogue still knows is still recovered by `findTokenWithChainFallback`.
+- The cleanup itself went through the existing admin endpoints (`DELETE /api/assets/:id`, `DELETE /api/admin/onchain-reset/:assetId`), with the local admin key checked first against a nonexistent id. On chain, nothing can be deleted: tokens and holder balances remain on the contracts, and the escrow campaigns were cancelled so nothing can be contributed to a campaign nobody can see.
+
 ## 3. Suggested phased build
 
 1. **Phase 0 — Paper pilot**: one song or small catalogue, manual royalty verification, SPV set up, token issuance and distribution done as a scripted/manual process (not yet a polished product) to prove the legal-to-cash-to-token pipeline end to end with real royalty income, even a small amount. No governance module — if the pilot uses the pre-production variant, milestone escrow is still manually administered.
