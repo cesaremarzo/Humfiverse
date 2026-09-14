@@ -19,15 +19,19 @@ const RPC_URL = process.env.CHAIN_RPC_URL || "https://ethereum-sepolia-rpc.publi
 // contribute() can release tokens from that pool atomically — redeployed
 // again in §2.43 alongside the token (an immutable reference, so any token
 // redeploy forces an escrow redeploy too). See chain.js's CONTRACT_ADDRESS.
-// Redeployed in §2.71 (fee), §2.72 (with the token) and §2.73 (USDC).
-const ESCROW_ADDRESS = process.env.CHAIN_ESCROW_ADDRESS || "0x2f3548EC110373dB3009D11f4cf9C8b7a9A5FB71";
-const ESCROW_DEPLOY_BLOCK = Number(process.env.CHAIN_ESCROW_DEPLOY_BLOCK || 11702459);
+// Redeployed in §2.71 (fee), §2.72 (with the token), §2.73 (USDC) and §2.79 (goal from the token).
+const ESCROW_ADDRESS = process.env.CHAIN_ESCROW_ADDRESS || "0x4A807fE79658A88B6Ac577b8fC67d9be7eA3ebF9";
+const ESCROW_DEPLOY_BLOCK = Number(process.env.CHAIN_ESCROW_DEPLOY_BLOCK || 11703184);
 // §2.71: the escrow this one replaced, read-only. A campaign that finished
 // there (Guns: funded, every tranche released) cannot be recreated on the
 // new contract without reading as unfunded and unreleased, so it is left
 // where its history is and looked up there when the current escrow has no
 // campaign for that asset. Nothing is ever written to it.
-const LEGACY_ESCROW_ADDRESS = process.env.CHAIN_ESCROW_LEGACY_ADDRESS || "0x170c825f68024D0b919BfacecD0D8FcFDc639f8d";
+// §2.79: no default. Guns, the one campaign read from there, was deleted in
+// the §2.78 cleanup; and a hard-coded fallback meant an empty variable could
+// not switch the lookup off — on any chain without that contract every
+// "does this asset have a campaign" check failed, blocking campaign creation.
+const LEGACY_ESCROW_ADDRESS = process.env.CHAIN_ESCROW_LEGACY_ADDRESS || "";
 // §2.39: Alchemy's free tier caps eth_getLogs at a 10-block range per call,
 // and the public-RPC default this project used before that started
 // silently returning *incomplete* results for a full-history scan instead
@@ -44,7 +48,8 @@ const ABI = [
   "function registerStudio(address wallet, string name) returns (uint256)",
   "function setStudioActive(uint256 studioId, bool active)",
   "function renameStudio(uint256 studioId, string name)",
-  "function createCampaign(address artist, uint256 fundingGoal, uint256 studioId, uint256 deadline, string assetId, uint256 tokenId, string[] milestoneNames, uint16[] milestoneBps, uint8[] milestonePayees) returns (uint256)",
+  // §2.79: no goal parameter — the contract takes it from the token.
+  "function createCampaign(address artist, uint256 studioId, uint256 deadline, string assetId, uint256 tokenId, string[] milestoneNames, uint16[] milestoneBps, uint8[] milestonePayees) returns (uint256)",
   "function campaignTokenId(uint256) view returns (uint256)",
   "function contribute(uint256 campaignId, uint256 amount)",
   "function paymentToken() view returns (address)",
@@ -170,10 +175,10 @@ async function renameStudioOnchain(studioId, name) {
   return { txHash: receipt.hash };
 }
 
-async function createCampaignOnchain(artist, fundingGoalUsdc, studioId, deadline, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees) {
+async function createCampaignOnchain(artist, studioId, deadline, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees) {
   if (!writeContract) throw new Error("escrow admin actions are disabled (no operator key configured)");
   const tx = await withRetry(() =>
-    writeContract.createCampaign(artist, fundingGoalUsdc, studioId, deadline, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees)
+    writeContract.createCampaign(artist, studioId, deadline, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees)
   );
   const receipt = await tx.wait();
   const parsed = receipt.logs.map((l) => { try { return readContract.interface.parseLog(l); } catch { return null; } }).find((e) => e && e.name === "CampaignCreated");

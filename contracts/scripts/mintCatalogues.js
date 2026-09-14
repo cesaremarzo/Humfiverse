@@ -16,7 +16,8 @@ async function main() {
       continue;
     }
     console.log(`Minting token id ${tokenId} (${slug} — "${title}" by ${artist}), supply ${supply}, price ${priceWei} wei/token...`);
-    const tx = await token.mintCatalogue(tokenId, slug, supply, priceWei, title, artist);
+    // §2.79: the contract derives the price from funding / supply.
+    const tx = await token.mintCatalogue(tokenId, slug, supply, BigInt(supply) * priceWei, title, artist, hre.ethers.ZeroAddress);
     const receipt = await tx.wait();
     console.log(`  done — tx ${receipt.hash}`);
   }

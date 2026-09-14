@@ -16,16 +16,16 @@ export interface WizardData {
   artistName: string;
   genre: string;
   description: string;
-  catalogue: { dsp: string; months: string; history: string };
-  preprod: { studio: number; session: number; mix: number; extra: number; studioName: string; studioWallet: string };
-  /** Optional, catalogue-kind only: an already-tokenized, already-earning
-   * catalogue can *additionally* raise a small milestone-gated fund for
-   * post-launch production work (a video, a marketing push) — the same
-   * escrow mechanism preproduction campaigns use for financing the track
-   * itself, reused here for financing extras around an already-finished
-   * one. `goal` is USD, same illustrative mapping as everywhere else in
-   * this wizard. */
-  catalogueCampaign: { enabled: boolean; goal: number; studioName: string; studioWallet: string };
+  /** §2.79: `funding` (USD) and `supply` are the artist's; the token
+   * contract derives the price from them at mint. */
+  catalogue: { dsp: string; months: string; history: string; funding: number; supply: number };
+  /** The budget lines sum to the funding requested; `supply` is the token count. */
+  preprod: { studio: number; session: number; mix: number; extra: number; supply: number; studioName: string; studioWallet: string };
+  /** Catalogue-kind only: whether the funding raised is held in escrow and
+   * released by milestones (a video, a marketing campaign in stages)
+   * instead of paid to the artist as tokens sell. Since §2.79 there is one
+   * raise — `catalogue.funding` — not a separate extra goal. */
+  catalogueCampaign: { enabled: boolean; studioName: string; studioWallet: string };
   /** §2.75: a catalogue's extra campaign released as stages of a marketing
    * campaign — the number of stages, or null for a free-form split. */
   catalogueMarketingStages: number | null;
@@ -82,9 +82,9 @@ export function freshWizardData(): WizardData {
     artistName: '',
     genre: 'Indie Pop',
     description: '',
-    catalogue: { dsp: 'Spotify for Artists', months: '12', history: '' },
-    preprod: { studio: 5000, session: 4000, mix: 3000, extra: 1000, studioName: '', studioWallet: '' },
-    catalogueCampaign: { enabled: false, goal: 2000, studioName: '', studioWallet: '' },
+    catalogue: { dsp: 'Spotify for Artists', months: '12', history: '', funding: 30000, supply: 1500 },
+    preprod: { studio: 5000, session: 4000, mix: 3000, extra: 1000, supply: 1300, studioName: '', studioWallet: '' },
+    catalogueCampaign: { enabled: false, studioName: '', studioWallet: '' },
     preprodMilestones: PREPRODUCTION_MILESTONES.map((m) => ({ ...m })),
     catalogueMilestones: CATALOGUE_EXTRA_MILESTONES.map((m) => ({ ...m })),
     catalogueMarketingStages: null,

@@ -204,9 +204,12 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
 
     // --- campaign lifecycle ---
 
+    /// @notice The goal is not a parameter (§2.79): it is the linked token's
+    ///         price times its supply, so a campaign always aims for exactly
+    ///         what selling every token raises — never more tokens than the
+    ///         goal pays for, never a goal the tokens cannot reach.
     function createCampaign(
         address artist,
-        uint256 fundingGoal,
         uint256 studioId,
         uint256 deadline,
         string calldata assetId,
@@ -216,13 +219,14 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         Payee[] calldata milestonePayees
     ) external onlyOwner returns (uint256 campaignId) {
         require(artist != address(0), "HumfiverseMilestoneEscrow: zero artist");
-        require(fundingGoal > 0, "HumfiverseMilestoneEscrow: goal must be > 0");
         require(bytes(assetId).length > 0, "HumfiverseMilestoneEscrow: assetId required");
         require(campaignIdByAssetId[assetId] == 0, "HumfiverseMilestoneEscrow: asset already has a campaign");
         // The token must already be minted (backend mints on upload, before
         // creating the campaign — same order the frontend now awaits) so
         // contribute() below always has a real pool to release from.
         require(catalogueToken.totalSupplyOf(tokenId) > 0, "HumfiverseMilestoneEscrow: unknown token id");
+        uint256 fundingGoal = catalogueToken.fundingOf(tokenId);
+        require(fundingGoal > 0, "HumfiverseMilestoneEscrow: token is not for sale");
         require(
             milestoneNames.length == milestoneBps.length && milestoneNames.length == milestonePayees.length,
             "HumfiverseMilestoneEscrow: length mismatch"
@@ -268,11 +272,9 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     ///         atomicity a catalogue buy() already has, unified here rather
     ///         than requiring a second, backend-signed release afterward
     ///         (the earlier design; see planning/technical-architecture.md
-    ///         §2.34/§2.42). qty = amount / pricePerToken, floored —
-    ///         same integer-division "dust" behavior the backend used to
-    ///         compute this off-chain. If the token has no price set
-    ///         (pricePerToken == 0), or the division floors to 0, the payment
-    ///         is still recorded normally and no tokens are released.
+    ///         §2.34/§2.42). The amount must be a whole number of tokens at
+    ///         the token's price (§2.79); it used to be floored, so a payment
+    ///         that did not divide exactly was kept without buying anything.
     ///
     ///         Known limitation, carried over unchanged from the prior
     ///         design (accepted, not fixed here): if a campaign is later
@@ -288,6 +290,12 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         require(c.status == CampaignStatus.ACTIVE, "HumfiverseMilestoneEscrow: not active");
         require(amount > 0, "HumfiverseMilestoneEscrow: zero contribution");
         require(c.deadline == 0 || block.timestamp <= c.deadline, "HumfiverseMilestoneEscrow: campaign ended");
+        uint256 tokenId = campaignTokenId[campaignId];
+        uint256 price = catalogueToken.pricePerToken(tokenId);
+        // §2.79: a contribution buys whole tokens at the one price every token
+        // of this campaign has. Anything else would be money that buys no
+        // token — or, spread across contributors, tokens of unequal value.
+        require(amount % price == 0, "HumfiverseMilestoneEscrow: amount must buy whole tokens");
 
         paymentToken.safeTransferFrom(msg.sender, address(this), amount);
 
@@ -301,16 +309,9 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         emit ContributionFeeRetained(campaignId, msg.sender, fee);
         emit Contributed(campaignId, msg.sender, credited, c.raised);
 
-        uint256 tokenId = campaignTokenId[campaignId];
-        uint256 price = catalogueToken.pricePerToken(tokenId);
-        if (price > 0) {
-            // Tokens for the whole amount sent: the fee is the platform's
-            // share of the price, not a smaller purchase.
-            uint256 qty = amount / price;
-            if (qty > 0) {
-                catalogueToken.releaseFromPool(msg.sender, tokenId, qty);
-            }
-        }
+        // Tokens for the whole amount sent: the fee is the platform's share of
+        // the price, not a smaller purchase.
+        catalogueToken.releaseFromPool(msg.sender, tokenId, amount / price);
     }
 
     /// @notice The artist attests a milestone was genuinely met. Combined

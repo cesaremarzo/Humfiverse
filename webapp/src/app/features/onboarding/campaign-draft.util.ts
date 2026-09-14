@@ -153,10 +153,43 @@ export function draftAssetId(title: string): string {
   return `${slug}-${Math.floor(Math.random() * 900 + 100)}`;
 }
 
-/** Preproduction raises what the artist budgeted; a catalogue always
- * tokenizes at the same illustrative $20 x 1,500 tokens. */
+/** The funding asked of investors: a preproduction campaign's budget, or
+ * the amount a catalogue artist enters. Until §2.79 a catalogue always
+ * tokenized at a hard-coded $20 x 1,500 tokens whatever the artist typed. */
 export function draftRaiseTotal(d: WizardData, preprodTotal: number): number {
-  return d.model === 'preproduction' ? preprodTotal : 30000;
+  return d.model === 'preproduction' ? preprodTotal : d.catalogue.funding;
+}
+
+export function draftSupply(d: WizardData): number {
+  return d.model === 'preproduction' ? d.preprod.supply : d.catalogue.supply;
+}
+
+/** The price the token contract will set, computed the way it computes it
+ * (§2.79): funding in USDC base units divided by the supply, rounded down.
+ * `rounded` says the raise came out below what was asked — by at most
+ * `supply - 1` millionths of a dollar. */
+export interface RaiseTerms {
+  valid: boolean;
+  supply: number;
+  requestedUsd: number;
+  priceUsd: number;
+  effectiveUsd: number;
+  rounded: boolean;
+}
+
+export function raiseTerms(fundingUsd: number, supply: number): RaiseTerms {
+  const requested = fundingUsd > 0 ? usdToUsdc(fundingUsd) : 0n;
+  const ok = Number.isSafeInteger(supply) && supply > 0 && requested > 0n;
+  const price = ok ? requested / BigInt(supply) : 0n;
+  const effective = price * BigInt(ok ? supply : 0);
+  return {
+    valid: ok && price > 0n,
+    supply,
+    requestedUsd: usdcToUsd(requested),
+    priceUsd: usdcToUsd(price),
+    effectiveUsd: usdcToUsd(effective),
+    rounded: effective !== requested
+  };
 }
 
 export function buildAssetDraft(d: WizardData, id: string, total: number, artistWallet?: string): Asset {
@@ -173,8 +206,9 @@ export function buildAssetDraft(d: WizardData, id: string, total: number, artist
     genre: d.genre || 'Other',
     description: d.description || 'No description provided.',
     verified: false,
-    tokenPrice: isPre ? 10 : 20,
-    tokensTotal: isPre ? Math.ceil(total / 10) : 1500,
+    // §2.79: what the token contract will set — see raiseTerms.
+    tokenPrice: raiseTerms(total, draftSupply(d)).priceUsd,
+    tokensTotal: draftSupply(d),
     tokensSold: 0,
     aiDisclosure: { ...d.disclosure },
     dspPolicy: 'Policy exposure to be re-checked at listing review.',
@@ -234,12 +268,13 @@ export function canAdvanceFrom(step: WizardStepKey, d: WizardData): boolean {
   if (step === 'basics') return !!d.title.trim() && !!d.artistName.trim();
   if (step === 'model') return !!d.model;
   if (step === 'source' && d.model === 'preproduction') {
-    // A zero budget mints a zero supply, which the token contract refuses.
     const budget = d.preprod.studio + d.preprod.session + d.preprod.mix + d.preprod.extra;
-    return budget > 0 && !!d.preprod.studioName.trim() && isValidWalletAddress(d.preprod.studioWallet) && milestonesValid(d.preprodMilestones);
+    return raiseTerms(budget, d.preprod.supply).valid && !!d.preprod.studioName.trim() && isValidWalletAddress(d.preprod.studioWallet) && milestonesValid(d.preprodMilestones);
   }
-  if (step === 'source' && d.model === 'catalogue' && d.catalogueCampaign.enabled) {
-    return d.catalogueCampaign.goal > 0 && !!d.catalogueCampaign.studioName.trim() && isValidWalletAddress(d.catalogueCampaign.studioWallet) && milestonesValid(d.catalogueMilestones);
+  if (step === 'source' && d.model === 'catalogue') {
+    if (!raiseTerms(d.catalogue.funding, d.catalogue.supply).valid) return false;
+    if (!d.catalogueCampaign.enabled) return true;
+    return !!d.catalogueCampaign.studioName.trim() && isValidWalletAddress(d.catalogueCampaign.studioWallet) && milestonesValid(d.catalogueMilestones);
   }
   return true;
 }

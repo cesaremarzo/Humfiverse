@@ -22,11 +22,11 @@ const { paymentTokenOf, toUsdcFor } = require("./chainUnits");
 const RPC_URL = process.env.CHAIN_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com";
 // §2.43 redeploy — added trackAudioUri + setTrackAudioUri, linking a
 // minted token to its uploaded track's real IPFS audio (see pinata.js).
-const CONTRACT_ADDRESS = process.env.CHAIN_CONTRACT_ADDRESS || "0xd3821780B1031B3f07072c9Ba24305e2295e28C2";
+const CONTRACT_ADDRESS = process.env.CHAIN_CONTRACT_ADDRESS || "0x3A065F7918369b0ba3c528c766e632BBC6995D0c";
 // Block this contract was deployed at — starting event queries here instead
 // of block 0 keeps each eth_getLogs call well under public RPCs' ~10,000-
 // block range limit even as the chain grows. Update after any redeploy.
-const CONTRACT_DEPLOY_BLOCK = Number(process.env.CHAIN_CONTRACT_DEPLOY_BLOCK || 11702442);
+const CONTRACT_DEPLOY_BLOCK = Number(process.env.CHAIN_CONTRACT_DEPLOY_BLOCK || 11703181);
 // Alchemy's free tier caps eth_getLogs at a 10-block range per call (found
 // the hard way — the public-RPC default this project used before §2.39
 // silently returned *incomplete* results instead of erroring, which is
@@ -44,7 +44,9 @@ const CHAIN_ID = 11155111; // Sepolia
 const EXPLORER_BASE = "https://sepolia.etherscan.io";
 
 const ABI = [
-  "function mintCatalogue(uint256 tokenId, string slug, uint256 supply, uint256 pricePerToken, string title, string artist)",
+  // §2.79: the artist's funding and supply go in; the contract derives the price.
+  "function mintCatalogue(uint256 tokenId, string slug, uint256 supply, uint256 fundingAmount, string title, string artist, address payout)",
+  "function payoutOf(uint256) view returns (address)",
   "function poolBalance(uint256 tokenId) view returns (uint256)",
   "function totalSupplyOf(uint256) view returns (uint256)",
   "function releasedOf(uint256) view returns (uint256)",
@@ -84,14 +86,15 @@ function mintingEnabled() {
 
 async function getPoolInfo(tokenId) {
   const toUsdc = await toUsdcFor(readContract);
-  const [poolBalance, totalSupply, released, price, title, artist, audioUri] = await Promise.all([
+  const [poolBalance, totalSupply, released, price, title, artist, audioUri, payout] = await Promise.all([
     readContract.poolBalance(tokenId),
     readContract.totalSupplyOf(tokenId),
     readContract.releasedOf(tokenId),
     readContract.pricePerToken(tokenId),
     readContract.trackTitle(tokenId),
     readContract.artistName(tokenId),
-    readContract.trackAudioUri(tokenId)
+    readContract.trackAudioUri(tokenId),
+    readContract.payoutOf(tokenId).catch(() => null)
   ]);
   return {
     tokenId,
@@ -102,6 +105,10 @@ async function getPoolInfo(tokenId) {
     totalSupply: totalSupply.toString(),
     released: released.toString(),
     priceUsdc: toUsdc(price).toString(),
+    // What selling every token raises — price times supply, the same figure
+    // an escrow campaign on this token aims for (§2.79).
+    fundingUsdc: toUsdc(price * totalSupply).toString(),
+    payoutWallet: payout && payout !== ethers.ZeroAddress ? payout : null,
     onchainTitle: title,
     onchainArtist: artist,
     audioUri
@@ -165,7 +172,7 @@ async function listRecentlyMintedSlugsFromChain() {
   }
 }
 
-async function mintCatalogueOnchain(tokenId, slug, supply, priceUsdc, title, artist) {
+async function mintCatalogueOnchain(tokenId, slug, supply, fundingUsdc, title, artist, payoutWallet) {
   if (!writeContract) throw new Error("on-chain minting is disabled (no operator key configured)");
   // A USDC price minted on an ETH-era token would be read as wei — a token
   // priced at a hundred-millionth of what the artist asked for.
@@ -173,7 +180,9 @@ async function mintCatalogueOnchain(tokenId, slug, supply, priceUsdc, title, art
   // Wrapped in withRetry (chainRetry.js) — the free public RPC rate-limits
   // under bursts, and a failure here used to silently drop the campaign
   // from the marketplace even though it had been created (§2.22).
-  const tx = await withRetry(() => writeContract.mintCatalogue(tokenId, slug, supply, priceUsdc || 0, title || "", artist || ""));
+  const tx = await withRetry(() =>
+    writeContract.mintCatalogue(tokenId, slug, supply, fundingUsdc || 0, title || "", artist || "", payoutWallet || ethers.ZeroAddress)
+  );
   const receipt = await tx.wait();
   return {
     tokenId,

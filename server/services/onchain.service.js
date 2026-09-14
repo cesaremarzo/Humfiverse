@@ -45,12 +45,28 @@ async function nextFreeTokenId() {
   return candidate;
 }
 
-async function mintAsset(assetId, slug, supply, priceUsdc, title, artist) {
+/** §2.79: the artist decides the supply and the funding asked of investors;
+ * the contract derives the price so every token is worth the same. The
+ * checks here are the contract's own, run first so a bad request is a 400
+ * rather than a reverted transaction the operator paid gas for. */
+async function mintAsset(assetId, slug, supply, fundingUsdc, title, artist, payoutWallet) {
   const existing = await onchainRepo.findTokenByAssetId(assetId);
   if (existing) throw Object.assign(new Error("asset already has an on-chain token"), { code: "already_minted", record: existing });
 
+  const n = Number(supply);
+  if (!Number.isSafeInteger(n) || n <= 0) throw Object.assign(new Error("supply must be a whole number above 0"), { code: "invalid" });
+  let funding;
+  try {
+    funding = BigInt(fundingUsdc ?? 0);
+  } catch {
+    throw Object.assign(new Error("fundingUsdc must be a whole number of USDC base units"), { code: "invalid" });
+  }
+  if (funding <= 0n) throw Object.assign(new Error("fundingUsdc must be above 0"), { code: "invalid" });
+  if (funding / BigInt(n) === 0n) throw Object.assign(new Error("funding is too small to give each token a price"), { code: "invalid" });
+  if (payoutWallet && !/^0x[a-fA-F0-9]{40}$/.test(payoutWallet)) throw Object.assign(new Error("payoutWallet is not an address"), { code: "invalid" });
+
   const tokenId = await nextFreeTokenId();
-  const result = await chain.mintCatalogueOnchain(tokenId, slug, supply, priceUsdc, title, artist);
+  const result = await chain.mintCatalogueOnchain(tokenId, slug, n, funding, title, artist, payoutWallet);
   await onchainRepo.insertToken({
     tokenId,
     assetId,

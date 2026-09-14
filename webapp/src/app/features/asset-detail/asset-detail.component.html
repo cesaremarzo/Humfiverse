@@ -367,7 +367,7 @@
           <div class="row"><span>{{ 'buy.subtotal' | translate }}</span><span class="mono">{{ fmt(qty() * a.tokenPrice) }}</span></div>
           <div class="row"><span>{{ 'buy.platformFee' | translate }}</span><span class="mono">{{ fmt(primaryFeeUsd(qty() * a.tokenPrice)) }}</span></div>
           <div class="row total"><span>{{ 'buy.total' | translate }}</span><span class="mono">{{ fmt(qty() * a.tokenPrice) }}</span></div>
-          <div class="prose" style="font-size:11.5px; margin-top:6px;">{{ (a.kind === 'preproduction' ? 'buy.platformFeeNoteCampaign' : 'buy.platformFeeNote') | translate }}</div>
+          <div class="prose" style="font-size:11.5px; margin-top:6px;">{{ (a.kind === 'preproduction' || catalogueEscrowStillOpen(escrowInfo()) ? 'buy.platformFeeNoteCampaign' : 'buy.platformFeeNote') | translate }}</div>
         </div>
         <label class="check-row">
           <input type="checkbox" [checked]="ack()" (change)="ack.set($any($event.target).checked)">
