@@ -464,6 +464,17 @@
   td{ padding:13px 14px; border-top:1px solid var(--border); }
   tr:hover td{ background: var(--surface-2); }
   .table-wrap{ overflow-x:auto; }
+  /* §2.82: a table whose last column holds an action (the milestone confirm
+     button) must not hide it behind horizontal scroll on a narrow screen —
+     below 640px each row becomes a stacked card, action last. */
+  @media (max-width:640px){
+    .table-stack thead{ display:none; }
+    .table-stack, .table-stack tbody, .table-stack tr, .table-stack td{ display:block; width:100%; }
+    .table-stack tr{ padding:12px 0; border-top:1px solid var(--border); }
+    .table-stack td{ border-top:0; padding:3px 0; text-align:left !important; }
+    .table-stack td:empty{ display:none; }
+    .table-stack td .btn{ margin-top:8px; }
+  }
   .cell-primary{ font-weight:600; }
   .cell-num{ font-family:"IBM Plex Mono",monospace; text-align:right; }
   th.cell-num{ text-align:right; }
