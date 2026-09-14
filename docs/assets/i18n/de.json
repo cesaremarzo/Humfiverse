@@ -274,7 +274,7 @@
   "wizMilestones.addMilestone": "+ Meilenstein hinzufügen",
   "wizMilestones.removeMilestone": "Entfernen",
   "wizSource.extraCampaignToggle": "Zusätzliche Mittel für ein Video oder eine Marketing-Kampagne sammeln",
-  "wizSource.extraCampaignHint": "Optional. Sammeln Sie zusätzliche Mittel für Arbeiten rund um einen bereits tokenisierten Track, etwa ein Musikvideo oder eine Marketingkampagne. Beiträge bleiben im Escrow gesperrt: Die Tranche jedes Meilensteins wird erst freigegeben, wenn sowohl Sie als auch das Studio oder der Partner – jeweils aus dem eigenen Wallet – bestätigen, dass er geliefert wurde. Investoren erhalten Token desselben Tracks.",
+  "wizSource.extraCampaignHint": "Optional. Sammeln Sie zusätzliche Mittel für Arbeiten rund um diesen Track – der bereits den bei der Tokenisierung angegebenen Cashflow erzeugt –, etwa ein Musikvideo oder eine Marketingkampagne. Beiträge bleiben im Escrow gesperrt: Die Tranche jedes Meilensteins wird erst freigegeben, wenn sowohl Sie als auch das Studio oder der Partner – jeweils aus dem eigenen Wallet – bestätigen, dass er geliefert wurde. Investoren erhalten Token desselben Tracks.",
   "wizSource.extraCampaignGoalLabel": "Finanzierungsziel",
   "wizSource.extraCampaignMilestonesNote": "Jeder Meilenstein wird erst freigegeben, wenn Sie und das Studio oder der Partner die Lieferung bestätigen.",
   "wizSource.catalogueTitle": "Tantiemenverifizierung",

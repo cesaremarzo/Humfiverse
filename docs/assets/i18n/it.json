@@ -274,7 +274,7 @@
   "wizMilestones.addMilestone": "+ Aggiungi milestone",
   "wizMilestones.removeMilestone": "Rimuovi",
   "wizSource.extraCampaignToggle": "Raccogli fondi extra per un video o una campagna di marketing",
-  "wizSource.extraCampaignHint": "Facoltativo. Raccogli fondi extra per lavori su un brano già tokenizzato, come un videoclip o una campagna marketing. I contributi restano bloccati in escrow: la tranche di ogni milestone viene sbloccata solo quando sia tu sia lo studio o partner confermate, ciascuno dal proprio wallet, che è stata realizzata. Gli investitori ricevono token di questo stesso brano.",
+  "wizSource.extraCampaignHint": "Facoltativo. Raccogli fondi extra per lavori su questo brano — che genera già il flusso di cassa dichiarato al momento della tokenizzazione — come un videoclip o una campagna marketing. I contributi restano bloccati in escrow: la tranche di ogni milestone viene sbloccata solo quando sia tu sia lo studio o partner confermate, ciascuno dal proprio wallet, che è stata realizzata. Gli investitori ricevono token di questo stesso brano.",
   "wizSource.extraCampaignGoalLabel": "Obiettivo di raccolta",
   "wizSource.extraCampaignMilestonesNote": "Ogni milestone viene sbloccata solo quando tu e lo studio o partner confermate entrambi che è stata realizzata.",
   "wizSource.catalogueTitle": "Verifica royalty",
