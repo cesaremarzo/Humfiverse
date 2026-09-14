@@ -33,13 +33,18 @@ import "./HumfiverseCatalogueToken.sol";
 ///         what makes sure the money earmarked for that actually gets
 ///         there, and only once both sides agree it happened.
 ///
-///         Business rule: the platform retains 5% of every tranche as it is
-///         released (`PLATFORM_FEE_BPS`), so across a campaign that releases
-///         every milestone the platform receives 5% of the goal and the
-///         artist and studio 95%. The fee follows the release rather than
-///         being taken up front, so a cancelled campaign pays it only on the
-///         tranches that were genuinely delivered, and refunds need no
-///         special case. The fee accrues inside this contract and leaves only
+///         Business rule (§2.72), two fees:
+///         - `CONTRIBUTION_FEE_BPS` (2%) of every contribution, deducted from
+///           it on arrival. The contributor receives tokens for the full
+///           amount they sent; the campaign is credited the other 98%. This
+///           fee is not refunded if the campaign is later cancelled.
+///         - `MILESTONE_FEE_BPS` (3%) of every tranche as it is released.
+///         Because a sold-out campaign therefore holds 98% of its goal,
+///         tranches are sized against `fundingTargetOf` — the goal less the
+///         contribution fee — not the goal itself, or the last milestone
+///         could never be covered. Across a campaign that sells out and
+///         releases everything, the platform receives 2% + 3% of 98% = 4.94%
+///         of the goal. Both fees accrue inside this contract and leave only
 ///         through withdrawFees() — never pushed during a release — because a
 ///         fee recipient that rejected ETH would otherwise block every
 ///         milestone, handing Humfiverse exactly the veto over releases that
@@ -69,7 +74,7 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         address artist;
         uint256 studioId; // 0 = no studio required for this campaign
         uint256 fundingGoal; // wei
-        uint256 raised; // wei
+        uint256 raised; // wei credited to the campaign, net of the contribution fee
         uint256 deadline; // unix timestamp; 0 = no deadline
         CampaignStatus status;
         uint256 releasedBps; // cumulative bps released so far
@@ -97,10 +102,12 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     ///         after deploy — see that contract's escrowContract field.
     HumfiverseCatalogueToken public immutable catalogueToken;
 
-    /// @notice Platform fee on every released tranche, in basis points of
-    ///         the tranche (500 bps = 5.00%). A constant, not a setter: the
-    ///         rate a contributor funded under cannot be changed afterward.
-    uint16 public constant PLATFORM_FEE_BPS = 500;
+    /// @notice Platform fee on every contribution, in basis points of the
+    ///         amount sent (200 bps = 2.00%). Constants, not setters: the rate
+    ///         a contributor funded under cannot be changed afterward.
+    uint16 public constant CONTRIBUTION_FEE_BPS = 200;
+    /// @notice Platform fee on every released tranche (300 bps = 3.00%).
+    uint16 public constant MILESTONE_FEE_BPS = 300;
 
     /// @notice Where withdrawFees() sends accrued fees. Defaults to the deployer.
     address public feeRecipient;
@@ -108,8 +115,11 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     uint256 public accruedFees;
     /// @notice Every fee ever retained, withdrawn or not — never decreases.
     uint256 public totalFeesCollected;
-    /// @notice campaignId => fees retained from that campaign's tranches.
+    /// @notice campaignId => fees retained from that campaign, both kinds.
     mapping(uint256 => uint256) public campaignFeesCollected;
+    /// @notice campaignId => wei paid out of the campaign by released
+    ///         tranches, fee included. What refunds are measured against.
+    mapping(uint256 => uint256) public campaignReleasedWei;
 
     uint256 private nextCampaignId = 1;
     uint256 private nextStudioId = 1;
@@ -143,6 +153,7 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     event MilestoneConfirmed(uint256 indexed campaignId, uint256 indexed milestoneIndex, address indexed payee, uint256 amount);
     event CampaignCancelled(uint256 indexed campaignId);
     event Refunded(uint256 indexed campaignId, address indexed contributor, uint256 amount);
+    event ContributionFeeRetained(uint256 indexed campaignId, address indexed contributor, uint256 fee);
     event PlatformFeeRetained(uint256 indexed campaignId, uint256 indexed milestoneIndex, uint256 fee);
     event FeesWithdrawn(address indexed recipient, uint256 amount);
     event FeeRecipientUpdated(address indexed previous, address indexed next);
@@ -265,13 +276,21 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         require(msg.value > 0, "HumfiverseMilestoneEscrow: zero contribution");
         require(c.deadline == 0 || block.timestamp <= c.deadline, "HumfiverseMilestoneEscrow: campaign ended");
 
-        c.raised += msg.value;
-        contributions[campaignId][msg.sender] += msg.value;
-        emit Contributed(campaignId, msg.sender, msg.value, c.raised);
+        uint256 fee = (msg.value * CONTRIBUTION_FEE_BPS) / 10_000;
+        uint256 credited = msg.value - fee;
+        c.raised += credited;
+        contributions[campaignId][msg.sender] += credited;
+        accruedFees += fee;
+        totalFeesCollected += fee;
+        campaignFeesCollected[campaignId] += fee;
+        emit ContributionFeeRetained(campaignId, msg.sender, fee);
+        emit Contributed(campaignId, msg.sender, credited, c.raised);
 
         uint256 tokenId = campaignTokenId[campaignId];
         uint256 price = catalogueToken.pricePerToken(tokenId);
         if (price > 0) {
+            // Tokens for the whole amount sent: the fee is the platform's
+            // share of the price, not a smaller purchase.
             uint256 qty = msg.value / price;
             if (qty > 0) {
                 catalogueToken.releaseFromPool(msg.sender, tokenId, qty);
@@ -342,15 +361,17 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         bool studioSideDone = c.studioId == 0 || studioConfirmed[campaignId][milestoneIndex];
         if (!(artistConfirmed[campaignId][milestoneIndex] && studioSideDone)) return;
 
+        uint256 target = fundingTargetOf(campaignId);
         // Not enough raised yet — releases once it is, on the next confirming call.
-        if (c.raised < (c.fundingGoal * (c.releasedBps + m.bps)) / 10_000) return;
+        if (c.raised < (target * (c.releasedBps + m.bps)) / 10_000) return;
 
-        uint256 amount = (c.fundingGoal * m.bps) / 10_000;
-        uint256 fee = (amount * PLATFORM_FEE_BPS) / 10_000;
+        uint256 amount = (target * m.bps) / 10_000;
+        uint256 fee = (amount * MILESTONE_FEE_BPS) / 10_000;
         uint256 payout = amount - fee;
 
         m.released = true;
         c.releasedBps += m.bps;
+        campaignReleasedWei[campaignId] += amount;
         accruedFees += fee;
         totalFeesCollected += fee;
         campaignFeesCollected[campaignId] += fee;
@@ -390,11 +411,19 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         emit CampaignCancelled(campaignId);
     }
 
-    /// @notice Pro-rata refund of the unreleased remainder — per
+    /// @notice Pro-rata refund of what the campaign still holds — per
     ///         technical-architecture.md §2.7, contributors are made whole
-    ///         only for the share of the goal that was never released to a
-    ///         confirmed milestone, not a full clawback of tranches already
-    ///         spent on milestones genuinely delivered.
+    ///         only for money never released to a confirmed milestone, not a
+    ///         clawback of tranches spent on milestones genuinely delivered.
+    ///         The contribution fee is not refunded: `contributions` records
+    ///         only what was credited to the campaign.
+    ///
+    ///         Each contributor receives their share of `raised - released`.
+    ///         It used to be `contributed × unreleasedBps`, which is only
+    ///         correct when the campaign raised exactly its target: a campaign
+    ///         that raised 0.5 of a 1 ETH goal and released 20% (0.2 ETH)
+    ///         promised refunds of 0.4 ETH against 0.3 ETH remaining, and paid
+    ///         the difference from other campaigns (§2.72).
     function refund(uint256 campaignId) external nonReentrant {
         Campaign storage c = campaigns[campaignId];
         require(c.status == CampaignStatus.CANCELLED, "HumfiverseMilestoneEscrow: not cancelled");
@@ -402,13 +431,19 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         require(contributed > 0, "HumfiverseMilestoneEscrow: nothing to refund");
 
         contributions[campaignId][msg.sender] = 0;
-        uint256 unreleasedBps = 10_000 - c.releasedBps;
-        uint256 amount = (contributed * unreleasedBps) / 10_000;
+        uint256 amount = (contributed * (c.raised - campaignReleasedWei[campaignId])) / c.raised;
 
         (bool sent, ) = payable(msg.sender).call{value: amount}("");
         require(sent, "HumfiverseMilestoneEscrow: refund failed");
 
         emit Refunded(campaignId, msg.sender, amount);
+    }
+
+    /// @notice What a campaign can actually hold once sold out — its goal
+    ///         less the contribution fee — and the basis every tranche is
+    ///         sized against.
+    function fundingTargetOf(uint256 campaignId) public view returns (uint256) {
+        return (campaigns[campaignId].fundingGoal * (10_000 - CONTRIBUTION_FEE_BPS)) / 10_000;
     }
 
     function getMilestones(uint256 campaignId) external view returns (Milestone[] memory) {

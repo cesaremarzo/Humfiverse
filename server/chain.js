@@ -55,6 +55,11 @@ const ABI = [
   "function setTrackAudioUri(uint256 tokenId, string uri)",
   "function releaseFromPool(address to, uint256 tokenId, uint256 amount)",
   "function balanceOf(address account, uint256 id) view returns (uint256)",
+  // §2.72 primary-sale fee — absent on tokens deployed before it.
+  "function PRIMARY_FEE_BPS() view returns (uint256)",
+  "function feeRecipient() view returns (address)",
+  "function accruedFees() view returns (uint256)",
+  "function totalFeesCollected() view returns (uint256)",
   "event CatalogueMinted(uint256 indexed tokenId, string slug, uint256 supply, uint256 priceWeiPerToken, string title, string artist)"
 ];
 
@@ -195,7 +200,33 @@ async function getBalance(tokenId, address) {
   return Number(bal);
 }
 
+/** The 2% primary-sale fee's state, read off the contract. Null when the
+ * configured token predates §2.72 and takes no fee. */
+async function getFeeState() {
+  let bps;
+  try {
+    bps = await withRetry(() => readContract.PRIMARY_FEE_BPS());
+  } catch (err) {
+    if (err.code === "CALL_EXCEPTION" || err.code === "BAD_DATA") return null;
+    throw err;
+  }
+  const [recipient, accrued, total] = await Promise.all([
+    withRetry(() => readContract.feeRecipient()),
+    withRetry(() => readContract.accruedFees()),
+    withRetry(() => readContract.totalFeesCollected())
+  ]);
+  return {
+    contractAddress: CONTRACT_ADDRESS,
+    explorerUrl: `https://sepolia.etherscan.io/address/${CONTRACT_ADDRESS}`,
+    feeBps: Number(bps),
+    feeRecipient: recipient,
+    accruedWei: accrued.toString(),
+    totalCollectedWei: total.toString()
+  };
+}
+
 module.exports = {
+  getFeeState,
   getBalance,
   mintingEnabled,
   getPoolInfo,

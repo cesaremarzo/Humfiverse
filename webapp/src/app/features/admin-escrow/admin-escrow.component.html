@@ -8,7 +8,7 @@
 
 <div class="card" style="margin-bottom:24px; padding:20px;">
   <div class="cell-primary" style="margin-bottom:4px;">Platform fees</div>
-  <p style="font-size:12px; color:var(--text-secondary); margin:0 0 14px;">Read from each contract's own counters. Fees accrue inside the contract and leave only through <span class="mono">withdrawFees()</span>, which any wallet can send and which pays only the contract's fee recipient.</p>
+  <p style="font-size:12px; color:var(--text-secondary); margin:0 0 14px;">Read from each contract's own counters. Fees accrue inside each contract and leave only through <span class="mono">withdrawFees()</span>, which any wallet can send and which pays only the contract's fee recipient.</p>
 
   @if (feesError()) {
     <p style="font-size:13px;"><strong>Could not load fees:</strong> {{ feesError() }}</p>
@@ -84,6 +84,9 @@
 
     <div class="stat-row" style="margin-bottom:14px;">
       <div class="card stat-tile"><div class="label">Goal</div><div class="value">{{ fmt(weiToUsd(c.fundingGoal)) }}</div></div>
+      @if (c.fundingTargetWei && c.fundingTargetWei !== c.fundingGoal) {
+        <div class="card stat-tile"><div class="label">Target (goal − 2%)</div><div class="value">{{ fmt(weiToUsd(c.fundingTargetWei)) }}</div></div>
+      }
       <div class="card stat-tile"><div class="label">Raised</div><div class="value">{{ fmt(weiToUsd(c.raised)) }}</div></div>
       <div class="card stat-tile"><div class="label">Released</div><div class="value">{{ c.releasedBps / 100 }}%</div></div>
       @if (c.feesCollectedWei) {
@@ -99,7 +102,7 @@
             <tr>
               <td>{{ m.name }}</td>
               <td>{{ m.payee === 'studio' ? (c.studio?.name || 'Studio') : 'Artist' }}</td>
-              <td class="cell-num mono">{{ fmt(weiToUsd(m.payoutWei ?? m.amountWei)) }}@if (m.feeWei && m.feeWei !== '0') {<div style="font-size:11px; color:var(--text-secondary);">of {{ fmt(weiToUsd(m.amountWei)) }} · 5% fee {{ fmt(weiToUsd(m.feeWei)) }}</div>}</td>
+              <td class="cell-num mono">{{ fmt(weiToUsd(m.payoutWei ?? m.amountWei)) }}@if (m.feeWei && m.feeWei !== '0') {<div style="font-size:11px; color:var(--text-secondary);">of {{ fmt(weiToUsd(m.amountWei)) }} · {{ (c.milestoneFeeBps ?? 0) / 100 }}% fee {{ fmt(weiToUsd(m.feeWei)) }}</div>}</td>
               <td style="text-align:right;">
                 @if (m.released) {
                   <span class="chip chip-good">Released</span>

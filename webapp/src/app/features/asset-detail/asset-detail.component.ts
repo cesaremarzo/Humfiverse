@@ -18,6 +18,7 @@ import { fundingPctFor, remainingFor, tokensSoldFor } from '../../core/onchain-p
 import { ipfsGatewayUrl } from '../../core/ipfs.util';
 import { computeYieldBreakdown } from '../../core/yield.util';
 import { platformFeeUsd, platformFeeWei } from '../../core/marketplace-fee.util';
+import { primaryFeeUsd } from '../../core/primary-fee.util';
 import { weiToUsd, usdToWei, usdToWeiPrecise, weiToUsdPrecise } from '../../core/usd-eth.util';
 import { isValidRoyaltyMonth, royaltyAvg, royaltyTotal } from '../../core/royalty.util';
 import { onchainErrorTranslation } from '../../core/onchain-error.util';
@@ -387,7 +388,7 @@ export class AssetDetailComponent {
    * automatically until its goal is met, then quietly go back to paying
    * the rights holder directly, all under one "buy" action. */
   catalogueEscrowStillOpen(escrowInfo: EscrowCampaignInfo | null): escrowInfo is Extract<EscrowCampaignInfo, { escrow: true }> {
-    return !!escrowInfo?.escrow && escrowInfo.status === 'active' && BigInt(escrowInfo.raised) < BigInt(escrowInfo.fundingGoal);
+    return !!escrowInfo?.escrow && escrowInfo.status === 'active' && BigInt(escrowInfo.raised) < BigInt(escrowInfo.fundingTargetWei ?? escrowInfo.fundingGoal);
   }
 
   /** Is there a real on-chain path for this asset — an active escrow
@@ -474,6 +475,7 @@ export class AssetDetailComponent {
 
   weiToUsd = weiToUsd;
   weiToUsdPrecise = weiToUsdPrecise;
+  primaryFeeUsd = primaryFeeUsd;
 
   /** The component still owns the translating; which message applies is
    * decided in core/onchain-error.util.ts, where it can be reasoned about

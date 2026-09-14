@@ -16,11 +16,13 @@ describe("HumfiverseMilestoneEscrow", function () {
   const TOKEN_ID = 1;
   const TOKEN_PRICE = ethers.parseEther("0.001");
 
-  // A tranche less the 5% platform fee — what the artist or studio receives.
-  const net = (bps) => {
-    const gross = (GOAL * BigInt(bps)) / 10_000n;
-    return gross - (gross * 500n) / 10_000n;
-  };
+  // §2.72: 2% of every contribution, 3% of every released tranche, and
+  // tranches sized against the goal less the contribution fee.
+  const credited = (value) => value - (value * 200n) / 10_000n;
+  const TARGET = (GOAL * 9_800n) / 10_000n;
+  const gross = (bps) => (TARGET * BigInt(bps)) / 10_000n;
+  // A tranche less the 3% milestone fee — what the artist or studio receives.
+  const net = (bps) => gross(bps) - (gross(bps) * 300n) / 10_000n;
 
   async function deployFixture() {
     const [owner, artist, studioWallet, contributor1, contributor2, other, feeRecipient] = await ethers.getSigners();
@@ -181,8 +183,8 @@ describe("HumfiverseMilestoneEscrow", function () {
       await escrow.connect(contributor2).contribute(campaignId, { value: ethers.parseEther("0.2") });
 
       const c = await escrow.campaigns(campaignId);
-      expect(c.raised).to.equal(ethers.parseEther("0.5"));
-      expect(await escrow.contributions(campaignId, contributor1.address)).to.equal(ethers.parseEther("0.3"));
+      expect(c.raised).to.equal(credited(ethers.parseEther("0.3")) + credited(ethers.parseEther("0.2")));
+      expect(await escrow.contributions(campaignId, contributor1.address)).to.equal(credited(ethers.parseEther("0.3")));
     });
 
     it("releases matching tokens straight to the contributor in the same transaction, atomically (§2.42)", async function () {
@@ -205,7 +207,7 @@ describe("HumfiverseMilestoneEscrow", function () {
 
       expect(await token.balanceOf(contributor1.address, TOKEN_ID)).to.equal(3n);
       const c = await escrow.campaigns(campaignId);
-      expect(c.raised).to.equal(value); // the dust wei is still recorded as raised, just doesn't buy a token
+      expect(c.raised).to.equal(credited(value)); // the dust wei is still recorded, just doesn't buy a token
     });
 
     it("does not release tokens (but still records the contribution) when the token has no price set", async function () {
@@ -219,7 +221,7 @@ describe("HumfiverseMilestoneEscrow", function () {
 
       await escrow.connect(contributor1).contribute(campaignId, { value: ethers.parseEther("0.1") });
       expect(await token.balanceOf(contributor1.address, 2)).to.equal(0n);
-      expect((await escrow.campaigns(campaignId)).raised).to.equal(ethers.parseEther("0.1"));
+      expect((await escrow.campaigns(campaignId)).raised).to.equal(credited(ethers.parseEther("0.1")));
     });
 
     it("refuses to create a campaign for a token id that hasn't been minted", async function () {
@@ -373,7 +375,7 @@ describe("HumfiverseMilestoneEscrow", function () {
     });
   });
 
-  describe("platform fee (5% of every released tranche)", function () {
+  describe("platform fees (2% of contributions, 3% of released tranches)", function () {
     async function releaseAll(ctx) {
       const { escrow, campaignId, artist, studioWallet } = ctx;
       for (let i = 0; i < 4; i++) {
@@ -382,30 +384,46 @@ describe("HumfiverseMilestoneEscrow", function () {
       }
     }
 
-    it("retains 5% of each tranche and emits it", async function () {
+    it("deducts 2% from a contribution, credits the campaign 98%, and still gives tokens for the full amount", async function () {
+      const { escrow, token, campaignId, contributor1 } = await campaignFixture();
+      const value = ethers.parseEther("0.5"); // 500 tokens at 0.001
+
+      await expect(escrow.connect(contributor1).contribute(campaignId, { value }))
+        .to.emit(escrow, "ContributionFeeRetained")
+        .withArgs(campaignId, contributor1.address, value / 50n);
+
+      expect((await escrow.campaigns(campaignId)).raised).to.equal(value - value / 50n);
+      expect(await escrow.accruedFees()).to.equal(value / 50n);
+      expect(await token.balanceOf(contributor1.address, TOKEN_ID)).to.equal(500n);
+    });
+
+    it("sizes tranches against the goal less 2%, so a sold-out campaign can release every milestone", async function () {
+      const ctx = await campaignFixture();
+      const { escrow, campaignId, contributor1 } = ctx;
+      expect(await escrow.fundingTargetOf(campaignId)).to.equal(TARGET);
+
+      await escrow.connect(contributor1).contribute(campaignId, { value: GOAL });
+      expect((await escrow.campaigns(campaignId)).raised).to.equal(TARGET);
+      await releaseAll(ctx);
+
+      expect((await escrow.campaigns(campaignId)).releasedBps).to.equal(10_000);
+      const milestoneFees = (TARGET * 300n) / 10_000n;
+      expect(await escrow.totalFeesCollected()).to.equal(GOAL / 50n + milestoneFees);
+      expect(await escrow.campaignFeesCollected(campaignId)).to.equal(GOAL / 50n + milestoneFees);
+      // The contract now holds the fees and nothing else.
+      expect(await ethers.provider.getBalance(await escrow.getAddress())).to.equal(GOAL / 50n + milestoneFees);
+    });
+
+    it("retains 3% of each tranche and emits it", async function () {
       const { escrow, campaignId, contributor1, artist, studioWallet } = await campaignFixture();
       await escrow.connect(contributor1).contribute(campaignId, { value: GOAL });
       await escrow.connect(artist).confirmMilestoneAsArtist(campaignId, 1);
 
-      const gross = (GOAL * BigInt(STUDIO_BPS)) / 10_000n;
+      const fee = (gross(STUDIO_BPS) * 300n) / 10_000n;
       await expect(escrow.connect(studioWallet).confirmMilestoneAsStudio(campaignId, 1))
         .to.emit(escrow, "PlatformFeeRetained")
-        .withArgs(campaignId, 1, gross / 20n);
-
-      expect(await escrow.accruedFees()).to.equal(gross / 20n);
-      expect(await escrow.campaignFeesCollected(campaignId)).to.equal(gross / 20n);
-    });
-
-    it("totals exactly 5% of the goal once every milestone is released, and leaves nothing else behind", async function () {
-      const ctx = await campaignFixture();
-      const { escrow, campaignId, contributor1 } = ctx;
-      await escrow.connect(contributor1).contribute(campaignId, { value: GOAL });
-      await releaseAll(ctx);
-
-      expect(await escrow.totalFeesCollected()).to.equal(GOAL / 20n);
-      expect(await escrow.campaignFeesCollected(campaignId)).to.equal(GOAL / 20n);
-      // The contract now holds the fees and nothing else.
-      expect(await ethers.provider.getBalance(await escrow.getAddress())).to.equal(GOAL / 20n);
+        .withArgs(campaignId, 1, fee);
+      expect(await escrow.accruedFees()).to.equal(GOAL / 50n + fee);
     });
 
     it("sends accrued fees to the fee recipient on withdrawal, whoever calls it", async function () {
@@ -413,15 +431,17 @@ describe("HumfiverseMilestoneEscrow", function () {
       const { escrow, campaignId, contributor1, other, feeRecipient } = ctx;
       await escrow.connect(contributor1).contribute(campaignId, { value: GOAL });
       await releaseAll(ctx);
+      const total = await escrow.accruedFees();
 
       const before = await ethers.provider.getBalance(feeRecipient.address);
       await expect(escrow.connect(other).withdrawFees())
         .to.emit(escrow, "FeesWithdrawn")
-        .withArgs(feeRecipient.address, GOAL / 20n);
+        .withArgs(feeRecipient.address, total);
 
-      expect(await ethers.provider.getBalance(feeRecipient.address)).to.equal(before + GOAL / 20n);
+      expect(await ethers.provider.getBalance(feeRecipient.address)).to.equal(before + total);
       expect(await escrow.accruedFees()).to.equal(0);
-      expect(await escrow.totalFeesCollected()).to.equal(GOAL / 20n);
+      expect(await escrow.totalFeesCollected()).to.equal(total);
+      expect(await ethers.provider.getBalance(await escrow.getAddress())).to.equal(0);
       await expect(escrow.withdrawFees()).to.be.revertedWith("HumfiverseMilestoneEscrow: no fees to withdraw");
     });
 
@@ -436,10 +456,12 @@ describe("HumfiverseMilestoneEscrow", function () {
       expect(await escrow.feeRecipient()).to.equal(other.address);
     });
 
-    it("refunds after cancellation still add up, with fees taken only on what was released", async function () {
+    it("refunds a partly funded, partly released campaign from what it actually holds, keeping the contribution fee", async function () {
       const { escrow, campaignId, contributor1, contributor2, artist, studioWallet } = await campaignFixture();
-      await escrow.connect(contributor1).contribute(campaignId, { value: ethers.parseEther("0.6") });
-      await escrow.connect(contributor2).contribute(campaignId, { value: ethers.parseEther("0.4") });
+      // Half the goal, then the 20% tranche, then cancellation — the case the
+      // old refund formula overpaid.
+      await escrow.connect(contributor1).contribute(campaignId, { value: ethers.parseEther("0.3") });
+      await escrow.connect(contributor2).contribute(campaignId, { value: ethers.parseEther("0.2") });
       await escrow.connect(artist).confirmMilestoneAsArtist(campaignId, 0);
       await escrow.connect(studioWallet).confirmMilestoneAsStudio(campaignId, 0);
       await escrow.cancelCampaign(campaignId);
@@ -447,42 +469,50 @@ describe("HumfiverseMilestoneEscrow", function () {
       await escrow.connect(contributor1).refund(campaignId);
       await escrow.connect(contributor2).refund(campaignId);
 
-      const firstTranche = (GOAL * BigInt(ARTIST_BPS)) / 10_000n;
-      expect(await escrow.totalFeesCollected()).to.equal(firstTranche / 20n);
-      // Both refunds paid, and exactly the fees remain.
-      expect(await ethers.provider.getBalance(await escrow.getAddress())).to.equal(firstTranche / 20n);
+      // Both refunds paid, and what is left is at most rounding dust above the fees.
+      const fees = await escrow.accruedFees();
+      const left = await ethers.provider.getBalance(await escrow.getAddress());
+      expect(left >= fees).to.equal(true);
+      expect(left - fees <= 2n).to.equal(true);
       await escrow.withdrawFees();
-      expect(await ethers.provider.getBalance(await escrow.getAddress())).to.equal(0);
+    });
+
+    it("never pays one campaign's refunds out of another campaign's funds", async function () {
+      const ctx = await campaignFixture();
+      const { escrow, campaignId, contributor1, contributor2, artist, studioWallet } = ctx;
+      await escrow.createCampaign(artist.address, GOAL, 0, 0, "second-campaign", TOKEN_ID, ["All"], [10_000], [0]);
+      await escrow.connect(contributor2).contribute(2, { value: GOAL });
+
+      await escrow.connect(contributor1).contribute(campaignId, { value: GOAL / 2n });
+      await escrow.connect(artist).confirmMilestoneAsArtist(campaignId, 0);
+      await escrow.connect(studioWallet).confirmMilestoneAsStudio(campaignId, 0);
+      await escrow.cancelCampaign(campaignId);
+      await escrow.connect(contributor1).refund(campaignId);
+
+      // The second campaign's credited funds are all still here, plus fees.
+      const balance = await ethers.provider.getBalance(await escrow.getAddress());
+      expect(balance >= TARGET + (await escrow.accruedFees())).to.equal(true);
     });
 
     it("never releases more in total than the campaign raised, so one campaign cannot spend another's funds", async function () {
       const ctx = await campaignFixture();
-      const { escrow, token, campaignId, contributor1, contributor2, artist, studioWallet } = ctx;
+      const { escrow, campaignId, contributor1, contributor2, artist, studioWallet } = ctx;
 
-      // A second, fully funded campaign sharing the contract's balance.
-      await escrow.createCampaign(
-        artist.address, GOAL, 0, 0, "second-campaign", TOKEN_ID,
-        ["All"], [10_000], [0]
-      );
+      await escrow.createCampaign(artist.address, GOAL, 0, 0, "second-campaign", TOKEN_ID, ["All"], [10_000], [0]);
       await escrow.connect(contributor2).contribute(2, { value: GOAL });
 
-      // The first raises only half its goal.
+      // The first raises about half its target.
       await escrow.connect(contributor1).contribute(campaignId, { value: GOAL / 2n });
 
-      // 40% fits within 50% raised.
+      // 40% of the target fits.
       await escrow.connect(artist).confirmMilestoneAsArtist(campaignId, 1);
       await escrow.connect(studioWallet).confirmMilestoneAsStudio(campaignId, 1);
       expect((await escrow.getMilestones(campaignId))[1].released).to.equal(true);
 
-      // A further 30% would be 70% of the goal against 50% raised — it must wait.
+      // A further 30% would be 70% of the target against ~50% raised — it must wait.
       await escrow.connect(artist).confirmMilestoneAsArtist(campaignId, 2);
       await escrow.connect(studioWallet).confirmMilestoneAsStudio(campaignId, 2);
       expect((await escrow.getMilestones(campaignId))[2].released).to.equal(false);
-
-      // The second campaign's goal is still entirely in the contract.
-      const escrowBalance = await ethers.provider.getBalance(await escrow.getAddress());
-      expect(escrowBalance).to.equal(GOAL + GOAL / 2n - net(STUDIO_BPS));
-      void token;
     });
   });
 
@@ -497,14 +527,16 @@ describe("HumfiverseMilestoneEscrow", function () {
       await escrow.connect(studioWallet).confirmMilestoneAsStudio(campaignId, 0);
       await escrow.cancelCampaign(campaignId);
 
-      // 80% of the goal is still unreleased — each contributor gets 80% of what they put in back.
+      // The campaign was credited 98% of 1 ETH and released 20% of that; each
+      // contributor gets their share of what remains.
       const bal1Before = await ethers.provider.getBalance(contributor1.address);
       const tx = await escrow.connect(contributor1).refund(campaignId);
       const receipt = await tx.wait();
       const gasCost = receipt.gasUsed * receipt.gasPrice;
       const bal1After = await ethers.provider.getBalance(contributor1.address);
 
-      const expected = (ethers.parseEther("0.6") * 8_000n) / 10_000n;
+      const c1 = credited(ethers.parseEther("0.6"));
+      const expected = (c1 * (TARGET - gross(ARTIST_BPS))) / TARGET;
       expect(bal1After - bal1Before + gasCost).to.equal(expected);
     });
 

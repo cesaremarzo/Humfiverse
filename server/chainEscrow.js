@@ -56,8 +56,10 @@ const ABI = [
   "function studios(uint256) view returns (string name, address wallet, bool active)",
   "function getMilestones(uint256 campaignId) view returns (tuple(string name, uint16 bps, uint8 payee, bool released)[])",
   "function campaignIdByAssetId(string) view returns (uint256)",
-  // §2.71 platform fee — absent on escrows deployed before it.
-  "function PLATFORM_FEE_BPS() view returns (uint16)",
+  // §2.72 platform fees — absent on escrows deployed before them.
+  "function CONTRIBUTION_FEE_BPS() view returns (uint16)",
+  "function MILESTONE_FEE_BPS() view returns (uint16)",
+  "function fundingTargetOf(uint256) view returns (uint256)",
   "function feeRecipient() view returns (address)",
   "function accruedFees() view returns (uint256)",
   "function totalFeesCollected() view returns (uint256)",
@@ -82,33 +84,34 @@ function writeEnabled() {
   return writeContract !== null;
 }
 
-/** The escrow's fee rate in bps, or null when the configured contract
- * predates §2.71 and has no fee at all. Cached once known either way — a
- * deployed contract's bytecode never changes. Only a revert means "no such
- * function"; an RPC failure is rethrown rather than read as a fee of zero. */
-const feeBpsPromises = new Map();
-function getFeeBps(contract = readContract) {
+/** The escrow's two fee rates in bps — `{ contributionBps, milestoneBps }`
+ * — or null when the contract predates §2.72's fees (the legacy escrow Guns
+ * finished on). Cached once known either way: a deployed contract's
+ * bytecode never changes. Only a revert means "no such function"; an RPC
+ * failure is rethrown rather than read as a fee of zero. */
+const feeRatePromises = new Map();
+function getFeeRates(contract = readContract) {
   const key = contract.target;
-  if (!feeBpsPromises.has(key)) {
-    feeBpsPromises.set(
+  if (!feeRatePromises.has(key)) {
+    feeRatePromises.set(
       key,
-      withRetry(() => contract.PLATFORM_FEE_BPS())
-        .then((bps) => Number(bps))
+      Promise.all([withRetry(() => contract.CONTRIBUTION_FEE_BPS()), withRetry(() => contract.MILESTONE_FEE_BPS())])
+        .then(([c, m]) => ({ contributionBps: Number(c), milestoneBps: Number(m) }))
         .catch((err) => {
           if (err.code === "CALL_EXCEPTION" || err.code === "BAD_DATA") return null;
-          feeBpsPromises.delete(key);
+          feeRatePromises.delete(key);
           throw err;
         })
     );
   }
-  return feeBpsPromises.get(key);
+  return feeRatePromises.get(key);
 }
 
 /** Contract-wide fee state, read straight off the chain — nothing here is
  * accumulated by this server. Null when the contract has no fee. */
 async function getFeeState() {
-  const feeBps = await getFeeBps();
-  if (feeBps === null) return null;
+  const rates = await getFeeRates();
+  if (rates === null) return null;
   const [recipient, accrued, total] = await Promise.all([
     withRetry(() => readContract.feeRecipient()),
     withRetry(() => readContract.accruedFees()),
@@ -117,7 +120,8 @@ async function getFeeState() {
   return {
     contractAddress: ESCROW_ADDRESS,
     explorerUrl: `${EXPLORER_BASE}/address/${ESCROW_ADDRESS}`,
-    feeBps,
+    contributionFeeBps: rates.contributionBps,
+    milestoneFeeBps: rates.milestoneBps,
     feeRecipient: recipient,
     accruedWei: accrued.toString(),
     totalCollectedWei: total.toString()
@@ -184,8 +188,11 @@ async function createCampaignOnchain(artist, fundingGoalWei, studioId, deadline,
 
 async function getCampaignInfo(campaignId, contract = readContract) {
   const address = contract.target;
-  const [c, milestones, feeBps] = await Promise.all([contract.campaigns(campaignId), contract.getMilestones(campaignId), getFeeBps(contract)]);
-  const campaignFees = feeBps === null ? null : await contract.campaignFeesCollected(campaignId);
+  const [c, milestones, rates] = await Promise.all([contract.campaigns(campaignId), contract.getMilestones(campaignId), getFeeRates(contract)]);
+  const [campaignFees, target] =
+    rates === null
+      ? [null, c.fundingGoal]
+      : await Promise.all([contract.campaignFeesCollected(campaignId), contract.fundingTargetOf(campaignId)]);
   let studio = null;
   if (c.studioId > 0n) {
     const s = await contract.studios(c.studioId);
@@ -193,13 +200,15 @@ async function getCampaignInfo(campaignId, contract = readContract) {
   }
   const milestonesWithConfirmations = await Promise.all(
     milestones.map(async (m, i) => {
-      const amount = (c.fundingGoal * BigInt(m.bps)) / 10_000n;
-      const fee = (amount * BigInt(feeBps ?? 0)) / 10_000n;
-      // Mirrors _tryRelease's own gate. A §2.71 escrow requires everything
-      // released so far plus this tranche to be covered by `raised`; the
-      // earlier contract compared the tranche alone, and this reports
-      // whichever rule the configured contract actually enforces.
-      const needed = feeBps === null ? amount : (c.fundingGoal * (c.releasedBps + BigInt(m.bps))) / 10_000n;
+      // §2.72: tranches are sized against the target — the goal less the
+      // contribution fee — which is simply the goal on a legacy escrow.
+      const amount = (target * BigInt(m.bps)) / 10_000n;
+      const fee = (amount * BigInt(rates?.milestoneBps ?? 0)) / 10_000n;
+      // Mirrors _tryRelease's own gate. A fee-bearing escrow requires
+      // everything released so far plus this tranche to be covered by
+      // `raised`; the legacy contract compared the tranche alone, and this
+      // reports whichever rule the configured contract actually enforces.
+      const needed = rates === null ? amount : (target * (c.releasedBps + BigInt(m.bps))) / 10_000n;
       return {
       index: i,
       name: m.name,
@@ -227,11 +236,13 @@ async function getCampaignInfo(campaignId, contract = readContract) {
     studioId: Number(c.studioId),
     studio,
     fundingGoal: c.fundingGoal.toString(),
+    fundingTargetWei: target.toString(),
     raised: c.raised.toString(),
     deadline: Number(c.deadline),
     status: Number(c.status) === 0 ? "active" : "cancelled",
     releasedBps: Number(c.releasedBps),
-    platformFeeBps: feeBps,
+    contributionFeeBps: rates?.contributionBps ?? null,
+    milestoneFeeBps: rates?.milestoneBps ?? null,
     feesCollectedWei: campaignFees === null ? null : campaignFees.toString(),
     milestones: milestonesWithConfirmations
   };
