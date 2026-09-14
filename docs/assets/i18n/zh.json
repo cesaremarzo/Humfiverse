@@ -274,7 +274,7 @@
   "wizMilestones.addMilestone": "+ 添加里程碑",
   "wizMilestones.removeMilestone": "删除",
   "wizSource.extraCampaignToggle": "为音乐视频或营销活动筹集额外资金",
-  "wizSource.extraCampaignHint": "可选。为已代币化的曲目相关工作筹集额外资金，例如音乐视频或营销活动。出资锁定在托管中：只有当你和录音室或合作方各自从自己的钱包确认已交付后，每个里程碑的分期款项才会释放。投资者获得的是同一曲目的代币。",
+  "wizSource.extraCampaignHint": "可选。为这首曲目（已经产生代币化时所申报现金流的曲目）的相关工作筹集额外资金，例如音乐视频或营销活动。出资锁定在托管中：只有当你和录音室或合作方各自从自己的钱包确认已交付后，每个里程碑的分期款项才会释放。投资者获得的是同一曲目的代币。",
   "wizSource.extraCampaignGoalLabel": "筹资目标",
   "wizSource.extraCampaignMilestonesNote": "只有你和录音室或合作方都确认交付后，每个里程碑才会释放。",
   "wizSource.catalogueTitle": "版税验证",

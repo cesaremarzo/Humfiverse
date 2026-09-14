@@ -274,7 +274,7 @@
   "wizMilestones.addMilestone": "+ Añadir hito",
   "wizMilestones.removeMilestone": "Quitar",
   "wizSource.extraCampaignToggle": "Recauda fondos extra para un video o una campaña de marketing",
-  "wizSource.extraCampaignHint": "Opcional. Recauda fondos extra para trabajos sobre un tema ya tokenizado, como un videoclip o una campaña de marketing. Las contribuciones quedan bloqueadas en escrow: el tramo de cada hito solo se libera cuando tanto tú como el estudio o socio confirmáis, cada uno desde vuestro propio wallet, que se ha realizado. Los inversores reciben tokens de este mismo tema.",
+  "wizSource.extraCampaignHint": "Opcional. Recauda fondos extra para trabajos sobre este tema — que ya genera el flujo de ingresos declarado al tokenizarlo — como un videoclip o una campaña de marketing. Las contribuciones quedan bloqueadas en escrow: el tramo de cada hito solo se libera cuando tanto tú como el estudio o socio confirmáis, cada uno desde vuestro propio wallet, que se ha realizado. Los inversores reciben tokens de este mismo tema.",
   "wizSource.extraCampaignGoalLabel": "Objetivo de financiación",
   "wizSource.extraCampaignMilestonesNote": "Cada hito se libera solo cuando tú y el estudio o socio confirmáis que se ha entregado.",
   "wizSource.catalogueTitle": "Verificación de royalties",
