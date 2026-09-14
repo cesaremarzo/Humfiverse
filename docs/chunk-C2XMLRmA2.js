@@ -1,0 +1,1 @@
+import{d as g}from"./chunk-CoEj01tB.js";async function d(n){let t=await g();if(!n.every(i=>t.includes(i.id)))throw new Error(`Insight is not available for chains ${n.filter(i=>!t.includes(i.id)).map(i=>i.id).join(`, `)}`)}export{d as assertInsightEnabled};

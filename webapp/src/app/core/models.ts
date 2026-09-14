@@ -160,6 +160,9 @@ export interface WalletState {
   address: string | null;
   chainId: string | null;
   connecting: boolean;
+  /** Which source the address came from (§2.83): an in-app wallet created
+   * from a Google/Apple/email login, or MetaMask / another injected wallet. */
+  kind: 'embedded' | 'injected' | null;
 }
 
 export interface InvestorState {

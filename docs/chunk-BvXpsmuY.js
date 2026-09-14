@@ -1,0 +1,1 @@
+import{yt as je}from"./chunk-_bucJLw7.js";function c(t){return je(...t)}export{c as t};

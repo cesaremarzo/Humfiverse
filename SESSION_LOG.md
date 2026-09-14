@@ -1239,3 +1239,39 @@ Both were **a browser tab running an old bundle**. Ask for the loaded
   transactions on an automining Hardhat node can collide; retry.
 - Carried forward: GitBook Git Sync still reads `dev/cesare`; no backend or
   frontend test suite; Alchemy key rotation is the user's call.
+
+---
+
+## 2026-09-14 (late) — Sign in with Google/Apple/email, no MetaMask needed (§2.83)
+
+On `dev/cesare`, **not merged** (a feature: needs the go-ahead).
+
+- **thirdweb in-app wallet** behind every "Connect wallet" button: a sign-in
+  dialog with Google, Apple, email code, a disabled "EU Digital Identity
+  Wallet — soon", and MetaMask as the alternative. `WalletService` picks the
+  EIP-1193 provider by `state().kind`; no page changed how it transacts.
+- **EIP-7702 + sponsored gas**: the user's address stays an EOA and is
+  `msg.sender` at our contracts; thirdweb's executor pays.
+- **Off until configured**: `thirdwebClientId` is empty in both
+  environments, and empty means the app behaves exactly as before.
+- **EUDIW groundwork**: `GET /api/auth/jwks.json` + an RS256 signer
+  (`AUTH_JWT_PRIVATE_KEY`) that nothing calls yet, deliberately.
+
+### To switch it on
+
+1. thirdweb dashboard: create a project, allow `cesaremarzo.github.io`,
+   `localhost:4200` and the Netlify preview domain; enable Google, Apple and
+   email under in-app wallets; enable gas sponsorship on Sepolia.
+2. Put the client id in `webapp/src/environments/environment*.ts`, rebuild
+   `docs/`.
+3. Click through: Google login → portfolio shows the address → reload keeps
+   the session → a buy and a contribute go through with 0 ETH in the wallet.
+   None of this has been run yet: it needs a real client id.
+
+### Open items
+
+- EUDIW verifier (OpenID4VP, PID trust list, relying-party registration,
+  `sub` derivation) — see §2.83 for why the signer has no route until then.
+- Test USDC: a new wallet has none. Circle's Sepolia faucet for now; an
+  on-ramp later.
+- Mainnet: sponsored gas becomes a real cost on thirdweb's billing.

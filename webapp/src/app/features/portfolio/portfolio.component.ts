@@ -60,8 +60,6 @@ export class PortfolioComponent {
    * one real visit at a time. */
   valueHistory = signal<{ date: string; valueUsd: number }[]>([]);
 
-  hasInjectedWallet = typeof window !== 'undefined' && !!window.ethereum;
-
   sellDraft = signal<{ assetId: string; max: number } | null>(null);
   sellQty = signal(1);
   sellPrice = signal(1);
@@ -206,7 +204,7 @@ export class PortfolioComponent {
 
   async connect(): Promise<void> {
     const result = await this.wallet.connect();
-    if (!result.ok && !this.hasInjectedWallet) {
+    if (!result.ok && !result.cancelled && !this.wallet.hasInjected && !this.wallet.embeddedEnabled) {
       this.toast.show(this.translate.instant('toast.noWalletDetected'), 'alert');
     }
   }

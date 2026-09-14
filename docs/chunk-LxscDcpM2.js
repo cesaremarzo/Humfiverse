@@ -1,0 +1,1 @@
+import{Dt as F}from"./chunk-_bucJLw7.js";import"./chunk-CoEj01tB.js";export{F as getRpcClient};

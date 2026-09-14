@@ -7,12 +7,12 @@
     <div style="width:44px; height:44px; border-radius:12px; background:var(--accent-soft); color:var(--accent-ink); display:flex; align-items:center; justify-content:center;"><app-icon name="wallet"></app-icon></div>
     <div>
       <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:17px; margin-bottom:6px;">{{ 'redeem.connectPrompt' | translate }}</h3>
-      <p class="prose" style="max-width:46ch; margin:0 auto;">{{ 'redeem.connectBody' | translate }}</p>
+      <p class="prose" style="max-width:46ch; margin:0 auto;">{{ (wallet.embeddedEnabled ? 'redeem.connectBodySocial' : 'redeem.connectBody') | translate }}</p>
     </div>
     <button class="btn btn-primary btn-lg" [disabled]="wallet.state().connecting" (click)="connect()">
-      <app-icon name="wallet"></app-icon> {{ (wallet.state().connecting ? 'wallet.connecting' : 'redeem.connectBtn') | translate }}
+      <app-icon name="wallet"></app-icon> {{ (wallet.state().connecting ? 'wallet.connecting' : wallet.embeddedEnabled ? 'redeem.connectBtnSocial' : 'redeem.connectBtn') | translate }}
     </button>
-    @if (!hasInjectedWallet) {
+    @if (!wallet.hasInjected && !wallet.embeddedEnabled) {
       <p class="prose" style="font-size:12px;" [innerHTML]="'redeem.noWalletNote' | translate"></p>
     }
   </div>
@@ -22,10 +22,13 @@
       <div style="width:36px; height:36px; border-radius:999px; background:var(--good-soft); color:var(--good); display:flex; align-items:center; justify-content:center; flex:none;"><app-icon name="checkCircle"></app-icon></div>
       <div>
         <div class="cell-primary mono">{{ wallet.truncateAddr(wallet.state().address) }}</div>
-        <div style="font-size:12px; color:var(--text-secondary);">{{ 'redeem.connectedNetwork' | translate: { chain: chainLabel() } }}</div>
+        <div style="font-size:12px; color:var(--text-secondary);">
+          {{ 'redeem.connectedNetwork' | translate: { chain: chainLabel() } }}
+          @if (wallet.state().kind === 'embedded') { · {{ 'portfolio.embeddedWallet' | translate }} }
+        </div>
       </div>
     </div>
-    <button class="btn btn-ghost btn-sm" (click)="disconnect()">{{ 'wallet.disconnect' | translate }}</button>
+    <button class="btn btn-ghost btn-sm" (click)="disconnect()">{{ (wallet.state().kind === 'embedded' ? 'wallet.signOut' : 'wallet.disconnect') | translate }}</button>
   </div>
 
   @if (loading()) {

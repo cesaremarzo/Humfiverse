@@ -20,4 +20,13 @@ const ADMIN_API_KEY = process.env.ADMIN_API_KEY || "";
    field inside each token's metadata JSON links back here. */
 const TOKEN_METADATA_BASE = process.env.TOKEN_METADATA_BASE || "https://humfiverse-api.onrender.com";
 
-module.exports = { PORT, ADMIN_API_KEY, TOKEN_METADATA_BASE };
+/* §2.83 — RS256 key that signs the JWTs opening a thirdweb in-app wallet
+   from an identity this backend verified (the EUDIW path). Unset disables
+   it: the JWKS endpoint answers 503 and nothing can be signed. The issuer
+   and audience must match what is entered under "Custom JWT" in thirdweb's
+   dashboard. */
+const AUTH_JWT_PRIVATE_KEY = process.env.AUTH_JWT_PRIVATE_KEY || "";
+const AUTH_JWT_ISSUER = process.env.AUTH_JWT_ISSUER || TOKEN_METADATA_BASE;
+const AUTH_JWT_AUDIENCE = process.env.AUTH_JWT_AUDIENCE || "humfiverse-wallet";
+
+module.exports = { PORT, ADMIN_API_KEY, TOKEN_METADATA_BASE, AUTH_JWT_PRIVATE_KEY, AUTH_JWT_ISSUER, AUTH_JWT_AUDIENCE };

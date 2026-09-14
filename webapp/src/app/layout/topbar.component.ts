@@ -54,11 +54,8 @@ export class TopbarComponent {
   }
 
   async connectWallet(): Promise<void> {
-    if (!window.ethereum) {
-      this.toast.show(this.translate.instant('toast.noWalletDetected'), 'alert');
-      return;
-    }
     const result = await this.wallet.connect();
+    if (result.cancelled) return;
     if (result.ok) {
       this.toast.show(this.translate.instant('toast.walletConnected'), 'wallet');
     } else {
