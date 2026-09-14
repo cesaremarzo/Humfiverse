@@ -125,6 +125,13 @@ async function getAudit(tokenId) {
   };
 }
 
+/** Holder rows and audits, keyed only by token id — which a newly deployed
+ * token contract starts again from 1 (§2.81). */
+async function clearHolders() {
+  await db.prepare("DELETE FROM token_holders").run();
+  await db.prepare("DELETE FROM token_holder_audit").run();
+}
+
 async function clearAll() {
   await db.prepare("DELETE FROM token_holders").run();
   await db.prepare("DELETE FROM token_holder_audit").run();
@@ -141,5 +148,6 @@ module.exports = {
   replaceHolders,
   saveAudit,
   getAudit,
-  clearAll
+  clearAll,
+  clearHolders
 };

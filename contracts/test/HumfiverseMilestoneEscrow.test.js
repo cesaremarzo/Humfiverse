@@ -45,7 +45,7 @@ describe("HumfiverseMilestoneEscrow", function () {
     await token.waitForDeployment();
     // §2.79: the campaign's goal is the token's price times its supply, so the
     // shared test token is sized to be worth exactly GOAL.
-    await token.mintCatalogue(TOKEN_ID, "escrow-test-token", GOAL / TOKEN_PRICE, GOAL, "Escrow Test Track", "Test Artist", artist.address);
+    await token.mintCatalogue(TOKEN_ID, ["escrow-test-token", "Escrow Test Track", "Test Artist"], GOAL / TOKEN_PRICE, GOAL, artist.address, false);
 
     const Factory = await ethers.getContractFactory("HumfiverseMilestoneEscrow");
     const escrow = await Factory.deploy(await token.getAddress(), feeRecipient.address);
@@ -220,9 +220,24 @@ describe("HumfiverseMilestoneEscrow", function () {
 
     it("refuses to create a campaign on a token that is not for sale", async function () {
       const { escrow, token, artist } = await deployFixture();
-      await token.mintCatalogue(2, "no-price-token", 1_000_000, 0, "Unpriced Track", "Test Artist", ethers.ZeroAddress);
+      await token.mintCatalogue(2, ["no-price-token", "Unpriced Track", "Test Artist"], 1_000_000, 0, ethers.ZeroAddress, false);
       await expect(escrow.createCampaign(artist.address, 0, 0, "unpriced-asset", 2, ["a"], [10_000], [0]))
         .to.be.revertedWith("HumfiverseMilestoneEscrow: token is not for sale");
+    });
+
+    it("refuses a campaign on a token that is on direct sale, where buy() could bypass it (§2.81)", async function () {
+      const { escrow, token, artist } = await deployFixture();
+      await token.mintCatalogue(4, ["direct-token", "T", "A"], 5, ethers.parseUnits("50", 6), artist.address, true);
+      await expect(escrow.createCampaign(artist.address, 0, 0, "direct-asset", 4, ["a"], [10_000], [0]))
+        .to.be.revertedWith("HumfiverseMilestoneEscrow: token is on direct sale");
+    });
+
+    it("refuses a campaign on a token with tokens already released outside it", async function () {
+      const { escrow, token, artist, other } = await deployFixture();
+      await token.mintCatalogue(5, ["released-token", "T", "A"], 5, ethers.parseUnits("50", 6), artist.address, false);
+      await token.releaseFromPool(other.address, 5, 1);
+      await expect(escrow.createCampaign(artist.address, 0, 0, "released-asset", 5, ["a"], [10_000], [0]))
+        .to.be.revertedWith("HumfiverseMilestoneEscrow: tokens already sold outside the escrow");
     });
 
     it("takes its goal from the token — price times supply — rather than a parameter", async function () {
@@ -507,7 +522,7 @@ describe("HumfiverseMilestoneEscrow", function () {
     it("never pays one campaign's refunds out of another campaign's funds", async function () {
       const ctx = await campaignFixture();
       const { escrow, token, campaignId, contributor1, contributor2, artist, studioWallet } = ctx;
-      await token.mintCatalogue(3, "second-token", GOAL / TOKEN_PRICE, GOAL, "Second", "Artist", artist.address);
+      await token.mintCatalogue(3, ["second-token", "Second", "Artist"], GOAL / TOKEN_PRICE, GOAL, artist.address, false);
       await escrow.createCampaign(artist.address, 0, 0, "second-campaign", 3, ["All"], [10_000], [0]);
       await escrow.connect(contributor2).contribute(2, GOAL);
 
@@ -526,7 +541,7 @@ describe("HumfiverseMilestoneEscrow", function () {
       const ctx = await campaignFixture();
       const { escrow, token, campaignId, contributor1, contributor2, artist, studioWallet } = ctx;
 
-      await token.mintCatalogue(3, "second-token", GOAL / TOKEN_PRICE, GOAL, "Second", "Artist", artist.address);
+      await token.mintCatalogue(3, ["second-token", "Second", "Artist"], GOAL / TOKEN_PRICE, GOAL, artist.address, false);
       await escrow.createCampaign(artist.address, 0, 0, "second-campaign", 3, ["All"], [10_000], [0]);
       await escrow.connect(contributor2).contribute(2, GOAL);
 

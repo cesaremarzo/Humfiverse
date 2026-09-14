@@ -49,7 +49,7 @@ async function nextFreeTokenId() {
  * the contract derives the price so every token is worth the same. The
  * checks here are the contract's own, run first so a bad request is a 400
  * rather than a reverted transaction the operator paid gas for. */
-async function mintAsset(assetId, slug, supply, fundingUsdc, title, artist, payoutWallet) {
+async function mintAsset(assetId, slug, supply, fundingUsdc, title, artist, payoutWallet, directSale) {
   const existing = await onchainRepo.findTokenByAssetId(assetId);
   if (existing) throw Object.assign(new Error("asset already has an on-chain token"), { code: "already_minted", record: existing });
 
@@ -64,9 +64,12 @@ async function mintAsset(assetId, slug, supply, fundingUsdc, title, artist, payo
   if (funding <= 0n) throw Object.assign(new Error("fundingUsdc must be above 0"), { code: "invalid" });
   if (funding / BigInt(n) === 0n) throw Object.assign(new Error("funding is too small to give each token a price"), { code: "invalid" });
   if (payoutWallet && !/^0x[a-fA-F0-9]{40}$/.test(payoutWallet)) throw Object.assign(new Error("payoutWallet is not an address"), { code: "invalid" });
+  // §2.81: no default. Open by mistake, an escrow campaign's token could be
+  // bought around the escrow; closed by mistake, a direct sale could not sell.
+  if (typeof directSale !== "boolean") throw Object.assign(new Error("directSale must be true (sold by buy()) or false (sold only through an escrow campaign)"), { code: "invalid" });
 
   const tokenId = await nextFreeTokenId();
-  const result = await chain.mintCatalogueOnchain(tokenId, slug, n, funding, title, artist, payoutWallet);
+  const result = await chain.mintCatalogueOnchain(tokenId, slug, n, funding, title, artist, payoutWallet, directSale);
   await onchainRepo.insertToken({
     tokenId,
     assetId,

@@ -339,7 +339,7 @@ export class AssetDetailComponent {
    * simulated purchase every asset falls back to otherwise. */
   canBuyOnchain(): boolean {
     const info = this.onchainInfo();
-    return !!(info?.onchain && info.priceUsdc !== '0' && this.wallet.state().address);
+    return !!(this.directSaleOpen(info) && this.wallet.state().address);
   }
 
   /** True once this preproduction asset has an active escrow campaign and a
@@ -398,7 +398,7 @@ export class AssetDetailComponent {
     const onchain = this.onchainInfo();
     if (this.isPre(a) && escrowInfo?.escrow && escrowInfo.status === 'active') return true;
     if (this.catalogueEscrowStillOpen(escrowInfo)) return true;
-    return !!(onchain?.onchain && onchain.priceUsdc !== '0');
+    return this.directSaleOpen(onchain);
   }
 
   /**
@@ -417,10 +417,28 @@ export class AssetDetailComponent {
    * read is in flight, this app does not yet know whether a real path
    * exists, and acting on that is how it invented one.
    */
-  buyBlockedReason(a: Asset): 'loading' | 'wallet' | null {
-    if (this.onchainInfo() === null) return 'loading';
+  buyBlockedReason(a: Asset): 'loading' | 'wallet' | 'notOpen' | null {
+    const onchain = this.onchainInfo();
+    if (onchain === null) return 'loading';
+    // §2.81: a token sold only through its escrow has no other way to market.
+    // Until that escrow is known to be active, the answer is "not yet", never
+    // a direct purchase — which the contract refuses anyway, and which is
+    // exactly how a purchase bypassed a campaign created seconds later.
+    if (onchain.onchain && onchain.directSale === false && !this.hasEscrowPath(a)) {
+      return this.escrowInfo() === null ? 'loading' : 'notOpen';
+    }
     if (this.hasOnchainPath(a) && !this.wallet.state().address) return 'wallet';
     return null;
+  }
+
+  /** True when buy() on the token contract is open for this asset. */
+  directSaleOpen(onchain: OnchainInfo | null): onchain is Extract<OnchainInfo, { onchain: true }> {
+    return !!(onchain?.onchain && onchain.priceUsdc !== '0' && onchain.directSale !== false);
+  }
+
+  private hasEscrowPath(a: Asset): boolean {
+    const escrowInfo = this.escrowInfo();
+    return (this.isPre(a) && !!escrowInfo?.escrow && escrowInfo.status === 'active') || this.catalogueEscrowStillOpen(escrowInfo);
   }
 
   async buy(a: Asset): Promise<void> {
@@ -444,7 +462,7 @@ export class AssetDetailComponent {
       return;
     }
 
-    if (onchain?.onchain && onchain.priceUsdc !== '0' && this.wallet.state().address) {
+    if (this.directSaleOpen(onchain) && this.wallet.state().address) {
       this.onchainBuyPending.set(true);
       try {
         const result = await this.wallet.buyOnchain({

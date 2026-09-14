@@ -61,7 +61,7 @@ module.exports = function registerOnchainRoutes(router) {
         sendJson(res, 503, { error: "on-chain minting is disabled on this server (no operator key configured)" });
         return;
       }
-      const result = await onchainService.mintAsset(body.assetId, body.slug, body.supply, body.fundingUsdc, body.title, body.artist, body.payoutWallet);
+      const result = await onchainService.mintAsset(body.assetId, body.slug, body.supply, body.fundingUsdc, body.title, body.artist, body.payoutWallet, body.directSale);
       sendJson(res, 200, result);
     } catch (e) {
       if (e.code === "invalid") {

@@ -392,6 +392,9 @@ export class OnboardingComponent {
           supply: asset.tokensTotal,
           fundingUsdc,
           payoutWallet: owner,
+          // §2.81: a campaign released by milestones is sold only through its
+          // escrow, so its token is never open to a direct purchase.
+          directSale: !(isPre || d.catalogueCampaign.enabled),
           title: asset.title,
           artist: asset.artistName
         });

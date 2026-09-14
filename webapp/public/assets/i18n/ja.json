@@ -409,6 +409,7 @@
   "buy.onchainPending": "ウォレットで確認してください…",
   "buy.connectFirst": "購入するにはウォレットを接続してください",
   "buy.stillLoading": "オンチェーンの状態を確認しています…",
+  "buy.notOpenYet": "キャンペーンのエスクローの準備ができると開始されます",
   "buy.simulatedNote": "シミュレーションです。このアセットにはオンチェーントークンがないため、ブロックチェーンには何も記録されず、トークンの移転もありません。変わったのはこの画面だけです。",
   "buy.onchainTxLabel": "トランザクションハッシュ",
   "toast.onchainWrongNetwork": "Sepoliaへの切り替えに失敗しました — ウォレットをご確認ください。",

@@ -227,6 +227,10 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         require(catalogueToken.totalSupplyOf(tokenId) > 0, "HumfiverseMilestoneEscrow: unknown token id");
         uint256 fundingGoal = catalogueToken.fundingOf(tokenId);
         require(fundingGoal > 0, "HumfiverseMilestoneEscrow: token is not for sale");
+        // §2.81: the goal is every token's value, so every token must still be
+        // unsold and unsellable outside this campaign.
+        require(!catalogueToken.directSaleOf(tokenId), "HumfiverseMilestoneEscrow: token is on direct sale");
+        require(catalogueToken.releasedOf(tokenId) == 0, "HumfiverseMilestoneEscrow: tokens already sold outside the escrow");
         require(
             milestoneNames.length == milestoneBps.length && milestoneNames.length == milestonePayees.length,
             "HumfiverseMilestoneEscrow: length mismatch"

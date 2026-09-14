@@ -149,6 +149,11 @@ async function withIndexLock(work) {
   if (stepping) return { enabled: true, busy: true };
   stepping = true;
   try {
+    // §2.81: no cursor for this contract means the holder rows, keyed only by
+    // token id, belong to a previous deployment — whose ids the new contract
+    // reuses. Left in place they were served for the new tokens, marked
+    // verified, until a reconcile happened to overwrite them.
+    if ((await indexerRepo.getCursor(TOKEN_ADDRESS)) === null) await indexerRepo.clearHolders();
     if (!(await indexerRepo.claimLease(TOKEN_ADDRESS, LEASE_MS, DEPLOY_BLOCK - 1))) {
       return { enabled: true, busy: true, heldElsewhere: true };
     }

@@ -409,6 +409,7 @@
   "buy.onchainPending": "请在钱包中确认…",
   "buy.connectFirst": "连接钱包后购买",
   "buy.stillLoading": "正在检查链上状态…",
+  "buy.notOpenYet": "活动托管就绪后开放",
   "buy.simulatedNote": "这是模拟操作。该资产没有链上代币，因此区块链上未记录任何内容，也没有代币易手，改变的只是本页面。",
   "buy.onchainTxLabel": "交易哈希",
   "toast.onchainWrongNetwork": "无法切换到 Sepolia——请检查你的钱包。",
