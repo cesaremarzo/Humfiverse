@@ -8,7 +8,7 @@ import { ApiService } from '../../core/api.service';
 import { ToastService } from '../../core/toast.service';
 import { AiDisclosure, DisclosureLevel } from '../../core/models';
 import { fmtUSD } from '../../core/format.util';
-import { usdToWei } from '../../core/usd-eth.util';
+import { usdToUsdc } from '../../core/usdc.util';
 import { clauseCategory, clauseText, contractLegalBasisNote, vessatoriaClauseIds } from '../../core/contract-text.util';
 import {
   DISCLOSURE_ROWS,
@@ -239,7 +239,7 @@ export class OnboardingComponent {
     // which is what actually controls fund release — the token here is
     // just the claim/quantity record, same role it plays for catalogues.
     if (this.store.backendAvailable()) {
-      const priceWei = usdToWei(asset.tokenPrice).toString();
+      const priceUsdc = usdToUsdc(asset.tokenPrice).toString();
       // Awaited now (§2.42) — createCampaign on the escrow contract
       // requires this token to already exist on-chain, since contribute()
       // releases tokens from this same pool atomically. The two calls used
@@ -248,7 +248,7 @@ export class OnboardingComponent {
       // creation would revert.
       let mintedTokenId: number | null = null;
       try {
-        const result = await this.api.mintOnchainToken({ assetId: id, slug: id, supply: asset.tokensTotal, priceWei, title: asset.title, artist: asset.artistName });
+        const result = await this.api.mintOnchainToken({ assetId: id, slug: id, supply: asset.tokensTotal, priceUsdc, title: asset.title, artist: asset.artistName });
         mintedTokenId = result.tokenId;
         this.toast.show(this.translate.instant('toast.onchainMinted', { tokenId: result.tokenId }), 'checkCircle');
         // The marketplace only lists chain-verified assets (§2.14) — add
@@ -313,12 +313,12 @@ export class OnboardingComponent {
         if (!artistAddress) {
           this.toast.show(this.translate.instant('toast.escrowNeedsWallet'), 'alert');
         } else {
-          const fundingGoalWei = usdToWei(total).toString();
+          const fundingGoalUsdc = usdToUsdc(total).toString();
           try {
             await this.api.createEscrowCampaign({
               assetId: id,
               artistAddress,
-              fundingGoalWei,
+              fundingGoalUsdc,
               studioName: d.preprod.studioName,
               studioWallet: d.preprod.studioWallet,
               milestones: PREPRODUCTION_MILESTONES
@@ -343,12 +343,12 @@ export class OnboardingComponent {
         if (!artistAddress) {
           this.toast.show(this.translate.instant('toast.escrowNeedsWallet'), 'alert');
         } else {
-          const fundingGoalWei = usdToWei(d.catalogueCampaign.goal).toString();
+          const fundingGoalUsdc = usdToUsdc(d.catalogueCampaign.goal).toString();
           try {
             await this.api.createEscrowCampaign({
               assetId: id,
               artistAddress,
-              fundingGoalWei,
+              fundingGoalUsdc,
               studioName: d.catalogueCampaign.studioName,
               studioWallet: d.catalogueCampaign.studioWallet,
               milestones: CATALOGUE_EXTRA_MILESTONES

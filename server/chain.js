@@ -15,9 +15,10 @@
 
 const { ethers } = require("ethers");
 const { withRetry } = require("./chainRetry");
+const { paymentTokenOf, toUsdcFor } = require("./chainUnits");
 
 // Switched from Base Sepolia to real Ethereum Sepolia (§2.35) — easier to
-// get testnet ETH from faucets there.
+// get testnet ETH (for gas) from faucets there.
 const RPC_URL = process.env.CHAIN_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com";
 // §2.43 redeploy — added trackAudioUri + setTrackAudioUri, linking a
 // minted token to its uploaded track's real IPFS audio (see pinata.js).
@@ -43,7 +44,7 @@ const CHAIN_ID = 11155111; // Sepolia
 const EXPLORER_BASE = "https://sepolia.etherscan.io";
 
 const ABI = [
-  "function mintCatalogue(uint256 tokenId, string slug, uint256 supply, uint256 priceWeiPerToken, string title, string artist)",
+  "function mintCatalogue(uint256 tokenId, string slug, uint256 supply, uint256 pricePerToken, string title, string artist)",
   "function poolBalance(uint256 tokenId) view returns (uint256)",
   "function totalSupplyOf(uint256) view returns (uint256)",
   "function releasedOf(uint256) view returns (uint256)",
@@ -57,10 +58,12 @@ const ABI = [
   "function balanceOf(address account, uint256 id) view returns (uint256)",
   // §2.72 primary-sale fee — absent on tokens deployed before it.
   "function PRIMARY_FEE_BPS() view returns (uint256)",
+  // §2.73: the USDC every price is in — absent on ETH-era tokens.
+  "function paymentToken() view returns (address)",
   "function feeRecipient() view returns (address)",
   "function accruedFees() view returns (uint256)",
   "function totalFeesCollected() view returns (uint256)",
-  "event CatalogueMinted(uint256 indexed tokenId, string slug, uint256 supply, uint256 priceWeiPerToken, string title, string artist)"
+  "event CatalogueMinted(uint256 indexed tokenId, string slug, uint256 supply, uint256 pricePerToken, string title, string artist)"
 ];
 
 const provider = new ethers.JsonRpcProvider(RPC_URL, CHAIN_ID);
@@ -80,7 +83,8 @@ function mintingEnabled() {
 }
 
 async function getPoolInfo(tokenId) {
-  const [poolBalance, totalSupply, released, priceWei, title, artist, audioUri] = await Promise.all([
+  const toUsdc = await toUsdcFor(readContract);
+  const [poolBalance, totalSupply, released, price, title, artist, audioUri] = await Promise.all([
     readContract.poolBalance(tokenId),
     readContract.totalSupplyOf(tokenId),
     readContract.releasedOf(tokenId),
@@ -97,7 +101,7 @@ async function getPoolInfo(tokenId) {
     poolBalance: poolBalance.toString(),
     totalSupply: totalSupply.toString(),
     released: released.toString(),
-    priceWei: priceWei.toString(),
+    priceUsdc: toUsdc(price).toString(),
     onchainTitle: title,
     onchainArtist: artist,
     audioUri
@@ -149,7 +153,7 @@ async function listRecentlyMintedSlugsFromChain() {
       tokenId: Number(e.args.tokenId),
       slug: e.args.slug,
       supply: e.args.supply.toString(),
-      priceWei: e.args.priceWeiPerToken.toString(),
+      priceUsdc: e.args.pricePerToken.toString(),
       title: e.args.title,
       artist: e.args.artist,
       txHash: e.transactionHash,
@@ -161,12 +165,15 @@ async function listRecentlyMintedSlugsFromChain() {
   }
 }
 
-async function mintCatalogueOnchain(tokenId, slug, supply, priceWei, title, artist) {
+async function mintCatalogueOnchain(tokenId, slug, supply, priceUsdc, title, artist) {
   if (!writeContract) throw new Error("on-chain minting is disabled (no operator key configured)");
+  // A USDC price minted on an ETH-era token would be read as wei — a token
+  // priced at a hundred-millionth of what the artist asked for.
+  if (!(await paymentTokenOf(readContract))) throw new Error("the configured token contract predates USDC pricing; refusing to mint a USDC price on it");
   // Wrapped in withRetry (chainRetry.js) — the free public RPC rate-limits
   // under bursts, and a failure here used to silently drop the campaign
   // from the marketplace even though it had been created (§2.22).
-  const tx = await withRetry(() => writeContract.mintCatalogue(tokenId, slug, supply, priceWei || 0, title || "", artist || ""));
+  const tx = await withRetry(() => writeContract.mintCatalogue(tokenId, slug, supply, priceUsdc || 0, title || "", artist || ""));
   const receipt = await tx.wait();
   return {
     tokenId,
@@ -201,15 +208,10 @@ async function getBalance(tokenId, address) {
 }
 
 /** The 2% primary-sale fee's state, read off the contract. Null when the
- * configured token predates §2.72 and takes no fee. */
+ * configured token predates USDC (§2.73), whose fees would be wei. */
 async function getFeeState() {
-  let bps;
-  try {
-    bps = await withRetry(() => readContract.PRIMARY_FEE_BPS());
-  } catch (err) {
-    if (err.code === "CALL_EXCEPTION" || err.code === "BAD_DATA") return null;
-    throw err;
-  }
+  if (!(await paymentTokenOf(readContract))) return null;
+  const bps = await withRetry(() => readContract.PRIMARY_FEE_BPS());
   const [recipient, accrued, total] = await Promise.all([
     withRetry(() => readContract.feeRecipient()),
     withRetry(() => readContract.accruedFees()),
@@ -220,8 +222,8 @@ async function getFeeState() {
     explorerUrl: `https://sepolia.etherscan.io/address/${CONTRACT_ADDRESS}`,
     feeBps: Number(bps),
     feeRecipient: recipient,
-    accruedWei: accrued.toString(),
-    totalCollectedWei: total.toString()
+    accruedUsdc: accrued.toString(),
+    totalCollectedUsdc: total.toString()
   };
 }
 

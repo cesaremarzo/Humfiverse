@@ -19,12 +19,12 @@ const chainMarketplace = require("../chainMarketplace");
  * predates the fee, `unavailable` for a read that failed. */
 async function getSummary() {
   const [catalogue, escrow, marketplace] = await Promise.all([
-    read(() => chain.getFeeState(), "the configured token contract predates the primary-sale fee"),
-    read(() => escrowChain.getFeeState(), "the configured escrow contract predates the platform fees"),
+    read(() => chain.getFeeState(), "the configured token contract predates USDC payments"),
+    read(() => escrowChain.getFeeState(), "the configured escrow contract predates USDC payments"),
     read(
       () => chainMarketplace.getFeeState(),
       chainMarketplace.marketplaceEnabled()
-        ? "the configured marketplace contract takes its fee in tokens, not ETH"
+        ? "the configured marketplace contract predates USDC payments"
         : "no marketplace contract is configured on this server"
     )
   ]);

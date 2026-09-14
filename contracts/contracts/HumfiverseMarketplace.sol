@@ -2,6 +2,8 @@
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
@@ -26,18 +28,20 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 ///         price. (The first deployment took 1% of the tokens instead, which
 ///         rounded to nothing on any trade under 100 tokens.) The fee
 ///         accrues in this contract and leaves through withdrawFees(), so a
-///         fee recipient that rejects ETH can never block a trade.
+///         fee recipient that cannot receive can never block a trade.
 /// @dev Non-custodial listings: a seller keeps holding (and can still use
 ///      or transfer) their tokens after listing; nothing moves until a
 ///      buyer actually purchases. The seller must
 ///      `setApprovalForAll(marketplace, true)` on the token contract first
 ///      — the standard NFT-marketplace listing pattern. Payment is native
-///      testnet ETH pushed straight through at purchase time (no pooled
+///      USDC (paymentToken) moved straight from buyer to seller at purchase time (no pooled
 ///      custody, no stablecoin/fiat rail), consistent with this repo's
 ///      testnet-only on-chain layer (see technical-architecture.md §2.10).
 contract HumfiverseMarketplace is Ownable, ReentrancyGuard {
+    using SafeERC20 for IERC20;
+
     /// @notice Platform fee on every secondary trade, in basis points of the
-    ///         payment (100 bps = 1.00%), rounded down to the wei.
+    ///         payment (100 bps = 1.00%), rounded down to the base unit.
     uint256 public constant PLATFORM_FEE_BPS = 100;
     uint256 private constant BPS_DENOMINATOR = 10_000;
 
@@ -46,32 +50,37 @@ contract HumfiverseMarketplace is Ownable, ReentrancyGuard {
         address token; // ERC-1155 contract address
         uint256 tokenId;
         uint256 amount; // remaining amount available for sale
-        uint256 pricePerToken; // wei per token
+        uint256 pricePerToken; // paymentToken base units per token (USDC: 1e6 = $1)
         bool active;
     }
 
     uint256 private nextListingId = 1;
     mapping(uint256 => Listing) public listings;
 
+    /// @notice The stablecoin resale payments are made in (USDC, §2.73).
+    IERC20 public immutable paymentToken;
+
     /// @notice Where withdrawFees() sends accrued fees. Defaults to the deployer.
     address public feeRecipient;
-    /// @notice Fees retained from trades and not yet withdrawn, in wei.
+    /// @notice Fees retained from trades and not yet withdrawn, in paymentToken base units.
     uint256 public accruedFees;
     /// @notice Every fee ever retained, withdrawn or not — never decreases.
     uint256 public totalFeesCollected;
 
     event Listed(uint256 indexed listingId, address indexed seller, address indexed token, uint256 tokenId, uint256 amount, uint256 pricePerToken);
     event ListingCancelled(uint256 indexed listingId, uint256 amountReturned);
-    event Purchased(uint256 indexed listingId, address indexed buyer, uint256 amount, uint256 platformFeeWei, uint256 paidWei);
+    event Purchased(uint256 indexed listingId, address indexed buyer, uint256 amount, uint256 platformFee, uint256 paid);
     event FeesWithdrawn(address indexed recipient, uint256 amount);
     event FeeRecipientUpdated(address indexed previous, address indexed next);
 
-    constructor(address initialFeeRecipient) Ownable(msg.sender) {
+    constructor(address _paymentToken, address initialFeeRecipient) Ownable(msg.sender) {
+        require(_paymentToken != address(0), "HumfiverseMarketplace: zero payment token");
+        paymentToken = IERC20(_paymentToken);
         feeRecipient = initialFeeRecipient == address(0) ? msg.sender : initialFeeRecipient;
     }
 
     /// @notice List `amount` of `tokenId` (from ERC-1155 contract `token`)
-    ///         for sale at `pricePerToken` wei each. The caller must already
+    ///         for sale at `pricePerToken` paymentToken base units each. The caller must already
     ///         hold at least `amount` and have approved this contract via
     ///         `setApprovalForAll` on `token`.
     function list(address token, uint256 tokenId, uint256 amount, uint256 pricePerToken) external returns (uint256 listingId) {
@@ -105,16 +114,15 @@ contract HumfiverseMarketplace is Ownable, ReentrancyGuard {
     }
 
     /// @notice Buy `amount` tokens from `listingId`, paying exactly
-    ///         `amount * pricePerToken` wei. The buyer receives all `amount`
+    ///         `amount * pricePerToken` in paymentToken (approve it first). The buyer receives all `amount`
     ///         tokens; the seller receives the payment less 1%, which stays
     ///         here as accruedFees.
-    function buyListing(uint256 listingId, uint256 amount) external payable nonReentrant {
+    function buyListing(uint256 listingId, uint256 amount) external nonReentrant {
         Listing storage listing = listings[listingId];
         require(listing.active, "HumfiverseMarketplace: not active");
         require(amount > 0 && amount <= listing.amount, "HumfiverseMarketplace: bad amount");
 
         uint256 cost = amount * listing.pricePerToken;
-        require(msg.value == cost, "HumfiverseMarketplace: wrong payment");
 
         uint256 fee = (cost * PLATFORM_FEE_BPS) / BPS_DENOMINATOR;
         address seller = listing.seller;
@@ -129,8 +137,8 @@ contract HumfiverseMarketplace is Ownable, ReentrancyGuard {
 
         IERC1155(token).safeTransferFrom(seller, msg.sender, tokenId, amount, "");
 
-        (bool sent, ) = payable(seller).call{value: cost - fee}("");
-        require(sent, "HumfiverseMarketplace: payment to seller failed");
+        paymentToken.safeTransferFrom(msg.sender, seller, cost - fee);
+        if (fee > 0) paymentToken.safeTransferFrom(msg.sender, address(this), fee);
 
         emit Purchased(listingId, msg.sender, amount, fee, cost);
     }
@@ -142,8 +150,7 @@ contract HumfiverseMarketplace is Ownable, ReentrancyGuard {
         uint256 amount = accruedFees;
         require(amount > 0, "HumfiverseMarketplace: no fees to withdraw");
         accruedFees = 0;
-        (bool sent, ) = payable(feeRecipient).call{value: amount}("");
-        require(sent, "HumfiverseMarketplace: fee withdrawal failed");
+        paymentToken.safeTransfer(feeRecipient, amount);
         emit FeesWithdrawn(feeRecipient, amount);
     }
 

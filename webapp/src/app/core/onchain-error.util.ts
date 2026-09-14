@@ -3,7 +3,7 @@
  *
  * This was a single catch-all message regardless of cause — indistinguishable
  * whether the user declined the signature, their wallet couldn't cover the
- * ETH, or the contract itself reverted (and if it reverted, for what reason).
+ * payment, or the contract itself reverted (and if it reverted, for what reason).
  * That collapsed every real diagnosis into "open devtools and read the
  * console", which is exactly what made a real on-chain-capacity bug take
  * several rounds to pin down.
@@ -23,6 +23,7 @@ export function onchainErrorTranslation(err: unknown): OnchainErrorMessage {
   const e = err as { message?: string; code?: string; reason?: string; shortMessage?: string };
   if (e?.message === 'wrong-network') return { key: 'toast.onchainWrongNetwork' };
   if (e?.message === 'no-wallet') return { key: 'toast.noWalletDetected' };
+  if (e?.message === 'insufficient-usdc') return { key: 'toast.insufficientUsdc' };
   if (e?.code === 'ACTION_REJECTED') return { key: 'toast.onchainRejected' };
   if (e?.code === 'INSUFFICIENT_FUNDS') return { key: 'toast.onchainInsufficientFunds' };
   if (e?.message === 'tx-failed') return { key: 'toast.onchainReverted' };

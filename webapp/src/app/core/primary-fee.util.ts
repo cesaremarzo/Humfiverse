@@ -8,7 +8,7 @@
 export const PRIMARY_FEE_BPS = 200;
 
 /** The fee included in a primary purchase of `totalUsd`, rounded down to
- * the cent as the contracts round down to the wei. */
+ * the cent as the contracts round down to the USDC base unit. */
 export function primaryFeeUsd(totalUsd: number): number {
   const totalCents = Math.round(totalUsd * 100);
   return Math.floor((totalCents * PRIMARY_FEE_BPS) / 10_000) / 100;

@@ -45,11 +45,11 @@ export function remainingFor(a: Asset, onchain: OnchainInfo | null, escrow: Escr
   if (onchain && !onchain.onchain && isPre(a) && escrow?.escrow) {
     // `raised` is net of the 2% contribution fee (§2.72), so it is measured
     // against the target, not the goal.
-    const goal = BigInt(escrow.fundingTargetWei ?? escrow.fundingGoal);
+    const goal = BigInt(escrow.fundingTargetUsdc ?? escrow.fundingGoal);
     if (goal > 0n) {
       const raised = BigInt(escrow.raised);
-      const remainingWei = raised >= goal ? 0n : goal - raised;
-      return Number((remainingWei * BigInt(a.tokensTotal)) / goal);
+      const remaining = raised >= goal ? 0n : goal - raised;
+      return Number((remaining * BigInt(a.tokensTotal)) / goal);
     }
   }
   return a.tokensTotal - a.tokensSold;
@@ -95,7 +95,7 @@ export function fundingPctFor(a: Asset, onchain: OnchainInfo | null, escrow: Esc
   // are printed side by side, so a fallback one takes and the other
   // doesn't is how they contradicted each other in the first place.
   if (onchain && !onchain.onchain && isPre(a) && escrow?.escrow) {
-    const goal = BigInt(escrow.fundingTargetWei ?? escrow.fundingGoal);
+    const goal = BigInt(escrow.fundingTargetUsdc ?? escrow.fundingGoal);
     if (goal > 0n) {
       const raised = BigInt(escrow.raised);
       const bps = raised >= goal ? 10000n : (raised * 10000n) / goal;

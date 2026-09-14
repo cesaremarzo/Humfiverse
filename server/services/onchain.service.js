@@ -45,12 +45,12 @@ async function nextFreeTokenId() {
   return candidate;
 }
 
-async function mintAsset(assetId, slug, supply, priceWei, title, artist) {
+async function mintAsset(assetId, slug, supply, priceUsdc, title, artist) {
   const existing = await onchainRepo.findTokenByAssetId(assetId);
   if (existing) throw Object.assign(new Error("asset already has an on-chain token"), { code: "already_minted", record: existing });
 
   const tokenId = await nextFreeTokenId();
-  const result = await chain.mintCatalogueOnchain(tokenId, slug, supply, priceWei, title, artist);
+  const result = await chain.mintCatalogueOnchain(tokenId, slug, supply, priceUsdc, title, artist);
   await onchainRepo.insertToken({
     tokenId,
     assetId,

@@ -46,8 +46,8 @@
         </div>
 
         <div class="stat-row" style="margin-bottom:14px;">
-          <div class="card stat-tile"><div class="label">Goal</div><div class="value">{{ fmt(weiToUsd(c.fundingGoal)) }}</div></div>
-          <div class="card stat-tile"><div class="label">Raised</div><div class="value">{{ fmt(weiToUsd(c.raised)) }}</div></div>
+          <div class="card stat-tile"><div class="label">Goal</div><div class="value">{{ fmt(usdcToUsd(c.fundingGoal)) }}</div></div>
+          <div class="card stat-tile"><div class="label">Raised</div><div class="value">{{ fmt(usdcToUsd(c.raised)) }}</div></div>
           <div class="card stat-tile"><div class="label">Released</div><div class="value">{{ c.releasedBps / 100 }}%</div></div>
         </div>
 
@@ -59,7 +59,7 @@
                 <tr>
                   <td>{{ m.name }}</td>
                   <td>{{ m.payee === 'studio' ? (c.studio?.name || 'Studio') : 'Artist' }}</td>
-                  <td class="cell-num mono">{{ fmt(weiToUsd(m.payoutWei ?? m.amountWei)) }}@if (m.feeWei && m.feeWei !== '0') {<div style="font-size:11px; color:var(--text-secondary);">of {{ fmt(weiToUsd(m.amountWei)) }} · {{ (c.milestoneFeeBps ?? 0) / 100 }}% fee {{ fmt(weiToUsd(m.feeWei)) }}</div>}</td>
+                  <td class="cell-num mono">{{ fmt(usdcToUsd(m.payoutUsdc ?? m.amountUsdc)) }}@if (m.feeUsdc && m.feeUsdc !== '0') {<div style="font-size:11px; color:var(--text-secondary);">of {{ fmt(usdcToUsd(m.amountUsdc)) }} · {{ (c.milestoneFeeBps ?? 0) / 100 }}% fee {{ fmt(usdcToUsd(m.feeUsdc)) }}</div>}</td>
                   <td>
                     @if (!canConfirm(c.raised, m) && !m.released) {
                       <span class="chip chip-neutral">{{ 'escrowStatus.notEnoughRaised' | translate }}</span>

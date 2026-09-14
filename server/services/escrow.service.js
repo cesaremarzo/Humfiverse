@@ -14,7 +14,7 @@ const onchainService = require("./onchain.service");
  * name+wallet field on the onboarding wizard) and creates the campaign
  * with the milestones the wizard collected, each routed to either the
  * artist's or the studio's wallet. */
-async function createCampaign(assetId, artistAddress, fundingGoalWei, studioName, studioWallet, milestones) {
+async function createCampaign(assetId, artistAddress, fundingGoalUsdc, studioName, studioWallet, milestones) {
   const existingOnchain = await escrowChain.getCampaignInfoByAssetId(assetId);
   if (existingOnchain) throw Object.assign(new Error("asset already has an escrow campaign"), { code: "already_created", record: existingOnchain });
 
@@ -45,7 +45,7 @@ async function createCampaign(assetId, artistAddress, fundingGoalWei, studioName
   const names = milestones.map((m) => m.name);
   const bps = milestones.map((m) => m.bps);
   const payees = milestones.map((m) => (m.payee === "studio" ? 1 : 0));
-  const created = await escrowChain.createCampaignOnchain(artistAddress, fundingGoalWei, studioId, 0, assetId, onchainRecord.token_id, names, bps, payees);
+  const created = await escrowChain.createCampaignOnchain(artistAddress, fundingGoalUsdc, studioId, 0, assetId, onchainRecord.token_id, names, bps, payees);
 
   await escrowRepo.insertCampaign({
     campaignId: created.campaignId,

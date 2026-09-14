@@ -4,7 +4,7 @@ import { ApiService } from './api.service';
 import { Asset, Campaign, ContractTemplate, EscrowCampaignInfo, InvestorState, Locale, OnchainInfo, Portfolio, SecondaryListing } from './models';
 import { SUPPORTED_LOCALES, RTL_LOCALES } from './locales';
 import { retrying } from './retry.util';
-import { weiToUsdPrecise } from './usd-eth.util';
+import { usdcToUsd } from './usdc.util';
 
 import assetsJson from './mock-data/assets.json';
 import campaignsJson from './mock-data/campaigns.json';
@@ -197,7 +197,7 @@ export class StoreService {
   activeListingsFor(assetId: string): SecondaryListing[] {
     return this.secondaryListings()
       .filter((l) => l.assetId === assetId && l.qty > 0)
-      .sort((a, b) => Number(BigInt(a.pricePerTokenWei) - BigInt(b.pricePerTokenWei)));
+      .sort((a, b) => Number(BigInt(a.pricePerTokenUsdc) - BigInt(b.pricePerTokenUsdc)));
   }
 
   /** The platform's displayed "current market price" for an asset: the
@@ -205,7 +205,7 @@ export class StoreService {
    * an automatically-matched/algorithmic price (see planning doc §7.8). */
   lowestAsk(assetId: string): number | null {
     const listings = this.activeListingsFor(assetId);
-    return listings.length ? weiToUsdPrecise(listings[0].pricePerTokenWei) : null;
+    return listings.length ? usdcToUsd(listings[0].pricePerTokenUsdc) : null;
   }
 
   /** Re-pulls the offer board after any write, so the portfolio, the

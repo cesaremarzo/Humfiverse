@@ -80,7 +80,7 @@ async function listActive() {
         assetId: row.asset_id,
         seller: listing.seller,
         qty: listing.qty,
-        pricePerTokenWei: listing.pricePerTokenWei,
+        pricePerTokenUsdc: listing.pricePerTokenUsdc,
         deliverable,
         contractAddress: chainMarketplace.MARKETPLACE_ADDRESS,
         explorerUrl: `${chainMarketplace.EXPLORER_BASE}/address/${chainMarketplace.MARKETPLACE_ADDRESS}`,
@@ -89,7 +89,7 @@ async function listActive() {
       };
     })
   );
-  return results.filter(Boolean).sort((a, b) => Number(BigInt(a.pricePerTokenWei) - BigInt(b.pricePerTokenWei)) || a.listingId - b.listingId);
+  return results.filter(Boolean).sort((a, b) => Number(BigInt(a.pricePerTokenUsdc) - BigInt(b.pricePerTokenUsdc)) || a.listingId - b.listingId);
 }
 
 /**

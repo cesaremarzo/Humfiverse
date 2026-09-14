@@ -42,7 +42,7 @@ async function getWalletHoldings(wallet) {
         assetId: r.asset_id,
         tokenId: r.token_id,
         tokens,
-        priceWei: info.priceWei,
+        priceUsdc: info.priceUsdc,
         title: info.onchainTitle,
         artist: info.onchainArtist,
         poolBalance: info.poolBalance,

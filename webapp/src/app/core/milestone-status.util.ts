@@ -1,5 +1,5 @@
 import { EscrowCampaignInfo, Milestone } from './models';
-import { weiToUsd } from './usd-eth.util';
+import { usdcToUsd } from './usdc.util';
 
 /**
  * The milestone track, built from the escrow contract rather than the
@@ -19,7 +19,7 @@ import { weiToUsd } from './usd-eth.util';
  *   one side confirmed    -> active (waiting on the other signature)
  *   neither confirmed     -> pending
  *
- * Amounts come from the chain too (`amountWei`), since the stored
+ * Amounts come from the chain too (`amountUsdc`), since the stored
  * `trancheAmount` was computed at creation from the goal and would drift
  * from what the contract actually pays if either ever changed.
  *
@@ -35,7 +35,7 @@ export function milestonesWithOnchainStatus(
 
   return escrow.milestones.map((m) => ({
     name: m.name,
-    trancheAmount: weiToUsd(m.amountWei),
+    trancheAmount: usdcToUsd(m.amountUsdc),
     status: m.released ? 'done' : m.artistConfirmed || m.studioConfirmed ? 'active' : 'pending'
   }));
 }
