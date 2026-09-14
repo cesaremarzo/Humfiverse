@@ -111,7 +111,7 @@ deployment*, not a domain rule.
 | `onchain.service.js` | The cache-versus-contract logic: chain-fallback lookup, next free token id, mint, and the listing that self-heals the cache from a bounded recent-blocks scan (§2.39). |
 | `escrow.service.js` | Campaign creation: studio registration, the already-minted-token precondition (§2.42), and the campaign listing. |
 | `listings.service.js` | Resale: records the ids of on-chain listings and reads each one's live state back off `HumfiverseMarketplace`. No price or seller is ever taken from a request body (§2.62). |
-| `fees.service.js` | Platform fees (§2.71): reads each fee-bearing contract's own counters — accrued, lifetime total, recipient — and reports `unsupported`/`unavailable` with a reason instead of a zero when it cannot. |
+| `fees.service.js` | Platform fees (§2.71, §2.72): reads the token's, the escrow's and the marketplace's own counters — accrued, lifetime total, recipient — and reports `unsupported`/`unavailable` with a reason instead of a zero when it cannot. |
 | `indexer.service.js` | Who holds each token. `reconcile` is the authority — real balances from `balanceOf`, verified by `held + pool == totalSupply`; the eth_getLogs walk only follows movement between passes (§2.70). |
 
 ### `routes/` — one module per path prefix

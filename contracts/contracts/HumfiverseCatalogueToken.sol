@@ -63,6 +63,19 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
     /// @notice where primary-sale ETH proceeds go. Defaults to the deployer.
     address public payoutRecipient;
 
+    /// @notice Platform fee on every paid primary purchase through buy(), in
+    ///         basis points of the payment (200 bps = 2.00%), deducted from
+    ///         it: the buyer pays the listed price and receives every token,
+    ///         and payoutRecipient receives the price less the fee (§2.72).
+    ///         A constant, so the rate cannot change under anyone.
+    uint256 public constant PRIMARY_FEE_BPS = 200;
+    /// @notice Where withdrawFees() sends accrued fees. Defaults to the deployer.
+    address public feeRecipient;
+    /// @notice Fees retained from primary purchases and not yet withdrawn.
+    uint256 public accruedFees;
+    /// @notice Every fee ever retained, withdrawn or not — never decreases.
+    uint256 public totalFeesCollected;
+
     /// @notice the one other contract, besides the owner, allowed to call
     ///         releaseFromPool — HumfiverseMilestoneEscrow, so a real
     ///         preproduction contribution can release tokens atomically in
@@ -81,6 +94,9 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
     event PayoutRecipientUpdated(address indexed previous, address indexed next);
     event EscrowContractUpdated(address indexed previous, address indexed next);
     event TrackAudioUriUpdated(uint256 indexed tokenId, string uri);
+    event PrimaryFeeRetained(uint256 indexed tokenId, address indexed buyer, uint256 fee);
+    event FeesWithdrawn(address indexed recipient, uint256 amount);
+    event FeeRecipientUpdated(address indexed previous, address indexed next);
 
     /// @dev The original deploy used a placeholder `.example` domain here —
     ///      a reserved TLD (RFC 2606) that never resolves — so wallets could
@@ -93,6 +109,7 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
         Ownable(msg.sender)
     {
         payoutRecipient = msg.sender;
+        feeRecipient = msg.sender;
     }
 
     /// @notice Owner-only: repoints the ERC-1155 metadata base URI (the
@@ -163,20 +180,46 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
     ///         price set (not open for public sale). This is always a first
     ///         purchase — it only ever moves tokens out of the platform pool,
     ///         same as releaseFromPool, so it carries no resale fee (see
-    ///         HumfiverseMarketplace.sol for the fee-bearing secondary path).
+    ///         HumfiverseMarketplace.sol for the resale path). It does carry
+    ///         the 2% primary fee, deducted from the payment and accrued here
+    ///         rather than pushed, so a fee recipient that rejects ETH cannot
+    ///         block a purchase. releaseFromPool, which takes no payment,
+    ///         carries none.
     function buy(uint256 tokenId, uint256 amount) external payable nonReentrant {
         uint256 price = pricePerToken[tokenId];
         require(price > 0, "HumfiverseCatalogueToken: not for sale");
         uint256 cost = amount * price;
         require(msg.value == cost, "HumfiverseCatalogueToken: wrong payment");
 
+        uint256 fee = (cost * PRIMARY_FEE_BPS) / 10_000;
+        accruedFees += fee;
+        totalFeesCollected += fee;
+
         _release(msg.sender, tokenId, amount);
 
-        (bool sent, ) = payable(payoutRecipient).call{value: cost}("");
+        (bool sent, ) = payable(payoutRecipient).call{value: cost - fee}("");
         require(sent, "HumfiverseCatalogueToken: payout failed");
 
         emit TokensReleased(tokenId, msg.sender, amount);
         emit TokensPurchased(tokenId, msg.sender, amount, cost);
+        emit PrimaryFeeRetained(tokenId, msg.sender, fee);
+    }
+
+    /// @notice Sends every accrued fee to feeRecipient. Callable by anyone:
+    ///         the destination is fixed, so the caller decides only when.
+    function withdrawFees() external nonReentrant {
+        uint256 amount = accruedFees;
+        require(amount > 0, "HumfiverseCatalogueToken: no fees to withdraw");
+        accruedFees = 0;
+        (bool sent, ) = payable(feeRecipient).call{value: amount}("");
+        require(sent, "HumfiverseCatalogueToken: fee withdrawal failed");
+        emit FeesWithdrawn(feeRecipient, amount);
+    }
+
+    function setFeeRecipient(address next) external onlyOwner {
+        require(next != address(0), "HumfiverseCatalogueToken: zero address");
+        emit FeeRecipientUpdated(feeRecipient, next);
+        feeRecipient = next;
     }
 
     function _release(address to, uint256 tokenId, uint256 amount) private {

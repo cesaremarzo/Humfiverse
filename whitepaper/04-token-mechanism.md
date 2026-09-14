@@ -22,9 +22,10 @@ Tokens only ever leave a catalogue's pool two ways: a first purchase, or a resal
 
 ## What Humfiverse earns
 
-Two fees, both enforced by the contracts rather than by anyone's discretion, and both fixed in code so they can't be raised on people who already took part:
+Three fees, all enforced by the contracts rather than by anyone's discretion, and all fixed in code so they can't be raised on people who already took part:
 
-- **5% of each pre-production tranche, as it is released.** When the artist and the studio both confirm a milestone, the contract pays them 95% of that tranche and keeps 5% for the platform. A tranche that is never released is never charged — so if a campaign is cancelled, the fee applies only to what was genuinely delivered, and contributors' refunds are unaffected.
+- **2% of every primary purchase** — buying a catalogue's tokens, or contributing to a pre-production campaign. It is included in the price, not added to it: you pay the listed price, receive every token, and 98% goes to the rights holder or into the campaign's escrow. On a campaign, this 2% is not refunded if the campaign is cancelled.
+- **3% of each pre-production tranche, as it is released.** When the artist and the studio both confirm a milestone, the contract pays them 97% of that tranche. A tranche that is never released is never charged. Tranches are sized against what a sold-out campaign actually holds — its goal less the 2% — so every milestone can still be paid in full.
 - **1% of every resale payment**, as above.
 
-Fees accumulate inside each contract and can only ever be sent to the platform's designated fee address. Both running totals are public on-chain.
+Across a campaign that sells out and releases every milestone, Humfiverse receives 4.94% of the goal. Fees accumulate inside each contract and can only ever be sent to the platform's designated fee address. Every running total is public on-chain.

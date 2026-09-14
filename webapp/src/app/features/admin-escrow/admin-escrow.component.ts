@@ -7,6 +7,7 @@ import { weiToUsd, weiToUsdPrecise } from '../../core/usd-eth.util';
 
 type CampaignRow = EscrowCampaignInfo & { assetId: string };
 type LoadedCampaignRow = Extract<CampaignRow, { escrow: true }>;
+type FeeKey = 'catalogue' | 'escrow' | 'marketplace';
 
 /** Internal, unlinked observability tool. Used to show Humfiverse's own
  * "confirm milestone" action (planning/technical-architecture.md §2.15) —
@@ -34,7 +35,7 @@ export class AdminEscrowComponent {
    * rather than showing zeros. */
   fees = signal<FeeSummary | null>(null);
   feesError = signal<string | null>(null);
-  withdrawing = signal<'escrow' | 'marketplace' | null>(null);
+  withdrawing = signal<FeeKey | null>(null);
   withdrawResult = signal<{ which: string; explorerUrl?: string; error?: string } | null>(null);
 
   fmt = fmtUSD;
@@ -67,16 +68,17 @@ export class AdminEscrowComponent {
       .catch((err) => this.feesError.set(String(err?.message || err)));
   }
 
-  feeRows(f: FeeSummary): { key: 'escrow' | 'marketplace'; label: string; rule: string; state: FeeContractState }[] {
+  feeRows(f: FeeSummary): { key: FeeKey; label: string; rule: string; state: FeeContractState }[] {
     return [
-      { key: 'escrow', label: 'Milestone escrow', rule: '5% of every released tranche', state: f.escrow },
+      { key: 'catalogue', label: 'Catalogue sales', rule: '2% of every primary purchase', state: f.catalogue },
+      { key: 'escrow', label: 'Milestone escrow', rule: '2% of every contribution + 3% of every released tranche', state: f.escrow },
       { key: 'marketplace', label: 'Secondary market', rule: '1% of every resale payment', state: f.marketplace }
     ];
   }
 
   /** Anyone may send withdrawFees(); the contract pays only its own
    * feeRecipient, so the connected wallet chooses when, never where. */
-  async withdraw(key: 'escrow' | 'marketplace', contractAddress: string): Promise<void> {
+  async withdraw(key: FeeKey, contractAddress: string): Promise<void> {
     this.withdrawing.set(key);
     this.withdrawResult.set(null);
     try {

@@ -114,7 +114,7 @@ describe("HumfiverseCatalogueToken", function () {
   });
 
   describe("buy() — public, paid first-purchase path", function () {
-    it("lets anyone buy at the fixed price, paying the payout recipient in full", async function () {
+    it("lets anyone buy at the fixed price, paying the payout recipient the price less the 2% fee", async function () {
       const { token, owner, buyer } = await deployFixture();
       await token.mintCatalogue(MIDNIGHT_STATIC_ID, "midnight-static", MIDNIGHT_STATIC_SUPPLY, PRICE_PER_TOKEN, "Test Track", "Test Artist");
       const cost = 10n * PRICE_PER_TOKEN;
@@ -126,7 +126,7 @@ describe("HumfiverseCatalogueToken", function () {
 
       expect(await token.balanceOf(buyer.address, MIDNIGHT_STATIC_ID)).to.equal(10);
       expect(await token.releasedOf(MIDNIGHT_STATIC_ID)).to.equal(10);
-      expect(await ethers.provider.getBalance(owner.address)).to.equal(ownerBalanceBefore + cost);
+      expect(await ethers.provider.getBalance(owner.address)).to.equal(ownerBalanceBefore + cost - cost / 50n);
     });
 
     it("refuses to buy a catalogue with no price set", async function () {
@@ -225,7 +225,7 @@ describe("HumfiverseCatalogueToken", function () {
       const cost = 3n * PRICE_PER_TOKEN;
       await token.connect(buyer).buy(MIDNIGHT_STATIC_ID, 3, { value: cost });
 
-      expect(await ethers.provider.getBalance(other.address)).to.equal(otherBalanceBefore + cost);
+      expect(await ethers.provider.getBalance(other.address)).to.equal(otherBalanceBefore + cost - cost / 50n);
     });
 
     it("only the owner can set the payout recipient", async function () {
@@ -248,6 +248,50 @@ describe("HumfiverseCatalogueToken", function () {
         token,
         "OwnableUnauthorizedAccount"
       );
+    });
+  });
+
+  describe("primary purchase fee (§2.72)", function () {
+    const PRICE = ethers.parseEther("0.001");
+
+    it("deducts 2% from a buy(): the buyer gets every token, the payout recipient 98%, the fee accrues", async function () {
+      const { token, owner, buyer } = await deployFixture();
+      await token.mintCatalogue(7, "fee-track", 1000, PRICE, "Fee Track", "Artist");
+      const cost = PRICE * 100n;
+      const fee = cost / 50n;
+      const payoutBefore = await ethers.provider.getBalance(owner.address);
+
+      await expect(token.connect(buyer).buy(7, 100, { value: cost }))
+        .to.emit(token, "PrimaryFeeRetained")
+        .withArgs(7, buyer.address, fee);
+
+      expect(await token.balanceOf(buyer.address, 7)).to.equal(100);
+      expect(await ethers.provider.getBalance(owner.address)).to.equal(payoutBefore + cost - fee);
+      expect(await token.accruedFees()).to.equal(fee);
+      expect(await token.totalFeesCollected()).to.equal(fee);
+    });
+
+    it("charges nothing on releaseFromPool, which takes no payment", async function () {
+      const { token, buyer } = await deployFixture();
+      await token.mintCatalogue(8, "free-release", 1000, PRICE, "T", "A");
+      await token.releaseFromPool(buyer.address, 8, 10);
+      expect(await token.accruedFees()).to.equal(0);
+    });
+
+    it("sends accrued fees to the fee recipient on withdrawal, whoever calls it, and only the owner can change it", async function () {
+      const { token, owner, buyer, other } = await deployFixture();
+      await token.mintCatalogue(9, "withdraw-track", 1000, PRICE, "T", "A");
+      await token.connect(buyer).buy(9, 50, { value: PRICE * 50n });
+      const fee = (PRICE * 50n) / 50n;
+
+      await expect(token.connect(other).setFeeRecipient(other.address)).to.be.revertedWithCustomError(token, "OwnableUnauthorizedAccount");
+      await token.connect(owner).setFeeRecipient(other.address);
+
+      const before = await ethers.provider.getBalance(other.address);
+      await expect(token.connect(buyer).withdrawFees()).to.emit(token, "FeesWithdrawn").withArgs(other.address, fee);
+      expect(await ethers.provider.getBalance(other.address)).to.equal(before + fee);
+      expect(await token.accruedFees()).to.equal(0);
+      await expect(token.withdrawFees()).to.be.revertedWith("HumfiverseCatalogueToken: no fees to withdraw");
     });
   });
 });

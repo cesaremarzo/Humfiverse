@@ -290,8 +290,13 @@ export type EscrowCampaignInfo =
       deadline: number;
       status: 'active' | 'cancelled';
       releasedBps: number;
-      /** null when the configured escrow predates the platform fee. */
-      platformFeeBps?: number | null;
+      /** §2.72: the goal less the 2% contribution fee — what a sold-out
+       * campaign holds, and what tranches are sized against. Equal to the
+       * goal on the legacy escrow. */
+      fundingTargetWei?: string;
+      /** null on the legacy escrow, which charges no fee. */
+      contributionFeeBps?: number | null;
+      milestoneFeeBps?: number | null;
       feesCollectedWei?: string | null;
       milestones: EscrowMilestone[];
     };
@@ -339,7 +344,11 @@ export type FeeContractState =
       status: 'ok';
       contractAddress: string;
       explorerUrl: string;
-      feeBps: number;
+      /** Single-rate contracts (token, marketplace). */
+      feeBps?: number;
+      /** The escrow's two rates. */
+      contributionFeeBps?: number;
+      milestoneFeeBps?: number;
       feeRecipient: string;
       accruedWei: string;
       totalCollectedWei: string;
@@ -347,6 +356,7 @@ export type FeeContractState =
   | { status: 'unsupported' | 'unavailable'; reason: string };
 
 export interface FeeSummary {
+  catalogue: FeeContractState;
   escrow: FeeContractState;
   marketplace: FeeContractState;
 }
