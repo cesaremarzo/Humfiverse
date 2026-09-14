@@ -521,5 +521,6 @@
   "portfolio.gasSponsored": "Сетевые комиссии оплачивает платформа",
   "portfolio.copyAddress": "Скопировать адрес",
   "portfolio.copied": "Скопировано",
-  "portfolio.copyFailed": "Не удалось скопировать — выделите адрес и скопируйте вручную."
+  "portfolio.copyFailed": "Не удалось скопировать — выделите адрес и скопируйте вручную.",
+  "buy.onchainPendingEmbedded": "Отправка транзакции…"
 }

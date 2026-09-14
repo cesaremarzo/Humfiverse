@@ -521,5 +521,6 @@
   "portfolio.gasSponsored": "Frais de réseau pris en charge par la plateforme",
   "portfolio.copyAddress": "Copier l’adresse",
   "portfolio.copied": "Copiée",
-  "portfolio.copyFailed": "Copie impossible — sélectionnez l’adresse et copiez-la à la main."
+  "portfolio.copyFailed": "Copie impossible — sélectionnez l’adresse et copiez-la à la main.",
+  "buy.onchainPendingEmbedded": "Transaction en cours…"
 }

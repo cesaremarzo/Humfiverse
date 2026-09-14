@@ -521,5 +521,6 @@
   "portfolio.gasSponsored": "Commissioni di rete coperte dalla piattaforma",
   "portfolio.copyAddress": "Copia indirizzo",
   "portfolio.copied": "Copiato",
-  "portfolio.copyFailed": "Impossibile copiare — seleziona l’indirizzo e copialo a mano."
+  "portfolio.copyFailed": "Impossibile copiare — seleziona l’indirizzo e copialo a mano.",
+  "buy.onchainPendingEmbedded": "Transazione in corso…"
 }

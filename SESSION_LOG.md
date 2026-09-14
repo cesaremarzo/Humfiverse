@@ -1266,7 +1266,22 @@ On `dev/cesare`, **not merged** (a feature: needs the go-ahead).
    `docs/`.
 3. Click through: Google login → portfolio shows the address → reload keeps
    the session → a buy and a contribute go through with 0 ETH in the wallet.
-   None of this has been run yet: it needs a real client id.
+
+**Done the same evening** — client id `cc90cc70…` set, domains allowed
+(github.io, `dev-cesare--humfiverse.netlify.app`, localhost:4200/8080).
+Google login → `0x2f62…7f1a`; 30 tokens of escrow campaign 2 bought with
+0 ETH, gas paid by thirdweb's executor (§2.84). Also added on the way: ETH/
+USDC balance tiles and a copyable address in the portfolio; lockfile
+regenerated with npm 10 (Netlify's `npm ci` had failed on npm 11's).
+
+**Bug found and fixed on `main`**: escrow contributions rounded to the cent
+reverted for any sub-cent token price (§2.84).
+
+**Leftover test data**: "Douvikas is OP" (`douvikas-is-op-820`, token 4,
+escrow campaign 2) was created from localhost, so it exists on the live
+Sepolia contracts but only in the local database — production never lists
+it. 30 tokens sold, ~0.98 USDC in escrow. Cancel it with `cancelCampaign`
+or leave it.
 
 ### Open items
 

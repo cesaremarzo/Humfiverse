@@ -521,5 +521,6 @@
   "portfolio.gasSponsored": "تتحمّل المنصة رسوم الشبكة",
   "portfolio.copyAddress": "نسخ العنوان",
   "portfolio.copied": "تم النسخ",
-  "portfolio.copyFailed": "تعذّر النسخ — حدّد العنوان وانسخه يدويًا."
+  "portfolio.copyFailed": "تعذّر النسخ — حدّد العنوان وانسخه يدويًا.",
+  "buy.onchainPendingEmbedded": "جارٍ إرسال المعاملة…"
 }

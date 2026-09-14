@@ -521,5 +521,6 @@
   "portfolio.gasSponsored": "ネットワーク手数料はプラットフォームが負担します",
   "portfolio.copyAddress": "アドレスをコピー",
   "portfolio.copied": "コピーしました",
-  "portfolio.copyFailed": "コピーできませんでした。アドレスを選択して手動でコピーしてください。"
+  "portfolio.copyFailed": "コピーできませんでした。アドレスを選択して手動でコピーしてください。",
+  "buy.onchainPendingEmbedded": "トランザクションを送信中…"
 }

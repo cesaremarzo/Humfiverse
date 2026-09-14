@@ -521,5 +521,6 @@
   "portfolio.gasSponsored": "Netzwerkgebühren übernimmt die Plattform",
   "portfolio.copyAddress": "Adresse kopieren",
   "portfolio.copied": "Kopiert",
-  "portfolio.copyFailed": "Kopieren fehlgeschlagen — markiere die Adresse und kopiere sie manuell."
+  "portfolio.copyFailed": "Kopieren fehlgeschlagen — markiere die Adresse und kopiere sie manuell.",
+  "buy.onchainPendingEmbedded": "Transaktion wird gesendet…"
 }

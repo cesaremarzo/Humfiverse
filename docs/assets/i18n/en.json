@@ -521,5 +521,6 @@
   "portfolio.gasSponsored": "Network fees covered by the platform",
   "portfolio.copyAddress": "Copy address",
   "portfolio.copied": "Copied",
-  "portfolio.copyFailed": "Couldn't copy — select the address and copy it by hand."
+  "portfolio.copyFailed": "Couldn't copy — select the address and copy it by hand.",
+  "buy.onchainPendingEmbedded": "Sending the transaction…"
 }

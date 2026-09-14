@@ -521,5 +521,6 @@
   "portfolio.gasSponsored": "网络费用由平台承担",
   "portfolio.copyAddress": "复制地址",
   "portfolio.copied": "已复制",
-  "portfolio.copyFailed": "无法复制——请选中地址后手动复制。"
+  "portfolio.copyFailed": "无法复制——请选中地址后手动复制。",
+  "buy.onchainPendingEmbedded": "正在发送交易…"
 }
