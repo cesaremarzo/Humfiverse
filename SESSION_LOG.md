@@ -1280,8 +1280,15 @@ reverted for any sub-cent token price (§2.84).
 **Leftover test data**: "Douvikas is OP" (`douvikas-is-op-820`, token 4,
 escrow campaign 2) was created from localhost, so it exists on the live
 Sepolia contracts but only in the local database — production never lists
-it. 30 tokens sold, ~0.98 USDC in escrow. Cancel it with `cancelCampaign`
-or leave it.
+it. 30 tokens sold, 0.979991 USDC credited. **Cancelled** on the user's
+request: `cancelCampaign(2)` from the operator,
+[`0x1a0cad99…`](https://sepolia.etherscan.io/tx/0x1a0cad991d52d87fec431ff445f4283cf50675f5ce66be5eb5e8dd97b2a90501),
+status now CANCELLED. The 0.979991 USDC is refundable only by the
+contributor (`refund(2)` from `0x2f62…7f1a`); the app has no refund button,
+and it is test USDC, so it stays there.
+
+**Sign-in shipped**: PR #55 merged to `main` on the user's go-ahead
+(Apple and email untested by choice; they share Google's mechanism).
 
 ### Open items
 
