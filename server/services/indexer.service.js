@@ -41,7 +41,7 @@ const onchainRepo = require("../data/onchain.repo");
 
 const RPC_URL = process.env.CHAIN_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com";
 const TOKEN_ADDRESS = chain.CONTRACT_ADDRESS;
-const DEPLOY_BLOCK = Number(process.env.CHAIN_CONTRACT_DEPLOY_BLOCK || 11703181);
+const DEPLOY_BLOCK = Number(process.env.CHAIN_CONTRACT_DEPLOY_BLOCK || 11703772);
 /** The free tier's cap is 10 blocks inclusive, so a window is `from`..`from+9`. */
 const WINDOW = 10;
 /** Calls per step. Keeps one tick well inside a request timeout; the
@@ -149,6 +149,11 @@ async function withIndexLock(work) {
   if (stepping) return { enabled: true, busy: true };
   stepping = true;
   try {
+    // §2.81: no cursor for this contract means the holder rows, keyed only by
+    // token id, belong to a previous deployment — whose ids the new contract
+    // reuses. Left in place they were served for the new tokens, marked
+    // verified, until a reconcile happened to overwrite them.
+    if ((await indexerRepo.getCursor(TOKEN_ADDRESS)) === null) await indexerRepo.clearHolders();
     if (!(await indexerRepo.claimLease(TOKEN_ADDRESS, LEASE_MS, DEPLOY_BLOCK - 1))) {
       return { enabled: true, busy: true, heldElsewhere: true };
     }

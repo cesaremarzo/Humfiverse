@@ -409,6 +409,7 @@
   "buy.onchainPending": "In der Wallet bestätigen…",
   "buy.connectFirst": "Wallet verbinden, um zu kaufen",
   "buy.stillLoading": "On-Chain-Status wird geprüft…",
+  "buy.notOpenYet": "Öffnet, sobald das Escrow der Kampagne bereit ist",
   "buy.simulatedNote": "Simuliert. Dieses Asset hat keinen On-Chain-Token, es wurde also nichts auf der Blockchain festgehalten und kein Token hat den Besitzer gewechselt — nur diese Seite hat sich geändert.",
   "buy.onchainTxLabel": "Transaktions-Hash",
   "toast.onchainWrongNetwork": "Wechsel zu Sepolia fehlgeschlagen — bitte Wallet prüfen.",

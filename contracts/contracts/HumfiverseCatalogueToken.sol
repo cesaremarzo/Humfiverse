@@ -85,6 +85,24 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
     ///         platform's own wallet (§2.68).
     mapping(uint256 => address) public payoutOf;
 
+    /// @notice tokenId => whether buy() sells it directly (§2.81). False for a
+    ///         token whose funding is released by milestones: its only way to
+    ///         market is its escrow campaign's contribute(). Set at mint and
+    ///         never changed, so there is no window — not even the blocks
+    ///         between the mint and the campaign's creation — in which a
+    ///         purchase can skip the escrow, pay the artist directly, and
+    ///         leave the campaign with fewer tokens than its goal needs.
+    mapping(uint256 => bool) public directSaleOf;
+
+    /// @notice The human-readable part of a mint, grouped so mintCatalogue's
+    ///         parameters fit the EVM stack once it gained the payout and
+    ///         direct-sale arguments (§2.81).
+    struct CatalogueText {
+        string slug;
+        string title;
+        string artist;
+    }
+
     /// @notice Platform fee on every paid primary purchase through buy(), in
     ///         basis points of the payment (200 bps = 2.00%), deducted from
     ///         it: the buyer pays the listed price and receives every token,
@@ -115,7 +133,7 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
     event PayoutRecipientUpdated(address indexed previous, address indexed next);
     event EscrowContractUpdated(address indexed previous, address indexed next);
     event TrackAudioUriUpdated(uint256 indexed tokenId, string uri);
-    event CatalogueFunding(uint256 indexed tokenId, uint256 requestedFunding, uint256 pricePerToken, uint256 effectiveFunding, address payout);
+    event CatalogueFunding(uint256 indexed tokenId, uint256 requestedFunding, uint256 pricePerToken, uint256 effectiveFunding, address payout, bool directSale);
     event PrimaryFeeRetained(uint256 indexed tokenId, address indexed buyer, uint256 fee);
     event FeesWithdrawn(address indexed recipient, uint256 amount);
     event FeeRecipientUpdated(address indexed previous, address indexed next);
@@ -173,29 +191,30 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
     ///         `fundingAmount == 0` mints without opening public sale;
     ///         releaseFromPool remains available regardless. `payout`
     ///         receives this token's sale proceeds; zero falls back to the
-    ///         contract-wide payoutRecipient.
+    ///         contract-wide payoutRecipient. `directSale` opens buy(); pass
+    ///         false when the token will be sold through an escrow campaign.
     function mintCatalogue(
         uint256 tokenId,
-        string calldata slug,
+        CatalogueText calldata text,
         uint256 supply,
         uint256 fundingAmount,
-        string calldata title,
-        string calldata artist,
-        address payout
+        address payout,
+        bool directSale
     ) external onlyOwner {
         require(totalSupplyOf[tokenId] == 0, "HumfiverseCatalogueToken: already minted");
         require(supply > 0, "HumfiverseCatalogueToken: supply must be > 0");
         uint256 price = fundingAmount / supply;
         require(fundingAmount == 0 || price > 0, "HumfiverseCatalogueToken: funding too small for this supply");
         totalSupplyOf[tokenId] = supply;
-        catalogueSlug[tokenId] = slug;
         pricePerToken[tokenId] = price;
         payoutOf[tokenId] = payout;
-        trackTitle[tokenId] = title;
-        artistName[tokenId] = artist;
+        directSaleOf[tokenId] = directSale;
+        catalogueSlug[tokenId] = text.slug;
+        trackTitle[tokenId] = text.title;
+        artistName[tokenId] = text.artist;
         _mint(address(this), tokenId, supply, "");
-        emit CatalogueMinted(tokenId, slug, supply, price, title, artist);
-        emit CatalogueFunding(tokenId, fundingAmount, price, price * supply, payout);
+        emit CatalogueMinted(tokenId, text.slug, supply, price, text.title, text.artist);
+        emit CatalogueFunding(tokenId, fundingAmount, price, price * supply, payout, directSale);
     }
 
     /// @notice What selling every token of `tokenId` raises: price times
@@ -239,6 +258,7 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
     function buy(uint256 tokenId, uint256 amount) external nonReentrant {
         uint256 price = pricePerToken[tokenId];
         require(price > 0, "HumfiverseCatalogueToken: not for sale");
+        require(directSaleOf[tokenId], "HumfiverseCatalogueToken: sold only through its escrow campaign");
         uint256 cost = amount * price;
 
         uint256 fee = (cost * PRIMARY_FEE_BPS) / 10_000;

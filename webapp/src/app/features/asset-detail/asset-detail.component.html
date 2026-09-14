@@ -374,7 +374,7 @@
           <span>{{ 'buy.ackLabel' | translate }}</span>
         </label>
 
-        @if ((isPre(a) && escrowInfo()?.escrow && $any(escrowInfo()).status === 'active') || (!isPre(a) && onchainInfo()?.onchain && $any(onchainInfo()).priceUsdc !== '0')) {
+        @if ((isPre(a) && escrowInfo()?.escrow && $any(escrowInfo()).status === 'active') || (!isPre(a) && directSaleOpen(onchainInfo()))) {
           @if (wallet.state().address) {
             <div class="risk-item good" style="margin-bottom:10px;">
               <app-icon name="checkCircle"></app-icon>
@@ -405,6 +405,8 @@
             {{ 'buy.onchainPending' | translate }}
           } @else if (buyBlockedReason(a) === 'loading') {
             {{ 'buy.stillLoading' | translate }}
+          } @else if (buyBlockedReason(a) === 'notOpen') {
+            {{ 'buy.notOpenYet' | translate }}
           } @else if (buyBlockedReason(a) === 'wallet') {
             {{ 'buy.connectFirst' | translate }}
           } @else {

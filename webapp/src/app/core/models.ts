@@ -224,6 +224,9 @@ export type OnchainInfo =
       poolBalance: string;
       totalSupply: string;
       released: string;
+      /** §2.81: false when the token is sold only through its escrow campaign;
+       * null from a token contract that predates the flag. */
+      directSale?: boolean | null;
       /** USDC base units per token for the public HumfiverseCatalogueToken.buy() path —
        * "0" means the catalogue isn't open for real on-chain purchase yet. */
       priceUsdc: string;
