@@ -1297,3 +1297,19 @@ and it is test USDC, so it stays there.
 - Test USDC: a new wallet has none. Circle's Sepolia faucet for now; an
   on-ramp later.
 - Mainnet: sponsored gas becomes a real cost on thirdweb's billing.
+
+---
+
+## 2026-09-15 — Cancel and refund from the app (§2.85)
+
+On `dev/cesare`; a feature, so it waits for the go-ahead before `main`.
+
+- `/admin/escrow`: owner-only **Cancel campaign** (two clicks) and refund
+  figures for cancelled campaigns.
+- Portfolio: **Refunds available** with **Claim refund** for the connected
+  wallet; cancelled campaign pages link there.
+- The admin cannot refund on anyone's behalf: `refund()` pays only its
+  caller. **Phase 2** — `refundFor(campaignId, contributor)` plus a
+  backend record of contributors — goes into the next escrow + token
+  redeploy (see §2.85, and the `contract-redeploy` skill when it runs).
+

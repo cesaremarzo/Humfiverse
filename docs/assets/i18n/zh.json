@@ -522,5 +522,13 @@
   "portfolio.copyAddress": "复制地址",
   "portfolio.copied": "已复制",
   "portfolio.copyFailed": "无法复制——请选中地址后手动复制。",
-  "buy.onchainPendingEmbedded": "正在发送交易…"
+  "buy.onchainPendingEmbedded": "正在发送交易…",
+  "portfolio.refundsTitle": "可领取的退款",
+  "portfolio.refundsIntro": "这些活动已被取消。你可以领回尚未发放部分中属于你的份额。2% 的出资手续费不予退还，代币仍保留在你的钱包中。",
+  "portfolio.refundAmount": "退款",
+  "portfolio.refundBtn": "申请退款",
+  "portfolio.refunding": "退款中…",
+  "toast.refundDone": "已收到退款：{{amount}} USDC。",
+  "buy.campaignCancelled": "此活动已取消，不再接受出资。",
+  "buy.campaignCancelledRefund": "在投资组合中申请退款"
 }

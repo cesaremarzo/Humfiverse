@@ -522,5 +522,13 @@
   "portfolio.copyAddress": "Copier l’adresse",
   "portfolio.copied": "Copiée",
   "portfolio.copyFailed": "Copie impossible — sélectionnez l’adresse et copiez-la à la main.",
-  "buy.onchainPendingEmbedded": "Transaction en cours…"
+  "buy.onchainPendingEmbedded": "Transaction en cours…",
+  "portfolio.refundsTitle": "Remboursements disponibles",
+  "portfolio.refundsIntro": "Ces campagnes ont été annulées. Vous pouvez récupérer votre part de ce qui n’avait pas encore été versé. Les frais de contribution de 2 % ne sont pas remboursés et vos tokens restent dans votre wallet.",
+  "portfolio.refundAmount": "Remboursement",
+  "portfolio.refundBtn": "Demander le remboursement",
+  "portfolio.refunding": "Remboursement en cours…",
+  "toast.refundDone": "Remboursement reçu : {{amount}} USDC.",
+  "buy.campaignCancelled": "Cette campagne a été annulée et n’accepte plus de contributions.",
+  "buy.campaignCancelledRefund": "Demander un remboursement dans votre portefeuille"
 }

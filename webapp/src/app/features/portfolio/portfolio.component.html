@@ -53,6 +53,31 @@
     <div class="card stat-tile"><div class="label">{{ 'portfolio.value' | translate }}</div><div class="value">{{ loaded() ? fmt(totalValue()) : '—' }}</div></div>
   </div>
 
+  @if (refunds().length) {
+    <div class="card" style="margin-bottom:24px; padding:20px;">
+      <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:17px; margin-bottom:6px;">{{ 'portfolio.refundsTitle' | translate }}</h3>
+      <p style="font-size:12.5px; color:var(--text-secondary); margin:0 0 12px;">{{ 'portfolio.refundsIntro' | translate }}</p>
+      <div class="table-wrap">
+        <table class="table-stack">
+          <thead><tr><th>{{ 'portfolio.tableAsset' | translate }}</th><th class="cell-num">{{ 'portfolio.refundAmount' | translate }}</th><th></th></tr></thead>
+          <tbody>
+            @for (r of refunds(); track r.campaignId) {
+              <tr>
+                <td><a [routerLink]="['/asset', r.assetId]" style="color:inherit;">{{ r.title }}</a></td>
+                <td class="cell-num mono">{{ fmtUsdcExact(r.refundable) }} USDC</td>
+                <td style="text-align:right;">
+                  <button class="btn btn-primary btn-sm" [disabled]="refunding() !== null" (click)="claimRefund(r)">
+                    <app-icon name="coins"></app-icon> {{ (refunding() === r.campaignId ? 'portfolio.refunding' : 'portfolio.refundBtn') | translate }}
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
   @if (loading()) {
     <p class="prose">{{ 'portfolio.loadingReal' | translate }}</p>
   }

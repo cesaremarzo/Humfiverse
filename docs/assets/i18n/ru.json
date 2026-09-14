@@ -522,5 +522,13 @@
   "portfolio.copyAddress": "Скопировать адрес",
   "portfolio.copied": "Скопировано",
   "portfolio.copyFailed": "Не удалось скопировать — выделите адрес и скопируйте вручную.",
-  "buy.onchainPendingEmbedded": "Отправка транзакции…"
+  "buy.onchainPendingEmbedded": "Отправка транзакции…",
+  "portfolio.refundsTitle": "Доступные возвраты",
+  "portfolio.refundsIntro": "Эти кампании отменены. Вы можете вернуть свою долю средств, которые ещё не были выплачены. Комиссия 2 % за взнос не возвращается, а токены остаются в вашем кошельке.",
+  "portfolio.refundAmount": "Возврат",
+  "portfolio.refundBtn": "Запросить возврат",
+  "portfolio.refunding": "Возврат…",
+  "toast.refundDone": "Возврат получен: {{amount}} USDC.",
+  "buy.campaignCancelled": "Эта кампания отменена и больше не принимает взносы.",
+  "buy.campaignCancelledRefund": "Запросить возврат в портфеле"
 }

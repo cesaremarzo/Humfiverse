@@ -522,5 +522,13 @@
   "portfolio.copyAddress": "Copiar dirección",
   "portfolio.copied": "Copiada",
   "portfolio.copyFailed": "No se pudo copiar — selecciona la dirección y cópiala a mano.",
-  "buy.onchainPendingEmbedded": "Enviando la transacción…"
+  "buy.onchainPendingEmbedded": "Enviando la transacción…",
+  "portfolio.refundsTitle": "Reembolsos disponibles",
+  "portfolio.refundsIntro": "Estas campañas se cancelaron. Puedes recuperar tu parte de lo que aún no se había liberado. La comisión del 2 % sobre la aportación no se reembolsa y tus tokens se quedan en tu wallet.",
+  "portfolio.refundAmount": "Reembolso",
+  "portfolio.refundBtn": "Solicitar reembolso",
+  "portfolio.refunding": "Reembolsando…",
+  "toast.refundDone": "Reembolso recibido: {{amount}} USDC.",
+  "buy.campaignCancelled": "Esta campaña se canceló y ya no acepta aportaciones.",
+  "buy.campaignCancelledRefund": "Solicita el reembolso en tu portafolio"
 }

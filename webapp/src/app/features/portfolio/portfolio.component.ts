@@ -11,7 +11,7 @@ import { ApiService } from '../../core/api.service';
 import { ToastService } from '../../core/toast.service';
 import { fmtUSD } from '../../core/format.util';
 import { coverBackground } from '../../core/cover.util';
-import { RoyaltyMonth, SecondaryListing } from '../../core/models';
+import { EscrowCampaignInfo, RoyaltyMonth, SecondaryListing } from '../../core/models';
 import { platformFeeUsd } from '../../core/marketplace-fee.util';
 import { onchainErrorTranslation } from '../../core/onchain-error.util';
 import { usdcToUsd, usdToUsdc } from '../../core/usdc.util';
@@ -65,6 +65,11 @@ export class PortfolioComponent {
    * a new in-app wallet's first question is whether its test USDC arrived.
    * null while loading or when the chain could not be read. */
   copied = signal(false);
+
+  /** Cancelled campaigns this wallet can still claim from (§2.85): every
+   * contributor claims their own, since refund() pays only its caller. */
+  refunds = signal<{ assetId: string; title: string; campaignId: number; contractAddress: string; refundable: bigint }[]>([]);
+  refunding = signal<number | null>(null);
 
   balances = signal<{ eth: bigint; usdc: bigint | null } | null>(null);
 
@@ -159,6 +164,13 @@ export class PortfolioComponent {
 
     effect(() => {
       const address = this.wallet.state().address;
+      const campaigns = this.store.escrowInfoMap();
+      if (address) this.loadRefunds(address, [...campaigns.values()]);
+      else this.refunds.set([]);
+    });
+
+    effect(() => {
+      const address = this.wallet.state().address;
       if (address) this.load(address);
       else {
         this.balances.set(null);
@@ -205,6 +217,41 @@ export class PortfolioComponent {
       .catch((err) => console.warn('Could not read wallet balances.', err));
   }
 
+  private loadRefunds(address: string, campaigns: EscrowCampaignInfo[]): void {
+    const cancelled = campaigns.filter((c): c is Extract<EscrowCampaignInfo, { escrow: true }> => c.escrow && c.status === 'cancelled' && !c.legacy);
+    Promise.all(
+      cancelled.map((c) =>
+        this.wallet
+          .readRefundState(c.contractAddress, c.campaignId, address)
+          .then(({ refundable }) => ({ assetId: c.assetId, title: this.store.assetById(c.assetId)?.title ?? c.assetId, campaignId: c.campaignId, contractAddress: c.contractAddress, refundable }))
+          .catch((err) => {
+            console.warn('Could not read a refund.', err);
+            return null;
+          })
+      )
+    ).then((rows) => {
+      if (this.wallet.state().address !== address) return;
+      this.refunds.set(rows.filter((r): r is NonNullable<typeof r> => !!r && r.refundable > 0n));
+    });
+  }
+
+  async claimRefund(r: { campaignId: number; contractAddress: string; refundable: bigint }): Promise<void> {
+    const address = this.wallet.state().address;
+    if (!address || this.refunding() !== null) return;
+    this.refunding.set(r.campaignId);
+    try {
+      await this.wallet.refundOnchain({ contractAddress: r.contractAddress, campaignId: r.campaignId });
+      this.toast.show(this.translate.instant('toast.refundDone', { amount: this.fmtUsdcExact(r.refundable) }), 'wallet');
+      this.loadRefunds(address, [...this.store.escrowInfoMap().values()]);
+      this.loadBalances(address, this.store.marketplaceAddress());
+    } catch (err) {
+      console.warn('Refund did not complete.', err);
+      this.toast.show(this.onchainErrorMessage(err), 'alert');
+    } finally {
+      this.refunding.set(null);
+    }
+  }
+
   /** The full address, so it can be pasted into a faucet or another
    * wallet to receive USDC. */
   async copyAddress(): Promise<void> {
@@ -221,6 +268,11 @@ export class PortfolioComponent {
 
   fmtEth(wei: bigint): string {
     return Number(ethers.formatEther(wei)).toLocaleString(undefined, { maximumFractionDigits: 4 });
+  }
+
+  /** Refunds are the contract's exact figure, so no rounding to the cent. */
+  fmtUsdcExact(units: bigint): string {
+    return Number(ethers.formatUnits(units, 6)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 });
   }
 
   fmtUsdc(units: bigint): string {
