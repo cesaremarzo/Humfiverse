@@ -274,7 +274,7 @@
   "wizMilestones.addMilestone": "+ Ajouter un jalon",
   "wizMilestones.removeMilestone": "Supprimer",
   "wizSource.extraCampaignToggle": "Lever des fonds supplémentaires pour une vidéo ou une campagne marketing",
-  "wizSource.extraCampaignHint": "Facultatif. Fonctionne exactement comme une campagne de pré-production, mais pour les finitions d'un morceau déjà tokenisé — les fonds restent sous séquestre et ne sont libérés que lorsque votre studio confirme aussi.",
+  "wizSource.extraCampaignHint": "Facultatif. Levez des fonds supplémentaires pour des travaux autour d'un titre déjà tokenisé, comme un clip ou une campagne marketing. Les contributions restent bloquées en escrow : la tranche de chaque jalon n'est libérée que lorsque vous et le studio ou partenaire confirmez, chacun depuis votre propre wallet, qu'il a été réalisé. Les investisseurs reçoivent des jetons de ce même titre.",
   "wizSource.extraCampaignGoalLabel": "Objectif de financement",
   "wizSource.extraCampaignMilestonesNote": "Chaque jalon n'est libéré qu'une fois que vous et le studio ou partenaire avez confirmé sa livraison.",
   "wizSource.catalogueTitle": "Vérification des royalties",
