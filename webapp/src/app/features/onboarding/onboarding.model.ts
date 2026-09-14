@@ -26,6 +26,9 @@ export interface WizardData {
    * one. `goal` is USD, same illustrative mapping as everywhere else in
    * this wizard. */
   catalogueCampaign: { enabled: boolean; goal: number; studioName: string; studioWallet: string };
+  /** §2.75: a catalogue's extra campaign released as stages of a marketing
+   * campaign — the number of stages, or null for a free-form split. */
+  catalogueMarketingStages: number | null;
   /** The artist's own split of each raise into milestones (§2.74). Names and
    * payees come from the templates; the percentages are theirs to set, and
    * must total exactly 100% — the escrow contract refuses anything else. */
@@ -84,6 +87,7 @@ export function freshWizardData(): WizardData {
     catalogueCampaign: { enabled: false, goal: 2000, studioName: '', studioWallet: '' },
     preprodMilestones: PREPRODUCTION_MILESTONES.map((m) => ({ ...m })),
     catalogueMilestones: CATALOGUE_EXTRA_MILESTONES.map((m) => ({ ...m })),
+    catalogueMarketingStages: null,
     disclosure: { vocals: 'human', instrumentation: 'human', composition: 'human', postProduction: 'human', lyrics: 'human' },
     contract: { generalAccepted: false, vessatoriaAccepted: {} },
     ack: false

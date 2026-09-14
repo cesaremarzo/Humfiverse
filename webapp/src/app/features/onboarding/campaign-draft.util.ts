@@ -2,6 +2,7 @@ import { Asset, Campaign, Milestone } from '../../core/models';
 import type { WizardData, WizardStepKey } from './onboarding.model';
 import { isValidWalletAddress } from './onboarding.model';
 import { PRIMARY_FEE_BPS } from '../../core/primary-fee.util';
+import { usdToUsdc, usdcToUsd } from '../../core/usdc.util';
 
 /**
  * Turns a completed wizard draft into the records the rest of the app
@@ -43,8 +44,9 @@ export const PREPRODUCTION_MILESTONES: MilestoneTemplate[] = [
 ];
 
 /** The optional follow-on raise a catalogue can run for extras around an
- * already-finished track. Both tranches pay the studio, since both are work
- * the studio delivers. */
+ * already-finished track — only the *starting* point since §2.75: the artist
+ * names each milestone, chooses who it pays, adds or removes them, or
+ * switches to a marketing campaign in stages. */
 export const CATALOGUE_EXTRA_MILESTONES: MilestoneTemplate[] = [
   { name: 'Music video produced', bps: 5000, payee: 'studio' },
   { name: 'Marketing campaign launched', bps: 5000, payee: 'studio' }
@@ -55,10 +57,34 @@ export function milestoneTotalBps(milestones: MilestoneTemplate[]): number {
   return milestones.reduce((sum, m) => sum + m.bps, 0);
 }
 
-/** What the escrow contract will accept: every milestone at least 0.01%, and
- * the split totalling exactly 100%. */
+/** Limits on an artist-written split (§2.75). The name is stored on chain,
+ * so it is kept short; the count keeps a campaign readable and every
+ * confirmation a separate transaction someone has to sign. */
+export const MILESTONE_NAME_MAX = 80;
+export const MILESTONES_MAX = 10;
+
+/** What the escrow contract will accept — every milestone at least 0.01%,
+ * the split totalling exactly 100% — plus a name for each, since the name is
+ * what the artist and studio are confirming was delivered. */
 export function milestonesValid(milestones: MilestoneTemplate[]): boolean {
-  return milestones.length > 0 && milestones.every((m) => Number.isInteger(m.bps) && m.bps >= 1) && milestoneTotalBps(milestones) === 10_000;
+  return (
+    milestones.length > 0 &&
+    milestones.length <= MILESTONES_MAX &&
+    milestones.every((m) => Number.isInteger(m.bps) && m.bps >= 1 && !!m.name.trim() && m.name.trim().length <= MILESTONE_NAME_MAX) &&
+    milestoneTotalBps(milestones) === 10_000
+  );
+}
+
+/** A marketing campaign released in `stages` equal tranches, the remainder
+ * of the division on the last so the split is exactly 100%. Paid to the
+ * campaign's partner wallet by default; every field stays editable. */
+export function marketingStageMilestones(stages: number, nameFor: (n: number) => string): MilestoneTemplate[] {
+  const base = Math.floor(10_000 / stages);
+  return Array.from({ length: stages }, (_, i) => ({
+    name: nameFor(i + 1),
+    bps: i === stages - 1 ? 10_000 - base * (stages - 1) : base,
+    payee: 'studio' as const
+  }));
 }
 
 /** What a tranche releases, in USD to the cent. Sized the way the contract
@@ -68,6 +94,43 @@ export function milestonesValid(milestones: MilestoneTemplate[]): boolean {
 export function trancheUsd(goalUsd: number, bps: number): number {
   const targetCents = Math.round(goalUsd * 100) * (10_000 - PRIMARY_FEE_BPS) / 10_000;
   return Math.floor((targetCents * bps) / 10_000) / 100;
+}
+
+/** The escrow's fee on a released tranche, in basis points (§2.72). */
+export const MILESTONE_FEE_BPS = 300;
+
+/** Where one milestone's share of the goal ends up, computed in USDC base
+ * units exactly as the contracts do it, then shown in dollars:
+ *   share        the milestone's percentage of the goal — what investors pay for it
+ *   contribution the 2% taken from those contributions on arrival
+ *   tranche      what the escrow releases for it (share less that 2%)
+ *   milestone    the 3% taken from the tranche on release
+ *   payee        what the artist or studio actually receives
+ * The two fees together are share − payee. */
+export interface MilestoneBreakdown {
+  shareUsd: number;
+  contributionFeeUsd: number;
+  trancheUsd: number;
+  milestoneFeeUsd: number;
+  feesUsd: number;
+  payeeUsd: number;
+}
+
+export function milestoneBreakdown(goalUsd: number, bps: number): MilestoneBreakdown {
+  const goal = usdToUsdc(goalUsd);
+  const share = (goal * BigInt(bps)) / 10_000n;
+  const target = (goal * BigInt(10_000 - PRIMARY_FEE_BPS)) / 10_000n;
+  const tranche = (target * BigInt(bps)) / 10_000n;
+  const milestoneFee = (tranche * BigInt(MILESTONE_FEE_BPS)) / 10_000n;
+  const payee = tranche - milestoneFee;
+  return {
+    shareUsd: usdcToUsd(share),
+    contributionFeeUsd: usdcToUsd(share - tranche),
+    trancheUsd: usdcToUsd(tranche),
+    milestoneFeeUsd: usdcToUsd(milestoneFee),
+    feesUsd: usdcToUsd(share - payee),
+    payeeUsd: usdcToUsd(payee)
+  };
 }
 
 /** The display half of a split: what each tranche is worth in USD. */

@@ -7,7 +7,7 @@ import { WalletService } from '../../core/wallet.service';
 import { ApiService } from '../../core/api.service';
 import { ToastService } from '../../core/toast.service';
 import { AiDisclosure, DisclosureLevel } from '../../core/models';
-import { fmtUSD } from '../../core/format.util';
+import { fmtUSD, fmtUSDExact } from '../../core/format.util';
 import { usdToUsdc } from '../../core/usdc.util';
 import { clauseCategory, clauseText, contractLegalBasisNote, vessatoriaClauseIds } from '../../core/contract-text.util';
 import {
@@ -23,7 +23,12 @@ import {
 import {
   milestoneTotalBps,
   milestonesValid,
-  trancheUsd,
+  milestoneBreakdown,
+  marketingStageMilestones,
+  MILESTONE_NAME_MAX,
+  MILESTONES_MAX,
+  CATALOGUE_EXTRA_MILESTONES,
+  MilestoneBreakdown,
   buildAssetDraft,
   buildCampaignDraft,
   canAdvanceFrom,
@@ -46,6 +51,7 @@ export class OnboardingComponent {
   disclosureRows = DISCLOSURE_ROWS;
   disclosureValues = DISCLOSURE_VALUES;
   fmt = fmtUSD;
+  fmtExact = fmtUSDExact;
 
   stepIndex = signal(0);
   data = signal<WizardData>(freshWizardData());
@@ -111,10 +117,72 @@ export class OnboardingComponent {
     this.data.update((d) => ({ ...d, [key]: d[key].map((m, i) => (i === index ? { ...m, bps } : m)) }));
   }
 
-  milestoneRows(kind: MilestoneKind): { name: string; payee: 'artist' | 'studio'; percent: number; trancheUsd: number }[] {
+  readonly milestoneNameMax = MILESTONE_NAME_MAX;
+  readonly milestonesMax = MILESTONES_MAX;
+
+  /* --- §2.75: a catalogue's extra campaign is the artist's to shape ---
+     A track that is already made and earning has no fixed production path,
+     so the artist decides what each tranche waits for: they name it, choose
+     who it pays, and add or remove milestones. The preproduction split keeps
+     its four named stages, which describe making a track. */
+  updateMilestoneName(index: number, value: string): void {
+    this.data.update((d) => ({ ...d, catalogueMilestones: d.catalogueMilestones.map((m, i) => (i === index ? { ...m, name: value.slice(0, MILESTONE_NAME_MAX) } : m)) }));
+  }
+
+  updateMilestonePayee(index: number, payee: 'artist' | 'studio'): void {
+    this.data.update((d) => ({ ...d, catalogueMilestones: d.catalogueMilestones.map((m, i) => (i === index ? { ...m, payee } : m)) }));
+  }
+
+  addMilestone(): void {
+    this.data.update((d) =>
+      d.catalogueMilestones.length >= MILESTONES_MAX ? d : { ...d, catalogueMilestones: [...d.catalogueMilestones, { name: '', bps: 0, payee: 'studio' }] }
+    );
+  }
+
+  removeMilestone(index: number): void {
+    this.data.update((d) =>
+      d.catalogueMilestones.length <= 1 ? d : { ...d, catalogueMilestones: d.catalogueMilestones.filter((_, i) => i !== index) }
+    );
+  }
+
+  /** Switches the split to equal stages of a marketing campaign, or back to
+   * the default milestones. Either replaces what was typed, which is why it
+   * is an explicit checkbox rather than something inferred. */
+  toggleMarketingStages(enabled: boolean): void {
+    const stages = enabled ? 3 : null;
+    this.data.update((d) => ({
+      ...d,
+      catalogueMarketingStages: stages,
+      catalogueMilestones: stages ? this.marketingStages(stages) : CATALOGUE_EXTRA_MILESTONES.map((m) => ({ ...m }))
+    }));
+  }
+
+  setMarketingStageCount(value: string): void {
+    const n = Math.min(MILESTONES_MAX, Math.max(2, parseInt(value, 10) || 2));
+    this.data.update((d) => ({ ...d, catalogueMarketingStages: n, catalogueMilestones: this.marketingStages(n) }));
+  }
+
+  private marketingStages(n: number) {
+    return marketingStageMilestones(n, (i) => this.translate.instant('wizMilestones.marketingStageName', { n: i }));
+  }
+
+  milestoneRows(kind: MilestoneKind): ({ name: string; payee: 'artist' | 'studio'; percent: number } & MilestoneBreakdown)[] {
     const d = this.data();
-    const goal = kind === 'preprod' ? this.preprodTotal() : d.catalogueCampaign.goal;
-    return d[this.milestoneKey(kind)].map((m) => ({ name: m.name, payee: m.payee, percent: m.bps / 100, trancheUsd: trancheUsd(goal, m.bps) }));
+    const goal = this.milestoneGoal(kind);
+    return d[this.milestoneKey(kind)].map((m) => ({ name: m.name, payee: m.payee, percent: m.bps / 100, ...milestoneBreakdown(goal, m.bps) }));
+  }
+
+  private milestoneGoal(kind: MilestoneKind): number {
+    return kind === 'preprod' ? this.preprodTotal() : this.data().catalogueCampaign.goal;
+  }
+
+  /** The whole campaign's split between Humfiverse's fees and what the artist
+   * and studio receive, summed from the rows so it can never disagree with
+   * them. */
+  milestoneSummary(kind: MilestoneKind): { goalUsd: number; feesUsd: number; payeeUsd: number } {
+    const rows = this.milestoneRows(kind);
+    const sum = (f: (r: MilestoneBreakdown) => number) => Math.round(rows.reduce((s, r) => s + f(r), 0) * 1e6) / 1e6;
+    return { goalUsd: this.milestoneGoal(kind), feesUsd: sum((r) => r.feesUsd), payeeUsd: sum((r) => r.payeeUsd) };
   }
 
   milestoneTotalPercent(kind: MilestoneKind): number {
