@@ -359,14 +359,22 @@ export class AssetDetailComponent {
   private async contributeToEscrow(a: Asset, escrowInfo: Extract<EscrowCampaignInfo, { escrow: true }>, qty: number, total: number): Promise<void> {
     this.onchainBuyPending.set(true);
     try {
-      const amountUsdc = usdToUsdc(total).toString();
+      /* The escrow refuses any amount that is not an exact multiple of the
+         token's price. That price is funding / supply rounded down to the
+         USDC unit (§2.79), so it is often not a whole cent — $50 over 1,500
+         tokens is 33,333 units — and qty × the dollar price rounded to the
+         cent (1.00 for 30 tokens, not 0.99999) was rejected with "amount
+         must buy whole tokens". Pay qty × the on-chain price instead. */
+      const onchain = this.onchainInfo();
+      const amount = onchain?.onchain ? BigInt(onchain.priceUsdc) * BigInt(qty) : usdToUsdc(total);
       const result = await this.wallet.contributeOnchain({
         contractAddress: escrowInfo.contractAddress,
         campaignId: escrowInfo.campaignId,
-        amountUsdc
+        amountUsdc: amount.toString()
       });
-      this.applyPurchase(a, qty, total);
-      this.success.set({ qty, total, txHash: result.txHash, explorerUrl: result.explorerUrl });
+      const paid = usdcToUsd(amount);
+      this.applyPurchase(a, qty, paid);
+      this.success.set({ qty, total: paid, txHash: result.txHash, explorerUrl: result.explorerUrl });
       this.scheduleOnchainRefresh(a.id);
     } catch (err: unknown) {
       console.warn('On-chain contribution did not complete.', err);
