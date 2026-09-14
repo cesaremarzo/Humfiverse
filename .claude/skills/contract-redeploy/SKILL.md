@@ -28,11 +28,11 @@ A fresh deploy means fresh, empty contract state: every minted token, every escr
 
 3. Compile and run the Hardhat test suite first (`cd contracts && npx hardhat test`) — fix any failures before deploying. If a contract function gained a parameter, check for a "stack too deep" compile error; the fix already in place is `viaIR: true` in `hardhat.config.js`'s solidity settings.
 4. Deploy the token first: `npx hardhat run scripts/deploy.js --network sepolia`.
-5. Deploy the escrow linked to it: `CATALOGUE_TOKEN_ADDRESS=<token address> npx hardhat run scripts/deployEscrow.js --network sepolia` — this script also calls `setEscrowContract` on the token automatically. Confirm the script's own "Done — escrowContract is now ..." line before moving on.
+5. Deploy the escrow linked to it: `CATALOGUE_TOKEN_ADDRESS=<token address> [ESCROW_FEE_RECIPIENT=<address>] npx hardhat run scripts/deployEscrow.js --network sepolia` (since §2.71 the constructor also takes the fee recipient, defaulting to the deployer; verify with both constructor args) — this script also calls `setEscrowContract` on the token automatically. Confirm the script's own "Done — escrowContract is now ..." line before moving on.
 6. Verify both on Etherscan:
    ```
    npx hardhat verify --network sepolia <token address>
-   npx hardhat verify --network sepolia <escrow address> <token address>
+   npx hardhat verify --network sepolia <escrow address> <token address> <fee recipient>
    ```
    (Sourcify verification failing separately is normal/harmless — only Etherscan verification matters.)
 7. Get each contract's exact deploy block (needed for `CHAIN_CONTRACT_DEPLOY_BLOCK`/`CHAIN_ESCROW_DEPLOY_BLOCK` — used to bound recent-activity event scans, see §2.39):
@@ -42,6 +42,9 @@ A fresh deploy means fresh, empty contract state: every minted token, every escr
    ```
 
 ## Restore real state
+
+**Escrow only, token unchanged?** The token does not need redeploying — `setEscrowContract` is owner-settable. A campaign that is fully released on the old escrow should not be recreated (it would read as unfunded); point `CHAIN_ESCROW_LEGACY_ADDRESS` at the old escrow instead. A partially funded campaign cannot move at all without stranding its ETH — resolve it first. §2.71's `migrateFees.js` (one-off, deleted after running) is the worked example.
+
 
 8. Write a one-off Node script in `contracts/scripts/` (plain `ethers`, not a Hardhat task) that, for every real asset:
    - `mintCatalogue(tokenId, slug, supply, priceWei, title, artist)` — same tokenId/slug/supply/price/title/artist as before the redeploy.

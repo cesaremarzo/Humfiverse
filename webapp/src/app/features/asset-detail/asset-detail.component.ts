@@ -17,7 +17,7 @@ import { fmtUSD, fmtUSDShort } from '../../core/format.util';
 import { fundingPctFor, remainingFor, tokensSoldFor } from '../../core/onchain-progress.util';
 import { ipfsGatewayUrl } from '../../core/ipfs.util';
 import { computeYieldBreakdown } from '../../core/yield.util';
-import { platformFeeTokens } from '../../core/marketplace-fee.util';
+import { platformFeeUsd, platformFeeWei } from '../../core/marketplace-fee.util';
 import { weiToUsd, usdToWei, usdToWeiPrecise, weiToUsdPrecise } from '../../core/usd-eth.util';
 import { isValidRoyaltyMonth, royaltyAvg, royaltyTotal } from '../../core/royalty.util';
 import { onchainErrorTranslation } from '../../core/onchain-error.util';
@@ -525,7 +525,7 @@ export class AssetDetailComponent {
     this.sellPrice.set(Number.isFinite(n) && n > 0 ? n : 1);
   }
   sellFeePreview(): number {
-    return platformFeeTokens(this.sellQty());
+    return platformFeeUsd(this.sellQty() * this.sellPrice());
   }
 
   /** The listing is the seller's own transaction against
@@ -590,8 +590,8 @@ export class AssetDetailComponent {
   }
 
   /** A real trade: `buyListing` moves the tokens from the seller and the
-   * ETH to them in one transaction, with the platform's 1% token fee
-   * diverted by the contract. Nothing here simulates a transfer any more,
+   * ETH to them in one transaction, with the platform's 1% of the payment
+   * retained by the contract (§2.71). Nothing here simulates a transfer any more,
    * so there is also nothing to undo if it fails. */
   async buyFromListing(listing: SecondaryListing): Promise<void> {
     const marketplace = this.store.marketplaceAddress();
@@ -607,14 +607,14 @@ export class AssetDetailComponent {
         qty: listing.qty,
         pricePerTokenWei: listing.pricePerTokenWei
       });
-      const fee = platformFeeTokens(listing.qty);
+      const paidWei = BigInt(listing.pricePerTokenWei) * BigInt(listing.qty);
       await this.store.refreshListings();
       this.scheduleOnchainRefresh(listing.assetId);
       this.resaleResult.set({
         listing,
-        received: listing.qty - fee,
-        fee,
-        paid: weiToUsd((BigInt(listing.pricePerTokenWei) * BigInt(listing.qty)).toString()),
+        received: listing.qty,
+        fee: weiToUsdPrecise(platformFeeWei(paidWei).toString()),
+        paid: weiToUsdPrecise(paidWei.toString()),
         txHash: result.txHash,
         explorerUrl: result.explorerUrl
       });

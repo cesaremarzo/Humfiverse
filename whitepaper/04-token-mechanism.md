@@ -18,4 +18,13 @@ A Humfiverse token is a claim against the legal entity holding the underlying ro
 
 ## One accounting rule, no exceptions
 
-Tokens only ever leave a catalogue's pool two ways: a first purchase, or a resale from one holder to another. The contract tracks exactly how many tokens have ever left the pool and simply refuses to release more than the declared total — there's no way, for Humfiverse or anyone else, to quietly mint more of an existing catalogue's tokens later. Resale carries a small platform fee, taken from the tokens changing hands rather than the seller's proceeds, so a seller is always paid in full. A first purchase never carries this fee — you can't resell what you don't already own.
+Tokens only ever leave a catalogue's pool two ways: a first purchase, or a resale from one holder to another. The contract tracks exactly how many tokens have ever left the pool and simply refuses to release more than the declared total — there's no way, for Humfiverse or anyone else, to quietly mint more of an existing catalogue's tokens later. Resale carries a 1% platform fee, taken from the payment: the buyer receives every token they pay for, and the seller receives the price less 1%. A first purchase never carries this fee — you can't resell what you don't already own.
+
+## What Humfiverse earns
+
+Two fees, both enforced by the contracts rather than by anyone's discretion, and both fixed in code so they can't be raised on people who already took part:
+
+- **5% of each pre-production tranche, as it is released.** When the artist and the studio both confirm a milestone, the contract pays them 95% of that tranche and keeps 5% for the platform. A tranche that is never released is never charged — so if a campaign is cancelled, the fee applies only to what was genuinely delivered, and contributors' refunds are unaffected.
+- **1% of every resale payment**, as above.
+
+Fees accumulate inside each contract and can only ever be sent to the platform's designated fee address. Both running totals are public on-chain.

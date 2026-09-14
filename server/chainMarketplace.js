@@ -29,7 +29,11 @@ const ABI = [
   "function buyListing(uint256 listingId, uint256 amount) payable",
   "function getListing(uint256 listingId) view returns (tuple(address seller, address token, uint256 tokenId, uint256 amount, uint256 pricePerToken, bool active))",
   "function feeRecipient() view returns (address)",
-  "function PLATFORM_FEE_BPS() view returns (uint256)"
+  "function PLATFORM_FEE_BPS() view returns (uint256)",
+  // §2.71: the fee is 1% of the payment, accrued here until withdrawn.
+  // The first deployment took 1% of the tokens and has neither of these.
+  "function accruedFees() view returns (uint256)",
+  "function totalFeesCollected() view returns (uint256)"
 ];
 
 const provider = new ethers.JsonRpcProvider(RPC_URL);
@@ -66,6 +70,34 @@ async function getListing(listingId) {
  * simply never enters the index. That is why the indexing endpoint needs
  * no authentication — the contract is the one being trusted, not the
  * caller. */
+/** Contract-wide fee state, read straight off the chain. Null when no
+ * marketplace is configured, or when the configured one predates §2.71
+ * and takes its fee in tokens — there is no ETH to report for that one,
+ * and reporting zero would claim otherwise. */
+async function getFeeState() {
+  if (!readContract) return null;
+  let accrued;
+  try {
+    accrued = await withRetry(() => readContract.accruedFees());
+  } catch (err) {
+    if (err.code === "CALL_EXCEPTION" || err.code === "BAD_DATA") return null;
+    throw err;
+  }
+  const [recipient, total, bps] = await Promise.all([
+    withRetry(() => readContract.feeRecipient()),
+    withRetry(() => readContract.totalFeesCollected()),
+    withRetry(() => readContract.PLATFORM_FEE_BPS())
+  ]);
+  return {
+    contractAddress: MARKETPLACE_ADDRESS,
+    explorerUrl: `${EXPLORER_BASE}/address/${MARKETPLACE_ADDRESS}`,
+    feeBps: Number(bps),
+    feeRecipient: recipient,
+    accruedWei: accrued.toString(),
+    totalCollectedWei: total.toString()
+  };
+}
+
 async function verifyListingMatches(listingId, tokenId) {
   const listing = await getListing(listingId);
   if (!listing) return null;
@@ -76,6 +108,7 @@ module.exports = {
   marketplaceEnabled,
   getListing,
   verifyListingMatches,
+  getFeeState,
   MARKETPLACE_ADDRESS,
   EXPLORER_BASE
 };

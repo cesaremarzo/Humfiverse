@@ -256,6 +256,14 @@ export interface EscrowMilestone {
   payee: 'artist' | 'studio';
   released: boolean;
   amountWei: string;
+  /** §2.71: the platform's 5% of this tranche and what the payee receives.
+   * Absent from a backend older than §2.71; `feeWei` is "0" when the
+   * configured escrow predates the fee. */
+  feeWei?: string;
+  payoutWei?: string;
+  /** Whether the contract would release this tranche once both sides have
+   * confirmed — cumulative against everything already released. */
+  fundedEnough?: boolean;
   /** Dual sign-off state (§2.27) — a milestone releases only once both are
    * true. Humfiverse has no function that can set either of these itself;
    * they're only ever set by the artist's/studio's own wallet transaction. */
@@ -282,6 +290,9 @@ export type EscrowCampaignInfo =
       deadline: number;
       status: 'active' | 'cancelled';
       releasedBps: number;
+      /** null when the configured escrow predates the platform fee. */
+      platformFeeBps?: number | null;
+      feesCollectedWei?: string | null;
       milestones: EscrowMilestone[];
     };
 
@@ -319,4 +330,23 @@ export interface HolderCountsResponse {
   indexedToBlock: number | null;
   counts: Record<string, number>;
   unverified?: string[];
+}
+
+/** One fee-bearing contract's state from GET /api/fees (§2.71). Every
+ * figure is a counter the contract keeps itself. */
+export type FeeContractState =
+  | {
+      status: 'ok';
+      contractAddress: string;
+      explorerUrl: string;
+      feeBps: number;
+      feeRecipient: string;
+      accruedWei: string;
+      totalCollectedWei: string;
+    }
+  | { status: 'unsupported' | 'unavailable'; reason: string };
+
+export interface FeeSummary {
+  escrow: FeeContractState;
+  marketplace: FeeContractState;
 }

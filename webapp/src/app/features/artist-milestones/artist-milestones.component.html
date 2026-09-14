@@ -59,16 +59,16 @@
                 <tr>
                   <td>{{ m.name }}</td>
                   <td>{{ m.payee === 'studio' ? (c.studio?.name || 'Studio') : 'Artist' }}</td>
-                  <td class="cell-num mono">{{ fmt(weiToUsd(m.amountWei)) }}</td>
+                  <td class="cell-num mono">{{ fmt(weiToUsd(m.payoutWei ?? m.amountWei)) }}@if (m.feeWei && m.feeWei !== '0') {<div style="font-size:11px; color:var(--text-secondary);">of {{ fmt(weiToUsd(m.amountWei)) }} · 5% fee {{ fmt(weiToUsd(m.feeWei)) }}</div>}</td>
                   <td>
-                    @if (!canConfirm(c.raised, m.amountWei) && !m.released) {
+                    @if (!canConfirm(c.raised, m) && !m.released) {
                       <span class="chip chip-neutral">{{ 'escrowStatus.notEnoughRaised' | translate }}</span>
                     } @else {
                       <span class="chip" [class.chip-good]="m.released" [class.chip-warning]="!m.released">{{ statusKey(m) | translate }}</span>
                     }
                   </td>
                   <td style="text-align:right;">
-                    @if (!m.released && canConfirm(c.raised, m.amountWei) && !m.artistConfirmed) {
+                    @if (!m.released && canConfirm(c.raised, m) && !m.artistConfirmed) {
                       <button
                         class="btn btn-primary btn-sm"
                         [disabled]="confirming() === (c.campaignId + '-' + m.index)"

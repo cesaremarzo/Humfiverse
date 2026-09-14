@@ -32,6 +32,18 @@ import "./HumfiverseCatalogueToken.sol";
 ///         campaign is created; the contract — not anyone's discretion — is
 ///         what makes sure the money earmarked for that actually gets
 ///         there, and only once both sides agree it happened.
+///
+///         Business rule: the platform retains 5% of every tranche as it is
+///         released (`PLATFORM_FEE_BPS`), so across a campaign that releases
+///         every milestone the platform receives 5% of the goal and the
+///         artist and studio 95%. The fee follows the release rather than
+///         being taken up front, so a cancelled campaign pays it only on the
+///         tranches that were genuinely delivered, and refunds need no
+///         special case. The fee accrues inside this contract and leaves only
+///         through withdrawFees() — never pushed during a release — because a
+///         fee recipient that rejected ETH would otherwise block every
+///         milestone, handing Humfiverse exactly the veto over releases that
+///         §2.27 was written to remove.
 /// @dev Campaigns and studios are created/registered by the platform
 ///      (onlyOwner), mirroring how HumfiverseCatalogueToken.mintCatalogue
 ///      is triggered by the backend after a user completes the onboarding
@@ -85,6 +97,20 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     ///         after deploy — see that contract's escrowContract field.
     HumfiverseCatalogueToken public immutable catalogueToken;
 
+    /// @notice Platform fee on every released tranche, in basis points of
+    ///         the tranche (500 bps = 5.00%). A constant, not a setter: the
+    ///         rate a contributor funded under cannot be changed afterward.
+    uint16 public constant PLATFORM_FEE_BPS = 500;
+
+    /// @notice Where withdrawFees() sends accrued fees. Defaults to the deployer.
+    address public feeRecipient;
+    /// @notice Fees retained from released tranches and not yet withdrawn.
+    uint256 public accruedFees;
+    /// @notice Every fee ever retained, withdrawn or not — never decreases.
+    uint256 public totalFeesCollected;
+    /// @notice campaignId => fees retained from that campaign's tranches.
+    mapping(uint256 => uint256) public campaignFeesCollected;
+
     uint256 private nextCampaignId = 1;
     uint256 private nextStudioId = 1;
 
@@ -117,10 +143,14 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     event MilestoneConfirmed(uint256 indexed campaignId, uint256 indexed milestoneIndex, address indexed payee, uint256 amount);
     event CampaignCancelled(uint256 indexed campaignId);
     event Refunded(uint256 indexed campaignId, address indexed contributor, uint256 amount);
+    event PlatformFeeRetained(uint256 indexed campaignId, uint256 indexed milestoneIndex, uint256 fee);
+    event FeesWithdrawn(address indexed recipient, uint256 amount);
+    event FeeRecipientUpdated(address indexed previous, address indexed next);
 
-    constructor(address _catalogueToken) Ownable(msg.sender) {
+    constructor(address _catalogueToken, address _feeRecipient) Ownable(msg.sender) {
         require(_catalogueToken != address(0), "HumfiverseMilestoneEscrow: zero token address");
         catalogueToken = HumfiverseCatalogueToken(_catalogueToken);
+        feeRecipient = _feeRecipient == address(0) ? msg.sender : _feeRecipient;
     }
 
     // --- studio registry (platform-curated for this pilot) ---
@@ -286,7 +316,16 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
 
     /// @notice Releases a milestone's tranche once both required
     ///         confirmations are in — to the studio's wallet if this is the
-    ///         studio-commitment milestone, otherwise to the artist.
+    ///         studio-commitment milestone, otherwise to the artist, less the
+    ///         platform fee, which stays here as accruedFees.
+    ///
+    ///         The funding check is cumulative: everything released so far
+    ///         plus this tranche must be covered by what the campaign raised.
+    ///         It used to compare the tranche alone against `raised`, so a
+    ///         campaign that raised 50% could release its 40% and then its
+    ///         30% tranche, paying out 70% of the goal and taking the
+    ///         difference from other campaigns' contributions — and, since
+    ///         fees accrue in this same balance, from the platform's fees.
     ///         Deliberately private and side-effect-only: there is no public
     ///         function anywhere in this contract that releases a milestone
     ///         on a single party's say-so, Humfiverse's included. If the two
@@ -303,17 +342,43 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         bool studioSideDone = c.studioId == 0 || studioConfirmed[campaignId][milestoneIndex];
         if (!(artistConfirmed[campaignId][milestoneIndex] && studioSideDone)) return;
 
+        // Not enough raised yet — releases once it is, on the next confirming call.
+        if (c.raised < (c.fundingGoal * (c.releasedBps + m.bps)) / 10_000) return;
+
         uint256 amount = (c.fundingGoal * m.bps) / 10_000;
-        if (c.raised < amount) return; // not enough raised yet — releases once it is, on the next confirming call
+        uint256 fee = (amount * PLATFORM_FEE_BPS) / 10_000;
+        uint256 payout = amount - fee;
 
         m.released = true;
         c.releasedBps += m.bps;
+        accruedFees += fee;
+        totalFeesCollected += fee;
+        campaignFeesCollected[campaignId] += fee;
 
         address payee = m.payee == Payee.STUDIO ? studios[c.studioId].wallet : c.artist;
-        (bool sent, ) = payable(payee).call{value: amount}("");
+        (bool sent, ) = payable(payee).call{value: payout}("");
         require(sent, "HumfiverseMilestoneEscrow: payout failed");
 
-        emit MilestoneConfirmed(campaignId, milestoneIndex, payee, amount);
+        emit PlatformFeeRetained(campaignId, milestoneIndex, fee);
+        emit MilestoneConfirmed(campaignId, milestoneIndex, payee, payout);
+    }
+
+    /// @notice Sends every accrued fee to feeRecipient. Callable by anyone:
+    ///         the destination is fixed, so the caller decides only when the
+    ///         transfer happens, never where it goes.
+    function withdrawFees() external nonReentrant {
+        uint256 amount = accruedFees;
+        require(amount > 0, "HumfiverseMilestoneEscrow: no fees to withdraw");
+        accruedFees = 0;
+        (bool sent, ) = payable(feeRecipient).call{value: amount}("");
+        require(sent, "HumfiverseMilestoneEscrow: fee withdrawal failed");
+        emit FeesWithdrawn(feeRecipient, amount);
+    }
+
+    function setFeeRecipient(address next) external onlyOwner {
+        require(next != address(0), "HumfiverseMilestoneEscrow: zero address");
+        emit FeeRecipientUpdated(feeRecipient, next);
+        feeRecipient = next;
     }
 
     /// @notice Owner-only: stop taking new contributions and open the

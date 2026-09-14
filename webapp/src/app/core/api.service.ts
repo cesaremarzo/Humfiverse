@@ -17,8 +17,7 @@ import {
   RealHoldingDto,
   RedeemResult,
   RoyaltyMonth,
-  SecondaryListing
-} from './models';
+  SecondaryListing, FeeSummary } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -192,5 +191,10 @@ export class ApiService {
    * see WalletService.confirmMilestoneAsArtist/confirmMilestoneAsStudio. */
   getEscrowCampaigns(): Promise<{ campaigns: (EscrowCampaignInfo & { assetId: string })[] }> {
     return firstValueFrom(this.http.get<{ campaigns: (EscrowCampaignInfo & { assetId: string })[] }>(`${this.base}/api/escrow/campaigns`));
+  }
+
+  /** Platform fee totals for the escrow and the marketplace (§2.71). */
+  getFees(): Promise<FeeSummary> {
+    return firstValueFrom(this.http.get<FeeSummary>(`${this.base}/api/fees`));
   }
 }

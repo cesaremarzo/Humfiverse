@@ -64,38 +64,68 @@ describe("HumfiverseMarketplace", function () {
     ).to.be.revertedWith("HumfiverseMarketplace: insufficient balance");
   });
 
-  it("on purchase, retains exactly 1% of the traded tokens for the platform and pays the seller in full", async function () {
-    const { token, marketplace, seller, buyer, feeRecipient, listingId } = await listFixture();
-    const amount = 100n; // 1% of 100 = 1 token fee
+  it("on purchase, gives the buyer every token and retains exactly 1% of the payment for the platform", async function () {
+    const { token, marketplace, seller, buyer, listingId } = await listFixture();
+    const amount = 100n;
     const cost = amount * PRICE_PER_TOKEN;
+    const fee = cost / 100n;
     const sellerBalanceBefore = await ethers.provider.getBalance(seller.address);
 
     await expect(marketplace.connect(buyer).buyListing(listingId, amount, { value: cost }))
       .to.emit(marketplace, "Purchased")
-      .withArgs(listingId, buyer.address, amount, 1n, cost);
+      .withArgs(listingId, buyer.address, amount, fee, cost);
 
-    expect(await token.balanceOf(buyer.address, TOKEN_ID)).to.equal(99);
-    expect(await token.balanceOf(feeRecipient.address, TOKEN_ID)).to.equal(1);
+    expect(await token.balanceOf(buyer.address, TOKEN_ID)).to.equal(100);
     expect(await token.balanceOf(seller.address, TOKEN_ID)).to.equal(400); // 500 - 100 sold
 
     const sellerBalanceAfter = await ethers.provider.getBalance(seller.address);
-    expect(sellerBalanceAfter - sellerBalanceBefore).to.equal(cost); // paid in full, fee is in tokens not proceeds
+    expect(sellerBalanceAfter - sellerBalanceBefore).to.equal(cost - fee);
+    expect(await marketplace.accruedFees()).to.equal(fee);
+    expect(await marketplace.totalFeesCollected()).to.equal(fee);
+    expect(await ethers.provider.getBalance(await marketplace.getAddress())).to.equal(fee);
 
     const listing = await marketplace.getListing(listingId);
     expect(listing.amount).to.equal(100);
     expect(listing.active).to.equal(true);
   });
 
-  it("rounds the token fee down to 0 for sales under 100 tokens", async function () {
-    const { marketplace, buyer, feeRecipient, listingId } = await listFixture();
-    const amount = 50n;
-    const cost = amount * PRICE_PER_TOKEN;
+  it("charges the fee on a single-token trade too, where a token-denominated fee would round to zero", async function () {
+    const { token, marketplace, buyer, listingId } = await listFixture();
+    const cost = PRICE_PER_TOKEN;
 
-    await expect(marketplace.connect(buyer).buyListing(listingId, amount, { value: cost }))
+    await expect(marketplace.connect(buyer).buyListing(listingId, 1, { value: cost }))
       .to.emit(marketplace, "Purchased")
-      .withArgs(listingId, buyer.address, amount, 0n, cost);
+      .withArgs(listingId, buyer.address, 1n, cost / 100n, cost);
 
-    expect(await marketplace.getListing(listingId).then((l) => l.amount)).to.equal(150);
+    expect(await token.balanceOf(buyer.address, TOKEN_ID)).to.equal(1);
+    expect(await marketplace.getListing(listingId).then((l) => l.amount)).to.equal(199);
+  });
+
+  it("rounds the fee down to the wei", async function () {
+    const { token, marketplace, seller, buyer } = await deployFixture();
+    await token.connect(seller).setApprovalForAll(await marketplace.getAddress(), true);
+    await marketplace.connect(seller).list(await token.getAddress(), TOKEN_ID, 10, 199n); // 199 wei each
+    const listingId = 1n;
+
+    await marketplace.connect(buyer).buyListing(listingId, 1, { value: 199n });
+    expect(await marketplace.accruedFees()).to.equal(1n); // floor(199 / 100)
+  });
+
+  it("sends accrued fees to the fee recipient on withdrawal, whoever calls it", async function () {
+    const { marketplace, buyer, other, feeRecipient, listingId } = await listFixture();
+    const cost = 200n * PRICE_PER_TOKEN;
+    await marketplace.connect(buyer).buyListing(listingId, 200, { value: cost });
+    const fee = cost / 100n;
+
+    const recipientBefore = await ethers.provider.getBalance(feeRecipient.address);
+    await expect(marketplace.connect(other).withdrawFees())
+      .to.emit(marketplace, "FeesWithdrawn")
+      .withArgs(feeRecipient.address, fee);
+
+    expect(await ethers.provider.getBalance(feeRecipient.address)).to.equal(recipientBefore + fee);
+    expect(await marketplace.accruedFees()).to.equal(0);
+    expect(await marketplace.totalFeesCollected()).to.equal(fee); // lifetime total survives the withdrawal
+    await expect(marketplace.withdrawFees()).to.be.revertedWith("HumfiverseMarketplace: no fees to withdraw");
   });
 
   it("closes the listing once fully sold", async function () {
@@ -158,14 +188,15 @@ describe("HumfiverseMarketplace", function () {
     );
   });
 
-  it("lets the owner update the fee recipient, applied to subsequent purchases", async function () {
-    const { token, marketplace, deployer, buyer, other, listingId } = await listFixture();
-    await marketplace.connect(deployer).setFeeRecipient(other.address);
-
+  it("lets the owner update the fee recipient, applied to the next withdrawal", async function () {
+    const { marketplace, deployer, buyer, other, listingId } = await listFixture();
     const cost = 100n * PRICE_PER_TOKEN;
     await marketplace.connect(buyer).buyListing(listingId, 100, { value: cost });
+    await marketplace.connect(deployer).setFeeRecipient(other.address);
 
-    expect(await token.balanceOf(other.address, TOKEN_ID)).to.equal(1);
+    const before = await ethers.provider.getBalance(other.address);
+    await marketplace.connect(deployer).withdrawFees();
+    expect(await ethers.provider.getBalance(other.address)).to.equal(before + cost / 100n);
   });
 
   it("never charges a fee on the first purchase, since that only ever happens via releaseFromPool", async function () {

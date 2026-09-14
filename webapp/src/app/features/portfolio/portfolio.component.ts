@@ -11,7 +11,7 @@ import { ToastService } from '../../core/toast.service';
 import { fmtUSD } from '../../core/format.util';
 import { coverBackground } from '../../core/cover.util';
 import { RoyaltyMonth, SecondaryListing } from '../../core/models';
-import { platformFeeTokens } from '../../core/marketplace-fee.util';
+import { platformFeeUsd } from '../../core/marketplace-fee.util';
 import { onchainErrorTranslation } from '../../core/onchain-error.util';
 import { weiToUsd, usdToWeiPrecise, weiToUsdPrecise } from '../../core/usd-eth.util';
 import { lowestAvailablePrice, bucketSnapshots, ChartGranularity } from '../../core/token-value.util';
@@ -247,7 +247,7 @@ export class PortfolioComponent {
   }
 
   sellFeePreview(): number {
-    return platformFeeTokens(this.sellQty());
+    return platformFeeUsd(this.sellQty() * this.sellPrice());
   }
 
   /** The seller's own transaction against HumfiverseMarketplace: a one-off
