@@ -4,6 +4,13 @@ export function fmtUSD(n: number): string {
   return '$' + n.toLocaleString('en-US', { minimumFractionDigits: n % 1 !== 0 ? 2 : 0, maximumFractionDigits: 2 });
 }
 
+/** Dollars with as many decimals as the amount really has, up to USDC's six
+ * — for fees, where $0.147 rounded to $0.15 would be a different number from
+ * the one the contract takes. Always at least cents. */
+export function fmtUSDExact(n: number): string {
+  return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 });
+}
+
 export function fmtUSDShort(n: number): string {
   if (n >= 1000) return '$' + (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'k';
   return '$' + Math.round(n);
