@@ -21,14 +21,17 @@ import {
   isValidWalletAddress
 } from './onboarding.model';
 import {
-  CATALOGUE_EXTRA_MILESTONES,
-  PREPRODUCTION_MILESTONES,
+  milestoneTotalBps,
+  milestonesValid,
+  trancheUsd,
   buildAssetDraft,
   buildCampaignDraft,
   canAdvanceFrom,
   draftAssetId,
   draftRaiseTotal
 } from './campaign-draft.util';
+
+type MilestoneKind = 'preprod' | 'catalogue';
 
 @Component({
   selector: 'app-onboarding',
@@ -94,6 +97,34 @@ export class OnboardingComponent {
     this.data.update((d) => ({ ...d, preprod: { ...d.preprod, [field]: value } }));
   }
 
+  /** Which split an editor row belongs to. */
+  private milestoneKey(kind: MilestoneKind): 'preprodMilestones' | 'catalogueMilestones' {
+    return kind === 'preprod' ? 'preprodMilestones' : 'catalogueMilestones';
+  }
+
+  /** A percentage typed by the artist, stored as basis points — the unit the
+   * contract takes — so 12.5% is exactly 1250 and nothing is rounded later. */
+  updateMilestonePercent(kind: MilestoneKind, index: number, value: string): void {
+    const pct = parseFloat(String(value).replace(',', '.'));
+    const bps = Number.isFinite(pct) ? Math.min(10_000, Math.max(0, Math.round(pct * 100))) : 0;
+    const key = this.milestoneKey(kind);
+    this.data.update((d) => ({ ...d, [key]: d[key].map((m, i) => (i === index ? { ...m, bps } : m)) }));
+  }
+
+  milestoneRows(kind: MilestoneKind): { name: string; payee: 'artist' | 'studio'; percent: number; trancheUsd: number }[] {
+    const d = this.data();
+    const goal = kind === 'preprod' ? this.preprodTotal() : d.catalogueCampaign.goal;
+    return d[this.milestoneKey(kind)].map((m) => ({ name: m.name, payee: m.payee, percent: m.bps / 100, trancheUsd: trancheUsd(goal, m.bps) }));
+  }
+
+  milestoneTotalPercent(kind: MilestoneKind): number {
+    return milestoneTotalBps(this.data()[this.milestoneKey(kind)]) / 100;
+  }
+
+  milestonesValid(kind: MilestoneKind): boolean {
+    return milestonesValid(this.data()[this.milestoneKey(kind)]);
+  }
+
   toggleCatalogueCampaign(enabled: boolean): void {
     this.data.update((d) => ({ ...d, catalogueCampaign: { ...d.catalogueCampaign, enabled } }));
   }
@@ -157,7 +188,11 @@ export class OnboardingComponent {
 
   next(): void {
     if (!this.canAdvance()) {
-      const msg = this.stepKey() === 'contract' ? 'wizContract.requiredNote' : 'wizard.fillRequired';
+      const d = this.data();
+      let msg = this.stepKey() === 'contract' ? 'wizContract.requiredNote' : 'wizard.fillRequired';
+      if (this.stepKey() === 'source' && d.model === 'preproduction' && this.preprodTotal() <= 0) msg = 'wizSource.budgetRequired';
+      else if (this.stepKey() === 'source' && d.model === 'preproduction' && !this.milestonesValid('preprod')) msg = 'wizMilestones.invalid';
+      else if (this.stepKey() === 'source' && d.model === 'catalogue' && d.catalogueCampaign.enabled && !this.milestonesValid('catalogue')) msg = 'wizMilestones.invalid';
       this.toast.show(this.translate.instant(msg), 'alert');
       return;
     }
@@ -321,7 +356,7 @@ export class OnboardingComponent {
               fundingGoalUsdc,
               studioName: d.preprod.studioName,
               studioWallet: d.preprod.studioWallet,
-              milestones: PREPRODUCTION_MILESTONES
+              milestones: d.preprodMilestones
             });
             this.toast.show(this.translate.instant('toast.escrowCreated'), 'checkCircle');
           } catch (err) {
@@ -351,7 +386,7 @@ export class OnboardingComponent {
               fundingGoalUsdc,
               studioName: d.catalogueCampaign.studioName,
               studioWallet: d.catalogueCampaign.studioWallet,
-              milestones: CATALOGUE_EXTRA_MILESTONES
+              milestones: d.catalogueMilestones
             });
             this.toast.show(this.translate.instant('toast.escrowCreated'), 'checkCircle');
           } catch (err) {

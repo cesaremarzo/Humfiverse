@@ -1,4 +1,5 @@
 import { AiDisclosure, DisclosureLevel } from '../../core/models';
+import { CATALOGUE_EXTRA_MILESTONES, MilestoneTemplate, PREPRODUCTION_MILESTONES } from './campaign-draft.util';
 
 /** The wizard's own shape and option lists: everything the six steps read
  * from that is data rather than behaviour. Kept beside the component
@@ -25,6 +26,11 @@ export interface WizardData {
    * one. `goal` is USD, same illustrative mapping as everywhere else in
    * this wizard. */
   catalogueCampaign: { enabled: boolean; goal: number; studioName: string; studioWallet: string };
+  /** The artist's own split of each raise into milestones (§2.74). Names and
+   * payees come from the templates; the percentages are theirs to set, and
+   * must total exactly 100% — the escrow contract refuses anything else. */
+  preprodMilestones: MilestoneTemplate[];
+  catalogueMilestones: MilestoneTemplate[];
   disclosure: AiDisclosure;
   contract: { generalAccepted: boolean; vessatoriaAccepted: Record<string, boolean> };
   ack: boolean;
@@ -76,6 +82,8 @@ export function freshWizardData(): WizardData {
     catalogue: { dsp: 'Spotify for Artists', months: '12', history: '' },
     preprod: { studio: 5000, session: 4000, mix: 3000, extra: 1000, studioName: '', studioWallet: '' },
     catalogueCampaign: { enabled: false, goal: 2000, studioName: '', studioWallet: '' },
+    preprodMilestones: PREPRODUCTION_MILESTONES.map((m) => ({ ...m })),
+    catalogueMilestones: CATALOGUE_EXTRA_MILESTONES.map((m) => ({ ...m })),
     disclosure: { vocals: 'human', instrumentation: 'human', composition: 'human', postProduction: 'human', lyrics: 'human' },
     contract: { generalAccepted: false, vessatoriaAccepted: {} },
     ack: false

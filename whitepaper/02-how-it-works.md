@@ -24,7 +24,7 @@ flowchart TD
 
     Escrow --> MS
 
-    subgraph MS["② Escrow pays out one tranche at a time —<br/>only once BOTH the Artist and the Studio confirm it themselves"]
+    subgraph MS["② Escrow pays out one tranche at a time —<br/>only once BOTH the Artist and the Studio confirm it themselves<br/>(default split shown; the artist sets their own)"]
         direction LR
         M1["Funding goal<br/>20% → Artist"]
         M2["Studio booked<br/>40% → Studio"]
@@ -45,7 +45,7 @@ flowchart TD
 Step by step:
 
 1. **The investor pays**, and their tokens land in their wallet immediately — one transaction, whichever product it is.
-2. **For a catalogue**, that's it — the rights holder is paid in full right away, because the track is already earning. **For pre-production**, the money instead sits in the escrow contract and only reaches the artist and studio as the track actually gets made, tranche by tranche. Neither Humfiverse nor the artist can touch it early, and no single side can release a tranche alone — it pays out only once the artist and the studio *both* confirm, independently, that it genuinely happened. If they disagree, the money just stays locked; there's no arbitration, on purpose (see [Governance](06-governance.md)). If the campaign is cancelled instead, contributors are refunded for whatever hasn't been released yet — money already paid out for milestones genuinely delivered stays with whoever earned it.
+2. **For a catalogue**, that's it — the rights holder is paid in full right away, because the track is already earning. **For pre-production**, the money instead sits in the escrow contract and only reaches the artist and studio as the track actually gets made, tranche by tranche. Neither Humfiverse nor the artist can touch it early, and the artist decides, when creating the campaign, how much of the raise each milestone releases; no single side can release a tranche alone — it pays out only once the artist and the studio *both* confirm, independently, that it genuinely happened. If they disagree, the money just stays locked; there's no arbitration, on purpose (see [Governance](06-governance.md)). If the campaign is cancelled instead, contributors are refunded for whatever hasn't been released yet — money already paid out for milestones genuinely delivered stays with whoever earned it.
 3. **The track releases and starts earning** royalties from streaming, licensing, and performance.
 4. **That income has to be confirmed on-chain** before anything can happen with it — a smart contract can't reach into Spotify and pull money out by itself. Someone has to confirm "this royalty payment really arrived." That confirmation step is the hardest, most important part of the whole system — see [Technical Architecture](03-technical-architecture.md) for how Humfiverse handles it honestly rather than glossing over it.
 5. **Confirmed income gets paid out**, pro-rata, to every token holder — closing the loop back to the investor.
