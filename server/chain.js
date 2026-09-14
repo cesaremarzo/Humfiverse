@@ -21,11 +21,11 @@ const { withRetry } = require("./chainRetry");
 const RPC_URL = process.env.CHAIN_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com";
 // §2.43 redeploy — added trackAudioUri + setTrackAudioUri, linking a
 // minted token to its uploaded track's real IPFS audio (see pinata.js).
-const CONTRACT_ADDRESS = process.env.CHAIN_CONTRACT_ADDRESS || "0xd8820e0fb8F6229577BcdfA0BaAF864280B969a4";
+const CONTRACT_ADDRESS = process.env.CHAIN_CONTRACT_ADDRESS || "0x4eB0391C547742815daf5Cf8754E93CC8fF1A963";
 // Block this contract was deployed at — starting event queries here instead
 // of block 0 keeps each eth_getLogs call well under public RPCs' ~10,000-
 // block range limit even as the chain grows. Update after any redeploy.
-const CONTRACT_DEPLOY_BLOCK = Number(process.env.CHAIN_CONTRACT_DEPLOY_BLOCK || 11647954);
+const CONTRACT_DEPLOY_BLOCK = Number(process.env.CHAIN_CONTRACT_DEPLOY_BLOCK || 11702213);
 // Alchemy's free tier caps eth_getLogs at a 10-block range per call (found
 // the hard way — the public-RPC default this project used before §2.39
 // silently returned *incomplete* results instead of erroring, which is

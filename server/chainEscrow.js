@@ -18,9 +18,9 @@ const RPC_URL = process.env.CHAIN_RPC_URL || "https://ethereum-sepolia-rpc.publi
 // contribute() can release tokens from that pool atomically — redeployed
 // again in §2.43 alongside the token (an immutable reference, so any token
 // redeploy forces an escrow redeploy too). See chain.js's CONTRACT_ADDRESS.
-// Redeployed in §2.71 with the platform fee; the token was not.
-const ESCROW_ADDRESS = process.env.CHAIN_ESCROW_ADDRESS || "0x85555cf462149C8C106A966a34521eBa82E7Ea27";
-const ESCROW_DEPLOY_BLOCK = Number(process.env.CHAIN_ESCROW_DEPLOY_BLOCK || 11701896);
+// Redeployed in §2.71 with the platform fee, and again with the token in §2.72.
+const ESCROW_ADDRESS = process.env.CHAIN_ESCROW_ADDRESS || "0xf8f9E203bFe05630B56d52d695bb67c146029fa9";
+const ESCROW_DEPLOY_BLOCK = Number(process.env.CHAIN_ESCROW_DEPLOY_BLOCK || 11702231);
 // §2.71: the escrow this one replaced, read-only. A campaign that finished
 // there (Guns: funded, every tranche released) cannot be recreated on the
 // new contract without reading as unfunded and unreleased, so it is left
