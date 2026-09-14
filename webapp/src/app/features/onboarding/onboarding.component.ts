@@ -284,6 +284,14 @@ export class OnboardingComponent {
 
   async submit(): Promise<void> {
     if (this.submitting()) return; // guard against a double-click firing this twice
+    // §2.77: every campaign belongs to the wallet that creates it — that is
+    // how an artist's campaigns are found, who confirms milestones, and where
+    // the artist's tranches are paid. The button is disabled without one;
+    // this is the same rule for anything that calls submit() directly.
+    if (!this.wallet.state().address) {
+      this.toast.show(this.translate.instant('wizReview.walletRequired'), 'alert');
+      return;
+    }
     this.submitting.set(true);
     const d = this.data();
     const audioFile = this.audioFile(); // captured before the reset below

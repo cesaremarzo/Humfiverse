@@ -72,31 +72,13 @@ async function mintAsset(assetId, slug, supply, priceUsdc, title, artist) {
  * and self-healed into the table — but a scan failure or gap can no
  * longer make an already-known asset vanish. */
 async function listMintedAssetIds() {
-  const known = new Set(await onchainRepo.listTokenAssetIds());
-  // Same change as escrow.service.js listCampaigns: the scan costs 50
-  // sequential RPC round trips (the free-tier eth_getLogs cap is 10
-  // blocks), and it was being paid on every page load of the app to look
-  // for a mint that this backend itself records as it happens. It now
-  // runs only when the table is empty, which is the signature of the
-  // cache loss it exists to recover from.
-  const recent = known.size ? null : await chain.listRecentlyMintedSlugsFromChain();
-  if (recent) {
-    for (const m of recent) {
-      if (known.has(m.slug)) continue;
-      known.add(m.slug);
-      try {
-        await onchainRepo.insertTokenIfAbsent({
-          tokenId: m.tokenId,
-          assetId: m.slug,
-          slug: m.slug,
-          supply: Number(m.supply),
-          txHash: m.txHash,
-          mintedAt: new Date().toISOString()
-        });
-      } catch { /* best-effort cache re-seed */ }
-    }
-  }
-  return { source: recent ? "local-table+recent-scan" : "local-table", assetIds: [...known] };
+  // §2.78: the local table is the whole answer. This used to re-scan the
+  // last ~500 blocks whenever the table was empty and re-insert whatever it
+  // found — a recovery path that recovered nothing older than ~100 minutes
+  // (§2.55), and that brought deliberately deleted campaigns straight back
+  // on the next page load after a cleanup. A single asset the catalogue
+  // still knows is recovered by findTokenWithChainFallback.
+  return { source: "local-table", assetIds: await onchainRepo.listTokenAssetIds() };
 }
 
 /** The full on-chain view of one asset, in the exact shape

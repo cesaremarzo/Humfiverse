@@ -284,22 +284,6 @@
             </tbody>
           </table>
         </div>
-        @if (wallet.state().address) {
-          <div class="risk-item good" style="margin-bottom:16px;">
-            <app-icon name="checkCircle"></app-icon>
-            <div>{{ 'wizReview.escrowReady' | translate }}</div>
-          </div>
-        } @else {
-          <div class="risk-item" style="margin-bottom:16px;">
-            <app-icon name="wallet"></app-icon>
-            <div>
-              {{ 'wizReview.escrowConnectPrompt' | translate }}
-              <button type="button" class="btn btn-ghost btn-sm" style="margin-top:6px;" [disabled]="wallet.state().connecting" (click)="wallet.connect()">
-                <app-icon name="wallet"></app-icon> {{ (wallet.state().connecting ? 'wallet.connecting' : 'wallet.connect') | translate }}
-              </button>
-            </div>
-          </div>
-        }
       }
       @if (data().model === 'catalogue' && data().catalogueCampaign.enabled) {
         <div class="card stat-tile" style="margin-bottom:16px;"><div class="label">{{ 'wizReview.extraCampaignGoalField' | translate }}</div><div class="value">{{ fmt(data().catalogueCampaign.goal) }}</div></div>
@@ -313,22 +297,23 @@
             </tbody>
           </table>
         </div>
-        @if (wallet.state().address) {
-          <div class="risk-item good" style="margin-bottom:16px;">
-            <app-icon name="checkCircle"></app-icon>
-            <div>{{ 'wizReview.escrowReady' | translate }}</div>
+      }
+      <!-- §2.77: a campaign always belongs to a wallet. -->
+      @if (wallet.state().address) {
+        <div class="risk-item good" style="margin-bottom:16px;">
+          <app-icon name="checkCircle"></app-icon>
+          <div>{{ 'wizReview.walletOwner' | translate: { address: wallet.truncateAddr(wallet.state().address) } }}</div>
+        </div>
+      } @else {
+        <div class="risk-item" style="margin-bottom:16px;">
+          <app-icon name="wallet"></app-icon>
+          <div>
+            {{ 'wizReview.walletRequired' | translate }}
+            <button type="button" class="btn btn-primary btn-sm" style="margin-top:6px;" [disabled]="wallet.state().connecting" (click)="wallet.connect()">
+              <app-icon name="wallet"></app-icon> {{ (wallet.state().connecting ? 'wallet.connecting' : 'wallet.connect') | translate }}
+            </button>
           </div>
-        } @else {
-          <div class="risk-item" style="margin-bottom:16px;">
-            <app-icon name="wallet"></app-icon>
-            <div>
-              {{ 'wizReview.escrowConnectPrompt' | translate }}
-              <button type="button" class="btn btn-ghost btn-sm" style="margin-top:6px;" [disabled]="wallet.state().connecting" (click)="wallet.connect()">
-                <app-icon name="wallet"></app-icon> {{ (wallet.state().connecting ? 'wallet.connecting' : 'wallet.connect') | translate }}
-              </button>
-            </div>
-          </div>
-        }
+        </div>
       }
       <div class="prose" style="margin-bottom:16px;">{{ 'wizReview.launchNote' | translate }}</div>
       <label class="check-row">
@@ -342,7 +327,7 @@
       @if (stepIndex() < steps.length - 1) {
         <button class="btn btn-primary" (click)="next()">{{ 'wizard.continueBtn' | translate }} <app-icon name="arrowRight"></app-icon></button>
       } @else {
-        <button class="btn btn-primary" [disabled]="!data().ack || !isContractComplete() || submitting()" (click)="submit()"><app-icon name="sparkles"></app-icon> {{ (submitting() ? 'wizard.launching' : 'wizard.launchCampaign') | translate }}</button>
+        <button class="btn btn-primary" [disabled]="!data().ack || !isContractComplete() || !wallet.state().address || submitting()" (click)="submit()"><app-icon name="sparkles"></app-icon> {{ (submitting() ? 'wizard.launching' : 'wizard.launchCampaign') | translate }}</button>
       }
     </div>
     @if (submitting()) {

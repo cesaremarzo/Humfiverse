@@ -73,26 +73,18 @@ async function createCampaign(assetId, artistAddress, fundingGoalUsdc, studioNam
  * look for something that is almost never there: a campaign is only ever
  * created through this backend, which writes its row in the same call.
  *
- * The case the scan genuinely covers is the local table having lost rows
- * a campaign on chain still has — a wiped database, or an insert that
- * failed after the transaction confirmed. An empty table is exactly that
- * signature, so the recovery path survives; it simply stops charging
- * every reader for it.
+ * §2.78 removed the empty-table scan as well: it recovered only campaigns
+ * from the last ~100 minutes, and after a deliberate cleanup it put the
+ * deleted campaigns back on the next page load.
  *
  * The per-campaign lookup stays chain-native on purpose (§2.18): asking
  * the contract for the id costs one call and cannot return another
  * campaign's data, which a cached id can after a redeploy renumbers
  * them. */
 async function listCampaigns() {
-  const assetIds = new Set(await escrowRepo.listCampaignAssetIds());
-  if (!assetIds.size) {
-    const recent = await escrowChain.listRecentlyCreatedCampaignAssetIdsFromChain();
-    if (recent) {
-      for (const c of recent) assetIds.add(c.assetId);
-    }
-  }
+  const assetIds = await escrowRepo.listCampaignAssetIds();
   const infos = await Promise.all(
-    [...assetIds].map((assetId) => escrowChain.getCampaignInfoByAssetId(assetId).then((info) => info && { escrow: true, assetId, ...info }))
+    assetIds.map((assetId) => escrowChain.getCampaignInfoByAssetId(assetId).then((info) => info && { escrow: true, assetId, ...info }))
   );
   return infos.filter(Boolean);
 }
