@@ -30,7 +30,4 @@
       <app-campaign-card [campaign]="c"></app-campaign-card>
     }
   </div>
-  @if (unattributedCount()) {
-    <p class="prose" style="font-size:12px; margin-top:16px;">{{ 'artistDash.unattributed' | translate: { n: unattributedCount() } }}</p>
-  }
 }

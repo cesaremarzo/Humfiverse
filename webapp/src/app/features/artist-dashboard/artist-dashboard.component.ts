@@ -29,13 +29,6 @@ export class ArtistDashboardComponent {
     return this.store.campaigns().filter((c) => this.store.campaignOwner(c.assetId) === me);
   });
 
-  /** Campaigns that predate ownership being recorded and have no escrow to
-   * fall back on. Nobody can claim them, and saying how many there are
-   * beats quietly dropping them. */
-  unattributedCount = computed(() =>
-    this.store.campaigns().filter((c) => this.store.campaignOwner(c.assetId) === null).length
-  );
-
   /* Was summing the chain-unaware fundingRaised(), which reads the mock
      tokensSold counter that is never persisted — so an artist whose
      campaign had genuinely sold out saw "TOTAL RAISED $0" on their own
