@@ -308,7 +308,13 @@ export class OnboardingComponent {
     // how an artist's campaigns are found, who confirms milestones, and where
     // the artist's tranches are paid. The button is disabled without one;
     // this is the same rule for anything that calls submit() directly.
-    if (!this.wallet.state().address) {
+    // Read once, here, and used for every step below (§2.80). Launching takes
+    // up to a minute of awaited calls; reading the wallet at each step meant
+    // an account switch in the wallet mid-way split one campaign across two
+    // owners — the asset and token on the first, the escrow's artist on the
+    // second, who alone could confirm milestones.
+    const owner = this.wallet.state().address;
+    if (!owner) {
       this.toast.show(this.translate.instant('wizReview.walletRequired'), 'alert');
       return;
     }
@@ -337,7 +343,7 @@ export class OnboardingComponent {
     const isPre = d.model === 'preproduction';
     const id = draftAssetId(d.title);
     const total = draftRaiseTotal(d, this.preprodTotal());
-    const asset = buildAssetDraft(d, id, total, this.wallet.state().address ?? undefined);
+    const asset = buildAssetDraft(d, id, total, owner);
     const campaign = buildCampaignDraft(asset);
 
     this.store.assets.update((assets) => [asset, ...assets]);
@@ -385,7 +391,7 @@ export class OnboardingComponent {
           slug: id,
           supply: asset.tokensTotal,
           fundingUsdc,
-          payoutWallet: this.wallet.state().address ?? undefined,
+          payoutWallet: owner,
           title: asset.title,
           artist: asset.artistName
         });
@@ -449,46 +455,36 @@ export class OnboardingComponent {
       // protection until an artist wallet is set up. Awaited for the same
       // reason as the audio upload above.
       if (isPre && mintedTokenId !== null) {
-        const artistAddress = this.wallet.state().address;
-        if (!artistAddress) {
-          this.toast.show(this.translate.instant('toast.escrowNeedsWallet'), 'alert');
-        } else {
-          try {
-            await this.api.createEscrowCampaign({
-              assetId: id,
-              artistAddress,
-              studioName: d.preprod.studioName,
-              studioWallet: d.preprod.studioWallet,
-              milestones: d.preprodMilestones
-            });
-            this.toast.show(this.translate.instant('toast.escrowCreated'), 'checkCircle');
-          } catch (err) {
-            console.warn('Escrow campaign creation did not happen (campaign was still created normally).', err);
-            this.toast.show(this.translate.instant('toast.escrowCreateFailed'), 'alert');
-          }
+        try {
+          await this.api.createEscrowCampaign({
+            assetId: id,
+            artistAddress: owner,
+            studioName: d.preprod.studioName,
+            studioWallet: d.preprod.studioWallet,
+            milestones: d.preprodMilestones
+          });
+          this.toast.show(this.translate.instant('toast.escrowCreated'), 'checkCircle');
+        } catch (err) {
+          console.warn('Escrow campaign creation did not happen (campaign was still created normally).', err);
+          this.toast.show(this.translate.instant('toast.escrowCreateFailed'), 'alert');
         }
       } else if (!isPre && d.catalogueCampaign.enabled && mintedTokenId !== null) {
         // Catalogue-kind, when the artist ties the release of the funding to
         // milestones (§2.79): the whole raise goes through the escrow, whose
         // goal the contract takes from this token's price times supply. The
         // same dual artist+studio confirmation gates every tranche (§2.27).
-        const artistAddress = this.wallet.state().address;
-        if (!artistAddress) {
-          this.toast.show(this.translate.instant('toast.escrowNeedsWallet'), 'alert');
-        } else {
-          try {
-            await this.api.createEscrowCampaign({
-              assetId: id,
-              artistAddress,
-              studioName: d.catalogueCampaign.studioName,
-              studioWallet: d.catalogueCampaign.studioWallet,
-              milestones: d.catalogueMilestones
-            });
-            this.toast.show(this.translate.instant('toast.escrowCreated'), 'checkCircle');
-          } catch (err) {
-            console.warn('Optional campaign creation did not happen (catalogue was still created normally).', err);
-            this.toast.show(this.translate.instant('toast.escrowCreateFailed'), 'alert');
-          }
+        try {
+          await this.api.createEscrowCampaign({
+            assetId: id,
+            artistAddress: owner,
+            studioName: d.catalogueCampaign.studioName,
+            studioWallet: d.catalogueCampaign.studioWallet,
+            milestones: d.catalogueMilestones
+          });
+          this.toast.show(this.translate.instant('toast.escrowCreated'), 'checkCircle');
+        } catch (err) {
+          console.warn('Optional campaign creation did not happen (catalogue was still created normally).', err);
+          this.toast.show(this.translate.instant('toast.escrowCreateFailed'), 'alert');
         }
       }
     }
