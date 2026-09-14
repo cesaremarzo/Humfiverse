@@ -274,7 +274,7 @@
   "wizMilestones.addMilestone": "+ マイルストーンを追加",
   "wizMilestones.removeMilestone": "削除",
   "wizSource.extraCampaignToggle": "ミュージックビデオやマーケティング施策のための追加資金を募る",
-  "wizSource.extraCampaignHint": "任意です。プレプロダクションキャンペーンと同じ仕組みですが、すでにトークン化されたトラックの仕上げのためのものです — 資金はエスクローに保管され、あなたのスタジオも確認して初めて解放されます。",
+  "wizSource.extraCampaignHint": "任意。すでにトークン化された楽曲に関する制作（ミュージックビデオやマーケティングキャンペーンなど）のために追加資金を集めます。支援金はエスクローにロックされ、各マイルストーンのトランシェは、あなたとスタジオまたはパートナーの両方がそれぞれ自分のウォレットから達成を確認して初めて支払われます。投資家はこの同じ楽曲のトークンを受け取ります。",
   "wizSource.extraCampaignGoalLabel": "資金調達目標額",
   "wizSource.extraCampaignMilestonesNote": "各マイルストーンは、あなたとスタジオまたはパートナーの両方が達成を確認して初めて支払われます。",
   "wizSource.catalogueTitle": "ロイヤリティ検証",

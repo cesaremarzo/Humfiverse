@@ -274,7 +274,7 @@
   "wizMilestones.addMilestone": "+ Add milestone",
   "wizMilestones.removeMilestone": "Remove",
   "wizSource.extraCampaignToggle": "Raise extra funding for a video or marketing push",
-  "wizSource.extraCampaignHint": "Optional. Works exactly like a pre-production campaign, but for finishing touches on a track that's already tokenized — held in escrow, released only once your studio confirms it too.",
+  "wizSource.extraCampaignHint": "Optional. Raise extra funds for work around a track that's already tokenized, such as a video or a marketing campaign. Contributions stay locked in escrow: each milestone's tranche is released only when both you and the studio or partner confirm, each from your own wallet, that it was delivered. Investors receive tokens of this same track.",
   "wizSource.extraCampaignGoalLabel": "Funding goal",
   "wizSource.extraCampaignMilestonesNote": "Each milestone is released only once you and the studio or partner both confirm it was delivered.",
   "wizSource.catalogueTitle": "Royalty verification",
