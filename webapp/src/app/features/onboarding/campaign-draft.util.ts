@@ -1,5 +1,7 @@
 import { Asset, Campaign, Milestone } from '../../core/models';
-import { WizardData, WizardStepKey, isValidWalletAddress } from './onboarding.model';
+import type { WizardData, WizardStepKey } from './onboarding.model';
+import { isValidWalletAddress } from './onboarding.model';
+import { PRIMARY_FEE_BPS } from '../../core/primary-fee.util';
 
 /**
  * Turns a completed wizard draft into the records the rest of the app
@@ -21,7 +23,9 @@ export interface MilestoneTemplate {
 }
 
 /**
- * The four preproduction tranches, and the single source of truth for them.
+ * The four preproduction tranches' names, payees and *default* split. Since
+ * §2.74 the artist sets the percentages in the wizard; these are only where
+ * the draft starts.
  *
  * These used to be written out twice in the component: once as display
  * amounts (`Math.round(total * 0.2)` and so on) and again, forty lines
@@ -46,11 +50,31 @@ export const CATALOGUE_EXTRA_MILESTONES: MilestoneTemplate[] = [
   { name: 'Marketing campaign launched', bps: 5000, payee: 'studio' }
 ];
 
-/** The display half of a template: what each tranche is worth in USD. */
+/** Sum of a split, in basis points. */
+export function milestoneTotalBps(milestones: MilestoneTemplate[]): number {
+  return milestones.reduce((sum, m) => sum + m.bps, 0);
+}
+
+/** What the escrow contract will accept: every milestone at least 0.01%, and
+ * the split totalling exactly 100%. */
+export function milestonesValid(milestones: MilestoneTemplate[]): boolean {
+  return milestones.length > 0 && milestones.every((m) => Number.isInteger(m.bps) && m.bps >= 1) && milestoneTotalBps(milestones) === 10_000;
+}
+
+/** What a tranche releases, in USD to the cent. Sized the way the contract
+ * sizes it (§2.72): against the goal less the 2% contribution fee, since that
+ * is all a sold-out campaign holds. Before §2.74 this used the gross goal,
+ * so the wizard showed $20 for a tranche the contract pays as $19.60. */
+export function trancheUsd(goalUsd: number, bps: number): number {
+  const targetCents = Math.round(goalUsd * 100) * (10_000 - PRIMARY_FEE_BPS) / 10_000;
+  return Math.floor((targetCents * bps) / 10_000) / 100;
+}
+
+/** The display half of a split: what each tranche is worth in USD. */
 export function milestonesForDisplay(templates: MilestoneTemplate[], totalUsd: number): Milestone[] {
   return templates.map((t) => ({
     name: t.name,
-    trancheAmount: Math.round((totalUsd * t.bps) / 10000),
+    trancheAmount: trancheUsd(totalUsd, t.bps),
     status: 'pending' as const
   }));
 }
@@ -105,7 +129,7 @@ export function buildAssetDraft(d: WizardData, id: string, total: number, artist
 
   if (isPre) {
     asset.targetRaiseUse = 'Studio time, session musicians, mix & master, release';
-    asset.milestones = milestonesForDisplay(PREPRODUCTION_MILESTONES, total);
+    asset.milestones = milestonesForDisplay(d.preprodMilestones, total);
   } else {
     // Both of these were collected by the wizard's catalogue step and then
     // dropped on the floor: the draft held them, the review step showed
@@ -147,10 +171,12 @@ export function canAdvanceFrom(step: WizardStepKey, d: WizardData): boolean {
   if (step === 'basics') return !!d.title.trim() && !!d.artistName.trim();
   if (step === 'model') return !!d.model;
   if (step === 'source' && d.model === 'preproduction') {
-    return !!d.preprod.studioName.trim() && isValidWalletAddress(d.preprod.studioWallet);
+    // A zero budget mints a zero supply, which the token contract refuses.
+    const budget = d.preprod.studio + d.preprod.session + d.preprod.mix + d.preprod.extra;
+    return budget > 0 && !!d.preprod.studioName.trim() && isValidWalletAddress(d.preprod.studioWallet) && milestonesValid(d.preprodMilestones);
   }
   if (step === 'source' && d.model === 'catalogue' && d.catalogueCampaign.enabled) {
-    return d.catalogueCampaign.goal > 0 && !!d.catalogueCampaign.studioName.trim() && isValidWalletAddress(d.catalogueCampaign.studioWallet);
+    return d.catalogueCampaign.goal > 0 && !!d.catalogueCampaign.studioName.trim() && isValidWalletAddress(d.catalogueCampaign.studioWallet) && milestonesValid(d.catalogueMilestones);
   }
   return true;
 }

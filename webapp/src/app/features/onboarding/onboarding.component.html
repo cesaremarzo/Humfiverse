@@ -75,7 +75,26 @@
         <div class="budget-row"><label>{{ 'wizSource.mixLabel' | translate }}</label><input type="number" min="0" step="100" class="mono" [value]="data().preprod.mix" (input)="updatePreprodField('mix', $any($event.target).value)"></div>
         <div class="budget-row"><label>{{ 'wizSource.extraLabel' | translate }}</label><input type="number" min="0" step="100" class="mono" [value]="data().preprod.extra" (input)="updatePreprodField('extra', $any($event.target).value)"></div>
         <div class="budget-total"><span>{{ 'wizSource.totalLabel' | translate }}</span><span class="mono">{{ fmt(preprodTotal()) }}</span></div>
+        @if (preprodTotal() <= 0) {
+          <span class="hint" style="color:var(--warning-ink, #b45309);">{{ 'wizSource.budgetRequired' | translate }}</span>
+        }
         <p class="prose" style="margin-top:14px; font-size:12.5px;">{{ 'wizSource.tokenNote' | translate: { n: preprodTokenCount() } }}</p>
+        <div style="margin-top:20px;">
+          <label style="font-weight:600; font-size:13px;">{{ 'wizMilestones.title' | translate }}</label>
+          <p class="hint" style="margin:2px 0 6px;">{{ 'wizMilestones.hint' | translate }}</p>
+          @for (m of milestoneRows('preprod'); track $index) {
+            <div class="budget-row" style="grid-template-columns: minmax(0,1fr) 84px 96px;">
+              <label>{{ m.name }} <span class="hint">· {{ (m.payee === 'studio' ? 'wizMilestones.payeeStudio' : 'wizMilestones.payeeArtist') | translate }}</span></label>
+              <input type="number" min="0.01" max="100" step="0.01" class="mono" [value]="m.percent" [attr.aria-label]="m.name + ' %'" (input)="updateMilestonePercent('preprod', $index, $any($event.target).value)">
+              <span class="mono" style="text-align:right;">{{ fmt(m.trancheUsd) }}</span>
+            </div>
+          }
+          <div class="budget-total"><span>{{ 'wizMilestones.totalLabel' | translate }}</span><span class="mono">{{ milestoneTotalPercent('preprod') }}%</span></div>
+          @if (!milestonesValid('preprod')) {
+            <span class="hint" style="color:var(--warning-ink, #b45309);">{{ 'wizMilestones.invalid' | translate }}</span>
+          }
+          <p class="hint" style="margin-top:6px;">{{ 'wizMilestones.amountNote' | translate }}</p>
+        </div>
       } @else {
         <h3 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:4px;">{{ 'wizSource.catalogueTitle' | translate }}</h3>
         <p class="prose" style="margin-bottom:18px;">{{ 'wizSource.catalogueSubtitle' | translate }}</p>
@@ -121,6 +140,22 @@
             }
           </div>
           <p class="prose" style="margin-top:6px; font-size:12.5px;">{{ 'wizSource.extraCampaignMilestonesNote' | translate }}</p>
+        <div style="margin-top:20px;">
+          <label style="font-weight:600; font-size:13px;">{{ 'wizMilestones.title' | translate }}</label>
+          <p class="hint" style="margin:2px 0 6px;">{{ 'wizMilestones.hint' | translate }}</p>
+          @for (m of milestoneRows('catalogue'); track $index) {
+            <div class="budget-row" style="grid-template-columns: minmax(0,1fr) 84px 96px;">
+              <label>{{ m.name }} <span class="hint">· {{ (m.payee === 'studio' ? 'wizMilestones.payeeStudio' : 'wizMilestones.payeeArtist') | translate }}</span></label>
+              <input type="number" min="0.01" max="100" step="0.01" class="mono" [value]="m.percent" [attr.aria-label]="m.name + ' %'" (input)="updateMilestonePercent('catalogue', $index, $any($event.target).value)">
+              <span class="mono" style="text-align:right;">{{ fmt(m.trancheUsd) }}</span>
+            </div>
+          }
+          <div class="budget-total"><span>{{ 'wizMilestones.totalLabel' | translate }}</span><span class="mono">{{ milestoneTotalPercent('catalogue') }}%</span></div>
+          @if (!milestonesValid('catalogue')) {
+            <span class="hint" style="color:var(--warning-ink, #b45309);">{{ 'wizMilestones.invalid' | translate }}</span>
+          }
+          <p class="hint" style="margin-top:6px;">{{ 'wizMilestones.amountNote' | translate }}</p>
+        </div>
         }
       }
 
@@ -207,6 +242,16 @@
         }
       </div>
       @if (data().model === 'preproduction') {
+        <div class="table-wrap" style="margin-bottom:16px;">
+          <table>
+            <thead><tr><th>{{ 'wizMilestones.title' | translate }}</th><th class="cell-num">%</th><th class="cell-num">USD</th></tr></thead>
+            <tbody>
+              @for (m of milestoneRows('preprod'); track $index) {
+                <tr><td>{{ m.name }}</td><td class="cell-num mono">{{ m.percent }}%</td><td class="cell-num mono">{{ fmt(m.trancheUsd) }}</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
         @if (wallet.state().address) {
           <div class="risk-item good" style="margin-bottom:16px;">
             <app-icon name="checkCircle"></app-icon>
@@ -226,6 +271,16 @@
       }
       @if (data().model === 'catalogue' && data().catalogueCampaign.enabled) {
         <div class="card stat-tile" style="margin-bottom:16px;"><div class="label">{{ 'wizReview.extraCampaignGoalField' | translate }}</div><div class="value">{{ fmt(data().catalogueCampaign.goal) }}</div></div>
+        <div class="table-wrap" style="margin-bottom:16px;">
+          <table>
+            <thead><tr><th>{{ 'wizMilestones.title' | translate }}</th><th class="cell-num">%</th><th class="cell-num">USD</th></tr></thead>
+            <tbody>
+              @for (m of milestoneRows('catalogue'); track $index) {
+                <tr><td>{{ m.name }}</td><td class="cell-num mono">{{ m.percent }}%</td><td class="cell-num mono">{{ fmt(m.trancheUsd) }}</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
         @if (wallet.state().address) {
           <div class="risk-item good" style="margin-bottom:16px;">
             <app-icon name="checkCircle"></app-icon>
