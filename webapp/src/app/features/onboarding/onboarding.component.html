@@ -54,7 +54,8 @@
     @if (stepKey() === 'source') {
       @if (data().model === 'preproduction') {
         <h3 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:4px;">{{ 'wizSource.preprodTitle' | translate }}</h3>
-        <p class="prose" style="margin-bottom:18px;">{{ 'wizSource.preprodSubtitle' | translate }}</p>
+        <p class="prose" style="margin-bottom:6px;">{{ 'wizSource.preprodSubtitle' | translate }}</p>
+        <p class="prose" style="margin-bottom:18px; font-size:12.5px;">{{ 'escrow.platformFeeNote' | translate }}</p>
 
         <div class="field"><label>{{ 'wizSource.studioNameLabel' | translate }}</label>
           <input type="text" [value]="data().preprod.studioName" (input)="updatePreprodTextField('studioName', $any($event.target).value)" [placeholder]="'wizSource.studioNamePlaceholder' | translate">

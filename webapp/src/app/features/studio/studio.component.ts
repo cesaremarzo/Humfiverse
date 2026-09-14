@@ -4,7 +4,7 @@ import { IconComponent } from '../../shared/icon.component';
 import { ApiService } from '../../core/api.service';
 import { WalletService } from '../../core/wallet.service';
 import { ToastService } from '../../core/toast.service';
-import { EscrowCampaignInfo } from '../../core/models';
+import { EscrowCampaignInfo, EscrowMilestone } from '../../core/models';
 import { fmtUSD } from '../../core/format.util';
 import { onchainErrorTranslation } from '../../core/onchain-error.util';
 import { weiToUsd } from '../../core/usd-eth.util';
@@ -74,8 +74,12 @@ export class StudioComponent {
       .finally(() => this.loading.set(false));
   }
 
-  canConfirm(raisedWei: string, amountWei: string): boolean {
-    return BigInt(raisedWei) >= BigInt(amountWei);
+  /** The backend reports the contract's own gate (§2.71), which is
+   * cumulative: everything released so far plus this tranche must be
+   * covered. The per-tranche comparison is only what an older backend
+   * leaves to go on. */
+  canConfirm(raisedWei: string, m: EscrowMilestone): boolean {
+    return m.fundedEnough ?? BigInt(raisedWei) >= BigInt(m.amountWei);
   }
 
   statusKey(m: LoadedCampaignRow['milestones'][number]): string {

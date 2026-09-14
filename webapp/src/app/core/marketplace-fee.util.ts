@@ -1,10 +1,21 @@
-/** Secondary-sale platform fee: 1% of the tokens traded (not the sale
- * proceeds), mirroring HumfiverseMarketplace.sol's PLATFORM_FEE_BPS. This
- * only ever applies to resale — a first purchase only ever happens via the
- * platform pool (fee-free), never through a listing. */
+/** Secondary-sale platform fee: 1% of the payment, mirroring
+ * HumfiverseMarketplace.sol's PLATFORM_FEE_BPS (§2.71). The buyer receives
+ * every token; the seller receives the price less this. Only ever applies to
+ * resale — a first purchase comes from the platform pool, never a listing.
+ *
+ * Until §2.71 the contract took 1% of the *tokens* instead, which rounded to
+ * nothing on any trade under 100 tokens. */
 export const PLATFORM_FEE_BPS = 100;
 const BPS_DENOMINATOR = 10_000;
 
-export function platformFeeTokens(qty: number): number {
-  return Math.floor((qty * PLATFORM_FEE_BPS) / BPS_DENOMINATOR);
+/** Exactly what the contract retains, rounded down to the wei as it does. */
+export function platformFeeWei(paymentWei: bigint): bigint {
+  return (paymentWei * BigInt(PLATFORM_FEE_BPS)) / BigInt(BPS_DENOMINATOR);
+}
+
+/** A preview for a price typed in dollars, rounded down to the cent as the
+ * contract rounds down to the wei. */
+export function platformFeeUsd(totalUsd: number): number {
+  const totalCents = Math.round(totalUsd * 100);
+  return Math.floor((totalCents * PLATFORM_FEE_BPS) / BPS_DENOMINATOR) / 100;
 }

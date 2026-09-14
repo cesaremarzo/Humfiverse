@@ -1,9 +1,58 @@
 <div class="page-head">
   <div>
-    <span class="page-kicker">Internal · read-only</span>
-    <h1>Milestone escrow — confirmation status</h1>
-    <p class="page-sub">Not part of the public site. Humfiverse has no action to take here anymore — release now requires the artist and the studio to each confirm a milestone from their own wallet (confirmMilestoneAsArtist / confirmMilestoneAsStudio). This page only shows who's still waiting on whom. See HumfiverseMilestoneEscrow.sol and planning/technical-architecture.md §2.27.</p>
+    <span class="page-kicker">Internal</span>
+    <h1>Milestone escrow — confirmation status and platform fees</h1>
+    <p class="page-sub">Not part of the public site. Humfiverse cannot release a milestone — that requires the artist and the studio to each confirm it from their own wallet (confirmMilestoneAsArtist / confirmMilestoneAsStudio), and the campaigns below only show who's still waiting on whom. The one action here is sending accrued platform fees to their recipient (§2.71). See HumfiverseMilestoneEscrow.sol and planning/technical-architecture.md §2.27.</p>
   </div>
+</div>
+
+<div class="card" style="margin-bottom:24px; padding:20px;">
+  <div class="cell-primary" style="margin-bottom:4px;">Platform fees</div>
+  <p style="font-size:12px; color:var(--text-secondary); margin:0 0 14px;">Read from each contract's own counters. Fees accrue inside the contract and leave only through <span class="mono">withdrawFees()</span>, which any wallet can send and which pays only the contract's fee recipient.</p>
+
+  @if (feesError()) {
+    <p style="font-size:13px;"><strong>Could not load fees:</strong> {{ feesError() }}</p>
+  } @else if (!fees()) {
+    <p class="prose">Loading fees…</p>
+  } @else {
+    @for (row of feeRows(fees()!); track row.key) {
+      <div style="border-top:1px solid var(--border); padding-top:12px; margin-top:12px;">
+        <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+          <div><strong>{{ row.label }}</strong> <span style="font-size:12px; color:var(--text-secondary);">· {{ row.rule }}</span></div>
+          @if (row.state.status === 'ok') {
+            <a class="mono" style="font-size:12px;" [href]="row.state.explorerUrl" target="_blank" rel="noopener">{{ wallet.truncateAddr(row.state.contractAddress) }}</a>
+          }
+        </div>
+        @if (row.state.status === 'ok') {
+          <div class="stat-row" style="margin:10px 0;">
+            <div class="card stat-tile"><div class="label">To withdraw</div><div class="value">{{ fmt(weiToUsdPrecise(row.state.accruedWei)) }}</div></div>
+            <div class="card stat-tile"><div class="label">Collected, all time</div><div class="value">{{ fmt(weiToUsdPrecise(row.state.totalCollectedWei)) }}</div></div>
+            <div class="card stat-tile"><div class="label">Recipient</div><div class="value mono" style="font-size:14px;">{{ wallet.truncateAddr(row.state.feeRecipient) }}</div></div>
+          </div>
+          <button class="btn btn-secondary btn-sm"
+                  [disabled]="row.state.accruedWei === '0' || !wallet.state().address || withdrawing() !== null"
+                  (click)="withdraw(row.key, row.state.contractAddress)">
+            {{ withdrawing() === row.key ? 'Withdrawing…' : 'Withdraw to recipient' }}
+          </button>
+          @if (!wallet.state().address) {
+            <span style="font-size:12px; color:var(--text-secondary); margin-left:8px;">Connect a wallet to send the withdrawal.</span>
+          }
+        } @else {
+          <p style="font-size:12.5px; color:var(--text-secondary); margin:8px 0 0;">
+            {{ row.state.status === 'unsupported' ? 'Not collecting:' : 'Unavailable:' }} {{ row.state.reason }}
+          </p>
+        }
+        @if (withdrawResult(); as r) {
+          @if (r.which === row.key) {
+            <p style="font-size:12.5px; margin:8px 0 0;">
+              @if (r.error) { <strong>Withdrawal failed:</strong> {{ r.error }} }
+              @else { Withdrawn. <a [href]="r.explorerUrl" target="_blank" rel="noopener">View transaction</a> }
+            </p>
+          }
+        }
+      </div>
+    }
+  }
 </div>
 
 @if (loading()) {
@@ -37,6 +86,9 @@
       <div class="card stat-tile"><div class="label">Goal</div><div class="value">{{ fmt(weiToUsd(c.fundingGoal)) }}</div></div>
       <div class="card stat-tile"><div class="label">Raised</div><div class="value">{{ fmt(weiToUsd(c.raised)) }}</div></div>
       <div class="card stat-tile"><div class="label">Released</div><div class="value">{{ c.releasedBps / 100 }}%</div></div>
+      @if (c.feesCollectedWei) {
+        <div class="card stat-tile"><div class="label">Fees retained</div><div class="value">{{ fmt(weiToUsdPrecise(c.feesCollectedWei)) }}</div></div>
+      }
     </div>
 
     <div class="table-wrap">
@@ -47,11 +99,11 @@
             <tr>
               <td>{{ m.name }}</td>
               <td>{{ m.payee === 'studio' ? (c.studio?.name || 'Studio') : 'Artist' }}</td>
-              <td class="cell-num mono">{{ fmt(weiToUsd(m.amountWei)) }}</td>
+              <td class="cell-num mono">{{ fmt(weiToUsd(m.payoutWei ?? m.amountWei)) }}@if (m.feeWei && m.feeWei !== '0') {<div style="font-size:11px; color:var(--text-secondary);">of {{ fmt(weiToUsd(m.amountWei)) }} · 5% fee {{ fmt(weiToUsd(m.feeWei)) }}</div>}</td>
               <td style="text-align:right;">
                 @if (m.released) {
                   <span class="chip chip-good">Released</span>
-                } @else if (!canConfirm(c.raised, m.amountWei)) {
+                } @else if (!canConfirm(c.raised, m)) {
                   <span class="chip chip-neutral">Not enough raised yet</span>
                 } @else if (m.artistConfirmed && m.studioConfirmed) {
                   <span class="chip chip-neutral">Both confirmed — releasing</span>

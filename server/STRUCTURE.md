@@ -111,6 +111,7 @@ deployment*, not a domain rule.
 | `onchain.service.js` | The cache-versus-contract logic: chain-fallback lookup, next free token id, mint, and the listing that self-heals the cache from a bounded recent-blocks scan (§2.39). |
 | `escrow.service.js` | Campaign creation: studio registration, the already-minted-token precondition (§2.42), and the campaign listing. |
 | `listings.service.js` | Resale: records the ids of on-chain listings and reads each one's live state back off `HumfiverseMarketplace`. No price or seller is ever taken from a request body (§2.62). |
+| `fees.service.js` | Platform fees (§2.71): reads each fee-bearing contract's own counters — accrued, lifetime total, recipient — and reports `unsupported`/`unavailable` with a reason instead of a zero when it cannot. |
 | `indexer.service.js` | Who holds each token. `reconcile` is the authority — real balances from `balanceOf`, verified by `held + pool == totalSupply`; the eth_getLogs walk only follows movement between passes (§2.70). |
 
 ### `routes/` — one module per path prefix
@@ -127,6 +128,7 @@ deployment*, not a domain rule.
 | `escrow.routes.js` | `POST /api/escrow/campaign`, `GET /api/escrow/campaigns`, `GET /api/escrow/campaign/:assetId`, and the deliberate `410` on `/api/escrow/confirm` (§2.27) |
 | `listings.routes.js` | `GET /api/listings`, `POST /api/listings`, `POST /api/listings/index`, and the `:id` cancel/buy pair |
 | `holders.routes.js` | `GET /api/holders`, `GET /api/holders/:assetId`, `GET /api/indexer/status`, and the admin reconcile/reindex/step trio |
+| `fees.routes.js` | `GET /api/fees`. No withdrawal route: `withdrawFees()` is sent from a wallet on the admin page (§2.71) |
 | `admin.routes.js` | The three `X-Admin-Key` reset endpoints, all of which exist because of contract redeploys |
 
 ### Not part of the split

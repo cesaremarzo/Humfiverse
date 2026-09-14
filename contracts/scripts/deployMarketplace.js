@@ -13,6 +13,10 @@ const hre = require("hardhat");
  * setApprovalForAll when they list, which is the point: the platform
  * cannot move anyone's tokens without that wallet's own signature.
  *
+ * Redeploying it (as §2.71 did, to take the 1% fee in ETH rather than in
+ * tokens) orphans the listings on the old address: they stay on chain but
+ * the board stops reading them, and sellers list again on the new one.
+ *
  *   MARKETPLACE_FEE_RECIPIENT=0x...  (optional, defaults to the deployer)
  *   npx hardhat run scripts/deployMarketplace.js --network sepolia
  */

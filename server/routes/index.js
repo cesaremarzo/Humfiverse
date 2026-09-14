@@ -16,6 +16,7 @@ const registerPortfolioRoutes = require("./portfolio.routes");
 const registerEscrowRoutes = require("./escrow.routes");
 const registerListingRoutes = require("./listings.routes");
 const registerHolderRoutes = require("./holders.routes");
+const registerFeeRoutes = require("./fees.routes");
 const registerAdminRoutes = require("./admin.routes");
 
 module.exports = function registerRoutes(router) {
@@ -28,5 +29,6 @@ module.exports = function registerRoutes(router) {
   registerEscrowRoutes(router);
   registerListingRoutes(router);
   registerHolderRoutes(router);
+  registerFeeRoutes(router);
   registerAdminRoutes(router);
 };

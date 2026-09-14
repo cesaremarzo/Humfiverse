@@ -49,6 +49,8 @@ const MARKETPLACE_ABI = [
   'event Listed(uint256 indexed listingId, address indexed seller, address indexed token, uint256 tokenId, uint256 amount, uint256 pricePerToken)'
 ];
 const CONTRIBUTE_ABI = ['function contribute(uint256 campaignId) external payable'];
+/* Same function on the escrow and the marketplace (§2.71). */
+const WITHDRAW_FEES_ABI = ['function withdrawFees() external'];
 const CONFIRM_MILESTONE_ABI = [
   'function confirmMilestoneAsArtist(uint256 campaignId, uint256 milestoneIndex) external',
   'function confirmMilestoneAsStudio(uint256 campaignId, uint256 milestoneIndex) external'
@@ -218,6 +220,16 @@ export class WalletService {
     const contract = await this.signerFor(params.marketplace, MARKETPLACE_ABI);
     const value = BigInt(params.pricePerTokenWei) * BigInt(params.qty);
     const tx = await contract['buyListing'](params.listingId, params.qty, { value });
+    const receipt = await tx.wait();
+    if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
+    return { txHash: tx.hash, explorerUrl: `${EXPLORER_BASE}/tx/${tx.hash}` };
+  }
+
+  /** Sends a contract's accrued platform fees to its feeRecipient. Any
+   * wallet may send this — it only chooses when, never where. */
+  async withdrawFeesOnchain(contractAddress: string): Promise<{ txHash: string; explorerUrl: string }> {
+    const contract = await this.signerFor(contractAddress, WITHDRAW_FEES_ABI);
+    const tx = await contract['withdrawFees']();
     const receipt = await tx.wait();
     if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
     return { txHash: tx.hash, explorerUrl: `${EXPLORER_BASE}/tx/${tx.hash}` };

@@ -10,12 +10,15 @@ async function main() {
   }
 
   const [deployer] = await hre.ethers.getSigners();
+  // Where withdrawFees() sends the 5% retained from each released tranche.
+  const feeRecipient = process.env.ESCROW_FEE_RECIPIENT || deployer.address;
   console.log("Deploying HumfiverseMilestoneEscrow with account:", deployer.address);
   console.log("Account balance:", (await hre.ethers.provider.getBalance(deployer.address)).toString());
   console.log("Linked HumfiverseCatalogueToken:", catalogueTokenAddress);
+  console.log("Fee recipient:", feeRecipient, feeRecipient === deployer.address ? "(deployer)" : "");
 
   const Factory = await hre.ethers.getContractFactory("HumfiverseMilestoneEscrow");
-  const escrow = await Factory.deploy(catalogueTokenAddress);
+  const escrow = await Factory.deploy(catalogueTokenAddress, feeRecipient);
   await escrow.waitForDeployment();
 
   const address = await escrow.getAddress();

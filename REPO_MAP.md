@@ -25,7 +25,8 @@ The only genuinely on-chain part of the project. Deployed to **Ethereum Sepolia*
 - `contracts/contracts/` — the two live contracts:
   - `HumfiverseCatalogueToken.sol` (ERC-1155) — mints/holds/releases royalty tokens, one token id per catalogue or preproduction asset.
   - `HumfiverseMilestoneEscrow.sol` — preproduction funding escrow with dual artist+studio milestone confirmation. Holds an **immutable** reference to the token contract (see `technical-architecture.md` §2.42) — redeploying one forces redeploying both.
-  - `HumfiverseMarketplace.sol` — written and tested, **not deployed** (secondary-market resale is still a frontend simulation).
+  - `HumfiverseMarketplace.sol` — peer-to-peer resale, deployed (§2.59); retains 1% of each payment (§2.71).
+  - Both the escrow and the marketplace accrue platform fees internally and pay them out only through `withdrawFees()` (§2.71). A superseded escrow can stay readable via `CHAIN_ESCROW_LEGACY_ADDRESS` for campaigns that finished there.
 - `contracts/test/` — Hardhat test suite (`npm test`). Run after any contract change.
 - `contracts/scripts/` — `deploy.js`/`deployEscrow.js` (canonical deploy scripts, keep these in sync with the linking pattern), `catalogues.js`/`mintCatalogues.js` (old fictional demo catalogues, not the real assets). One-off migration scripts used during a redeploy are written, run, and deleted in the same session — they don't live here permanently.
 - `contracts/.env` — `DEPLOYER_PRIVATE_KEY`, `SEPOLIA_RPC_URL`, `ETHERSCAN_API_KEY`. Gitignored.
