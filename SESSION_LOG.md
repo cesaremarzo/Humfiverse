@@ -1123,3 +1123,177 @@ mid-run is harmless.
   ever meant to reach artists directly.
 - The Alchemy API key printed into a session on 12 Sep was never committed,
   but rotating it is still the user's call.
+
+---
+
+## 2026-09-14 — platform fees, USDC, artist-set supply and funding, first real fee test
+
+Long session, twelve changelog entries (§2.71–§2.82), four contract
+deploys, and the fee system proven end to end on Sepolia with real USDC.
+Everything below is merged and live.
+
+### What the product does now
+
+- **Payments are USDC** (Circle's Sepolia USDC,
+  `0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238`, 6 decimals) — primary
+  buys, escrow contributions, milestone payouts, refunds, resale, fees.
+  Gas is still Sepolia ETH. Every API amount is USDC base units and every
+  field formerly `…Wei` is `…Usdc` (§2.73).
+- **Fees** (§2.71, §2.72), all accrued inside their contract and paid out
+  only by `withdrawFees()` (callable by anyone, pays only the fee
+  recipient `0xd156BDD971c9034A2C78496889E258c4601b7524`):
+  - 2% of every primary purchase or contribution, **deducted** (not added),
+    not refunded on cancellation;
+  - 3% of every released escrow tranche (tranches sized on goal − 2%);
+  - 1% of every resale payment.
+  A completed campaign pays the platform 4.94% of its goal.
+- **The artist sets supply and funding; the contract sets the price**
+  (§2.79): `price = funding / supply`, rounded down to the USDC unit, never
+  changeable. The escrow's goal is read from the token (price × supply).
+  Contributions must buy whole tokens. Direct-sale proceeds go to the
+  artist's wallet (`payoutOf`), not the platform.
+- **Escrow-only tokens** (§2.81): a token minted for a milestone campaign
+  has `directSaleOf = false`; `buy()` refuses it and the escrow refuses a
+  direct-sale token or one with tokens already released.
+- **Wizard**: wallet required to launch (§2.77) and read once at Launch
+  (§2.80); editable milestone percentages (§2.74); for catalogues, free-text
+  milestone names, payee per milestone, add/remove, "marketing campaign in
+  stages" (§2.75); a single raise, optionally released by milestones; live
+  per-milestone fee breakdown to six decimals.
+- **Contract fixes found on the way**: cumulative release gate — a
+  half-funded campaign could spend other campaigns' funds (§2.71); refunds
+  measured against what a campaign actually holds (§2.72).
+- **Ops fixes**: translations revalidate every load (§2.76); listings no
+  longer re-seed from a chain scan when empty (§2.78); holder index clears
+  rows from a previous token contract (§2.81); milestone tables stack on
+  narrow screens (§2.82).
+
+### Live addresses (Sepolia)
+
+| Contract | Address | Block |
+|---|---|---|
+| HumfiverseCatalogueToken | `0xb45601440308c92D9BC8fd4a95DEE6a4A86aFB41` | 11703772 |
+| HumfiverseMilestoneEscrow | `0x16C8bfE861Ef1B102CD6D6a4FD4e881FdD38721c` | 11703774 |
+| HumfiverseMarketplace | `0x755500dEB66169fC605Be8Aa25ACBdAd791F1585` | — |
+
+Operator/owner `0x142F945e13f59FdE3583bea8F78528a44317BfC6`. All verified
+on Etherscan. Render env: `CHAIN_CONTRACT_ADDRESS`,
+`CHAIN_CONTRACT_DEPLOY_BLOCK`, `CHAIN_ESCROW_ADDRESS`,
+`CHAIN_ESCROW_DEPLOY_BLOCK`, `CHAIN_MARKETPLACE_ADDRESS`;
+`CHAIN_ESCROW_LEGACY_ADDRESS` was deleted. Frontend bundle
+`main-EWR52QZL.js`.
+
+All pre-session campaigns (Guns, Black Sail, …) were **deleted** on the
+user's request (§2.78) and their escrow campaigns cancelled; their tokens
+remain on retired contracts, unseen by the app.
+
+### The fee test, on chain
+
+`honest-man-595`: catalogue, $50 / 5 tokens @ $10, milestones 10/90, artist
+= studio = `0xA646…A38F`. 1 token then 4 tokens bought through the escrow;
+both milestones confirmed and released; fees withdrawn twice.
+Studio received 4.753 + 42.777 = **47.53 USDC**; fees **2.47 USDC**
+(0.20 + 0.80 + 0.147 + 1.323) arrived at the fee recipient; escrow ended
+at 0. Every figure matched the prediction to the base unit.
+
+### How deploys go now (worked four times today)
+
+Write a one-off `contracts/scripts/*.js` that verifies state and refuses to
+deploy on anything it cannot move cleanly; dry-run it on a local Hardhat
+node with a config overriding `chainId: 11155111` (server modules pin
+Sepolia's id) and a signing local backend; hand the user the `!` command
+(the permission classifier blocks deploys). After: verify on chain and on
+Etherscan, cancel/remove campaigns on the retiring contracts via
+`cancelCampaign` and the admin endpoints, reset `escrow_studios`
+(`DELETE /api/admin/escrow-studios-reset`), wire addresses into
+`chain.js`/`chainEscrow.js`/`indexer.service.js`/`.env.example`/local
+`.env`, delete the script, user sets Render, merge, sweep production.
+A ~40-transaction script takes ~10 minutes and gets backgrounded.
+
+### Debugging lesson, again
+
+Twice today the user saw impossible UI (empty amount/status cells, then a
+campaign created with the pre-§2.79 1,500 × $20 defaults and no wallet).
+Both were **a browser tab running an old bundle**. Ask for the loaded
+`main-*.js` first; a hard reload fixed it.
+
+### Open items for next session
+
+- **Decide: artist and studio on the same wallet.** Recommended: forbid it
+  (wizard + `createCampaign` require), since one wallet doing both makes the
+  dual confirmation meaningless. The user asked whether one confirmation
+  should suffice; not decided.
+- **`guns-394`** in production: asset record only (no token, no escrow, no
+  wallet), created by a stale tab. Delete it, and make `POST /api/assets`
+  require `artistWallet` — wallet enforcement is still frontend-only.
+- **`POST /api/onchain/mint` and `POST /api/escrow/campaign` are
+  unauthenticated**: anyone can make the operator key mint a token with a
+  payout wallet of their choosing, or register a campaign. Pre-existing,
+  more consequential now that tokens pay artists directly.
+- `honest-man-595` (completed test) is still live — keep as a demo or delete.
+- Resale (`buyListing`, now USDC with approve) has never been clicked
+  through in MetaMask; neither has a cancelled campaign's `refund()`.
+- Holder discovery in production reports `indexed-only` (the Alchemy
+  transfer discovery call fails); counts rely on the event walk.
+- Local-only: ethers caches the nonce 250 ms, so back-to-back backend
+  transactions on an automining Hardhat node can collide; retry.
+- Carried forward: GitBook Git Sync still reads `dev/cesare`; no backend or
+  frontend test suite; Alchemy key rotation is the user's call.
+
+---
+
+## 2026-09-14 (late) — Sign in with Google/Apple/email, no MetaMask needed (§2.83)
+
+On `dev/cesare`, **not merged** (a feature: needs the go-ahead).
+
+- **thirdweb in-app wallet** behind every "Connect wallet" button: a sign-in
+  dialog with Google, Apple, email code, a disabled "EU Digital Identity
+  Wallet — soon", and MetaMask as the alternative. `WalletService` picks the
+  EIP-1193 provider by `state().kind`; no page changed how it transacts.
+- **EIP-7702 + sponsored gas**: the user's address stays an EOA and is
+  `msg.sender` at our contracts; thirdweb's executor pays.
+- **Off until configured**: `thirdwebClientId` is empty in both
+  environments, and empty means the app behaves exactly as before.
+- **EUDIW groundwork**: `GET /api/auth/jwks.json` + an RS256 signer
+  (`AUTH_JWT_PRIVATE_KEY`) that nothing calls yet, deliberately.
+
+### To switch it on
+
+1. thirdweb dashboard: create a project, allow `cesaremarzo.github.io`,
+   `localhost:4200` and the Netlify preview domain; enable Google, Apple and
+   email under in-app wallets; enable gas sponsorship on Sepolia.
+2. Put the client id in `webapp/src/environments/environment*.ts`, rebuild
+   `docs/`.
+3. Click through: Google login → portfolio shows the address → reload keeps
+   the session → a buy and a contribute go through with 0 ETH in the wallet.
+
+**Done the same evening** — client id `cc90cc70…` set, domains allowed
+(github.io, `dev-cesare--humfiverse.netlify.app`, localhost:4200/8080).
+Google login → `0x2f62…7f1a`; 30 tokens of escrow campaign 2 bought with
+0 ETH, gas paid by thirdweb's executor (§2.84). Also added on the way: ETH/
+USDC balance tiles and a copyable address in the portfolio; lockfile
+regenerated with npm 10 (Netlify's `npm ci` had failed on npm 11's).
+
+**Bug found and fixed on `main`**: escrow contributions rounded to the cent
+reverted for any sub-cent token price (§2.84).
+
+**Leftover test data**: "Douvikas is OP" (`douvikas-is-op-820`, token 4,
+escrow campaign 2) was created from localhost, so it exists on the live
+Sepolia contracts but only in the local database — production never lists
+it. 30 tokens sold, 0.979991 USDC credited. **Cancelled** on the user's
+request: `cancelCampaign(2)` from the operator,
+[`0x1a0cad99…`](https://sepolia.etherscan.io/tx/0x1a0cad991d52d87fec431ff445f4283cf50675f5ce66be5eb5e8dd97b2a90501),
+status now CANCELLED. The 0.979991 USDC is refundable only by the
+contributor (`refund(2)` from `0x2f62…7f1a`); the app has no refund button,
+and it is test USDC, so it stays there.
+
+**Sign-in shipped**: PR #55 merged to `main` on the user's go-ahead
+(Apple and email untested by choice; they share Google's mechanism).
+
+### Open items
+
+- EUDIW verifier (OpenID4VP, PID trust list, relying-party registration,
+  `sub` derivation) — see §2.83 for why the signer has no route until then.
+- Test USDC: a new wallet has none. Circle's Sepolia faucet for now; an
+  on-ramp later.
+- Mainnet: sponsored gas becomes a real cost on thirdweb's billing.

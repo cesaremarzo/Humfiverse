@@ -1,0 +1,1 @@
+var a=`https://arweave.net/{fileId}`;function l(e){if(e.uri.startsWith(`ar://`)){let r=e.uri.replace(`ar://`,``);if(e.gatewayUrl){let t=e.gatewayUrl.endsWith(`/`)?``:`/`;return`${e.gatewayUrl}${t}${r}`}return a.replace(`{fileId}`,r)}if(e.uri.startsWith(`http`))return e.uri;throw new Error(`Invalid URI scheme, expected "ar://" or "http(s)://"`)}export{l as resolveArweaveScheme};

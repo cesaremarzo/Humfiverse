@@ -1,0 +1,1 @@
+function t(r){let e;return()=>(e||(e=r()),e)}export{t};

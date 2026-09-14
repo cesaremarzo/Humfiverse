@@ -402,7 +402,7 @@
 
         <button class="btn btn-primary btn-block btn-lg" [disabled]="!ack() || onchainBuyPending() || !!buyBlockedReason(a)" (click)="buy(a)">
           @if (onchainBuyPending()) {
-            {{ 'buy.onchainPending' | translate }}
+            {{ (wallet.state().kind === 'embedded' ? 'buy.onchainPendingEmbedded' : 'buy.onchainPending') | translate }}
           } @else if (buyBlockedReason(a) === 'loading') {
             {{ 'buy.stillLoading' | translate }}
           } @else if (buyBlockedReason(a) === 'notOpen') {

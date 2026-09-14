@@ -1,0 +1,1 @@
+import{m as x}from"./chunk-CoEj01tB.js";var r=x({blockExplorers:[{name:`Etherscan`,url:`https://etherscan.io`}],id:1,name:`Ethereum`,nativeCurrency:{decimals:18,name:`Ether`,symbol:`ETH`}});var n=r;export{r as n,n as t};

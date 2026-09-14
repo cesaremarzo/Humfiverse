@@ -18,9 +18,11 @@ const registerListingRoutes = require("./listings.routes");
 const registerHolderRoutes = require("./holders.routes");
 const registerFeeRoutes = require("./fees.routes");
 const registerAdminRoutes = require("./admin.routes");
+const registerAuthRoutes = require("./auth.routes");
 
 module.exports = function registerRoutes(router) {
   registerSystemRoutes(router);
+  registerAuthRoutes(router);
   registerCatalogueRoutes(router);
   registerComplianceRoutes(router);
   registerOnchainRoutes(router);

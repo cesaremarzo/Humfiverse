@@ -1,14 +1,32 @@
 import { Injectable, signal } from '@angular/core';
 import { ethers } from 'ethers';
 import { WalletState } from './models';
+import {
+  EmbeddedSession,
+  Eip1193Provider,
+  SocialStrategy,
+  connectEmail,
+  connectJwt,
+  connectSocial,
+  embeddedWalletEnabled,
+  hasStoredEmbeddedSession,
+  openSocialPopup,
+  restoreSession,
+  sendEmailCode
+} from './embedded-wallet';
 
 declare global {
   interface Window {
-    ethereum?: {
-      request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
-      on?: (event: string, handler: (...args: unknown[]) => void) => void;
-    };
+    ethereum?: Eip1193Provider;
   }
+}
+
+export interface ConnectResult {
+  ok: boolean;
+  rejected?: boolean;
+  /** The user closed the sign-in dialog without choosing anything. */
+  cancelled?: boolean;
+  popupBlocked?: boolean;
 }
 
 const CHAIN_NAMES: Record<string, string> = {
@@ -64,16 +82,26 @@ const CONFIRM_MILESTONE_ABI = [
   'function confirmMilestoneAsStudio(uint256 campaignId, uint256 milestoneIndex) external'
 ];
 
-/** MetaMask / injected-provider connection. Identity checks (eth_accounts,
- * eth_requestAccounts, eth_chainId) never prompt for a signature. `buyOnchain`
- * is the one path in this app that does request a real signature and submits
- * a real transaction — a fixed-price primary purchase against
- * HumfiverseCatalogueToken.buy() (see contracts/), never an automatically
- * priced/dynamic trade (see planning/legal-regulatory-notes.md §7.8).
- * Everything else (redeeming, resale listings) stays simulated. */
+/** The user's wallet, from either of two sources (§2.83): an in-app wallet
+ * created from a Google/Apple/email login, or MetaMask / any injected
+ * provider. Both end up as an EIP-1193 provider, and every transaction below
+ * goes through `eip1193()`, so no caller needs to know which one it is.
+ * Identity checks (eth_accounts, eth_requestAccounts, eth_chainId) never
+ * prompt for a signature. Every write is a real transaction signed by the
+ * user's own key — never by Humfiverse (see
+ * planning/legal-regulatory-notes.md §7.8 on why purchases stay fixed-price). */
 @Injectable({ providedIn: 'root' })
 export class WalletService {
-  readonly state = signal<WalletState>({ address: null, chainId: null, connecting: false });
+  readonly state = signal<WalletState>({ address: null, chainId: null, connecting: false, kind: null });
+
+  /** Drives the sign-in dialog rendered once in the app shell. */
+  readonly pickerOpen = signal(false);
+  readonly embeddedEnabled = embeddedWalletEnabled();
+  readonly hasInjected = typeof window !== 'undefined' && !!window.ethereum;
+
+  private embedded: EmbeddedSession | null = null;
+  private readProvider: ethers.JsonRpcProvider | null = null;
+  private pickerResolve: ((r: ConnectResult) => void) | null = null;
 
   chainName(hex: string | null): string {
     if (!hex) return 'Unknown network';
@@ -84,13 +112,37 @@ export class WalletService {
     return addr ? addr.slice(0, 6) + '…' + addr.slice(-4) : '';
   }
 
-  async connect(): Promise<{ ok: boolean; rejected?: boolean }> {
+  private eip1193(): Eip1193Provider | null {
+    if (this.state().kind === 'embedded') return this.embedded?.provider ?? null;
+    return window.ethereum ?? null;
+  }
+
+  /** Opens the sign-in dialog and resolves once the user has connected or
+   * closed it. Every "Connect wallet" button in the app calls this. Without
+   * a thirdweb client id there is nothing to choose between, so it goes
+   * straight to the injected wallet as it always did. */
+  connect(): Promise<ConnectResult> {
+    if (!this.embeddedEnabled) return this.connectInjected();
+    this.pickerResolve?.({ ok: false, cancelled: true });
+    this.pickerOpen.set(true);
+    return new Promise((resolve) => (this.pickerResolve = resolve));
+  }
+
+  closePicker(result: ConnectResult = { ok: false, cancelled: true }): void {
+    this.pickerOpen.set(false);
+    const resolve = this.pickerResolve;
+    this.pickerResolve = null;
+    resolve?.(result);
+  }
+
+  async connectInjected(): Promise<ConnectResult> {
     if (!window.ethereum) return { ok: false };
     this.state.update((s) => ({ ...s, connecting: true }));
     try {
       const accounts = (await window.ethereum.request({ method: 'eth_requestAccounts' })) as string[];
       const chainId = (await window.ethereum.request({ method: 'eth_chainId' })) as string;
-      this.state.set({ address: accounts[0] || null, chainId, connecting: false });
+      await this.dropEmbeddedSession();
+      this.state.set({ address: accounts[0] || null, chainId, connecting: false, kind: accounts[0] ? 'injected' : null });
       return { ok: !!accounts[0] };
     } catch (err: unknown) {
       this.state.update((s) => ({ ...s, connecting: false }));
@@ -99,50 +151,133 @@ export class WalletService {
     }
   }
 
+  /** Google/Apple. Call straight from the click handler, with no await
+   * before it — see openSocialPopup. */
+  connectWithSocial(strategy: SocialStrategy): Promise<ConnectResult> {
+    const popup = openSocialPopup(strategy);
+    if (!popup) return Promise.resolve({ ok: false, popupBlocked: true });
+    return this.connectEmbedded(() => connectSocial(strategy, popup));
+  }
+
+  sendEmailCode(email: string): Promise<void> {
+    return sendEmailCode(email);
+  }
+
+  connectWithEmail(email: string, code: string): Promise<ConnectResult> {
+    return this.connectEmbedded(() => connectEmail(email, code));
+  }
+
+  /** EU Digital Identity Wallet entry point, for when the backend verifier
+   * exists: it will hand back a JWT signed with our own key. */
+  connectWithIdentityJwt(jwt: string): Promise<ConnectResult> {
+    return this.connectEmbedded(() => connectJwt(jwt));
+  }
+
+  private async connectEmbedded(open: () => Promise<EmbeddedSession>): Promise<ConnectResult> {
+    this.state.update((s) => ({ ...s, connecting: true }));
+    try {
+      this.adoptEmbedded(await open());
+      return { ok: true };
+    } catch (err) {
+      console.warn('In-app wallet sign-in failed.', err);
+      this.state.update((s) => ({ ...s, connecting: false }));
+      return { ok: false };
+    }
+  }
+
+  private adoptEmbedded(session: EmbeddedSession): void {
+    this.embedded = session;
+    session.onDisconnect(() => {
+      if (this.embedded !== session) return;
+      this.embedded = null;
+      this.state.set({ address: null, chainId: null, connecting: false, kind: null });
+    });
+    this.state.set({ address: session.address, chainId: SEPOLIA_CHAIN_ID_HEX, connecting: false, kind: 'embedded' });
+  }
+
+  private async dropEmbeddedSession(): Promise<void> {
+    const session = this.embedded;
+    this.embedded = null;
+    await session?.disconnect().catch(() => undefined);
+  }
+
+  /** For an in-app wallet this signs the user out; they sign back in with
+   * the same login and get the same address. */
   disconnect(): void {
-    this.state.update((s) => ({ ...s, address: null, chainId: null }));
+    void this.dropEmbeddedSession();
+    this.state.update((s) => ({ ...s, address: null, chainId: null, kind: null }));
   }
 
   async silentSync(): Promise<void> {
+    if (hasStoredEmbeddedSession()) {
+      const session = await restoreSession();
+      if (session) {
+        this.adoptEmbedded(session);
+        return;
+      }
+    }
     if (!window.ethereum) return;
     try {
       const accounts = (await window.ethereum.request({ method: 'eth_accounts' })) as string[];
-      if (accounts && accounts[0]) {
+      if (accounts && accounts[0] && this.state().kind !== 'embedded') {
         const chainId = (await window.ethereum.request({ method: 'eth_chainId' })) as string;
-        this.state.update((s) => ({ ...s, address: accounts[0], chainId }));
+        this.state.update((s) => ({ ...s, address: accounts[0], chainId, kind: 'injected' }));
       }
     } catch {
       /* ignore — silent check */
     }
   }
 
+  /** MetaMask's own account/network changes. Ignored while an in-app wallet
+   * is the active one, or switching accounts in an idle extension would
+   * silently replace the user's signed-in wallet. */
   wireProviderEvents(): void {
     if (!window.ethereum?.on) return;
     window.ethereum.on('accountsChanged', (...args: unknown[]) => {
+      if (this.state().kind !== 'injected') return;
       const accounts = args[0] as string[];
-      this.state.update((s) => ({ ...s, address: (accounts && accounts[0]) || null }));
+      const address = (accounts && accounts[0]) || null;
+      this.state.update((s) => ({ ...s, address, kind: address ? 'injected' : null }));
     });
     window.ethereum.on('chainChanged', (...args: unknown[]) => {
+      if (this.state().kind !== 'injected') return;
       const chainId = args[0] as string;
       this.state.update((s) => ({ ...s, chainId }));
     });
+  }
+
+  /** ETH and USDC held by `address` on Sepolia, read straight from the
+   * chain rather than through the connected wallet, so it works whichever
+   * network MetaMask happens to be on. The USDC address comes from
+   * `paymentTokenSource`'s own paymentToken() (§2.73), never from config;
+   * `usdc` is null when there is no contract to ask. */
+  async readBalances(address: string, paymentTokenSource: string | null): Promise<{ eth: bigint; usdc: bigint | null }> {
+    const provider = (this.readProvider ??= new ethers.JsonRpcProvider(SEPOLIA_ADD_PARAMS.rpcUrls[0], 11155111, { staticNetwork: true }));
+    const usdc = async () => {
+      if (!paymentTokenSource) return null;
+      const token = await new ethers.Contract(paymentTokenSource, PAYMENT_TOKEN_ABI, provider)['paymentToken']();
+      return (await new ethers.Contract(token, ERC20_ABI, provider)['balanceOf'](address)) as bigint;
+    };
+    const [eth, usdcBalance] = await Promise.all([provider.getBalance(address), usdc()]);
+    return { eth, usdc: usdcBalance };
   }
 
   /** Switches the wallet to Sepolia, adding it first if the wallet doesn't
    * know about it yet (error 4902). Returns false if the user rejects
    * either prompt. */
   async ensureSepolia(): Promise<boolean> {
-    if (!window.ethereum) return false;
+    const provider = this.eip1193();
+    if (!provider) return false;
     if (this.state().chainId?.toLowerCase() === SEPOLIA_CHAIN_ID_HEX) return true;
     try {
-      await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: SEPOLIA_CHAIN_ID_HEX }] });
+      await provider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: SEPOLIA_CHAIN_ID_HEX }] });
       this.state.update((s) => ({ ...s, chainId: SEPOLIA_CHAIN_ID_HEX }));
       return true;
     } catch (err: unknown) {
       const code = (err as { code?: number })?.code;
       if (code !== 4902) return false;
       try {
-        await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [SEPOLIA_ADD_PARAMS] });
+        await provider.request({ method: 'wallet_addEthereumChain', params: [SEPOLIA_ADD_PARAMS] });
         this.state.update((s) => ({ ...s, chainId: SEPOLIA_CHAIN_ID_HEX }));
         return true;
       } catch {
@@ -163,9 +298,10 @@ export class WalletService {
      server-side listing design got wrong (§2.58). */
 
   private async signerFor(address: string, abi: string[]): Promise<ethers.Contract> {
-    if (!window.ethereum) throw new Error('no-wallet');
+    const eip1193 = this.eip1193();
+    if (!eip1193) throw new Error('no-wallet');
     if (!(await this.ensureSepolia())) throw new Error('wrong-network');
-    const provider = new ethers.BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
+    const provider = new ethers.BrowserProvider(eip1193 as unknown as ethers.Eip1193Provider);
     return new ethers.Contract(address, abi, await provider.getSigner());
   }
 
@@ -263,7 +399,7 @@ export class WalletService {
   }
 
   async buyOnchain(params: { contractAddress: string; tokenId: number; amount: number; priceUsdc: string }): Promise<{ txHash: string; explorerUrl: string }> {
-    if (!window.ethereum) throw new Error('no-wallet');
+    if (!this.eip1193()) throw new Error('no-wallet');
     const switched = await this.ensureSepolia();
     if (!switched) throw new Error('wrong-network');
 
@@ -284,7 +420,7 @@ export class WalletService {
    * artist, until Humfiverse confirms each milestone (see
    * planning/technical-architecture.md §2.15). */
   async contributeOnchain(params: { contractAddress: string; campaignId: number; amountUsdc: string }): Promise<{ txHash: string; explorerUrl: string }> {
-    if (!window.ethereum) throw new Error('no-wallet');
+    if (!this.eip1193()) throw new Error('no-wallet');
     const switched = await this.ensureSepolia();
     if (!switched) throw new Error('wrong-network');
 
@@ -303,11 +439,11 @@ export class WalletService {
    * both this and confirmMilestoneAsStudio (below) have been called for the
    * same milestone; Humfiverse has no equivalent function of its own. */
   async confirmMilestoneAsArtist(params: { contractAddress: string; campaignId: number; milestoneIndex: number }): Promise<{ txHash: string; explorerUrl: string }> {
-    if (!window.ethereum) throw new Error('no-wallet');
+    if (!this.eip1193()) throw new Error('no-wallet');
     const switched = await this.ensureSepolia();
     if (!switched) throw new Error('wrong-network');
 
-    const provider = new ethers.BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
+    const provider = new ethers.BrowserProvider(this.eip1193() as unknown as ethers.Eip1193Provider);
     const signer = await provider.getSigner();
     const contract = new ethers.Contract(params.contractAddress, CONFIRM_MILESTONE_ABI, signer);
 
@@ -322,11 +458,11 @@ export class WalletService {
    * registered wallet — see the contract-level note in
    * HumfiverseMilestoneEscrow.sol on why this exists (§2.27). */
   async confirmMilestoneAsStudio(params: { contractAddress: string; campaignId: number; milestoneIndex: number }): Promise<{ txHash: string; explorerUrl: string }> {
-    if (!window.ethereum) throw new Error('no-wallet');
+    if (!this.eip1193()) throw new Error('no-wallet');
     const switched = await this.ensureSepolia();
     if (!switched) throw new Error('wrong-network');
 
-    const provider = new ethers.BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
+    const provider = new ethers.BrowserProvider(this.eip1193() as unknown as ethers.Eip1193Provider);
     const signer = await provider.getSigner();
     const contract = new ethers.Contract(params.contractAddress, CONFIRM_MILESTONE_ABI, signer);
 

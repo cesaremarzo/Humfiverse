@@ -518,6 +518,21 @@
   .modal{ background: var(--surface); border-radius:18px; max-width:420px; width:100%; padding:26px; box-shadow: var(--shadow-lg); display:flex; flex-direction:column; gap:16px; text-align:center; }
   .modal .success-icon{ width:52px; height:52px; border-radius:50%; background: var(--good-soft); color:var(--good); display:flex; align-items:center; justify-content:center; margin:0 auto; }
 
+  /* Sign-in dialog (§2.83) */
+  .connect-modal{ position:relative; max-height: calc(100dvh - 40px); overflow-y:auto; }
+  .connect-close{ position:absolute; top:12px; right:12px; }
+  .connect-options{ display:flex; flex-direction:column; gap:10px; }
+  .connect-option{ justify-content:center; gap:10px; }
+  .connect-option:disabled{ opacity:.6; }
+  .connect-soon{ margin-left:4px; background: var(--surface-2); color: var(--text-secondary); border:1px solid var(--border); }
+  .connect-email{ display:flex; gap:8px; }
+  .connect-email input{ flex:1; min-width:0; padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--text); font:inherit; }
+  .connect-email input:focus{ outline:none; border-color: var(--focus-ring); }
+  .connect-divider{ display:flex; align-items:center; gap:10px; font-size:12px; color:var(--text-muted); }
+  .connect-divider::before, .connect-divider::after{ content:""; flex:1; height:1px; background: var(--border); }
+  .wallet-address{ user-select:all; word-break:break-all; }
+  .link-btn{ background:none; border:0; padding:0; font:inherit; color: var(--accent); cursor:pointer; text-decoration:underline; }
+
   /* Landing (for-artists) */
   .hero-split{ display:grid; grid-template-columns: 1.1fr 0.9fr; gap:48px; align-items:center; padding: 20px 0 48px; }
   @media (max-width:820px){ .hero-split{ grid-template-columns:minmax(0,1fr); } }

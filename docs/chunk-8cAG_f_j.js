@@ -1,0 +1,1 @@
+import{c as I,d as g,f as o,h as y,l as U,m as x,p as s,s as E,u as b}from"./chunk-CoEj01tB.js";export{o as getChainMetadata};

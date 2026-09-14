@@ -76,7 +76,7 @@ deployment*, not a domain rule.
 |---|---|
 | `server.js` | Entry point, ~50 lines. Loads `.env`, initialises the schema, opens the port. Nothing else. |
 | `app.js` | Builds the request handler: parses the URL, answers CORS preflight, dispatches through the router, 404s the rest. Catches anything a route throws and turns it into a 500 instead of a hung request. |
-| `config.js` | Every environment-derived constant, read once: `PORT`, `ADMIN_API_KEY`, `TOKEN_METADATA_BASE`. |
+| `config.js` | Every environment-derived constant, read once: `PORT`, `ADMIN_API_KEY`, `TOKEN_METADATA_BASE`, and the `AUTH_JWT_*` trio (§2.83). |
 
 ### `lib/` — framework-shaped plumbing
 
@@ -111,6 +111,7 @@ deployment*, not a domain rule.
 | `onchain.service.js` | The cache-versus-contract logic: chain-fallback lookup, next free token id, mint, and the listing that self-heals the cache from a bounded recent-blocks scan (§2.39). |
 | `escrow.service.js` | Campaign creation: studio registration, the already-minted-token precondition (§2.42), and the campaign listing. |
 | `listings.service.js` | Resale: records the ids of on-chain listings and reads each one's live state back off `HumfiverseMarketplace`. No price or seller is ever taken from a request body (§2.62). |
+| `identity-jwt.service.js` | Signs RS256 JWTs that open a thirdweb in-app wallet from an identity this backend verified (§2.83), and publishes the public key. Not callable from any route yet: whatever calls it must have verified the person first. |
 | `fees.service.js` | Platform fees (§2.71, §2.72): reads the token's, the escrow's and the marketplace's own counters — accrued, lifetime total, recipient — and reports `unsupported`/`unavailable` with a reason instead of a zero when it cannot. |
 | `indexer.service.js` | Who holds each token. `reconcile` is the authority — real balances from `balanceOf`, verified by `held + pool == totalSupply`; the eth_getLogs walk only follows movement between passes (§2.70). |
 
@@ -120,6 +121,7 @@ deployment*, not a domain rule.
 |---|---|
 | `index.js` | Registers every module. Reads as a table of contents for the API. |
 | `system.routes.js` | `GET /api/health` |
+| `auth.routes.js` | `GET /api/auth/jwks.json` — the public key thirdweb checks identity JWTs against (§2.83) |
 | `catalogue.routes.js` | `GET /api/data`, `POST /api/assets`, `DELETE /api/assets/:assetId`, and the two royalty-report endpoints |
 | `compliance.routes.js` | `GET /api/contract-template`, `POST /api/contract-acceptance`, `POST /api/kyc`, `GET /api/kyc/status/:wallet` |
 | `onchain.routes.js` | `GET /api/onchain/list`, `GET /api/onchain/:assetId`, `POST /api/onchain/mint`, `POST /api/onchain/audio/:assetId` |
