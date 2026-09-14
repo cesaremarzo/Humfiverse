@@ -14,8 +14,8 @@ module.exports = function registerEscrowRoutes(router) {
   router.post("/api/escrow/campaign", async (req, res) => {
     try {
       const body = await readBody(req);
-      if (!body.assetId || !body.artistAddress || !body.fundingGoalWei || !body.studioName || !body.studioWallet || !Array.isArray(body.milestones)) {
-        sendJson(res, 400, { error: "assetId, artistAddress, fundingGoalWei, studioName, studioWallet and milestones are required" });
+      if (!body.assetId || !body.artistAddress || !body.fundingGoalUsdc || !body.studioName || !body.studioWallet || !Array.isArray(body.milestones)) {
+        sendJson(res, 400, { error: "assetId, artistAddress, fundingGoalUsdc, studioName, studioWallet and milestones are required" });
         return;
       }
       if (!escrowChain.writeEnabled()) {
@@ -23,7 +23,7 @@ module.exports = function registerEscrowRoutes(router) {
         return;
       }
       const result = await escrow.createCampaign(
-        body.assetId, body.artistAddress, body.fundingGoalWei, body.studioName, body.studioWallet, body.milestones
+        body.assetId, body.artistAddress, body.fundingGoalUsdc, body.studioName, body.studioWallet, body.milestones
       );
       sendJson(res, 200, result);
     } catch (e) {

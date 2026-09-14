@@ -3,7 +3,7 @@ import { ApiService } from '../../core/api.service';
 import { WalletService } from '../../core/wallet.service';
 import { EscrowCampaignInfo, EscrowMilestone, FeeContractState, FeeSummary } from '../../core/models';
 import { fmtUSD } from '../../core/format.util';
-import { weiToUsd, weiToUsdPrecise } from '../../core/usd-eth.util';
+import { usdcToUsd } from '../../core/usdc.util';
 
 type CampaignRow = EscrowCampaignInfo & { assetId: string };
 type LoadedCampaignRow = Extract<CampaignRow, { escrow: true }>;
@@ -39,8 +39,7 @@ export class AdminEscrowComponent {
   withdrawResult = signal<{ which: string; explorerUrl?: string; error?: string } | null>(null);
 
   fmt = fmtUSD;
-  weiToUsd = weiToUsd;
-  weiToUsdPrecise = weiToUsdPrecise;
+  usdcToUsd = usdcToUsd;
 
   constructor(
     private api: ApiService,
@@ -97,7 +96,7 @@ export class AdminEscrowComponent {
    * cumulative: everything released so far plus this tranche must be
    * covered. The per-tranche comparison is only what an older backend
    * leaves to go on. */
-  canConfirm(raisedWei: string, m: EscrowMilestone): boolean {
-    return m.fundedEnough ?? BigInt(raisedWei) >= BigInt(m.amountWei);
+  canConfirm(raised: string, m: EscrowMilestone): boolean {
+    return m.fundedEnough ?? BigInt(raised) >= BigInt(m.amountUsdc);
   }
 }

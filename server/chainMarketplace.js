@@ -8,7 +8,7 @@
    Read-only from this server's point of view, deliberately. Every state
    change on this contract is a transaction from a *user's* wallet:
    `list` and `cancelListing` require msg.sender to be the seller, and
-   `buyListing` sends the buyer's own ETH. Humfiverse has no operator
+   `buyListing` pays with the buyer's own USDC. Humfiverse has no operator
    function here at all, which is the whole point — the platform cannot
    list, cancel or move anyone's tokens on their behalf. Compare the
    previous design, where `seller` was a string in a POST body and anyone
@@ -18,6 +18,7 @@
 
 const { ethers } = require("ethers");
 const { withRetry } = require("./chainRetry");
+const { paymentTokenOf, toUsdcFor } = require("./chainUnits");
 
 const RPC_URL = process.env.CHAIN_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com";
 const MARKETPLACE_ADDRESS = process.env.CHAIN_MARKETPLACE_ADDRESS || "";
@@ -26,7 +27,8 @@ const EXPLORER_BASE = "https://sepolia.etherscan.io";
 const ABI = [
   "function list(address token, uint256 tokenId, uint256 amount, uint256 pricePerToken) returns (uint256)",
   "function cancelListing(uint256 listingId)",
-  "function buyListing(uint256 listingId, uint256 amount) payable",
+  "function buyListing(uint256 listingId, uint256 amount)",
+  "function paymentToken() view returns (address)",
   "function getListing(uint256 listingId) view returns (tuple(address seller, address token, uint256 tokenId, uint256 amount, uint256 pricePerToken, bool active))",
   "function feeRecipient() view returns (address)",
   "function PLATFORM_FEE_BPS() view returns (uint256)",
@@ -60,7 +62,7 @@ async function getListing(listingId) {
     tokenContract: raw.token,
     tokenId: Number(raw.tokenId),
     qty: Number(raw.amount),
-    pricePerTokenWei: raw.pricePerToken.toString(),
+    pricePerTokenUsdc: (await toUsdcFor(readContract))(raw.pricePerToken).toString(),
     active: raw.active
   };
 }
@@ -71,18 +73,13 @@ async function getListing(listingId) {
  * no authentication — the contract is the one being trusted, not the
  * caller. */
 /** Contract-wide fee state, read straight off the chain. Null when no
- * marketplace is configured, or when the configured one predates §2.71
- * and takes its fee in tokens — there is no ETH to report for that one,
- * and reporting zero would claim otherwise. */
+ * marketplace is configured, or when the configured one predates USDC
+ * (§2.73) — its fees are in wei or in tokens, and reporting them as USDC
+ * would claim otherwise. */
 async function getFeeState() {
   if (!readContract) return null;
-  let accrued;
-  try {
-    accrued = await withRetry(() => readContract.accruedFees());
-  } catch (err) {
-    if (err.code === "CALL_EXCEPTION" || err.code === "BAD_DATA") return null;
-    throw err;
-  }
+  if (!(await paymentTokenOf(readContract))) return null;
+  const accrued = await withRetry(() => readContract.accruedFees());
   const [recipient, total, bps] = await Promise.all([
     withRetry(() => readContract.feeRecipient()),
     withRetry(() => readContract.totalFeesCollected()),
@@ -93,8 +90,8 @@ async function getFeeState() {
     explorerUrl: `${EXPLORER_BASE}/address/${MARKETPLACE_ADDRESS}`,
     feeBps: Number(bps),
     feeRecipient: recipient,
-    accruedWei: accrued.toString(),
-    totalCollectedWei: total.toString()
+    accruedUsdc: accrued.toString(),
+    totalCollectedUsdc: total.toString()
   };
 }
 

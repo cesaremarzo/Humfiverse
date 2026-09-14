@@ -27,7 +27,7 @@ A fresh deploy means fresh, empty contract state: every minted token, every escr
 ## Deploy
 
 3. Compile and run the Hardhat test suite first (`cd contracts && npx hardhat test`) — fix any failures before deploying. If a contract function gained a parameter, check for a "stack too deep" compile error; the fix already in place is `viaIR: true` in `hardhat.config.js`'s solidity settings.
-4. Deploy the token first: `npx hardhat run scripts/deploy.js --network sepolia`.
+4. Deploy the token first: `npx hardhat run scripts/deploy.js --network sepolia` (since §2.73 its constructor takes the payment token — Circle's Sepolia USDC by default, `PAYMENT_TOKEN_ADDRESS` to override; verify with that address as the constructor argument).
 5. Deploy the escrow linked to it: `CATALOGUE_TOKEN_ADDRESS=<token address> [ESCROW_FEE_RECIPIENT=<address>] npx hardhat run scripts/deployEscrow.js --network sepolia` (since §2.71 the constructor also takes the fee recipient, defaulting to the deployer; verify with both constructor args) — this script also calls `setEscrowContract` on the token automatically. Confirm the script's own "Done — escrowContract is now ..." line before moving on.
 6. Verify both on Etherscan:
    ```

@@ -24,7 +24,7 @@ const CHAIN_NAMES: Record<string, string> = {
 };
 
 // Switched from Base Sepolia to real Ethereum Sepolia (§2.35) — easier to
-// get testnet ETH from faucets there.
+// get testnet ETH (for gas) from faucets there. Payments are USDC (§2.73).
 const SEPOLIA_CHAIN_ID_HEX = '0xaa36a7'; // 11155111
 const SEPOLIA_ADD_PARAMS = {
   chainId: SEPOLIA_CHAIN_ID_HEX,
@@ -35,7 +35,7 @@ const SEPOLIA_ADD_PARAMS = {
 };
 
 const EXPLORER_BASE = 'https://sepolia.etherscan.io';
-const BUY_ABI = ['function buy(uint256 tokenId, uint256 amount) external payable'];
+const BUY_ABI = ['function buy(uint256 tokenId, uint256 amount) external'];
 /* Secondary market. `setApprovalForAll` is on the token contract, the rest
    on HumfiverseMarketplace — two different addresses, hence two ABIs. */
 const ERC1155_APPROVAL_ABI = [
@@ -45,10 +45,18 @@ const ERC1155_APPROVAL_ABI = [
 const MARKETPLACE_ABI = [
   'function list(address token, uint256 tokenId, uint256 amount, uint256 pricePerToken) external returns (uint256)',
   'function cancelListing(uint256 listingId) external',
-  'function buyListing(uint256 listingId, uint256 amount) external payable',
+  'function buyListing(uint256 listingId, uint256 amount) external',
   'event Listed(uint256 indexed listingId, address indexed seller, address indexed token, uint256 tokenId, uint256 amount, uint256 pricePerToken)'
 ];
-const CONTRIBUTE_ABI = ['function contribute(uint256 campaignId) external payable'];
+const CONTRIBUTE_ABI = ['function contribute(uint256 campaignId, uint256 amount) external'];
+/* §2.73: payments are in USDC. Each paying contract names its own token, so
+   the address is read from the contract being paid, never configured here. */
+const PAYMENT_TOKEN_ABI = ['function paymentToken() view returns (address)'];
+const ERC20_ABI = [
+  'function balanceOf(address account) view returns (uint256)',
+  'function allowance(address owner, address spender) view returns (uint256)',
+  'function approve(address spender, uint256 amount) returns (bool)'
+];
 /* Same function on the escrow and the marketplace (§2.71). */
 const WITHDRAW_FEES_ABI = ['function withdrawFees() external'];
 const CONFIRM_MILESTONE_ABI = [
@@ -145,7 +153,7 @@ export class WalletService {
 
   /** Real on-chain purchase: switches to Sepolia if needed, then
    * requests a signature for `buy(tokenId, amount)` against
-   * HumfiverseCatalogueToken, paying `amount * priceWei`. Throws on
+   * HumfiverseCatalogueToken, paying `amount * priceUsdc`. Throws on
    * rejection, wrong network, or a reverted/failed transaction — callers
    * are expected to catch and show the user what happened. */
   /* --- secondary market (HumfiverseMarketplace) ---
@@ -159,6 +167,24 @@ export class WalletService {
     if (!(await this.ensureSepolia())) throw new Error('wrong-network');
     const provider = new ethers.BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
     return new ethers.Contract(address, abi, await provider.getSigner());
+  }
+
+  /** Makes sure `spender` may pull `amount` USDC from this wallet: reads the
+   * contract's own payment token, refuses early with `insufficient-usdc`
+   * when the balance cannot cover it — rather than letting the transaction
+   * revert after a signature — and asks for an approval of exactly this
+   * amount when the current allowance is short. Returns once the approval
+   * has confirmed. */
+  private async ensureUsdc(spender: string, amount: bigint): Promise<void> {
+    const owner = this.state().address;
+    if (!owner) throw new Error('no-wallet');
+    const payer = await this.signerFor(spender, PAYMENT_TOKEN_ABI);
+    const usdc = await this.signerFor(await payer['paymentToken'](), ERC20_ABI);
+    if ((await usdc['balanceOf'](owner)) < amount) throw new Error('insufficient-usdc');
+    if ((await usdc['allowance'](owner, spender)) >= amount) return;
+    const tx = await usdc['approve'](spender, amount);
+    const receipt = await tx.wait();
+    if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
   }
 
   /** Has this wallet already let the marketplace move its tokens? The
@@ -185,10 +211,10 @@ export class WalletService {
 
   /** Creates the listing on chain and reads the new id back out of the
    * Listed event, which is what the backend then indexes. */
-  async listOnMarketplace(params: { marketplace: string; tokenContract: string; tokenId: number; qty: number; pricePerTokenWei: string }):
+  async listOnMarketplace(params: { marketplace: string; tokenContract: string; tokenId: number; qty: number; pricePerTokenUsdc: string }):
     Promise<{ listingId: number; txHash: string; explorerUrl: string }> {
     const contract = await this.signerFor(params.marketplace, MARKETPLACE_ABI);
-    const tx = await contract['list'](params.tokenContract, params.tokenId, params.qty, BigInt(params.pricePerTokenWei));
+    const tx = await contract['list'](params.tokenContract, params.tokenId, params.qty, BigInt(params.pricePerTokenUsdc));
     const receipt = await tx.wait();
     if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
 
@@ -213,13 +239,14 @@ export class WalletService {
     return { txHash: tx.hash, explorerUrl: `${EXPLORER_BASE}/tx/${tx.hash}` };
   }
 
-  /** Pays exactly qty x pricePerToken; the contract rejects anything else.
-   * Tokens and ETH move in this one transaction. */
-  async buyListingOnchain(params: { marketplace: string; listingId: number; qty: number; pricePerTokenWei: string }):
+  /** Pays qty x pricePerToken in USDC, after approving that amount. Tokens
+   * and USDC move in this one transaction. */
+  async buyListingOnchain(params: { marketplace: string; listingId: number; qty: number; pricePerTokenUsdc: string }):
     Promise<{ txHash: string; explorerUrl: string }> {
+    const cost = BigInt(params.pricePerTokenUsdc) * BigInt(params.qty);
+    await this.ensureUsdc(params.marketplace, cost);
     const contract = await this.signerFor(params.marketplace, MARKETPLACE_ABI);
-    const value = BigInt(params.pricePerTokenWei) * BigInt(params.qty);
-    const tx = await contract['buyListing'](params.listingId, params.qty, { value });
+    const tx = await contract['buyListing'](params.listingId, params.qty);
     const receipt = await tx.wait();
     if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
     return { txHash: tx.hash, explorerUrl: `${EXPLORER_BASE}/tx/${tx.hash}` };
@@ -235,17 +262,15 @@ export class WalletService {
     return { txHash: tx.hash, explorerUrl: `${EXPLORER_BASE}/tx/${tx.hash}` };
   }
 
-  async buyOnchain(params: { contractAddress: string; tokenId: number; amount: number; priceWei: string }): Promise<{ txHash: string; explorerUrl: string }> {
+  async buyOnchain(params: { contractAddress: string; tokenId: number; amount: number; priceUsdc: string }): Promise<{ txHash: string; explorerUrl: string }> {
     if (!window.ethereum) throw new Error('no-wallet');
     const switched = await this.ensureSepolia();
     if (!switched) throw new Error('wrong-network');
 
-    const provider = new ethers.BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
-    const signer = await provider.getSigner();
-    const contract = new ethers.Contract(params.contractAddress, BUY_ABI, signer);
-    const value = BigInt(params.priceWei) * BigInt(params.amount);
+    await this.ensureUsdc(params.contractAddress, BigInt(params.priceUsdc) * BigInt(params.amount));
+    const contract = await this.signerFor(params.contractAddress, BUY_ABI);
 
-    const tx = await contract['buy'](params.tokenId, params.amount, { value });
+    const tx = await contract['buy'](params.tokenId, params.amount);
     const receipt = await tx.wait();
     if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
 
@@ -255,19 +280,18 @@ export class WalletService {
   /** Real on-chain contribution to a preproduction campaign's milestone
    * escrow — same pattern as `buyOnchain`, paying into
    * HumfiverseMilestoneEscrow.contribute() instead of
-   * HumfiverseCatalogueToken.buy(). The ETH sits in escrow, not with the
+   * HumfiverseCatalogueToken.buy(). The USDC sits in escrow, not with the
    * artist, until Humfiverse confirms each milestone (see
    * planning/technical-architecture.md §2.15). */
-  async contributeOnchain(params: { contractAddress: string; campaignId: number; amountWei: string }): Promise<{ txHash: string; explorerUrl: string }> {
+  async contributeOnchain(params: { contractAddress: string; campaignId: number; amountUsdc: string }): Promise<{ txHash: string; explorerUrl: string }> {
     if (!window.ethereum) throw new Error('no-wallet');
     const switched = await this.ensureSepolia();
     if (!switched) throw new Error('wrong-network');
 
-    const provider = new ethers.BrowserProvider(window.ethereum as unknown as ethers.Eip1193Provider);
-    const signer = await provider.getSigner();
-    const contract = new ethers.Contract(params.contractAddress, CONTRIBUTE_ABI, signer);
+    await this.ensureUsdc(params.contractAddress, BigInt(params.amountUsdc));
+    const contract = await this.signerFor(params.contractAddress, CONTRIBUTE_ABI);
 
-    const tx = await contract['contribute'](params.campaignId, { value: BigInt(params.amountWei) });
+    const tx = await contract['contribute'](params.campaignId, BigInt(params.amountUsdc));
     const receipt = await tx.wait();
     if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
 

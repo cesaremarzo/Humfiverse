@@ -133,7 +133,7 @@ deployment*, not a domain rule.
 
 ### Not part of the split
 
-`db.js`, `chain.js`, `chainEscrow.js`, `chainRetry.js`, `pinata.js`,
+`db.js`, `chain.js`, `chainEscrow.js`, `chainRetry.js`, `chainUnits.js` (§2.73: which currency a contract's amounts are in, converting ETH-era wei to USDC base units), `pinata.js`,
 `contract-template.js` and `seed-data.js` were already single-purpose
 modules and were left exactly as they were.
 

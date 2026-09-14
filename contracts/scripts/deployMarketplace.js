@@ -29,7 +29,9 @@ async function main() {
   console.log("Fee recipient:", feeRecipient, feeRecipient === deployer.address ? "(deployer)" : "");
 
   const Factory = await hre.ethers.getContractFactory("HumfiverseMarketplace");
-  const marketplace = await Factory.deploy(feeRecipient);
+  // §2.73: resale is paid in USDC — Circle's on Sepolia by default.
+  const paymentToken = process.env.PAYMENT_TOKEN_ADDRESS || "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
+  const marketplace = await Factory.deploy(paymentToken, feeRecipient);
   await marketplace.waitForDeployment();
 
   const address = await marketplace.getAddress();

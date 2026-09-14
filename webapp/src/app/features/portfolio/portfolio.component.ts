@@ -13,7 +13,7 @@ import { coverBackground } from '../../core/cover.util';
 import { RoyaltyMonth, SecondaryListing } from '../../core/models';
 import { platformFeeUsd } from '../../core/marketplace-fee.util';
 import { onchainErrorTranslation } from '../../core/onchain-error.util';
-import { weiToUsd, usdToWeiPrecise, weiToUsdPrecise } from '../../core/usd-eth.util';
+import { usdcToUsd, usdToUsdc } from '../../core/usdc.util';
 import { lowestAvailablePrice, bucketSnapshots, ChartGranularity } from '../../core/token-value.util';
 
 /** A real on-chain holding — replaces the fictional Portfolio.holdings mock
@@ -77,7 +77,7 @@ export class PortfolioComponent {
   });
   sellSubmitting = signal(false);
   sellStep = signal<'approving' | 'listing' | null>(null);
-  weiToUsd = weiToUsd;
+  usdcToUsd = usdcToUsd;
 
   /** Same mapping the campaign page uses: the component translates, the
    * util decides which message applies. */
@@ -85,7 +85,6 @@ export class PortfolioComponent {
     const { key, params } = onchainErrorTranslation(err);
     return this.translate.instant(key, params);
   }
-  weiToUsdPrecise = weiToUsdPrecise;
 
   totalTokens = computed(() => this.holdings().reduce((s, h) => s + h.tokens, 0));
   totalValue = computed(() => this.holdings().reduce((s, h) => s + h.valueUsd, 0));
@@ -163,7 +162,7 @@ export class PortfolioComponent {
       .then((res) => {
         this.holdings.set(
           res.holdings.map((h) => {
-            const primaryPriceUsd = weiToUsd(h.priceWei);
+            const primaryPriceUsd = usdcToUsd(h.priceUsdc);
             const unitValue = lowestAvailablePrice(primaryPriceUsd, Number(h.poolBalance), this.store.lowestAsk(h.assetId));
             return {
               assetId: h.assetId,
@@ -279,7 +278,7 @@ export class PortfolioComponent {
         tokenContract: onchain.contractAddress,
         tokenId: onchain.tokenId,
         qty,
-        pricePerTokenWei: usdToWeiPrecise(price).toString()
+        pricePerTokenUsdc: usdToUsdc(price).toString()
       });
       await this.api.indexListing({ listingId, assetId: draft.assetId }).catch((err) => console.warn('Listing created on chain but not indexed.', err));
       await this.store.refreshListings();

@@ -7,7 +7,7 @@ import { ToastService } from '../../core/toast.service';
 import { EscrowCampaignInfo, EscrowMilestone } from '../../core/models';
 import { fmtUSD } from '../../core/format.util';
 import { onchainErrorTranslation } from '../../core/onchain-error.util';
-import { weiToUsd } from '../../core/usd-eth.util';
+import { usdcToUsd } from '../../core/usdc.util';
 
 type CampaignRow = EscrowCampaignInfo & { assetId: string };
 type LoadedCampaignRow = Extract<CampaignRow, { escrow: true }>;
@@ -31,7 +31,7 @@ export class ArtistMilestonesComponent {
   confirming = signal<string | null>(null); // `${campaignId}-${milestoneIndex}`
 
   fmt = fmtUSD;
-  weiToUsd = weiToUsd;
+  usdcToUsd = usdcToUsd;
 
   myCampaigns = computed(() => {
     const addr = this.wallet.state().address?.toLowerCase();
@@ -75,8 +75,8 @@ export class ArtistMilestonesComponent {
    * cumulative: everything released so far plus this tranche must be
    * covered. The per-tranche comparison is only what an older backend
    * leaves to go on. */
-  canConfirm(raisedWei: string, m: EscrowMilestone): boolean {
-    return m.fundedEnough ?? BigInt(raisedWei) >= BigInt(m.amountWei);
+  canConfirm(raised: string, m: EscrowMilestone): boolean {
+    return m.fundedEnough ?? BigInt(raised) >= BigInt(m.amountUsdc);
   }
 
   statusKey(m: LoadedCampaignRow['milestones'][number]): string {

@@ -17,9 +17,9 @@ import { fmtUSD, fmtUSDShort } from '../../core/format.util';
 import { fundingPctFor, remainingFor, tokensSoldFor } from '../../core/onchain-progress.util';
 import { ipfsGatewayUrl } from '../../core/ipfs.util';
 import { computeYieldBreakdown } from '../../core/yield.util';
-import { platformFeeUsd, platformFeeWei } from '../../core/marketplace-fee.util';
+import { platformFeeUsd, platformFeeUsdc } from '../../core/marketplace-fee.util';
 import { primaryFeeUsd } from '../../core/primary-fee.util';
-import { weiToUsd, usdToWei, usdToWeiPrecise, weiToUsdPrecise } from '../../core/usd-eth.util';
+import { usdcToUsd, usdToUsdc } from '../../core/usdc.util';
 import { isValidRoyaltyMonth, royaltyAvg, royaltyTotal } from '../../core/royalty.util';
 import { onchainErrorTranslation } from '../../core/onchain-error.util';
 import { addHolding } from '../../core/portfolio-holdings.util';
@@ -339,7 +339,7 @@ export class AssetDetailComponent {
    * simulated purchase every asset falls back to otherwise. */
   canBuyOnchain(): boolean {
     const info = this.onchainInfo();
-    return !!(info?.onchain && info.priceWei !== '0' && this.wallet.state().address);
+    return !!(info?.onchain && info.priceUsdc !== '0' && this.wallet.state().address);
   }
 
   /** True once this preproduction asset has an active escrow campaign and a
@@ -359,11 +359,11 @@ export class AssetDetailComponent {
   private async contributeToEscrow(a: Asset, escrowInfo: Extract<EscrowCampaignInfo, { escrow: true }>, qty: number, total: number): Promise<void> {
     this.onchainBuyPending.set(true);
     try {
-      const amountWei = usdToWei(total).toString();
+      const amountUsdc = usdToUsdc(total).toString();
       const result = await this.wallet.contributeOnchain({
         contractAddress: escrowInfo.contractAddress,
         campaignId: escrowInfo.campaignId,
-        amountWei
+        amountUsdc
       });
       this.applyPurchase(a, qty, total);
       this.success.set({ qty, total, txHash: result.txHash, explorerUrl: result.explorerUrl });
@@ -388,7 +388,7 @@ export class AssetDetailComponent {
    * automatically until its goal is met, then quietly go back to paying
    * the rights holder directly, all under one "buy" action. */
   catalogueEscrowStillOpen(escrowInfo: EscrowCampaignInfo | null): escrowInfo is Extract<EscrowCampaignInfo, { escrow: true }> {
-    return !!escrowInfo?.escrow && escrowInfo.status === 'active' && BigInt(escrowInfo.raised) < BigInt(escrowInfo.fundingTargetWei ?? escrowInfo.fundingGoal);
+    return !!escrowInfo?.escrow && escrowInfo.status === 'active' && BigInt(escrowInfo.raised) < BigInt(escrowInfo.fundingTargetUsdc ?? escrowInfo.fundingGoal);
   }
 
   /** Is there a real on-chain path for this asset — an active escrow
@@ -398,7 +398,7 @@ export class AssetDetailComponent {
     const onchain = this.onchainInfo();
     if (this.isPre(a) && escrowInfo?.escrow && escrowInfo.status === 'active') return true;
     if (this.catalogueEscrowStillOpen(escrowInfo)) return true;
-    return !!(onchain?.onchain && onchain.priceWei !== '0');
+    return !!(onchain?.onchain && onchain.priceUsdc !== '0');
   }
 
   /**
@@ -444,14 +444,14 @@ export class AssetDetailComponent {
       return;
     }
 
-    if (onchain?.onchain && onchain.priceWei !== '0' && this.wallet.state().address) {
+    if (onchain?.onchain && onchain.priceUsdc !== '0' && this.wallet.state().address) {
       this.onchainBuyPending.set(true);
       try {
         const result = await this.wallet.buyOnchain({
           contractAddress: onchain.contractAddress,
           tokenId: onchain.tokenId,
           amount: qty,
-          priceWei: onchain.priceWei
+          priceUsdc: onchain.priceUsdc
         });
         this.applyPurchase(a, qty, total);
         this.success.set({ qty, total, txHash: result.txHash, explorerUrl: result.explorerUrl });
@@ -473,8 +473,7 @@ export class AssetDetailComponent {
     this.success.set({ qty, total, simulated: true });
   }
 
-  weiToUsd = weiToUsd;
-  weiToUsdPrecise = weiToUsdPrecise;
+  usdcToUsd = usdcToUsd;
   primaryFeeUsd = primaryFeeUsd;
 
   /** The component still owns the translating; which message applies is
@@ -559,7 +558,7 @@ export class AssetDetailComponent {
         tokenContract: onchain.contractAddress,
         tokenId: onchain.tokenId,
         qty,
-        pricePerTokenWei: usdToWeiPrecise(price).toString()
+        pricePerTokenUsdc: usdToUsdc(price).toString()
       });
       // Tell the backend the id so the board can find it without an event
       // scan. Best-effort: the listing exists on chain either way.
@@ -607,16 +606,16 @@ export class AssetDetailComponent {
         marketplace,
         listingId: listing.listingId,
         qty: listing.qty,
-        pricePerTokenWei: listing.pricePerTokenWei
+        pricePerTokenUsdc: listing.pricePerTokenUsdc
       });
-      const paidWei = BigInt(listing.pricePerTokenWei) * BigInt(listing.qty);
+      const paidUsdc = BigInt(listing.pricePerTokenUsdc) * BigInt(listing.qty);
       await this.store.refreshListings();
       this.scheduleOnchainRefresh(listing.assetId);
       this.resaleResult.set({
         listing,
         received: listing.qty,
-        fee: weiToUsdPrecise(platformFeeWei(paidWei).toString()),
-        paid: weiToUsdPrecise(paidWei.toString()),
+        fee: usdcToUsd(platformFeeUsdc(paidUsdc).toString()),
+        paid: usdcToUsd(paidUsdc.toString()),
         txHash: result.txHash,
         explorerUrl: result.explorerUrl
       });

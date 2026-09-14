@@ -152,7 +152,7 @@
               }
               <div class="stat-row" style="margin-top:14px;">
                 <div class="card stat-tile"><div class="label">{{ 'detail.escrowCampaignId' | translate }}</div><div class="value mono">#{{ $any(escrowInfo()).campaignId }}</div></div>
-                <div class="card stat-tile"><div class="label">{{ 'detail.escrowRaisedGoal' | translate }}</div><div class="value mono" style="font-size:14px;">{{ weiToUsd($any(escrowInfo()).raised) }} / {{ weiToUsd($any(escrowInfo()).fundingGoal) }}</div></div>
+                <div class="card stat-tile"><div class="label">{{ 'detail.escrowRaisedGoal' | translate }}</div><div class="value mono" style="font-size:14px;">{{ usdcToUsd($any(escrowInfo()).raised) }} / {{ usdcToUsd($any(escrowInfo()).fundingGoal) }}</div></div>
                 @if ($any(escrowInfo()).studio) {
                   <div class="card stat-tile"><div class="label">{{ 'detail.escrowStudio' | translate }}</div><div class="value" style="font-size:14px; font-family:'IBM Plex Sans',sans-serif;">{{ $any(escrowInfo()).studio.name }}</div></div>
                 }
@@ -185,7 +185,7 @@
                       <tr>
                         <td class="mono">{{ l.seller.toLowerCase() === mySeller() ? ('detail.resaleYou' | translate) : wallet.truncateAddr(l.seller) }}</td>
                         <td class="cell-num mono">{{ l.qty }}@if (!l.deliverable) { <span class="chip chip-neutral" style="margin-left:6px;">{{ 'detail.resaleNotDeliverable' | translate }}</span> }</td>
-                        <td class="cell-num mono">{{ fmt(weiToUsdPrecise(l.pricePerTokenWei)) }}</td>
+                        <td class="cell-num mono">{{ fmt(usdcToUsd(l.pricePerTokenUsdc)) }}</td>
                         <td style="text-align:right;">
                           @if (l.seller.toLowerCase() === mySeller()) {
                             <button class="btn btn-ghost btn-sm" (click)="cancelMyListing(l)">{{ 'portfolio.cancelListingBtn' | translate }}</button>
@@ -374,7 +374,7 @@
           <span>{{ 'buy.ackLabel' | translate }}</span>
         </label>
 
-        @if ((isPre(a) && escrowInfo()?.escrow && $any(escrowInfo()).status === 'active') || (!isPre(a) && onchainInfo()?.onchain && $any(onchainInfo()).priceWei !== '0')) {
+        @if ((isPre(a) && escrowInfo()?.escrow && $any(escrowInfo()).status === 'active') || (!isPre(a) && onchainInfo()?.onchain && $any(onchainInfo()).priceUsdc !== '0')) {
           @if (wallet.state().address) {
             <div class="risk-item good" style="margin-bottom:10px;">
               <app-icon name="checkCircle"></app-icon>

@@ -27,7 +27,7 @@ The only genuinely on-chain part of the project. Deployed to **Ethereum Sepolia*
   - `HumfiverseMilestoneEscrow.sol` — preproduction funding escrow with dual artist+studio milestone confirmation. Holds an **immutable** reference to the token contract (see `technical-architecture.md` §2.42) — redeploying one forces redeploying both.
   - `HumfiverseMarketplace.sol` — peer-to-peer resale, deployed (§2.59); retains 1% of each payment (§2.71).
   - The token (2% of primary buys), the escrow (2% of contributions, 3% of released tranches) and the marketplace accrue platform fees internally and pay them out only through `withdrawFees()` (§2.71, §2.72). A superseded escrow can stay readable via `CHAIN_ESCROW_LEGACY_ADDRESS` for campaigns that finished there.
-- `contracts/test/` — Hardhat test suite (`npm test`). Run after any contract change.
+- `contracts/test/` — Hardhat test suite (`npm test`). Run after any contract change. `contracts/contracts/test/MockUSDC.sol` is its test-only USDC; never deployed.
 - `contracts/scripts/` — `deploy.js`/`deployEscrow.js` (canonical deploy scripts, keep these in sync with the linking pattern), `catalogues.js`/`mintCatalogues.js` (old fictional demo catalogues, not the real assets). One-off migration scripts used during a redeploy are written, run, and deleted in the same session — they don't live here permanently.
 - `contracts/.env` — `DEPLOYER_PRIVATE_KEY`, `SEPOLIA_RPC_URL`, `ETHERSCAN_API_KEY`. Gitignored.
 - Current deployed addresses: see `server/.env.example` (kept in sync) or `technical-architecture.md`'s changelog for the redeploy history.
@@ -49,6 +49,7 @@ Deployed on Render at `humfiverse-api.onrender.com`. No Express: the routing lay
 - `chainEscrow.js` — talks to `HumfiverseMilestoneEscrow`.
 - `pinata.js` — uploads track audio files to IPFS (§2.43). No SDK — Node's built-in `fetch`/`FormData`/`Blob`.
 - `chainRetry.js` — retry wrapper for flaky RPC calls.
+- `chainUnits.js` — whether a contract's amounts are USDC or ETH-era wei (§2.73); every amount the API returns is USDC base units.
 - `db.js` — thin wrapper: a local SQLite file by default, a real Turso/libSQL database in production (`TURSO_DATABASE_URL` set).
 - `contract-template.js`, `seed-data.js` — mock legal contract text / seed catalogue data.
 - `server/.env` — RPC URL, contract addresses, operator key, `PINATA_JWT`, `ADMIN_API_KEY`. Gitignored — `.env.example` documents every var.

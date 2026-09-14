@@ -59,7 +59,9 @@ what you need:
 - **A browser wallet** (MetaMask or similar) on the Sepolia network, for
   anything involving a purchase, a contribution, or a milestone
   confirmation.
-- **Sepolia test ETH**, from a faucet, in that wallet.
+- **Sepolia test USDC** in that wallet for any payment — Circle's faucet at
+  faucet.circle.com (choose Ethereum Sepolia) — and a little **Sepolia test ETH**
+  for gas. Every price, contribution and fee is in USDC (§2.73).
 - Nothing else is required to read data. The marketplace, the asset pages
   and the on-chain panels all render without a wallet connected.
 

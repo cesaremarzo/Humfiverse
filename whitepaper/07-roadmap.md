@@ -18,7 +18,7 @@ Smart contracts for token issuance, milestone escrow, and payouts — first on a
 
 Multiple catalogues in one place, a way to pay with regular currency (not just crypto), built-in identity checks, and compliant resale between holders. This is also when the advisory voting feature (see [Governance](06-governance.md)) would ship — once the right safeguards are in place.
 
-**Status: partially prototyped, not compliant or licensed yet.** A working multi-catalogue marketplace exists, along with a prototype suitability check before buying, and basic resale listings. None of it has been reviewed by a lawyer or connects to a licensed offering. There's no way to pay with regular currency — everything settles in testnet ETH.
+**Status: partially prototyped, not compliant or licensed yet.** A working multi-catalogue marketplace exists, along with a prototype suitability check before buying, and basic resale listings. None of it has been reviewed by a lawyer or connects to a licensed offering. There's no way to pay with regular currency — everything settles in test USDC on the Sepolia testnet.
 
 ## Phase 3 — Scale
 

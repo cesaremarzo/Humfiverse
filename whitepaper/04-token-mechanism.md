@@ -8,7 +8,7 @@ Technically, every catalogue is one token ID under a single shared contract (a g
 
 ## How a token gets its price
 
-Every catalogue or campaign sets a fixed price per token and a fixed total supply at creation — together, that's the total raise. Buying a catalogue token is direct and immediate: pay the price, get the tokens, in one transaction. Contributing to a pre-production campaign works the same way — the amount you send determines how many tokens you get, delivered in that same transaction, atomically.
+Every catalogue or campaign sets a fixed price per token and a fixed total supply at creation — together, that's the total raise. Prices, payments and fees are all in USDC, a dollar stablecoin, so a $10 token costs exactly ten dollars' worth and every fee is an exact amount to the cent. Buying a catalogue token is direct and immediate: pay the price, get the tokens, in one transaction. Contributing to a pre-production campaign works the same way — the amount you send determines how many tokens you get, delivered in that same transaction, atomically.
 
 Prices don't move automatically as tokens are bought, the way an exchange's price would. That's deliberate — an algorithm that sets a moving market price would cross into running a regulated trading venue (see [Legal & Regulatory Structure](05-legal-structure.md)). Resale between holders, where it exists, works through individually priced listings instead — closer to a classified ad than a stock ticker.
 

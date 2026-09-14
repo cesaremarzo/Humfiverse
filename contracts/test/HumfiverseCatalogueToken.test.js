@@ -2,15 +2,29 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
 describe("HumfiverseCatalogueToken", function () {
+  let usdc;
+
+  // §2.73: payments are in USDC. Every signer gets plenty of MockUSDC and
+  // approves the contracts up front, so each test reads like the ETH version
+  // did; the allowance tests revoke it deliberately.
+  async function fundSigners(spenders) {
+    for (const s of await ethers.getSigners()) {
+      await usdc.mint(s.address, ethers.parseUnits("1000000000", 6));
+      for (const spender of spenders) await usdc.connect(s).approve(spender, ethers.MaxUint256);
+    }
+  }
+
   const MIDNIGHT_STATIC_ID = 1;
   const MIDNIGHT_STATIC_SUPPLY = 4000;
-  const PRICE_PER_TOKEN = ethers.parseEther("0.0025");
+  const PRICE_PER_TOKEN = ethers.parseUnits("0.0025", 6);
 
   async function deployFixture() {
     const [owner, buyer, other] = await ethers.getSigners();
+    usdc = await (await ethers.getContractFactory("MockUSDC")).deploy();
     const Factory = await ethers.getContractFactory("HumfiverseCatalogueToken");
-    const token = await Factory.deploy();
+    const token = await Factory.deploy(await usdc.getAddress());
     await token.waitForDeployment();
+    await fundSigners([await token.getAddress()]);
     return { token, owner, buyer, other };
   }
 
@@ -102,7 +116,7 @@ describe("HumfiverseCatalogueToken", function () {
   it("supports minting and releasing multiple independent catalogues", async function () {
     const { token, buyer } = await deployFixture();
     await token.mintCatalogue(1, "midnight-static", 4000, PRICE_PER_TOKEN, "Test Track", "Test Artist");
-    await token.mintCatalogue(2, "ember-choir", 2500, ethers.parseEther("0.004"), "Ember Choir", "Sasha Wren");
+    await token.mintCatalogue(2, "ember-choir", 2500, ethers.parseUnits("0.004", 6), "Ember Choir", "Sasha Wren");
 
     await token.releaseFromPool(buyer.address, 1, 40);
     await token.releaseFromPool(buyer.address, 2, 12);
@@ -118,35 +132,42 @@ describe("HumfiverseCatalogueToken", function () {
       const { token, owner, buyer } = await deployFixture();
       await token.mintCatalogue(MIDNIGHT_STATIC_ID, "midnight-static", MIDNIGHT_STATIC_SUPPLY, PRICE_PER_TOKEN, "Test Track", "Test Artist");
       const cost = 10n * PRICE_PER_TOKEN;
-      const ownerBalanceBefore = await ethers.provider.getBalance(owner.address);
+      const ownerBalanceBefore = await usdc.balanceOf(owner.address);
 
-      await expect(token.connect(buyer).buy(MIDNIGHT_STATIC_ID, 10, { value: cost }))
+      await expect(token.connect(buyer).buy(MIDNIGHT_STATIC_ID, 10))
         .to.emit(token, "TokensPurchased")
         .withArgs(MIDNIGHT_STATIC_ID, buyer.address, 10, cost);
 
       expect(await token.balanceOf(buyer.address, MIDNIGHT_STATIC_ID)).to.equal(10);
       expect(await token.releasedOf(MIDNIGHT_STATIC_ID)).to.equal(10);
-      expect(await ethers.provider.getBalance(owner.address)).to.equal(ownerBalanceBefore + cost - cost / 50n);
+      expect(await usdc.balanceOf(owner.address)).to.equal(ownerBalanceBefore + cost - cost / 50n);
     });
 
     it("refuses to buy a catalogue with no price set", async function () {
       const { token, buyer } = await deployFixture();
       await token.mintCatalogue(MIDNIGHT_STATIC_ID, "midnight-static", MIDNIGHT_STATIC_SUPPLY, 0, "Test Track", "Test Artist");
       await expect(
-        token.connect(buyer).buy(MIDNIGHT_STATIC_ID, 1, { value: 1 })
+        token.connect(buyer).buy(MIDNIGHT_STATIC_ID, 1)
       ).to.be.revertedWith("HumfiverseCatalogueToken: not for sale");
     });
 
-    it("refuses underpayment or overpayment", async function () {
+    it("refuses a buyer who has not approved enough USDC, and releases nothing", async function () {
       const { token, buyer } = await deployFixture();
       await token.mintCatalogue(MIDNIGHT_STATIC_ID, "midnight-static", MIDNIGHT_STATIC_SUPPLY, PRICE_PER_TOKEN, "Test Track", "Test Artist");
-      const correct = 5n * PRICE_PER_TOKEN;
-      await expect(
-        token.connect(buyer).buy(MIDNIGHT_STATIC_ID, 5, { value: correct - 1n })
-      ).to.be.revertedWith("HumfiverseCatalogueToken: wrong payment");
-      await expect(
-        token.connect(buyer).buy(MIDNIGHT_STATIC_ID, 5, { value: correct + 1n })
-      ).to.be.revertedWith("HumfiverseCatalogueToken: wrong payment");
+      await usdc.connect(buyer).approve(await token.getAddress(), 5n * PRICE_PER_TOKEN - 1n);
+      await expect(token.connect(buyer).buy(MIDNIGHT_STATIC_ID, 5)).to.be.revertedWithCustomError(usdc, "ERC20InsufficientAllowance");
+      expect(await token.balanceOf(buyer.address, MIDNIGHT_STATIC_ID)).to.equal(0);
+      expect(await token.releasedOf(MIDNIGHT_STATIC_ID)).to.equal(0);
+    });
+
+    it("prices are whole USDC base units, so a price in cents is exact", async function () {
+      const { token, owner, buyer } = await deployFixture();
+      const price = ethers.parseUnits("15.37", 6); // $15.37
+      await token.mintCatalogue(MIDNIGHT_STATIC_ID, "midnight-static", MIDNIGHT_STATIC_SUPPLY, price, "Test Track", "Test Artist");
+      const before = await usdc.balanceOf(owner.address);
+      await token.connect(buyer).buy(MIDNIGHT_STATIC_ID, 3); // $46.11, fee $0.9222
+      expect(await token.accruedFees()).to.equal(922_200n);
+      expect(await usdc.balanceOf(owner.address)).to.equal(before + 46_110_000n - 922_200n);
     });
 
     it("refuses to buy more than remains in the pool", async function () {
@@ -154,7 +175,7 @@ describe("HumfiverseCatalogueToken", function () {
       await token.mintCatalogue(MIDNIGHT_STATIC_ID, "midnight-static", 10, PRICE_PER_TOKEN, "Test Track", "Test Artist");
       const cost = 11n * PRICE_PER_TOKEN;
       await expect(
-        token.connect(buyer).buy(MIDNIGHT_STATIC_ID, 11, { value: cost })
+        token.connect(buyer).buy(MIDNIGHT_STATIC_ID, 11)
       ).to.be.revertedWith("HumfiverseCatalogueToken: exceeds supply");
     });
 
@@ -163,10 +184,10 @@ describe("HumfiverseCatalogueToken", function () {
       await token.mintCatalogue(MIDNIGHT_STATIC_ID, "midnight-static", 100, PRICE_PER_TOKEN, "Test Track", "Test Artist");
       await token.releaseFromPool(other.address, MIDNIGHT_STATIC_ID, 60);
       const cost = 40n * PRICE_PER_TOKEN;
-      await expect(token.connect(buyer).buy(MIDNIGHT_STATIC_ID, 41, { value: 41n * PRICE_PER_TOKEN })).to.be.revertedWith(
+      await expect(token.connect(buyer).buy(MIDNIGHT_STATIC_ID, 41)).to.be.revertedWith(
         "HumfiverseCatalogueToken: exceeds supply"
       );
-      await token.connect(buyer).buy(MIDNIGHT_STATIC_ID, 40, { value: cost });
+      await token.connect(buyer).buy(MIDNIGHT_STATIC_ID, 40);
       expect(await token.poolBalance(MIDNIGHT_STATIC_ID)).to.equal(0);
     });
   });
@@ -175,7 +196,7 @@ describe("HumfiverseCatalogueToken", function () {
     it("lets the owner open/close/reprice public sale", async function () {
       const { token, buyer } = await deployFixture();
       await token.mintCatalogue(MIDNIGHT_STATIC_ID, "midnight-static", MIDNIGHT_STATIC_SUPPLY, 0, "Test Track", "Test Artist");
-      await expect(token.connect(buyer).buy(MIDNIGHT_STATIC_ID, 1, { value: 1 })).to.be.revertedWith(
+      await expect(token.connect(buyer).buy(MIDNIGHT_STATIC_ID, 1)).to.be.revertedWith(
         "HumfiverseCatalogueToken: not for sale"
       );
 
@@ -183,7 +204,7 @@ describe("HumfiverseCatalogueToken", function () {
         .to.emit(token, "PriceUpdated")
         .withArgs(MIDNIGHT_STATIC_ID, 0, PRICE_PER_TOKEN);
 
-      await expect(token.connect(buyer).buy(MIDNIGHT_STATIC_ID, 1, { value: PRICE_PER_TOKEN })).to.not.be.reverted;
+      await expect(token.connect(buyer).buy(MIDNIGHT_STATIC_ID, 1)).to.not.be.reverted;
     });
 
     it("only the owner can set price", async function () {
@@ -220,12 +241,12 @@ describe("HumfiverseCatalogueToken", function () {
       const { token, owner, buyer, other } = await deployFixture();
       await token.mintCatalogue(MIDNIGHT_STATIC_ID, "midnight-static", MIDNIGHT_STATIC_SUPPLY, PRICE_PER_TOKEN, "Test Track", "Test Artist");
       await token.setPayoutRecipient(other.address);
-      const otherBalanceBefore = await ethers.provider.getBalance(other.address);
+      const otherBalanceBefore = await usdc.balanceOf(other.address);
 
       const cost = 3n * PRICE_PER_TOKEN;
-      await token.connect(buyer).buy(MIDNIGHT_STATIC_ID, 3, { value: cost });
+      await token.connect(buyer).buy(MIDNIGHT_STATIC_ID, 3);
 
-      expect(await ethers.provider.getBalance(other.address)).to.equal(otherBalanceBefore + cost - cost / 50n);
+      expect(await usdc.balanceOf(other.address)).to.equal(otherBalanceBefore + cost - cost / 50n);
     });
 
     it("only the owner can set the payout recipient", async function () {
@@ -252,21 +273,21 @@ describe("HumfiverseCatalogueToken", function () {
   });
 
   describe("primary purchase fee (§2.72)", function () {
-    const PRICE = ethers.parseEther("0.001");
+    const PRICE = ethers.parseUnits("0.001", 6);
 
     it("deducts 2% from a buy(): the buyer gets every token, the payout recipient 98%, the fee accrues", async function () {
       const { token, owner, buyer } = await deployFixture();
       await token.mintCatalogue(7, "fee-track", 1000, PRICE, "Fee Track", "Artist");
       const cost = PRICE * 100n;
       const fee = cost / 50n;
-      const payoutBefore = await ethers.provider.getBalance(owner.address);
+      const payoutBefore = await usdc.balanceOf(owner.address);
 
-      await expect(token.connect(buyer).buy(7, 100, { value: cost }))
+      await expect(token.connect(buyer).buy(7, 100))
         .to.emit(token, "PrimaryFeeRetained")
         .withArgs(7, buyer.address, fee);
 
       expect(await token.balanceOf(buyer.address, 7)).to.equal(100);
-      expect(await ethers.provider.getBalance(owner.address)).to.equal(payoutBefore + cost - fee);
+      expect(await usdc.balanceOf(owner.address)).to.equal(payoutBefore + cost - fee);
       expect(await token.accruedFees()).to.equal(fee);
       expect(await token.totalFeesCollected()).to.equal(fee);
     });
@@ -281,15 +302,15 @@ describe("HumfiverseCatalogueToken", function () {
     it("sends accrued fees to the fee recipient on withdrawal, whoever calls it, and only the owner can change it", async function () {
       const { token, owner, buyer, other } = await deployFixture();
       await token.mintCatalogue(9, "withdraw-track", 1000, PRICE, "T", "A");
-      await token.connect(buyer).buy(9, 50, { value: PRICE * 50n });
+      await token.connect(buyer).buy(9, 50);
       const fee = (PRICE * 50n) / 50n;
 
       await expect(token.connect(other).setFeeRecipient(other.address)).to.be.revertedWithCustomError(token, "OwnableUnauthorizedAccount");
       await token.connect(owner).setFeeRecipient(other.address);
 
-      const before = await ethers.provider.getBalance(other.address);
+      const before = await usdc.balanceOf(other.address);
       await expect(token.connect(buyer).withdrawFees()).to.emit(token, "FeesWithdrawn").withArgs(other.address, fee);
-      expect(await ethers.provider.getBalance(other.address)).to.equal(before + fee);
+      expect(await usdc.balanceOf(other.address)).to.equal(before + fee);
       expect(await token.accruedFees()).to.equal(0);
       await expect(token.withdrawFees()).to.be.revertedWith("HumfiverseCatalogueToken: no fees to withdraw");
     });

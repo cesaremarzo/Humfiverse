@@ -5,8 +5,11 @@ async function main() {
   console.log("Deploying HumfiverseCatalogueToken with account:", deployer.address);
   console.log("Account balance:", (await hre.ethers.provider.getBalance(deployer.address)).toString());
 
+  // §2.73: every price and payment is in this token. Circle's USDC on Sepolia by default.
+  const paymentToken = process.env.PAYMENT_TOKEN_ADDRESS || "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
+  console.log("Payment token:", paymentToken);
   const Factory = await hre.ethers.getContractFactory("HumfiverseCatalogueToken");
-  const token = await Factory.deploy();
+  const token = await Factory.deploy(paymentToken);
   await token.waitForDeployment();
 
   const address = await token.getAddress();

@@ -110,10 +110,10 @@ export interface SecondaryListing {
   /** Seller's wallet, lowercased. The UI shows "you" on a match. */
   seller: string;
   qty: number;
-  /** Wei per token, as the contract stores it. `buyListing` demands
+  /** USDC base units per token (1e6 = $1), as the contract stores it. `buyListing` demands
    * exactly qty x this, so the raw value travels rather than a rounded
    * dollar figure; the UI converts for display only. */
-  pricePerTokenWei: string;
+  pricePerTokenUsdc: string;
   /** Whether the seller still holds what they are offering. The contract
    * checks the balance at listing time, not continuously, so a listing
    * can outlive the tokens behind it and the purchase would revert. */
@@ -224,9 +224,9 @@ export type OnchainInfo =
       poolBalance: string;
       totalSupply: string;
       released: string;
-      /** Wei per token for the public HumfiverseCatalogueToken.buy() path —
+      /** USDC base units per token for the public HumfiverseCatalogueToken.buy() path —
        * "0" means the catalogue isn't open for real on-chain purchase yet. */
-      priceWei: string;
+      priceUsdc: string;
       /** Title/artist read straight from the contract's own trackTitle()/
        * artistName() view functions (§2.24) — proof this isn't just the
        * off-chain database's copy of the name. */
@@ -255,12 +255,12 @@ export interface EscrowMilestone {
   bps: number;
   payee: 'artist' | 'studio';
   released: boolean;
-  amountWei: string;
+  amountUsdc: string;
   /** §2.71: the platform's 5% of this tranche and what the payee receives.
-   * Absent from a backend older than §2.71; `feeWei` is "0" when the
+   * Absent from a backend older than §2.71; `feeUsdc` is "0" when the
    * configured escrow predates the fee. */
-  feeWei?: string;
-  payoutWei?: string;
+  feeUsdc?: string;
+  payoutUsdc?: string;
   /** Whether the contract would release this tranche once both sides have
    * confirmed — cumulative against everything already released. */
   fundedEnough?: boolean;
@@ -293,11 +293,11 @@ export type EscrowCampaignInfo =
       /** §2.72: the goal less the 2% contribution fee — what a sold-out
        * campaign holds, and what tranches are sized against. Equal to the
        * goal on the legacy escrow. */
-      fundingTargetWei?: string;
+      fundingTargetUsdc?: string;
       /** null on the legacy escrow, which charges no fee. */
       contributionFeeBps?: number | null;
       milestoneFeeBps?: number | null;
-      feesCollectedWei?: string | null;
+      feesCollectedUsdc?: string | null;
       milestones: EscrowMilestone[];
     };
 
@@ -316,7 +316,7 @@ export interface RealHoldingDto {
   assetId: string;
   tokenId: number;
   tokens: number;
-  priceWei: string;
+  priceUsdc: string;
   title: string;
   artist: string;
   poolBalance: string;
@@ -350,8 +350,8 @@ export type FeeContractState =
       contributionFeeBps?: number;
       milestoneFeeBps?: number;
       feeRecipient: string;
-      accruedWei: string;
-      totalCollectedWei: string;
+      accruedUsdc: string;
+      totalCollectedUsdc: string;
     }
   | { status: 'unsupported' | 'unavailable'; reason: string };
 

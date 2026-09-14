@@ -11,6 +11,7 @@
 
 const { ethers } = require("ethers");
 const { withRetry } = require("./chainRetry");
+const { paymentTokenOf, toUsdcFor } = require("./chainUnits");
 
 // Switched from Base Sepolia to real Ethereum Sepolia (§2.35).
 const RPC_URL = process.env.CHAIN_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com";
@@ -18,9 +19,9 @@ const RPC_URL = process.env.CHAIN_RPC_URL || "https://ethereum-sepolia-rpc.publi
 // contribute() can release tokens from that pool atomically — redeployed
 // again in §2.43 alongside the token (an immutable reference, so any token
 // redeploy forces an escrow redeploy too). See chain.js's CONTRACT_ADDRESS.
-// Redeployed in §2.71 with the platform fee, and again with the token in §2.72.
-const ESCROW_ADDRESS = process.env.CHAIN_ESCROW_ADDRESS || "0xf8f9E203bFe05630B56d52d695bb67c146029fa9";
-const ESCROW_DEPLOY_BLOCK = Number(process.env.CHAIN_ESCROW_DEPLOY_BLOCK || 11702231);
+// Redeployed in §2.71 (fee), §2.72 (with the token) and §2.73 (USDC).
+const ESCROW_ADDRESS = process.env.CHAIN_ESCROW_ADDRESS || "0x2f3548EC110373dB3009D11f4cf9C8b7a9A5FB71";
+const ESCROW_DEPLOY_BLOCK = Number(process.env.CHAIN_ESCROW_DEPLOY_BLOCK || 11702459);
 // §2.71: the escrow this one replaced, read-only. A campaign that finished
 // there (Guns: funded, every tranche released) cannot be recreated on the
 // new contract without reading as unfunded and unreleased, so it is left
@@ -45,7 +46,8 @@ const ABI = [
   "function renameStudio(uint256 studioId, string name)",
   "function createCampaign(address artist, uint256 fundingGoal, uint256 studioId, uint256 deadline, string assetId, uint256 tokenId, string[] milestoneNames, uint16[] milestoneBps, uint8[] milestonePayees) returns (uint256)",
   "function campaignTokenId(uint256) view returns (uint256)",
-  "function contribute(uint256 campaignId) payable",
+  "function contribute(uint256 campaignId, uint256 amount)",
+  "function paymentToken() view returns (address)",
   "function confirmMilestoneAsArtist(uint256 campaignId, uint256 milestoneIndex)",
   "function confirmMilestoneAsStudio(uint256 campaignId, uint256 milestoneIndex)",
   "function artistConfirmed(uint256 campaignId, uint256 milestoneIndex) view returns (bool)",
@@ -111,7 +113,8 @@ function getFeeRates(contract = readContract) {
  * accumulated by this server. Null when the contract has no fee. */
 async function getFeeState() {
   const rates = await getFeeRates();
-  if (rates === null) return null;
+  // ETH-era escrows report fees in wei; only a USDC escrow's are reportable.
+  if (rates === null || !(await paymentTokenOf(readContract))) return null;
   const [recipient, accrued, total] = await Promise.all([
     withRetry(() => readContract.feeRecipient()),
     withRetry(() => readContract.accruedFees()),
@@ -123,8 +126,8 @@ async function getFeeState() {
     contributionFeeBps: rates.contributionBps,
     milestoneFeeBps: rates.milestoneBps,
     feeRecipient: recipient,
-    accruedWei: accrued.toString(),
-    totalCollectedWei: total.toString()
+    accruedUsdc: accrued.toString(),
+    totalCollectedUsdc: total.toString()
   };
 }
 
@@ -144,7 +147,7 @@ async function getContributionFromTx(txHash) {
   return {
     campaignId: Number(parsed.args.campaignId),
     contributor: parsed.args.contributor,
-    amountWei: parsed.args.amount.toString()
+    amountUsdc: parsed.args.amount.toString()
   };
 }
 
@@ -167,10 +170,10 @@ async function renameStudioOnchain(studioId, name) {
   return { txHash: receipt.hash };
 }
 
-async function createCampaignOnchain(artist, fundingGoalWei, studioId, deadline, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees) {
+async function createCampaignOnchain(artist, fundingGoalUsdc, studioId, deadline, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees) {
   if (!writeContract) throw new Error("escrow admin actions are disabled (no operator key configured)");
   const tx = await withRetry(() =>
-    writeContract.createCampaign(artist, fundingGoalWei, studioId, deadline, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees)
+    writeContract.createCampaign(artist, fundingGoalUsdc, studioId, deadline, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees)
   );
   const receipt = await tx.wait();
   const parsed = receipt.logs.map((l) => { try { return readContract.interface.parseLog(l); } catch { return null; } }).find((e) => e && e.name === "CampaignCreated");
@@ -188,7 +191,7 @@ async function createCampaignOnchain(artist, fundingGoalWei, studioId, deadline,
 
 async function getCampaignInfo(campaignId, contract = readContract) {
   const address = contract.target;
-  const [c, milestones, rates] = await Promise.all([contract.campaigns(campaignId), contract.getMilestones(campaignId), getFeeRates(contract)]);
+  const [c, milestones, rates, toUsdc] = await Promise.all([contract.campaigns(campaignId), contract.getMilestones(campaignId), getFeeRates(contract), toUsdcFor(contract)]);
   const [campaignFees, target] =
     rates === null
       ? [null, c.fundingGoal]
@@ -215,9 +218,9 @@ async function getCampaignInfo(campaignId, contract = readContract) {
       bps: Number(m.bps),
       payee: Number(m.payee) === 1 ? "studio" : "artist",
       released: m.released,
-      amountWei: amount.toString(),
-      feeWei: fee.toString(),
-      payoutWei: (amount - fee).toString(),
+      amountUsdc: toUsdc(amount).toString(),
+      feeUsdc: toUsdc(fee).toString(),
+      payoutUsdc: toUsdc(amount - fee).toString(),
       fundedEnough: m.released || c.raised >= needed,
       // §2.27: what's still needed for release, not something Humfiverse can do.
       artistConfirmed: await contract.artistConfirmed(campaignId, i),
@@ -235,15 +238,17 @@ async function getCampaignInfo(campaignId, contract = readContract) {
     artist: c.artist,
     studioId: Number(c.studioId),
     studio,
-    fundingGoal: c.fundingGoal.toString(),
-    fundingTargetWei: target.toString(),
-    raised: c.raised.toString(),
+    // §2.73: every amount in USDC base units, converted from wei on the
+    // ETH-era legacy escrow.
+    fundingGoal: toUsdc(c.fundingGoal).toString(),
+    fundingTargetUsdc: toUsdc(target).toString(),
+    raised: toUsdc(c.raised).toString(),
     deadline: Number(c.deadline),
     status: Number(c.status) === 0 ? "active" : "cancelled",
     releasedBps: Number(c.releasedBps),
     contributionFeeBps: rates?.contributionBps ?? null,
     milestoneFeeBps: rates?.milestoneBps ?? null,
-    feesCollectedWei: campaignFees === null ? null : campaignFees.toString(),
+    feesCollectedUsdc: campaignFees === null ? null : toUsdc(campaignFees).toString(),
     milestones: milestonesWithConfirmations
   };
 }
