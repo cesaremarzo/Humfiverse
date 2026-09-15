@@ -27,7 +27,7 @@
           <div class="stat-row" style="margin:10px 0;">
             <div class="card stat-tile"><div class="label">To withdraw</div><div class="value">{{ fmt(usdcToUsd(row.state.accruedUsdc)) }}</div></div>
             <div class="card stat-tile"><div class="label">Collected, all time</div><div class="value">{{ fmt(usdcToUsd(row.state.totalCollectedUsdc)) }}</div></div>
-            <div class="card stat-tile"><div class="label">Recipient</div><div class="value mono" style="font-size:14px;">{{ wallet.truncateAddr(row.state.feeRecipient) }}</div></div>
+            <div class="card stat-tile"><div class="label">Recipient</div><div class="value mono" style="font-size:14px;">{{ walletLabel(row.state.feeRecipient) }}</div></div>
           </div>
           <button class="btn btn-secondary btn-sm"
                   [disabled]="row.state.accruedUsdc === '0' || !wallet.state().address || withdrawing() !== null"
@@ -75,8 +75,8 @@
       <div>
         <div class="cell-primary">{{ c.assetId }}</div>
         <div style="font-size:12px; color:var(--text-secondary);">
-          Campaign #{{ c.campaignId }} · Artist {{ wallet.truncateAddr(c.artist) }}
-          @if (c.studio) { · Studio "{{ c.studio.name }}" ({{ wallet.truncateAddr(c.studio.wallet) }}) }
+          Campaign #{{ c.campaignId }} · Artist {{ walletLabel(c.artist) }}
+          @if (c.studio) { · Studio "{{ c.studio.name }}" ({{ walletLabel(c.studio.wallet) }}) }
         </div>
       </div>
       <span class="chip" [class.chip-good]="c.status === 'active'" [class.chip-neutral]="c.status === 'cancelled'">{{ c.status }}</span>
@@ -105,7 +105,7 @@
         }
         @if (!isOwner()(c.contractAddress)) {
           <span style="font-size:12px; color:var(--text-secondary);">
-            Owner only{{ owners()[c.contractAddress.toLowerCase()] ? ': connect ' + wallet.truncateAddr(owners()[c.contractAddress.toLowerCase()]) : '' }}.
+            Owner only{{ owners()[c.contractAddress.toLowerCase()] ? ': connect ' + walletLabel(owners()[c.contractAddress.toLowerCase()]) : '' }}.
           </span>
         } @else {
           <span style="font-size:12px; color:var(--text-secondary);">Stops contributions and opens refunds of what has not been released. Contribution fees are not refunded.</span>

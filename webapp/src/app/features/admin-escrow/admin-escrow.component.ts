@@ -4,6 +4,7 @@ import { WalletService } from '../../core/wallet.service';
 import { EscrowCampaignInfo, EscrowMilestone, FeeContractState, FeeSummary } from '../../core/models';
 import { fmtUSD } from '../../core/format.util';
 import { usdcToUsd } from '../../core/usdc.util';
+import { knownWalletName } from '../../core/known-wallets';
 
 type CampaignRow = EscrowCampaignInfo & { assetId: string };
 type LoadedCampaignRow = Extract<CampaignRow, { escrow: true }>;
@@ -50,6 +51,14 @@ export class AdminEscrowComponent {
   fmt = fmtUSD;
   usdcToUsd = usdcToUsd;
   bigUsd = (units: bigint) => fmtUSD(usdcToUsd(units));
+
+  /** "Founder (0x142F…BfC6)" for the platform's own wallets, the bare
+   * truncated address for anyone else. */
+  walletLabel(address: string | null | undefined): string {
+    if (!address) return '';
+    const name = knownWalletName(address);
+    return name ? `${name} (${this.wallet.truncateAddr(address)})` : this.wallet.truncateAddr(address);
+  }
 
   isOwner = computed(() => {
     const me = this.wallet.state().address?.toLowerCase();
