@@ -13,8 +13,10 @@ export function coverBackground(seed: string, kind: string): string {
   for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) % 360;
   const h1 = h;
   const h2 = (h + (kind === 'preproduction' ? 46 : 28)) % 360;
-  const s1 = kind === 'preproduction' ? 62 : 48;
-  const l1 = kind === 'preproduction' ? 42 : 38;
+  // Muted on purpose: rich but not neon, so a grid of covers reads as a
+  // catalogue rather than a set of stickers.
+  const s1 = kind === 'preproduction' ? 44 : 36;
+  const l1 = kind === 'preproduction' ? 38 : 34;
   return `radial-gradient(120% 140% at 15% 15%, hsl(${h1} ${s1}% ${l1 + 10}%) 0%, transparent 60%),
     radial-gradient(140% 160% at 90% 95%, hsl(${h2} ${s1 - 8}% ${l1}%) 0%, transparent 65%),
     linear-gradient(135deg, hsl(${h1} ${s1 - 10}% ${l1 - 6}%), hsl(${h2} ${s1 - 6}% ${l1 - 14}%))`;
