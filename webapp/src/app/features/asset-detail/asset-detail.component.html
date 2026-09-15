@@ -84,7 +84,7 @@
 
           @if (isPre(a)) {
             <div class="card panel">
-              <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:15px; margin-bottom:10px;">{{ 'detail.milestoneSnapshot' | translate }}</h3>
+              <h3 class="panel-title" style="margin-bottom:10px;">{{ 'detail.milestoneSnapshot' | translate }}</h3>
               <app-milestone-track [milestones]="liveMilestones(a)"></app-milestone-track>
             </div>
           } @else {
@@ -105,7 +105,7 @@
           @if (onchainInfo()?.onchain) {
             <div class="card panel">
               <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
-                <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:15px;">{{ 'detail.onchainTitle' | translate }}</h3>
+                <h3 class="panel-title">{{ 'detail.onchainTitle' | translate }}</h3>
                 <span class="chip chip-accent">{{ 'detail.onchainNetwork' | translate }}</span>
               </div>
               <div class="stat-row" style="margin-top:14px;">
@@ -139,7 +139,7 @@
           @if (escrowInfo()?.escrow) {
             <div class="card panel">
               <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
-                <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:15px;">{{ isPre(a) ? ('detail.escrowTitle' | translate) : ('detail.extraCampaignTitle' | translate) }}</h3>
+                <h3 class="panel-title">{{ isPre(a) ? ('detail.escrowTitle' | translate) : ('detail.extraCampaignTitle' | translate) }}</h3>
                 <span class="chip chip-accent">{{ 'detail.onchainNetwork' | translate }}</span>
               </div>
               <p class="prose" style="font-size:12.5px; margin-top:8px;">{{ 'detail.escrowExplainer' | translate }}</p>
@@ -171,7 +171,7 @@
 
           <div class="card panel">
             <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
-              <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:15px;">{{ 'detail.resaleTitle' | translate }}</h3>
+              <h3 class="panel-title">{{ 'detail.resaleTitle' | translate }}</h3>
               @if (marketPrice(); as mp) {
                 <span class="chip chip-accent">{{ 'detail.resaleFrom' | translate: { price: fmt(mp) } }}</span>
               }
@@ -246,7 +246,7 @@
           }
 
           <div class="card panel">
-            <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:15px; margin-bottom:6px;">{{ 'detail.royaltyReportTitle' | translate }}</h3>
+            <h3 class="panel-title" style="margin-bottom:6px;">{{ 'detail.royaltyReportTitle' | translate }}</h3>
             <p class="prose" style="font-size:12.5px; margin-bottom:14px;">{{ 'detail.royaltyReportIntro' | translate }}</p>
 
             @if (!wallet.state().address) {
@@ -304,12 +304,12 @@
 
         @if (tab() === 'milestones' && isPre(a)) {
           <div class="card panel">
-            <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:15px; margin-bottom:14px;">{{ 'detail.milestoneGatedEscrow' | translate }}</h3>
+            <h3 class="panel-title" style="margin-bottom:14px;">{{ 'detail.milestoneGatedEscrow' | translate }}</h3>
             <app-milestone-track [milestones]="liveMilestones(a)"></app-milestone-track>
             <div class="prose" style="margin-top:16px;">{{ 'detail.escrowProse' | translate }}</div>
           </div>
           <div class="card panel">
-            <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:15px; margin-bottom:12px;">{{ 'detail.governance' | translate }}</h3>
+            <h3 class="panel-title" style="margin-bottom:12px;">{{ 'detail.governance' | translate }}</h3>
             <div class="prose" [innerHTML]="'detail.governanceProse' | translate"></div>
           </div>
         }
@@ -438,7 +438,7 @@
     <div class="modal-scrim" (click)="$event.target === $event.currentTarget && closeModal()">
       <div class="modal">
         <div class="success-icon"><app-icon name="check"></app-icon></div>
-        <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:18px;">{{ (a.kind === 'preproduction' ? 'success.contributionConfirmed' : 'success.purchaseConfirmed') | translate }}</h3>
+        <h3 class="panel-title panel-title-lg">{{ (a.kind === 'preproduction' ? 'success.contributionConfirmed' : 'success.purchaseConfirmed') | translate }}</h3>
         <p style="font-size:13.5px; color:var(--text-secondary);"
            [innerHTML]="'success.body' | translate: { qty: s.qty + ' ' + (successQtyKey() | translate), title: a.title, total: fmt(s.total) }">
         </p>
@@ -468,7 +468,7 @@
   @if (sellOpen()) {
     <div class="modal-scrim" (click)="$event.target === $event.currentTarget && closeSell()">
       <div class="modal">
-        <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:18px;">{{ 'portfolio.sellModalTitle' | translate }}</h3>
+        <h3 class="panel-title panel-title-lg">{{ 'portfolio.sellModalTitle' | translate }}</h3>
         <p style="font-size:13px; color:var(--text-secondary);">{{ a.title }}</p>
         <div style="display:flex; gap:10px; margin-top:8px;">
           <label style="display:flex; flex-direction:column; gap:6px; text-align:left; flex:1;">
@@ -503,7 +503,7 @@
     <div class="modal-scrim" (click)="$event.target === $event.currentTarget && closeSellResult()">
       <div class="modal" style="text-align:center;">
         <div class="success-badge"><app-icon name="checkCircle"></app-icon></div>
-        <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:18px;">{{ 'portfolio.sellResultTitle' | translate }}</h3>
+        <h3 class="panel-title panel-title-lg">{{ 'portfolio.sellResultTitle' | translate }}</h3>
         <p style="font-size:13.5px; color:var(--text-secondary);">{{ 'detail.resaleListedBody' | translate: { qty: sr.qty, price: fmt(sr.price), title: a.title } }}</p>
         <button class="btn btn-secondary btn-block" style="margin-top:14px;" (click)="closeSellResult()">{{ 'success.keepBrowsing' | translate }}</button>
       </div>
@@ -514,7 +514,7 @@
     <div class="modal-scrim" (click)="$event.target === $event.currentTarget && closeResaleResult()">
       <div class="modal">
         <div class="success-icon"><app-icon name="check"></app-icon></div>
-        <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:18px;">{{ 'detail.resaleSuccessTitle' | translate }}</h3>
+        <h3 class="panel-title panel-title-lg">{{ 'detail.resaleSuccessTitle' | translate }}</h3>
         <p style="font-size:13.5px; color:var(--text-secondary);" [innerHTML]="'detail.resaleSuccessBody' | translate: { received: r.received, title: a.title, paid: fmt(r.paid), fee: r.fee }"></p>
         <div style="display:flex; gap:10px;">
           <button class="btn btn-secondary btn-block" (click)="closeResaleResult()">{{ 'success.keepBrowsing' | translate }}</button>

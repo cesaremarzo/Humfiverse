@@ -1,290 +1,358 @@
 .landing-page {
   position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Minimal top bar: language + wallet only, nothing else */
+/* Minimal top bar: brand, language and wallet only */
 .landing-topbar {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;
   z-index: 20;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-  padding: 16px 24px;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px clamp(16px, 4vw, 40px);
 }
 
+.landing-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  min-width: 0;
+}
+
+.landing-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* ---------- First screen ---------- */
 .landing-stage {
   position: relative;
   isolation: isolate;
   overflow: hidden;
   min-height: 100vh;
+  min-height: 100svh;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 96px clamp(16px, 4vw, 40px) 88px;
+  background:
+    radial-gradient(60% 55% at 50% 42%, var(--bg-glow), transparent 70%),
+    radial-gradient(40% 35% at 50% 100%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 70%);
 }
 
-/* Opaque background logo, filling the stage behind everything */
-.landing-bg-logo {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: min(140vw, 1600px);
-  height: auto;
-  opacity: 0.1;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Sinuous dashed line linking the two choice buttons */
-.landing-arrow {
+/* Fine vertical rules fading out toward the edges: a quiet "score paper" texture */
+.landing-grid-lines {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
+  z-index: -1;
   pointer-events: none;
+  background-image: linear-gradient(90deg, var(--hairline) 1px, transparent 1px);
+  background-size: 88px 100%;
+  background-position: center;
+  mask-image: radial-gradient(55% 60% at 50% 45%, #000 10%, transparent 75%);
+  -webkit-mask-image: radial-gradient(55% 60% at 50% 45%, #000 10%, transparent 75%);
+  opacity: 0.9;
 }
 
-.landing-arrow-line {
-  fill: none;
-  stroke: var(--accent-ink);
-  stroke-width: 0.45;
-  stroke-dasharray: 2.4 2.4;
-  opacity: 0.55;
-  vector-effect: non-scaling-stroke;
-}
-
-/* Financing/music icons riding the curve — plain HTML-positioned (not
- * inside the non-uniformly-scaled .landing-arrow svg) so they stay perfect
- * circles/squares at any viewport aspect ratio, never stretched ovals. */
-.landing-path-icon {
-  position: absolute;
-  z-index: 1;
-  width: clamp(30px, 3.4vw, 42px);
-  height: clamp(30px, 3.4vw, 42px);
-  transform: translate(-50%, -50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--bg) 55%, transparent);
-  backdrop-filter: blur(3px);
-  box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 20%, transparent);
-  animation: landing-icon-float 5s ease-in-out infinite;
-}
-
-.landing-path-icon--note {
-  animation-delay: -2.5s;
-}
-
-.landing-path-icon svg {
-  width: 62%;
-  height: 62%;
-  color: var(--accent-ink);
-  filter: drop-shadow(0 1px 1px color-mix(in srgb, var(--accent) 30%, transparent));
-}
-
-@keyframes landing-icon-float {
-  0%, 100% { transform: translate(-50%, -50%) translateY(0); }
-  50% { transform: translate(-50%, -50%) translateY(-6px); }
-}
-
-.landing-tagline {
-  position: relative;
-  z-index: 2;
+.landing-hero {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 18px;
-  max-width: 22ch;
-  padding: 28px 32px;
-  border-radius: 20px;
-  background: color-mix(in srgb, var(--bg) 72%, transparent);
-  backdrop-filter: blur(2px);
+  max-width: 980px;
+  animation: landing-rise 0.9s var(--ease) both;
 }
 
-.landing-tagline h1 {
-  font-size: clamp(13px, 1.4vw, 15px);
-  font-weight: 700;
-  letter-spacing: 0.14em;
+.landing-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.32em;
   text-transform: uppercase;
   color: var(--text-secondary);
+  margin-bottom: 28px;
+  padding-left: 0.32em; /* optically recentre the tracked-out word */
 }
 
-.landing-tagline p {
-  font-size: clamp(38px, 6.4vw, 68px);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.12;
+.landing-eyebrow::before,
+.landing-eyebrow::after {
+  content: "";
+  width: 36px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.45;
+}
+
+.landing-tagline {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-optical-sizing: auto;
+  font-size: clamp(44px, 7.4vw, 96px);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
   color: var(--text);
+  text-wrap: balance;
+  max-width: 14ch;
   margin: 0;
 }
 
-.landing-corner-btn {
+/* The brand mark, alive: nine bars breathing like a level meter */
+.landing-eq {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  height: 56px;
+  margin: 44px 0 48px;
+}
+
+.landing-eq span {
+  width: 5px;
+  height: calc(var(--h) * 100%);
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--accent-ink), var(--accent));
+  transform-origin: center;
+  animation: landing-eq 2.4s var(--ease) infinite alternate;
+}
+
+@keyframes landing-eq {
+  from { transform: scaleY(0.55); opacity: 0.7; }
+  to { transform: scaleY(1); opacity: 1; }
+}
+
+@keyframes landing-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+.landing-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+}
+
+.landing-choice {
+  min-width: 230px;
+  padding: 16px 28px;
+  font-size: 16px;
+  border-radius: 12px;
+  gap: 12px;
+}
+
+.landing-choice app-icon {
+  transition: transform 0.25s var(--ease);
+}
+
+.landing-choice:hover app-icon {
+  transform: translateX(3px);
+}
+
+.landing-scroll {
   position: absolute;
-  z-index: 3;
-  padding: 26px 46px;
-  font-size: 21px;
-  font-weight: 700;
-  border-radius: 18px;
-  box-shadow: 0 10px 32px color-mix(in srgb, var(--accent) 32%, transparent);
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  width: 22px;
+  height: 36px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  display: flex;
+  justify-content: center;
+  padding-top: 7px;
 }
 
-.landing-corner-btn--artist {
-  top: 17%;
-  left: 13%;
+.landing-scroll span {
+  width: 2px;
+  height: 7px;
+  border-radius: 2px;
+  background: var(--text-muted);
+  animation: landing-scroll 2s var(--ease) infinite;
 }
 
-.landing-corner-btn--investor {
-  bottom: 17%;
-  right: 13%;
+@keyframes landing-scroll {
+  0% { transform: translateY(0); opacity: 1; }
+  70% { transform: translateY(12px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 0; }
 }
 
-/* Second screen: the two choices, side by side and equally weighted.
- * Static and fully visible once scrolled into view — the only thing that
- * changes on interaction is the hover "illuminate" highlight below. */
+/* ---------- Second screen: the two paths, equally weighted ---------- */
 .landing-panels {
   position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 28px;
+  gap: 24px;
   align-items: stretch;
+  width: 100%;
   max-width: 1160px;
   margin: 0 auto;
-  padding: 100px 24px 120px;
+  padding: 72px clamp(16px, 4vw, 40px) 112px;
 }
 
 .landing-panel {
   position: relative;
   isolation: isolate;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 44px 40px;
-  border-radius: 24px;
+  padding: 40px;
+  border-radius: 20px;
   background: var(--surface);
   border: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
-  transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.25s ease, background 0.25s ease;
+  box-shadow: var(--shadow-sm), var(--inset-highlight);
+  transition: box-shadow 0.35s var(--ease), border-color 0.35s var(--ease), transform 0.35s var(--ease);
+}
+
+.landing-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  z-index: -1;
+  background: linear-gradient(90deg, transparent, var(--accent-ink), transparent);
+  opacity: 0;
+  transition: opacity 0.35s var(--ease);
 }
 
 .landing-panel:hover {
-  border-color: var(--accent-ink);
-  box-shadow: 0 24px 64px color-mix(in srgb, var(--accent) 32%, transparent);
-  transform: translateY(-4px);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-lg), var(--inset-highlight);
+  transform: translateY(-3px);
 }
 
-.landing-panel--artist:hover {
-  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+.landing-panel:hover::before {
+  opacity: 0.8;
 }
 
-.landing-panel--investor:hover {
-  background: color-mix(in srgb, var(--accent-ink) 6%, var(--surface));
+.landing-panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.landing-panel-head .page-kicker {
+  margin-bottom: 0;
+}
+
+.landing-panel-index {
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
 }
 
 .landing-panel h2 {
-  font-size: clamp(24px, 2.4vw, 32px);
-  letter-spacing: -0.01em;
+  font-size: clamp(28px, 2.8vw, 36px);
+  line-height: 1.1;
+  margin-top: 6px;
 }
 
 .landing-panel p {
   font-size: 15.5px;
   color: var(--text-secondary);
-  line-height: 1.6;
+  line-height: 1.65;
 }
 
 .landing-panel-points {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0;
   list-style: none;
   padding: 0;
-  margin: 4px 0;
+  margin: 8px 0 4px;
   flex: 1;
 }
 
 .landing-panel-points li {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  gap: 12px;
   font-size: 14.5px;
+  padding: 11px 0;
+  border-top: 1px solid var(--hairline);
+}
+
+.landing-panel-points li:last-child {
+  border-bottom: 1px solid var(--hairline);
 }
 
 .landing-panel-points li .icon-inline {
-  color: var(--good);
+  color: var(--accent-ink);
   flex: none;
   margin-top: 2px;
 }
 
 .landing-panel .btn {
   align-self: flex-start;
-  margin-top: 8px;
+  margin-top: 12px;
 }
 
 @media (max-width: 860px) {
   .landing-panels {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 560px) {
   .landing-topbar {
     padding: 12px 16px;
   }
 
-  .landing-stage {
-    flex-direction: column;
-    min-height: 100vh;
-    padding: 32px 16px;
-  }
-
-  .landing-arrow,
-  .landing-path-icon {
+  .landing-brand .brand-name {
     display: none;
   }
 
-  .landing-bg-logo {
-    width: 220vw;
-    opacity: 0.08;
+  .landing-topbar .lang-select select {
+    max-width: 110px;
   }
 
-  .landing-tagline {
-    order: 1;
-    background: none;
-    backdrop-filter: none;
-    padding: 0;
-    max-width: 16ch;
+  .landing-connect span {
+    display: none;
   }
 
-  .landing-corner-btn {
-    position: static;
+  .landing-stage {
+    padding: 88px 16px 96px;
+  }
+
+  .landing-eyebrow {
+    margin-bottom: 20px;
+  }
+
+  .landing-eq {
+    margin: 32px 0 36px;
+  }
+
+  .landing-buttons {
+    flex-direction: column;
+    align-items: stretch;
     width: 100%;
     max-width: 340px;
-    padding: 20px 32px;
-    font-size: 18px;
   }
 
-  .landing-stage > div.landing-buttons {
-    position: relative;
-    z-index: 3;
-    order: 2;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-    margin-top: 28px;
+  .landing-choice {
+    min-width: 0;
+    width: 100%;
   }
 
   .landing-panels {
-    padding: 56px 16px 72px;
+    padding: 48px 16px 72px;
   }
 
   .landing-panel {
-    padding: 32px 24px;
+    padding: 28px 22px;
   }
 }

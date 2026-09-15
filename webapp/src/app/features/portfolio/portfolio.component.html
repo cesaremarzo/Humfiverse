@@ -6,7 +6,7 @@
   <div class="card panel" style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:14px; padding:44px 24px;">
     <div style="width:44px; height:44px; border-radius:12px; background:var(--accent-soft); color:var(--accent-ink); display:flex; align-items:center; justify-content:center;"><app-icon name="wallet"></app-icon></div>
     <div>
-      <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:17px; margin-bottom:6px;">{{ 'redeem.connectPrompt' | translate }}</h3>
+      <h3 class="panel-title panel-title-lg" style="margin-bottom:6px;">{{ 'redeem.connectPrompt' | translate }}</h3>
       <p class="prose" style="max-width:46ch; margin:0 auto;">{{ (wallet.embeddedEnabled ? 'redeem.connectBodySocial' : 'redeem.connectBody') | translate }}</p>
     </div>
     <button class="btn btn-primary btn-lg" [disabled]="wallet.state().connecting" (click)="connect()">
@@ -55,7 +55,7 @@
 
   @if (refunds().length) {
     <div class="card" style="margin-bottom:24px; padding:20px;">
-      <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:17px; margin-bottom:6px;">{{ 'portfolio.refundsTitle' | translate }}</h3>
+      <h3 class="panel-title panel-title-lg" style="margin-bottom:6px;">{{ 'portfolio.refundsTitle' | translate }}</h3>
       <p style="font-size:12.5px; color:var(--text-secondary); margin:0 0 12px;">{{ 'portfolio.refundsIntro' | translate }}</p>
       <div class="table-wrap">
         <table class="table-stack">
@@ -150,7 +150,7 @@
 
       @if (myListings().length) {
         <div class="page-head" style="margin-bottom:14px;">
-          <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:17px;">{{ 'portfolio.myListings' | translate }}</h3>
+          <h3 class="panel-title panel-title-lg">{{ 'portfolio.myListings' | translate }}</h3>
         </div>
         <div class="card" style="margin-bottom:24px;">
           <div class="table-wrap">
@@ -179,7 +179,7 @@
 @if (sellDraft(); as d) {
   <div class="modal-scrim" (click)="$event.target === $event.currentTarget && closeSellDraft()">
     <div class="modal">
-      <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:18px;">{{ 'portfolio.sellModalTitle' | translate }}</h3>
+      <h3 class="panel-title panel-title-lg">{{ 'portfolio.sellModalTitle' | translate }}</h3>
       <p style="font-size:13px; color:var(--text-secondary);">{{ d.assetId }}</p>
 
       <div style="display:flex; gap:10px; margin-top:8px;">
@@ -218,7 +218,7 @@
   <div class="modal-scrim" (click)="$event.target === $event.currentTarget && closeSellResult()">
     <div class="modal">
       <div class="success-icon"><app-icon name="check"></app-icon></div>
-      <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:18px;">{{ 'portfolio.sellSuccessTitle' | translate }}</h3>
+      <h3 class="panel-title panel-title-lg">{{ 'portfolio.sellSuccessTitle' | translate }}</h3>
       <p style="font-size:13.5px; color:var(--text-secondary);" [innerHTML]="'portfolio.sellSuccessBody' | translate: { qty: r.qty, title: r.assetId, price: fmt(r.price) }"></p>
       <button class="btn btn-primary btn-block" (click)="closeSellResult()">{{ 'redeem.done' | translate }}</button>
     </div>

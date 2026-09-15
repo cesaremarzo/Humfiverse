@@ -1,62 +1,52 @@
-<div style="position:relative; isolation:isolate; overflow:hidden;">
-  <svg
-    width="1400" height="1400" viewBox="0 0 120 120"
-    style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); opacity:0.16; pointer-events:none; z-index:0;"
-    aria-hidden="true">
-    <line x1="16" y1="55" x2="16" y2="65" stroke="var(--accent)" stroke-width="6.5" stroke-linecap="round" opacity="0.4"/>
-    <line x1="27" y1="44.7" x2="27" y2="75.3" stroke="var(--accent)" stroke-width="6.5" stroke-linecap="round" opacity="0.6"/>
-    <line x1="38" y1="35.9" x2="38" y2="84.1" stroke="var(--accent)" stroke-width="6.5" stroke-linecap="round" opacity="0.8"/>
-    <line x1="49" y1="30.1" x2="49" y2="90.0" stroke="var(--accent)" stroke-width="6.5" stroke-linecap="round" opacity="0.95"/>
-    <line x1="60" y1="28" x2="60" y2="92" stroke="var(--accent)" stroke-width="6.5" stroke-linecap="round"/>
-    <line x1="71" y1="30.1" x2="71" y2="90.0" stroke="var(--accent)" stroke-width="6.5" stroke-linecap="round" opacity="0.95"/>
-    <line x1="82" y1="35.9" x2="82" y2="84.1" stroke="var(--accent)" stroke-width="6.5" stroke-linecap="round" opacity="0.8"/>
-    <line x1="93" y1="44.7" x2="93" y2="75.3" stroke="var(--accent)" stroke-width="6.5" stroke-linecap="round" opacity="0.6"/>
-    <line x1="104" y1="55" x2="104" y2="65" stroke="var(--accent)" stroke-width="6.5" stroke-linecap="round" opacity="0.4"/>
-  </svg>
-
-  <div style="position:relative; z-index:1;">
-  <div class="hero-split">
-  <div>
+<section class="hero-split">
+  <div class="hero-copy">
     <span class="page-kicker">{{ 'forArtists.kicker' | translate }}</span>
     <h1>{{ 'forArtists.title' | translate }}</h1>
-    <p class="page-sub" style="margin-top:14px; font-size:15px;">{{ 'forArtists.subtitle' | translate }}</p>
-    <div style="display:flex; gap:12px; margin-top:22px; flex-wrap:wrap;">
+    <p class="page-sub">{{ 'forArtists.subtitle' | translate }}</p>
+    <div class="hero-actions">
       <a class="btn btn-primary btn-lg" routerLink="/artist/onboarding"><app-icon name="sparkles"></app-icon> {{ 'forArtists.startCampaign' | translate }}</a>
       <a class="btn btn-secondary btn-lg" routerLink="/artist/dashboard">{{ 'forArtists.viewCampaigns' | translate }}</a>
     </div>
   </div>
-  <div class="mock-illustration" [style.background]="heroBg" style="display:flex; align-items:center; justify-content:center; position:relative;">
-    <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;opacity:.5;mix-blend-mode:overlay;">
-      <circle cx="78" cy="24" r="34" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="10"/>
-      <circle cx="78" cy="24" r="20" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="6"/>
-    </svg>
-    <div style="color:rgba(255,255,255,.92); text-align:center;"><app-icon name="disc"></app-icon></div>
+
+  <!-- Decorative only: the brand waveform over a milestone track, i.e. a
+       track being funded tranche by tranche. No data, no text. -->
+  <div class="hero-visual" aria-hidden="true">
+    <div class="hero-visual-rings"></div>
+    <div class="hero-eq">
+      @for (h of eqBars; track $index) {
+        <span [style.--h]="h" [style.animation-delay.ms]="$index * -140"></span>
+      }
+    </div>
+    <div class="hero-visual-track">
+      <span class="done"></span><span class="done"></span><span class="active"></span><span></span>
+    </div>
   </div>
-</div>
+</section>
 
 <div class="feature-grid">
   <div class="card feature-card">
-    <div class="icon"><app-icon name="shield"></app-icon></div>
+    <div class="feature-head"><div class="icon"><app-icon name="shield"></app-icon></div><span class="feature-index mono">01</span></div>
     <h4>{{ 'forArtists.feature1Title' | translate }}</h4>
     <p>{{ 'forArtists.feature1Body' | translate }}</p>
-    <p style="font-size:12.5px; color:var(--text-secondary);">{{ 'escrow.platformFeeNote' | translate }}</p>
+    <p class="feature-note">{{ 'escrow.platformFeeNote' | translate }}</p>
   </div>
   <div class="card feature-card">
-    <div class="icon"><app-icon name="sparkles"></app-icon></div>
+    <div class="feature-head"><div class="icon"><app-icon name="sparkles"></app-icon></div><span class="feature-index mono">02</span></div>
     <h4>{{ 'forArtists.feature2Title' | translate }}</h4>
     <p>{{ 'forArtists.feature2Body' | translate }}</p>
   </div>
   <div class="card feature-card">
-    <div class="icon"><app-icon name="scale"></app-icon></div>
+    <div class="feature-head"><div class="icon"><app-icon name="scale"></app-icon></div><span class="feature-index mono">03</span></div>
     <h4>{{ 'forArtists.feature3Title' | translate }}</h4>
     <p>{{ 'forArtists.feature3Body' | translate }}</p>
   </div>
 </div>
 
 @if (myCampaigns().length) {
-  <div class="page-head" style="margin-top:40px; margin-bottom:14px;">
-    <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:17px;">{{ 'forArtists.yourCampaigns' | translate }}</h3>
-    <a routerLink="/artist/dashboard" style="font-size:13px;">{{ 'forArtists.viewAll' | translate }} <app-icon name="arrowRight"></app-icon></a>
+  <div class="page-head" style="margin-top:48px; margin-bottom:16px;">
+    <h3 style="font-size:24px;">{{ 'forArtists.yourCampaigns' | translate }}</h3>
+    <a routerLink="/artist/dashboard" style="font-size:13px; display:inline-flex; align-items:center; gap:6px;">{{ 'forArtists.viewAll' | translate }} <app-icon name="arrowRight"></app-icon></a>
   </div>
   <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));">
     @for (c of myCampaigns().slice(0, 3); track c.id) {
@@ -64,5 +54,3 @@
     }
   </div>
 }
-  </div>
-</div>
