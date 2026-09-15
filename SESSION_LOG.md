@@ -1444,3 +1444,30 @@ Everything below is on `main` and live, except where marked. Frontend bundle
 - "Douvikas is OP" (escrow campaign 2, token 4) exists on Sepolia and in the
   local DB only; cancelled, refund claimed, 30 tokens remain with `0x2f62…`.
 - `honest-man-595` (campaign 1) in production: fully released, still active.
+
+### Legal side, not code (from the "Avvocato Humfiverse" session)
+
+Not tracked anywhere else in the next-work list above:
+
+- **Do now, cheap, no lawyer needed** (`legal/07` H1, G1):
+  - the prototype KYC form still stores real name, date of birth, source of
+    funds and PEP status with no company as controller and no privacy notice.
+    Tell users to enter test data, or stop storing those fields;
+  - decide which company runs the site (Terms, privacy and site notice all need
+    one).
+- **GitBook Git Sync still reads `dev/cesare`**: switch it to `main` from the
+  GitBook dashboard, so a commit on a working branch no longer publishes the
+  whitepaper.
+- **Counsel not contacted yet.** Before the first meeting, send the material
+  listed at the end of `legal/07`. Still to write: one page of plan figures
+  (campaigns per year, average raise, investor and artist countries) — without
+  it, thresholds and exemptions can't be assessed. 🔴 questions: A1, A2, A4, A5,
+  A9, B1, B3, C1, C2, G1, H1.
+- **Drafts ready for review, not published**: Terms `legal/04`, privacy
+  `legal/05`, disclaimers `legal/06`. They carry placeholders (`[GESTORE]`,
+  `[TITOLARE]`).
+- **Public git history** still contains the backend-weakness section removed
+  from `legal/02` (commit `025e92e` and earlier). Removing it would need a
+  history rewrite and force push: the user's call, not done.
+- **`.claude/legal-private/backend-sicurezza.md` exists only on Cesare's Mac**
+  (gitignored). B-1…B-3 resolved, B-4 open. Vincenzo doesn't have it.
