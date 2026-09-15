@@ -587,7 +587,14 @@ Requirements for the implementation. The grounds and their wording come from `le
 7. **Known limit, to state in the templates:** `trackTitle` and `artistName` written at mint are permanent in contract storage and history. For the phase 2 redeploy, weigh minting with an opaque reference instead of the title and artist text, so an on-chain token carries nothing that would itself need taking down.
 8. **Order of operations.** Hide first (off-chain, instant), then cancel on chain, then unpin, clear the pointer and serve the placeholder, recording each step's outcome. A failure part-way must be visible on the dashboard, never silently assumed done.
 
-Not started: waiting for `legal/08`'s grounds and wording.
+**Aligned with `legal/08` (same day, still uncommitted there; the user decides).**
+- *Grounds.* Clause A-1 §1 fixes the grounds, stored as `unlawful_content` (a); `third_party_rights` (b), with evidence type `notice` | `authority_order` | `court_decision`; and `false_warranties` (c).
+- *Procedure.* A-1 §2–3: notice with reasons to the artist's email and wallet, a reply period, and a written, dated, reasoned decision sent to the artist and the campaign's investors.
+- *Takedown.* A-1-bis matches points 3–7 above.
+- *Fully released campaigns.* A-1 allows cancelling even after full release (A-2 §4: nothing to refund, but takedown and A-3 restitution/damages still apply). So the §2.86 block becomes "no cancellation without a ground": with a stated ground a fully released campaign can be cancelled, and the takedown steps work in any release state. How such a campaign's tokens appear in portfolios is open (`legal/07` C9).
+- *Build decisions.* The artist's reply period ([5] days in the draft) is a **setting, not a constant**. The 2% fee refund (C4) and e-signature for artists (C-9) are left out until decided. The investor who gets refunded is described as the escrow works today, the **contributor** (C6). Registration must **collect and verify an email** for everyone, MetaMask users included (C-11), since notices and decisions go there. Acceptance follows `legal/08` section C.
+
+Not started: waiting for the user's decision on committing `legal/`.
 
 ## 3. Suggested phased build
 
