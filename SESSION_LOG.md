@@ -1317,4 +1317,14 @@ On `dev/cesare`; a feature, so it waits for the go-ahead before `main`.
   contributor: the app now shows a cancelled campaign's tokens at $0 with
   no Sell, and phase 2 changes the contract to refund **per token held,
   burning them** (also covers resale buyers, who today get nothing).
+- **Fully released campaigns** (§2.86): the dashboard's cancel button is
+  disabled for them (it was live on `honest-man-595` in production), and the
+  $0/no-resale treatment applies only to cancelled campaigns with something
+  unreleased. Contract still allows it — phase 2.
+- **Phase 2 correction**: no "anyone may cancel an expired campaign"; instead
+  `refund()` opens by rule past a deadline below target. Needs deadlines —
+  today every campaign is created with `deadline = 0`.
+- **Open question recorded** (§4 of technical-architecture): the portfolio
+  value must become the price tokens actually trade at on chain, if price
+  discovery exists — today it is the fixed primary price / lowest ask / $0.
 

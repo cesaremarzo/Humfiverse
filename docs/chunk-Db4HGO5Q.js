@@ -1,1 +1,0 @@
-import"./chunk-IsePTTiR.js";import"./chunk-CoEj01tB.js";import"./chunk-C9MCYeiD.js";import{a as Vt}from"./chunk-CXUSnsN-.js";var t=`0x6352211e`;var r=[{name:`tokenId`,type:`uint256`}];var o=[{type:`address`}];async function w(e){return Vt({contract:e.contract,method:[t,r,o],params:[e.tokenId]})}export{w as ownerOf};

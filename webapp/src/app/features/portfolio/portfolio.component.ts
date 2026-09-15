@@ -103,7 +103,9 @@ export class PortfolioComponent {
    * shown, valued at zero and not offered for sale. */
   isCancelledCampaign(assetId: string): boolean {
     const escrow = this.store.escrowFor(assetId);
-    return !!escrow?.escrow && escrow.status === 'cancelled';
+    // A fully released campaign delivered everything it raised for; if it
+    // was cancelled anyway its tokens keep their value (§2.86).
+    return !!escrow?.escrow && escrow.status === 'cancelled' && escrow.releasedBps < 10_000;
   }
 
   effectiveHoldings = computed(() =>
