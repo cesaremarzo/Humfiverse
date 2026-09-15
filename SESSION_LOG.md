@@ -1312,4 +1312,9 @@ On `dev/cesare`; a feature, so it waits for the go-ahead before `main`.
   caller. **Phase 2** — `refundFor(campaignId, contributor)` plus a
   backend record of contributors — goes into the next escrow + token
   redeploy (see §2.85, and the `contract-redeploy` skill when it runs).
+- **Real refund tested**: 0.979991 USDC back to `0x2f62…7f1a`, gas
+  sponsored. It exposed that `refund()` leaves the tokens with the
+  contributor: the app now shows a cancelled campaign's tokens at $0 with
+  no Sell, and phase 2 changes the contract to refund **per token held,
+  burning them** (also covers resale buyers, who today get nothing).
 

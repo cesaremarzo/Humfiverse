@@ -97,8 +97,21 @@ export class PortfolioComponent {
     return this.translate.instant(key, params);
   }
 
-  totalTokens = computed(() => this.holdings().reduce((s, h) => s + h.tokens, 0));
-  totalValue = computed(() => this.holdings().reduce((s, h) => s + h.valueUsd, 0));
+  /** §2.85: refund() returns a contributor's USDC but leaves their tokens
+   * in place, so a cancelled campaign's tokens would otherwise keep a price
+   * and a Sell button after the money behind them has gone back. They are
+   * shown, valued at zero and not offered for sale. */
+  isCancelledCampaign(assetId: string): boolean {
+    const escrow = this.store.escrowFor(assetId);
+    return !!escrow?.escrow && escrow.status === 'cancelled';
+  }
+
+  effectiveHoldings = computed(() =>
+    this.holdings().map((h) => (this.isCancelledCampaign(h.assetId) ? { ...h, valueUsd: 0, cancelled: true } : { ...h, cancelled: false }))
+  );
+
+  totalTokens = computed(() => this.effectiveHoldings().reduce((s, h) => s + h.tokens, 0));
+  totalValue = computed(() => this.effectiveHoldings().reduce((s, h) => s + h.valueUsd, 0));
 
   /** Allocation-by-campaign pie chart. Colors assigned once, in a fixed
    * order keyed by assetId (never by current value/rank), so a slice
@@ -108,7 +121,7 @@ export class PortfolioComponent {
    * categorical slots and folds anything beyond into "Other" rather than
    * inventing a 9th hue. */
   pieSlices = computed<PieSlice[]>(() => {
-    const held = this.holdings()
+    const held = this.effectiveHoldings()
       .filter((h) => h.valueUsd > 0)
       .sort((a, b) => a.assetId.localeCompare(b.assetId));
     const MAX_SLOTS = 8;
@@ -321,7 +334,7 @@ export class PortfolioComponent {
   // itself isn't yet. ---
   openSell(assetId: string): void {
     const holding = this.holdings().find((h) => h.assetId === assetId);
-    if (!holding || holding.tokens <= 0) return;
+    if (!holding || holding.tokens <= 0 || this.isCancelledCampaign(assetId)) return;
     this.sellDraft.set({ assetId, max: holding.tokens });
     this.sellQty.set(1);
     this.sellPrice.set(this.store.lowestAsk(assetId) ?? this.store.assetById(assetId)?.tokenPrice ?? 1);

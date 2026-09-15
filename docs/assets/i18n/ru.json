@@ -530,5 +530,7 @@
   "portfolio.refunding": "Возврат…",
   "toast.refundDone": "Возврат получен: {{amount}} USDC.",
   "buy.campaignCancelled": "Эта кампания отменена и больше не принимает взносы.",
-  "buy.campaignCancelledRefund": "Запросить возврат в портфеле"
+  "buy.campaignCancelledRefund": "Запросить возврат в портфеле",
+  "portfolio.cancelledCampaign": "Кампания отменена",
+  "detail.resaleCancelled": "Кампания отменена: её токены больше нельзя купить или продать здесь. Если вы вносили средства, запросите возврат в портфеле."
 }

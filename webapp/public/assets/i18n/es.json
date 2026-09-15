@@ -530,5 +530,7 @@
   "portfolio.refunding": "Reembolsando…",
   "toast.refundDone": "Reembolso recibido: {{amount}} USDC.",
   "buy.campaignCancelled": "Esta campaña se canceló y ya no acepta aportaciones.",
-  "buy.campaignCancelledRefund": "Solicita el reembolso en tu portafolio"
+  "buy.campaignCancelledRefund": "Solicita el reembolso en tu portafolio",
+  "portfolio.cancelledCampaign": "Campaña cancelada",
+  "detail.resaleCancelled": "Campaña cancelada: sus tokens ya no se pueden comprar ni vender aquí. Si aportaste, solicita el reembolso en tu portafolio."
 }
