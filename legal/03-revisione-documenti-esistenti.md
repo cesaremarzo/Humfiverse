@@ -67,7 +67,7 @@ Documento di lavoro, non pubblico: basta aggiornarlo.
 |---|---|---|---|
 | N-1 | §7.8 | Dice che il mercato secondario sarebbe stato **simulato**. Oggi è un contratto reale (§2.59, §2.71) | Nota datata: "superato il …, vedi legal/02 C-7" |
 | N-2 | §7.1.1 | Soglia prospetto **8 milioni di euro** | Possibile superamento con il Listing Act (01, §2): segnare [verificare] |
-| N-3 | §7.9 | Dice che il KYC non è legato a un'identità autenticata | Oggi è legato al wallet, ma senza firma del wallet (08, C-5) |
+| N-3 | §7.9 | Dice che il KYC non è legato a un'identità autenticata | Oggi è legato al wallet, e dal §2.89 le risposte sono firmate dal wallet. Resta un'autodichiarazione non verificata |
 | N-4 | §4.1.1 | "Humfiverse has no confirmation function at all" | Vero, ma omette cancellazione e `releaseFromPool` (C-1, C-2) |
 | N-5 | tutta | Non copre GDPR, sanzioni, fisco pratico, DSA, AI Act | Rimandare a `legal/01` |
 

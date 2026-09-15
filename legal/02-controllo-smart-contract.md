@@ -329,7 +329,7 @@ già così: non serve cambiarlo. Serve scriverlo nei Termini (F2 per la conferma
 
 La distribuzione non esiste on-chain (README, "Simulated"). Il token oggi dà
 solo un saldo. Qualunque testo che parli di "rendimento" (`yield.util.ts`) si
-basa su dati inseriti fuori catena e non verificati.
+basa su dati inseriti fuori catena. Dal §2.89 li può inserire solo il titolare dell'asset, con una firma del suo wallet, ma nessuno ne verifica la corrispondenza con incassi reali.
 
 ### C-13 · Bassa · Dati personali scritti per sempre
 

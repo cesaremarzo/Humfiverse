@@ -3,6 +3,13 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-09-16 · effetti del §2.89 su 01, 02 e 03
+
+- **01 §6, 03 N-3:** le risposte KYC ora sono firmate dal wallet; resta
+  un'autodichiarazione non verificata.
+- **02 C-12:** i dati di royalty li inserisce solo il titolare dell'asset con una
+  firma, ma restano non verificati rispetto agli incassi reali.
+
 ## 2026-09-16 · effetti dell'autorizzazione di lancio su 02 e 08
 
 - **02 C-3:** lo studio ora è indicato e firmato dall'artista, ma artista = studio

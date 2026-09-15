@@ -219,8 +219,9 @@ operazioni sospette.
 - È applicato **solo dal sito** (`asset-detail.component.html`). Chiunque può
   chiamare `buy()`, `contribute()`, `buyListing()` o
   `safeTransferFrom` direttamente sul contratto, senza aver mai visto il sito.
-- L'esito della verifica non è legato a una firma del wallet, quindi non prova
-  che chi ha compilato il modulo controlli quel wallet.
+- Dal §2.89 il wallet firma le risposte inviate, quindi chi compila il modulo
+  dimostra di controllare quel wallet. Resta un'autodichiarazione: la firma non
+  prova che nome e data di nascita siano veri.
 - Per un prototipo su testnet va bene. Per un lancio reale non basta: servono
   un fornitore KYC vero e un token "permissioned" (le note tecniche §2.4 citano
   ERC-3643), cioè trasferibile solo tra wallet verificati.

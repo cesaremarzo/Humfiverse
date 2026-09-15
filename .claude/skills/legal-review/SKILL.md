@@ -60,6 +60,13 @@ already taken:
 - `whitepaper/` publishes to GitBook: propose corrections in `03` and apply them
   only when the user says so.
 - Italian, plain language, short sentences; legal terms explained the first time.
+- **When a change resolves or alters a finding, grep all of `legal/` for the old
+  behaviour** before closing: `check.sh` watches files, not claims, and the table
+  in §2 lists the main rows, not every sentence that repeats them. Search for the
+  function or endpoint name and for wording like "senza firma", "non verificat",
+  "chiunque", "pubblico", then fix every match in the same PR. Learned on
+  2026-09-16: §2.89 updated 02 C-3 and 05 but left 01 §6, 02 C-12 and 03 N-3
+  describing the unsigned behaviour (fixed in `730971b`).
 
 ## 4. Close
 
