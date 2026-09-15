@@ -3,6 +3,14 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-09-16 · effetti dell'autorizzazione di lancio su 02 e 08
+
+- **02 C-3:** lo studio ora è indicato e firmato dall'artista, ma artista = studio
+  resta possibile. Il punto resta aperto.
+- **08 C-5:** l'autorizzazione di lancio firmata (§2.88) è la base per la firma
+  del wallet sull'accettazione dell'Accordo Artista; mancano versione del
+  template e hash del testo nel messaggio firmato.
+
 ## 2026-09-16 · autorizzazione di lancio firmata dall'artista
 
 - **Codice:** per creare una campagna il wallet dell'artista firma un testo con i

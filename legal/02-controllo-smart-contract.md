@@ -147,8 +147,9 @@ nessuna parte**.
   dell'artista. Il test `honest-man-595` del 14 set usava proprio artista =
   studio = `0xA646…A38F`.
 - Lo studio è registrato dal Founder (`registerStudio`) con il wallet indicato
-  nel wizard di creazione della campagna: nessun controllo verifica che lo studio
-  sia davvero un soggetto diverso dall'artista.
+  dall'artista, che dal §2.88 lo firma nell'autorizzazione di lancio. Nessun
+  controllo verifica però che lo studio sia davvero un soggetto diverso
+  dall'artista: la firma prova solo che è stato l'artista a sceglierlo.
 
 **Cosa dicono i documenti.** Whitepaper, cap. 2, 3 e 6: il rilascio avviene
 *"only once both the artist and the assigned studio confirm, from their own
