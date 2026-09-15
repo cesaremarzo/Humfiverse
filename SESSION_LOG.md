@@ -1331,4 +1331,12 @@ On `dev/cesare`; a feature, so it waits for the go-ahead before `main`.
 - **Open question recorded** (§4 of technical-architecture): the portfolio
   value must become the price tokens actually trade at on chain, if price
   discovery exists — today it is the fixed primary price / lowest ask / $0.
+- **Legal decision recorded** (`legal-regulatory-notes.md` §7.10, and
+  question 8 for counsel): Founder keeps the power to cancel a campaign for
+  unlawful or copyright-infringing content; investors get the unreleased part
+  pro rata and keep recourse against the artist for the rest plus damages.
+  To implement: new clauses (grounds, procedure, artist warranties and
+  indemnity, investor recourse), fixes to `refund` and `manager-discretion`,
+  template `v0.4-draft`; both artists and investors sign at registration,
+  investors also accept Terms and Conditions after scrolling the full text.
 
