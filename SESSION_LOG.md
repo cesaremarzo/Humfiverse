@@ -1344,4 +1344,10 @@ On `dev/cesare`; a feature, so it waits for the go-ahead before `main`.
   stay). Procedure to implement once `legal/08` fixes the grounds: stated
   ground + reasons + decision record, notice to artist, hide page, unpin from
   Pinata, clear on-chain audio URI, neutral metadata. Other session notified.
+- **Four decisions (evening, given in the legal session, recorded in §7.10 and
+  §2.87):** 5-day notice period (a setting); the 2% fee always stays with the
+  platform, claimed as damages if the artist is at fault; refunds and claims
+  follow tokens held at cancellation (phase 2 redeploy); artists sign with an
+  eIDAS qualified electronic signature via a QTSP, investors with scroll,
+  checkboxes and a wallet signature. Open for counsel: C2, C5, C9, A9.
 

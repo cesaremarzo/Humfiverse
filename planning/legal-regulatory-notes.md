@@ -139,6 +139,14 @@ This is single-session/no-real-auth state (`store.state.investor` client-side, `
 - **Whether a studio that received tranches in good faith** is exposed to any claim, or recourse runs against the artist only.
 - **That the refund today follows contributions, not tokens.** Resale buyers get nothing, and the contributor keeps the tokens. The phase 2 contract change (technical doc §2.85) is meant to fix this, and the templates must describe whichever mechanism is live when they are signed.
 
+*Decisions taken the same evening (15 Sep 2026)*, given by the user in the legal-drafting session and relayed from it; `legal/08`, `04`, `02` and `07` carry the wording.
+1. **Notice period before cancellation: 5 days**, except where the law or an authority requires immediate removal (A-1 §2). The platform keeps it as a setting whose default is 5.
+2. **The 2% contribution fee always stays with the platform**, cancellation included. When the cancellation is the artist's fault, the fee becomes part of the damages claimed from the artist. The live escrow already works this way, so no contract change is needed.
+3. **Refunds and the claim against the artist belong to whoever holds the tokens at cancellation, pro rata by tokens.** This supersedes the contributor-based open point above. The live escrow pays contributors instead, so this needs the phase 2 redeploy (refund per token held, burning the tokens; technical doc §2.85). Until then the Terms (§5.4) and the risk disclaimer describe what the contract actually does.
+4. **Artists sign with a qualified electronic signature** (FEQ/QES, eIDAS art. 25), through a qualified trust service provider on the EU trusted list. The signature is applied to a PDF of the accepted text, its hash is recorded, and no campaign can be created without a valid signature (`legal/08` C-9). **Investors** keep scroll-to-accept, separate checkboxes for onerous clauses, and a wallet signature. The user's reasoning: through the platform, the artist is effectively setting up an entity that issues securities. Counsel question A9 in `legal/07` asks who the issuer legally is.
+
+Still open for counsel: C2 (who pursues the artist), C5 (studio that received tranches in good faith), C9 (the tokens of a cancelled, fully released campaign).
+
 *When and how it gets signed.*
 - **Today** only artists accept the template, clause by clause, in the campaign wizard at launch (§7.6, `POST /api/contract-acceptance`). Investors sign nothing: they fill in the KYC/appropriateness form (§7.9).
 - **Target:** both sign **at registration on the site** — since technical doc §2.83 that is the Google/Apple/email sign-in (or the first wallet connection).
