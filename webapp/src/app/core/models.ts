@@ -368,3 +368,25 @@ export interface FeeSummary {
   escrow: FeeContractState;
   marketplace: FeeContractState;
 }
+
+/** §2.88: what an artist wallet signs to authorize a campaign launch. The
+ * backend builds the message from these fields and checks every write that
+ * makes Founder's key act for the campaign against them. */
+export interface LaunchPayload {
+  assetId: string;
+  title: string;
+  artistName: string;
+  artistWallet: string;
+  supply: number;
+  fundingUsdc: string;
+  directSale: boolean;
+  studioName: string;
+  studioWallet: string;
+  milestones: { name: string; bps: number; payee: 'artist' | 'studio' }[];
+  issuedAt: string;
+}
+
+export interface LaunchAuthorization {
+  payload: LaunchPayload;
+  signature: string;
+}

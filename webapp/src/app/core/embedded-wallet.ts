@@ -92,6 +92,13 @@ async function loadSdk() {
           });
           return transactionHash;
         }
+        // §2.88: the launch authorization. ethers sends the UTF-8 message
+        // hex-encoded; signing the raw bytes gives the same EIP-191
+        // signature MetaMask produces, recoverable by ethers.verifyMessage.
+        case 'personal_sign': {
+          if (!account) throw new Error('no-wallet');
+          return account.signMessage({ message: { raw: params?.[0] as `0x${string}` } });
+        }
         default:
           return rpc({ method, params } as Parameters<typeof rpc>[0]);
       }

@@ -3,12 +3,28 @@
 
    The listing and single-asset reads always work. The two writes (mint,
    audio link) need CHAIN_OPERATOR_PRIVATE_KEY and return 503 without it,
-   rather than failing deep inside ethers with an opaque message. */
+   rather than failing deep inside ethers with an opaque message, and both
+   require the launch authorization signed by the artist wallet (§2.88):
+   they make Founder's key act, so the request alone must not decide for
+   whom. */
+
+/** The audio route's body is the file itself, so its authorization travels
+ * in a header: base64 of the same { payload, signature } JSON. */
+function launchFromHeader(req) {
+  const raw = req.headers["x-humfiverse-launch"];
+  if (!raw) return null;
+  try {
+    return JSON.parse(Buffer.from(String(raw), "base64").toString("utf8"));
+  } catch {
+    return null;
+  }
+}
 
 const { sendJson, readBody, readRawBody } = require("../lib/http");
 const chain = require("../chain");
 const pinata = require("../pinata");
 const onchainService = require("../services/onchain.service");
+const { verifyLaunch, requireMatch } = require("../lib/launch-auth");
 
 module.exports = function registerOnchainRoutes(router) {
   /* Exact path, so it can never be shadowed by /api/onchain/:assetId
@@ -57,6 +73,15 @@ module.exports = function registerOnchainRoutes(router) {
         sendJson(res, 400, { error: "assetId, slug and supply are required" });
         return;
       }
+      const launch = verifyLaunch(body.launch);
+      requireMatch("assetId", body.assetId, launch.assetId);
+      requireMatch("slug", body.slug, launch.assetId);
+      requireMatch("supply", Number(body.supply), launch.supply);
+      requireMatch("fundingUsdc", String(body.fundingUsdc), launch.fundingUsdc);
+      requireMatch("payoutWallet", body.payoutWallet, launch.artistWallet);
+      requireMatch("directSale", body.directSale, launch.directSale);
+      requireMatch("title", body.title, launch.title);
+      requireMatch("artist", body.artist, launch.artistName);
       if (!chain.mintingEnabled()) {
         sendJson(res, 503, { error: "on-chain minting is disabled on this server (no operator key configured)" });
         return;
@@ -66,6 +91,8 @@ module.exports = function registerOnchainRoutes(router) {
     } catch (e) {
       if (e.code === "invalid") {
         sendJson(res, 400, { error: e.message });
+      } else if (e.code === "unauthorized") {
+        sendJson(res, 401, { error: e.message });
       } else if (e.code === "already_minted") {
         sendJson(res, 409, { error: "asset already has an on-chain token", record: e.record });
       } else {
@@ -82,6 +109,8 @@ module.exports = function registerOnchainRoutes(router) {
   router.post("/api/onchain/audio/:assetId", async (req, res, { params, url }) => {
     try {
       const filename = url.searchParams.get("filename") || "track";
+      const launch = verifyLaunch(launchFromHeader(req));
+      requireMatch("assetId", params.assetId, launch.assetId);
       if (!chain.mintingEnabled()) {
         sendJson(res, 503, { error: "on-chain actions are disabled on this server (no operator key configured)" });
         return;
@@ -104,7 +133,9 @@ module.exports = function registerOnchainRoutes(router) {
       const result = await chain.setTrackAudioUriOnchain(onchainRecord.token_id, uri);
       sendJson(res, 200, { uri, txHash: result.txHash, explorerUrl: result.explorerUrl });
     } catch (e) {
-      if (e.code === "too_large") {
+      if (e.code === "unauthorized") {
+        sendJson(res, 401, { error: e.message });
+      } else if (e.code === "too_large") {
         sendJson(res, 413, { error: "file too large (20MB max)" });
       } else {
         sendJson(res, 502, { error: "audio upload failed", detail: String(e.message || e) });

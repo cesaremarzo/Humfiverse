@@ -532,5 +532,7 @@
   "buy.campaignCancelled": "Diese Kampagne wurde abgebrochen und nimmt keine Beiträge mehr an.",
   "buy.campaignCancelledRefund": "Rückerstattung im Portfolio anfordern",
   "portfolio.cancelledCampaign": "Kampagne abgebrochen",
-  "detail.resaleCancelled": "Kampagne abgebrochen: Ihre Tokens können hier nicht mehr gekauft oder verkauft werden. Wenn du beigetragen hast, fordere deine Rückerstattung im Portfolio an."
+  "detail.resaleCancelled": "Kampagne abgebrochen: Ihre Tokens können hier nicht mehr gekauft oder verkauft werden. Wenn du beigetragen hast, fordere deine Rückerstattung im Portfolio an.",
+  "toast.launchSignRejected": "Du hast die Autorisierungssignatur abgelehnt, daher wurde nichts erstellt.",
+  "toast.launchSignFailed": "Der Start konnte nicht autorisiert werden. Prüfe dein Wallet und versuche es erneut."
 }

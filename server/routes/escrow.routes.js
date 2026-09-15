@@ -9,6 +9,7 @@
 const { sendJson, readBody } = require("../lib/http");
 const escrowChain = require("../chainEscrow");
 const escrow = require("../services/escrow.service");
+const { verifyLaunch, requireMatch } = require("../lib/launch-auth");
 
 module.exports = function registerEscrowRoutes(router) {
   router.post("/api/escrow/campaign", async (req, res) => {
@@ -19,6 +20,19 @@ module.exports = function registerEscrowRoutes(router) {
         sendJson(res, 400, { error: "assetId, artistAddress, studioName, studioWallet and milestones are required" });
         return;
       }
+      // §2.88: Founder's key registers the studio and creates the campaign,
+      // so every field it will write must be what the artist wallet signed.
+      const launch = verifyLaunch(body.launch);
+      requireMatch("assetId", body.assetId, launch.assetId);
+      requireMatch("artistAddress", body.artistAddress, launch.artistWallet);
+      requireMatch("studioName", body.studioName, launch.studioName);
+      requireMatch("studioWallet", body.studioWallet, launch.studioWallet);
+      requireMatch("milestones.length", body.milestones.length, launch.milestones.length);
+      body.milestones.forEach((m, i) => {
+        requireMatch(`milestones[${i}].name`, m?.name, launch.milestones[i].name);
+        requireMatch(`milestones[${i}].bps`, Number(m?.bps), launch.milestones[i].bps);
+        requireMatch(`milestones[${i}].payee`, m?.payee === "studio" ? "studio" : "artist", launch.milestones[i].payee);
+      });
       if (!escrowChain.writeEnabled()) {
         sendJson(res, 503, { error: "escrow admin actions are disabled on this server (no operator key configured)" });
         return;
@@ -28,7 +42,9 @@ module.exports = function registerEscrowRoutes(router) {
       );
       sendJson(res, 200, result);
     } catch (e) {
-      if (e.code === "already_created") {
+      if (e.code === "unauthorized") {
+        sendJson(res, 401, { error: e.message });
+      } else if (e.code === "already_created") {
         sendJson(res, 409, { error: "asset already has an escrow campaign", record: e.record });
       } else if (e.code === "no_token") {
         sendJson(res, 400, { error: e.message });

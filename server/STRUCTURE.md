@@ -87,6 +87,7 @@ deployment*, not a domain rule.
 | `admin-auth.js` | The `X-Admin-Key` check, compared with `timingSafeEqual`. Fails closed: an unset key disables admin endpoints, it never opens them. `requireAdmin(req, res)` is the guard routes actually call. |
 | `receipts.js` | `fakeTxHash` and `currentMonthLabel`. Simulated receipt ids for the parts that are **not** on chain. Real transaction hashes never come from here. |
 | `token-image.js` | The deterministic SVG served as each token's NFT card image (§2.36). |
+| `launch-auth.js` | Launch authorization (§2.88): builds the text an artist wallet signs, recovers the signer, checks the time window, and `requireMatch` compares a request field with the signed one. Used by every route that makes Founder's key act for a new campaign. |
 
 ### `data/` — repositories, one per group of tables
 
@@ -122,6 +123,7 @@ deployment*, not a domain rule.
 | `index.js` | Registers every module. Reads as a table of contents for the API. |
 | `system.routes.js` | `GET /api/health` |
 | `auth.routes.js` | `GET /api/auth/jwks.json` — the public key thirdweb checks identity JWTs against (§2.83) |
+| `launch.routes.js` | `POST /api/launch/message` — the launch text for a wallet to sign (§2.88) |
 | `catalogue.routes.js` | `GET /api/data`, `POST /api/assets`, `DELETE /api/assets/:assetId`, and the two royalty-report endpoints |
 | `compliance.routes.js` | `GET /api/contract-template`, `POST /api/contract-acceptance`, `POST /api/kyc`, `GET /api/kyc/status/:wallet` |
 | `onchain.routes.js` | `GET /api/onchain/list`, `GET /api/onchain/:assetId`, `POST /api/onchain/mint`, `POST /api/onchain/audio/:assetId` |

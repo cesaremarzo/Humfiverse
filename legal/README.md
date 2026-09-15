@@ -27,8 +27,8 @@ il whitepaper. 04, 05, 06 e 08 vanno portati all’avvocato insieme al 07.
 
 | | |
 |---|---|
-| Ultima revisione | 2026-09-15 |
-| Commit rivisto | `d4815b5` (`dev/cesare`), con le correzioni al whitepaper di questo commit |
+| Ultima revisione | 2026-09-16 |
+| Commit rivisto | `697c7b7` (`main`), con l'autorizzazione di lancio firmata dall'artista (technical §2.88) |
 | Contratti (Sepolia) | Token `0xb45601440308c92D9BC8fd4a95DEE6a4A86aFB41` · Escrow `0x16C8bfE861Ef1B102CD6D6a4FD4e881FdD38721c` · Marketplace `0x755500dEB66169fC605Be8Aa25ACBdAd791F1585` |
 | Test contratti | 94 passati (`cd contracts && npm test`) |
 | Revisione di un avvocato | **Nessuna** |
