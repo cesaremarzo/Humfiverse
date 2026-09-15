@@ -1339,4 +1339,9 @@ On `dev/cesare`; a feature, so it waits for the go-ahead before `main`.
   indemnity, investor recourse), fixes to `refund` and `manager-discretion`,
   template `v0.4-draft`; both artists and investors sign at registration,
   investors also accept Terms and Conditions after scrolling the full text.
+- **Takedown requirements recorded** (technical §2.87, legal §7.10): cancelling
+  removes no content (page, IPFS audio, token metadata and on-chain title all
+  stay). Procedure to implement once `legal/08` fixes the grounds: stated
+  ground + reasons + decision record, notice to artist, hide page, unpin from
+  Pinata, clear on-chain audio URI, neutral metadata. Other session notified.
 
