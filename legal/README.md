@@ -17,17 +17,18 @@
 | [05-privacy-policy.md](05-privacy-policy.md) | Bozza di informativa privacy (GDPR) basata sui dati che il backend raccoglie davvero | Avvocato / DPO (da rivedere) |
 | [06-disclaimer-rischi.md](06-disclaimer-rischi.md) | Testi brevi di avvertenza per sito, pagine asset e campagne, e scheda rischi estesa | Avvocato (da rivedere) |
 | [07-domande-per-avvocato.md](07-domande-per-avvocato.md) | Le domande, in ordine di priorità, divise per tipo di avvocato, con il materiale da portare | Cesare, Vincenzo → avvocato |
+| [08-bozza-clausole-contratti.md](08-bozza-clausole-contratti.md) | Clausole per Accordo Artista e Accordo Investitore (annullamento, rimborso, rivalsa verso l'artista, garanzie, commissioni) e requisiti per l'accettazione alla registrazione | Avvocato (da rivedere), chi implementa il template |
 | [CHANGELOG.md](CHANGELOG.md) | Storico degli aggiornamenti di questa cartella | Tutti |
 
 Ordine di lettura consigliato: 01 → 02 → 07. Il 03 serve prima di modificare
-il whitepaper. 04, 05 e 06 vanno portati all'avvocato insieme al 07.
+il whitepaper. 04, 05, 06 e 08 vanno portati all’avvocato insieme al 07.
 
 ## Stato della revisione
 
 | | |
 |---|---|
 | Ultima revisione | 2026-09-15 |
-| Commit rivisto | `82a7a1b` (`dev/cesare`, allineato a `main` `ecda908`) |
+| Commit rivisto | `d4815b5` (`dev/cesare`), con le correzioni al whitepaper di questo commit |
 | Contratti (Sepolia) | Token `0xb45601440308c92D9BC8fd4a95DEE6a4A86aFB41` · Escrow `0x16C8bfE861Ef1B102CD6D6a4FD4e881FdD38721c` · Marketplace `0x755500dEB66169fC605Be8Aa25ACBdAd791F1585` |
 | Test contratti | 94 passati (`cd contracts && npm test`) |
 | Revisione di un avvocato | **Nessuna** |
@@ -68,4 +69,5 @@ in `legal/check.sh`.
 - `webapp/src/app/core/embedded-wallet.ts`: login con Google, Apple o email
   tramite thirdweb (fornitore terzo)
 - `webapp/src/app/core/known-wallets.ts`: i wallet Founder e Fees
+- `webapp/src/index.html`: risorse esterne caricate dal sito (Google Fonts)
 - `whitepaper/*.md`: le promesse pubbliche

@@ -110,11 +110,34 @@ punto 4). Il **contratto artista** (`refund`) parla di rimborso in caso di
 "mancato raggiungimento dell'obiettivo o mancata consegna", ma il codice non
 collega la cancellazione a nessuna di queste condizioni.
 
-**Proposta.** Già pianificata in parte ("phase 2", SESSION_LOG 15 set): rimborso
-aperto per regola dopo una scadenza se l'obiettivo non è raggiunto. Aggiungere:
-(a) i casi in cui il Founder può cancellare, scritti nei Termini e nel contratto
-artista; (b) oppure un `cancelCampaign` che richieda un motivo codificato o una
-seconda firma (multisig).
+**Decisione (15 set 2026, note legali §7.10).** Il potere **resta**: il Founder
+deve poter annullare una campagna almeno quando contiene contenuti illeciti o
+che violano il diritto d'autore o altri diritti di terzi. Gli investitori
+ricevono il rimborso pro-quota della parte non rilasciata. Per le tranche già
+rilasciate hanno azione contro l'artista, insieme al risarcimento del danno. Il
+problema quindi non è il potere, ma il fatto che **oggi non sia scritto da
+nessuna parte**.
+
+**Proposta, coerente con la decisione:**
+1. **Motivi limitati ed elencati** nel contratto artista, nel contratto
+   investitore e nei Termini: contenuto illecito, violazione di diritti di
+   terzi, garanzie dell'artista false. Un potere legato a motivi di legge è anche
+   il modo più solido per sostenere che sia un atto di conformità e non una
+   decisione di investimento (AIFMD). Resta un argomento, da confermare.
+2. **Procedura**: avviso motivato all'artista, breve termine per rispondere
+   salvo urgenza, decisione scritta e datata. Il DSA (artt. 16-17) potrebbe già
+   imporla.
+3. **Tracciabilità**: registrare il motivo insieme a `CampaignCancelled`, per
+   esempio con un codice nel backend o un parametro `reason` al prossimo
+   redeploy.
+4. **Correggere il whitepaper** (file 03, W-2) e il contratto artista (T-1,
+   T-3). Bozze di clausole nel file 08.
+5. Facoltativo: seconda firma (multisig) per la cancellazione, così il potere
+   non dipende da una sola chiave (C-9).
+6. **Annullare non basta a rimuovere il contenuto** (technical-architecture
+   §2.87): pagina, audio su IPFS, metadati e testo on-chain restano. Per
+   contenuti illeciti l'atto che conta è la rimozione. Clausola nel file 08,
+   A-1-bis; procedura tecnica nel §2.87, non ancora implementata.
 
 ### C-3 · Alta · Conferma "doppia" che non sempre è doppia
 
@@ -123,9 +146,9 @@ seconda firma (multisig).
 - `createCampaign` non vieta che il wallet dello studio coincida con quello
   dell'artista. Il test `honest-man-595` del 14 set usava proprio artista =
   studio = `0xA646…A38F`.
-- Lo studio è registrato dal Founder (`registerStudio`), e il backend lo
-  registra usando il `studioWallet` inviato a `POST /api/escrow/campaign`
-  **senza autenticazione** (vedi B-1).
+- Lo studio è registrato dal Founder (`registerStudio`) con il wallet indicato
+  nel wizard di creazione della campagna: nessun controllo verifica che lo studio
+  sia davvero un soggetto diverso dall'artista.
 
 **Cosa dicono i documenti.** Whitepaper, cap. 2, 3 e 6: il rilascio avviene
 *"only once both the artist and the assigned studio confirm, from their own
@@ -158,9 +181,21 @@ rilascia una tranche appena `raised` copre la somma delle tranche rilasciate. La
 - Il crowdfunding regolato (ECSPR) e le aspettative dei consumatori vanno nella
   direzione opposta.
 
-**Proposta.** Scadenza obbligatoria (`deadline > 0`). Nessuna tranche prima
-del raggiungimento dell'obiettivo, oppure una soglia minima dichiarata.
-Rimborso automatico dopo la scadenza se l'obiettivo non è raggiunto.
+**Decisione (15 set 2026, technical-architecture §2.86).** Niente scadenze:
+né rimborsi che si aprono dopo una scadenza, né date per le milestone. Una
+campagna finisce solo se vende tutto, se rilascia tutto o se viene annullata. Il
+campo `deadline` può sparire al prossimo redeploy.
+
+**Conseguenze legali da gestire, senza reintrodurre scadenze:**
+- Va **scritto chiaramente**, prima del pagamento, che una campagna può restare
+  aperta senza limiti, che le prime tranche possono essere pagate con una
+  raccolta parziale, e che non esiste un rimborso automatico se l'obiettivo non
+  si raggiunge. Oggi il contratto artista promette il contrario (T-3).
+- È una differenza rispetto al crowdfunding regolato e alle aspettative di un
+  consumatore: domanda B3 del file 07.
+- Opzione compatibile con la decisione, se l'avvocato la ritiene necessaria:
+  una **soglia minima di raccolta** prima della prima tranche. È una regola
+  sull'importo, non sul tempo.
 
 ### C-5 · Alta · I rimborsi vanno a chi ha contribuito, non a chi possiede i token
 
@@ -178,6 +213,12 @@ pagato, e **non tocca i token**: niente burn, niente controllo del saldo.
 
 Il problema è già noto ed è pianificato nella "phase 2" (rimborso per token
 posseduto, con burn). Fino ad allora va dichiarato.
+
+**Decisione (15 set 2026).** Rimborso e rivalsa spettano **a chi possiede i
+token al momento dell'annullamento**. Il contratto in uso fa il contrario, quindi
+la decisione richiede il redeploy "phase 2" (rimborso per token posseduto, con
+burn). Fino ad allora Termini e avvertenze devono descrivere il comportamento
+attuale.
 
 ### C-6 · Alta · Il KYC non è applicato dai contratti
 
@@ -270,15 +311,16 @@ artista non menziona nessuna commissione**, e l'investitore oggi non ha Termini
 da accettare.
 
 **Perché conta.** Una commissione trattenuta anche quando la campagna viene
-cancellata per decisione della piattaforma (C-2) può essere una clausola abusiva
-verso un consumatore (01, §8). Va almeno scritta nei Termini, in modo chiaro e
-prima del pagamento.
+annullata (C-2) può essere una clausola abusiva verso un consumatore (01, §8).
+Va almeno scritta nei Termini, in modo chiaro e prima del pagamento. **Decisione (15 set 2026):** il 2% resta sempre alla piattaforma e viene chiesto
+all'artista come parte del danno (file 08, A-2 §2 e A-3). Il codice attuale fa
+già così: non serve cambiarlo. Serve scriverlo nei Termini (F2 per la conferma).
 
 ### C-12 · Bassa · Il token non paga royalty
 
 La distribuzione non esiste on-chain (README, "Simulated"). Il token oggi dà
 solo un saldo. Qualunque testo che parli di "rendimento" (`yield.util.ts`) si
-basa su dati inseriti fuori catena. Vedi B-2.
+basa su dati inseriti fuori catena e non verificati.
 
 ### C-13 · Bassa · Dati personali scritti per sempre
 
@@ -296,49 +338,14 @@ meglio allinearli.
 
 ---
 
-## 3. Backend: chi può far agire la chiave del Founder
+## 3. Backend
 
-Questi punti non sono nei contratti, ma decidono chi può usare i poteri descritti
-sopra. Sono **problemi di sicurezza**: la descrizione è volutamente generica.
-
-### B-1 · Alta · Operazioni con la chiave del Founder senza autenticazione
-
-`POST /api/onchain/mint`, `POST /api/escrow/campaign` e `POST /api/assets` non
-richiedono autenticazione (già segnalato nel SESSION_LOG del 14 set). Chiunque
-può far creare al Founder un token con un wallet di incasso a scelta, o una
-campagna con uno studio a scelta. Su testnet non c'è danno economico. Con valore
-reale, un attaccante potrebbe pubblicare un asset falso che incassa sul proprio
-wallet, sotto il nome Humfiverse.
-
-**Legalmente:** responsabilità della piattaforma verso gli investitori truffati;
-obblighi di sicurezza (GDPR art. 32, requisiti organizzativi MiFID).
-
-### B-2 · Alta · Dati di royalty modificabili da chiunque
-
-`POST /api/assets/:assetId/royalty-report` non richiede autenticazione e
-alimenta lo storico royalty da cui il sito calcola il rendimento mostrato
-(`yield.util.ts`). Chiunque può gonfiare il rendimento apparente di un brano.
-
-**Legalmente:** informazioni false o ingannevoli a chi investe. Con strumenti
-finanziari reali può rientrare nella manipolazione del mercato (Regolamento (UE)
-596/2014, MAR) o nella pubblicità ingannevole.
-
-### B-3 · Media · KYC falsificabile ed esito pubblico
-
-`POST /api/kyc` accetta qualunque `walletAddress` senza firma del wallet.
-`GET /api/kyc/status/:wallet` restituisce a chiunque classificazione, punteggio
-ed esito. Proposta: firma del wallet (SIWE, EIP-4361) all'invio; stato
-leggibile solo dal wallet stesso.
-
-### B-4 · Media · Accettazione del contratto artista non collegata al wallet
-
-`contract_acceptances` salva nome artista e titolo ma **non il wallet**
-dell'artista, né la firma, né l'hash del testo accettato. In una contestazione
-non si può dimostrare che il wallet che incassa (`payoutOf`) sia di chi ha
-accettato il contratto, né quale testo abbia accettato. Il `receipt_hash` è
-casuale (`fakeTxHash`).
-
----
+Le debolezze del backend che decidono chi può usare la chiave del Founder sono
+tracciate fuori dal repo pubblico. Chi ha accesso al progetto le trova in locale
+in `.claude/legal-private/backend-sicurezza.md`. Riguardano autenticazione degli
+endpoint di scrittura, integrità dei dati mostrati agli investitori e
+collegamento tra accettazioni, KYC e wallet. Vanno risolte prima di qualsiasi
+lancio con valore reale (domande G3 e H1 del file 07).
 
 ## 4. Cosa funziona bene (da dire all'avvocato)
 

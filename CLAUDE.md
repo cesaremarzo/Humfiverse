@@ -13,7 +13,8 @@ a folder-by-folder index of what lives where.
 check there before hand-rolling a procedure this project already has a
 documented playbook for. Currently: `contract-redeploy` (redeploying
 HumfiverseCatalogueToken/HumfiverseMilestoneEscrow and restoring real
-on-chain state afterward).
+on-chain state afterward) and `legal-review` (bringing `legal/` back in
+line with the code).
 
 ## Team & branches
 
@@ -81,6 +82,21 @@ UI (`webapp/src/app/core/known-wallets.ts`):
 
 If a redeploy or a `setFeeRecipient`/`transferOwnership` changes either
 address, update this table and `known-wallets.ts` in the same commit.
+
+## Legal docs
+
+`legal/` (Italian) explains the regulation that applies, reviews what the
+contracts and backend actually do in legal terms, and holds draft Terms,
+privacy policy, risk disclaimers, contract clauses and the questions for
+counsel. Not legal advice; not reviewed by a lawyer.
+
+**Keep it current in the same PR as the change.** Before opening a PR that
+touches the contracts, fees, Founder powers, refunds/cancellation, personal
+data or KYC, sign-in providers, `server/contract-template.js`,
+`webapp/src/index.html` external resources or `whitepaper/`, run
+`./legal/check.sh`. If it reports changes, follow
+`.claude/skills/legal-review/SKILL.md`. A change that makes a legal document
+false is not done until the document is fixed.
 
 ## Render deploy
 

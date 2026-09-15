@@ -2,12 +2,12 @@
 
 ## What's actually live
 
-Two smart contracts, deployed and independently verified on **Ethereum Sepolia** — a public test network (see [Current Status & Disclaimer](09-status-disclaimer.md) for what that means):
+Three smart contracts, deployed and independently verified on **Ethereum Sepolia** — a public test network (see [Current Status & Disclaimer](09-status-disclaimer.md) for what that means):
 
 - **The token contract.** Mints one token per catalogue or campaign into a pool the platform holds, and controls every way tokens can leave it: a fixed-price purchase for already-earning catalogues, or a release triggered by the escrow contract for pre-production campaigns. Each token also carries its track's title, artist name, and — once uploaded — a link to the actual audio file, all readable directly from the contract by anyone, independent of Humfiverse's own website.
-- **The escrow contract.** Holds contributed money for pre-production campaigns and releases it in tranches — but only once **both** the artist and the assigned studio confirm, from their own wallets, that a milestone genuinely happened. No one, including Humfiverse, can release a tranche on their own say-so. If the two sides disagree, the money just stays locked — no arbitration, on purpose (see [Governance](06-governance.md)).
+- **The escrow contract.** Holds contributed money for pre-production campaigns and releases it in tranches — but only once **both** the artist and the assigned studio confirm, from their own wallets, that a milestone genuinely happened. No one, including Humfiverse, can release a tranche on their own say-so; a campaign with no studio is released by the artist alone. If the two sides disagree, the money stays in the escrow — no arbitration, on purpose — unless the platform cancels the campaign on stated legal grounds, which refunds the unreleased part (see [Governance](06-governance.md)).
 
-A third contract handles peer-to-peer resale between token holders: a seller lists from their own wallet, and a purchase moves the tokens and the payment in one transaction, with the platform's 1% fee retained by the contract. Whether resale is permissible for a real offering is still an open compliance question (see [Legal & Regulatory Structure](05-legal-structure.md)). Every payment is made in USDC. The live contracts pass 86 automated tests. That's real test coverage, not a professional security audit — the two aren't the same thing (see [Risk Factors](08-risk-factors.md)).
+A third contract handles peer-to-peer resale between token holders: a seller lists from their own wallet, and a purchase moves the tokens and the payment in one transaction, with the platform's 1% fee retained by the contract. Whether resale is permissible for a real offering is still an open compliance question (see [Legal & Regulatory Structure](05-legal-structure.md)). Every payment is made in USDC. The live contracts pass 94 automated tests (as of 15 September 2026). That's real test coverage, not a professional security audit — the two aren't the same thing (see [Risk Factors](08-risk-factors.md)).
 
 ## Why Ethereum, why Sepolia
 

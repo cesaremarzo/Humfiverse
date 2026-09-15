@@ -137,9 +137,12 @@ e vale in tutta l'UE. I limiti sono stringenti:
   istante in cui arriva il pagamento, e il 2% di commissione non è mai
   rimborsabile. Il ripensamento entro 4 giorni non è previsto.
 - **Obiettivo non raggiunto.** Nel crowdfunding tipico, se l'obiettivo non viene
-  raggiunto entro la scadenza i soldi tornano indietro. Qui ogni campagna è
-  creata con `deadline = 0` (SESSION_LOG 15 set) e le prime tranche possono
-  essere rilasciate anche se la raccolta si ferma al 30%.
+  raggiunto entro la scadenza i soldi tornano indietro. Humfiverse ha **deciso di
+  non avere scadenze** (§2.86): una campagna finisce solo se vende tutto, se
+  rilascia tutto o se viene annullata, e le prime tranche possono essere
+  rilasciate anche se la raccolta si ferma al 30%. È una scelta di prodotto
+  legittima, ma va dichiarata con chiarezza e verificata con l'avvocato se si
+  punta all'ECSPR (domanda B3).
 - **Chi custodisce i fondi.** I fondi stanno in un contratto di cui il Founder è
   `owner`. Serve capire se un escrow on-chain possa sostituire il prestatore di
   servizi di pagamento o il conto separato che ECSPR richiede.
@@ -160,7 +163,10 @@ per la *conferma*. Ma il Founder, come `owner()`, ha anche altri poteri che un
 avvocato potrebbe considerare discrezionali:
 
 - `cancelCampaign`: ferma una campagna in qualsiasi momento, anche a metà, e
-  apre i rimborsi;
+  apre i rimborsi. Per decisione (note legali §7.10) questo potere resta, ma va
+  limitato per contratto a motivi di legge: contenuti illeciti o violazione di
+  diritti di terzi. Così diventa un atto di conformità, non una scelta di
+  investimento;
 - `registerStudio` / `setStudioActive` / `renameStudio`: sceglie quali studi sono
   ammessi;
 - `releaseFromPool`: consegna token del pool senza pagamento;
@@ -168,7 +174,7 @@ avvocato potrebbe considerare discrezionali:
 
 Nessuno di questi poteri è limitato da regole scritte nel contratto. L'argomento
 "nessuna discrezionalità" regge solo se questi poteri sono vincolati da
-documenti costitutivi o da regole codificate. Vedi il file 02, sezione 3.
+documenti costitutivi o da regole codificate. Vedi il file 02, C-1 e C-2.
 
 ## 5. Mercato secondario (MTF/OTF e DLT Pilot)
 
@@ -213,8 +219,8 @@ operazioni sospette.
 - È applicato **solo dal sito** (`asset-detail.component.html`). Chiunque può
   chiamare `buy()`, `contribute()`, `buyListing()` o
   `safeTransferFrom` direttamente sul contratto, senza aver mai visto il sito.
-- `POST /api/kyc` accetta **qualunque** `walletAddress` senza firma: si può
-  segnare come "verificato" il wallet di un altro.
+- L'esito della verifica non è legato a una firma del wallet, quindi non prova
+  che chi ha compilato il modulo controlli quel wallet.
 - Per un prototipo su testnet va bene. Per un lancio reale non basta: servono
   un fornitore KYC vero e un token "permissioned" (le note tecniche §2.4 citano
   ERC-3643), cioè trasferibile solo tra wallet verificati.
@@ -241,9 +247,6 @@ e raccoglie dati adesso:**
   privacy e senza termine di conservazione.
 - L'**origine dei fondi** e lo **stato PEP** sono dati delicati: non sono
   "categorie particolari" dell'art. 9, ma hanno un rischio elevato.
-- `GET /api/kyc/status/:wallet` è pubblico e restituisce classificazione
-  (retail o professionale), punteggio di adeguatezza ed esito per qualunque
-  wallet.
 - **Blockchain e IPFS non si cancellano.** Nome artista e titolo sono scritti
   on-chain (`artistName`, `trackTitle`) e l'audio è fissato su IPFS tramite
   Pinata. Il diritto alla cancellazione (art. 17) non si può esercitare su quei

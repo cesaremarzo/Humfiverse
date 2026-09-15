@@ -12,7 +12,7 @@ The market has already proven people want this:
 | **anotherblock** | Tokenized streaming right | Ethereum + Optimism | Broadly open |
 | **JKBX** | SEC-registered security, no blockchain | Traditional | US retail, via a formal offering |
 
-Royal has paid real fans real money since 2022, on catalogues from artists like Nas and The Chainsmokers. JKBX proved the same appetite exists even through the slower, fully-regulated route. anotherblock proved an on-chain version specifically in the EU, where Humfiverse also operates. No EU-based, fully compliant competitor doing exactly this at scale had turned up as of this document's research — worth checking again before assuming it stays that way, but a good early sign.
+Royal has paid real fans real money since 2022, on catalogues from artists like Nas and The Chainsmokers. JKBX proved the same appetite exists even through the slower, fully-regulated route. anotherblock runs an on-chain version from the EU, where Humfiverse also operates. No EU-based, fully compliant competitor doing exactly this at scale had turned up as of this document's research — worth checking again before assuming it stays that way, but a good early sign.
 
 ## Who this is for
 
