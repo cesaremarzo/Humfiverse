@@ -522,5 +522,15 @@
   "portfolio.copyAddress": "Copy address",
   "portfolio.copied": "Copied",
   "portfolio.copyFailed": "Couldn't copy — select the address and copy it by hand.",
-  "buy.onchainPendingEmbedded": "Sending the transaction…"
+  "buy.onchainPendingEmbedded": "Sending the transaction…",
+  "portfolio.refundsTitle": "Refunds available",
+  "portfolio.refundsIntro": "These campaigns were cancelled. You can claim your share of what had not been released yet. The 2% contribution fee is not refunded, and your tokens stay in your wallet.",
+  "portfolio.refundAmount": "Refund",
+  "portfolio.refundBtn": "Claim refund",
+  "portfolio.refunding": "Refunding…",
+  "toast.refundDone": "Refund received: {{amount}} USDC.",
+  "buy.campaignCancelled": "This campaign was cancelled and no longer accepts contributions.",
+  "buy.campaignCancelledRefund": "Claim a refund in your portfolio",
+  "portfolio.cancelledCampaign": "Campaign cancelled",
+  "detail.resaleCancelled": "Campaign cancelled: its tokens can no longer be bought or sold here. If you contributed, claim your refund in your portfolio."
 }

@@ -522,5 +522,15 @@
   "portfolio.copyAddress": "アドレスをコピー",
   "portfolio.copied": "コピーしました",
   "portfolio.copyFailed": "コピーできませんでした。アドレスを選択して手動でコピーしてください。",
-  "buy.onchainPendingEmbedded": "トランザクションを送信中…"
+  "buy.onchainPendingEmbedded": "トランザクションを送信中…",
+  "portfolio.refundsTitle": "受け取れる返金",
+  "portfolio.refundsIntro": "これらのキャンペーンは中止されました。まだ支払われていない分から、あなたの持ち分を返金請求できます。2%の拠出手数料は返金されず、トークンはウォレットに残ります。",
+  "portfolio.refundAmount": "返金額",
+  "portfolio.refundBtn": "返金を請求",
+  "portfolio.refunding": "返金中…",
+  "toast.refundDone": "返金を受け取りました：{{amount}} USDC。",
+  "buy.campaignCancelled": "このキャンペーンは中止され、拠出を受け付けていません。",
+  "buy.campaignCancelledRefund": "ポートフォリオで返金を請求",
+  "portfolio.cancelledCampaign": "キャンペーン中止",
+  "detail.resaleCancelled": "キャンペーンは中止されました。このトークンはここで売買できません。拠出していた場合は、ポートフォリオで返金を請求してください。"
 }

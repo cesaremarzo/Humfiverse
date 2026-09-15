@@ -189,7 +189,7 @@
                         <td style="text-align:right;">
                           @if (l.seller.toLowerCase() === mySeller()) {
                             <button class="btn btn-ghost btn-sm" (click)="cancelMyListing(l)">{{ 'portfolio.cancelListingBtn' | translate }}</button>
-                          } @else {
+                          } @else if (!campaignCancelled()) {
                             <button class="btn btn-secondary btn-sm" (click)="buyFromListing(l)"><app-icon name="coins"></app-icon> {{ 'detail.resaleBuyBtn' | translate }}</button>
                           }
                         </td>
@@ -205,7 +205,9 @@
 
             <!-- Offering your own tokens, without leaving the campaign. -->
             <div style="margin-top:14px; padding-top:14px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
-              @if (!store.marketplaceEnabled()) {
+              @if (campaignCancelled()) {
+                <span style="font-size:12.5px; color:var(--text-secondary);">{{ 'detail.resaleCancelled' | translate }}</span>
+              } @else if (!store.marketplaceEnabled()) {
                 <span style="font-size:12.5px; color:var(--text-secondary);">{{ 'detail.resaleUnavailable' | translate }}</span>
               } @else if (!mySeller()) {
                 <span style="font-size:12.5px; color:var(--text-secondary);">{{ 'detail.resaleConnectToSell' | translate }}</span>
@@ -349,7 +351,15 @@
       </div>
       <div class="meter"><span [style.width.%]="fundingPct(a)"></span></div>
 
-      @if (soldOut(a)) {
+      @if (escrowInfo()?.escrow && $any(escrowInfo()).status === 'cancelled') {
+        <div class="risk-item">
+          <app-icon name="alert"></app-icon>
+          <div>
+            {{ 'buy.campaignCancelled' | translate }}
+            <a class="btn btn-ghost btn-sm" style="margin-top:6px;" routerLink="/portfolio"><app-icon name="coins"></app-icon> {{ 'buy.campaignCancelledRefund' | translate }}</a>
+          </div>
+        </div>
+      } @else if (soldOut(a)) {
         <div class="chip chip-neutral" style="justify-content:center; padding:10px;"><app-icon name="checkCircle"></app-icon> {{ 'buy.fullySubscribed' | translate }}</div>
       } @else if (!store.investor().verified) {
         <div class="risk-item"><app-icon name="shield"></app-icon><div>{{ 'buy.kycRequired' | translate }}</div></div>

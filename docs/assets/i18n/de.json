@@ -522,5 +522,15 @@
   "portfolio.copyAddress": "Adresse kopieren",
   "portfolio.copied": "Kopiert",
   "portfolio.copyFailed": "Kopieren fehlgeschlagen — markiere die Adresse und kopiere sie manuell.",
-  "buy.onchainPendingEmbedded": "Transaktion wird gesendet…"
+  "buy.onchainPendingEmbedded": "Transaktion wird gesendet…",
+  "portfolio.refundsTitle": "Verfügbare Rückerstattungen",
+  "portfolio.refundsIntro": "Diese Kampagnen wurden abgebrochen. Du kannst deinen Anteil an dem zurückfordern, was noch nicht ausgezahlt war. Die Beitragsgebühr von 2 % wird nicht erstattet, und deine Tokens bleiben in deinem Wallet.",
+  "portfolio.refundAmount": "Rückerstattung",
+  "portfolio.refundBtn": "Rückerstattung anfordern",
+  "portfolio.refunding": "Wird erstattet…",
+  "toast.refundDone": "Rückerstattung erhalten: {{amount}} USDC.",
+  "buy.campaignCancelled": "Diese Kampagne wurde abgebrochen und nimmt keine Beiträge mehr an.",
+  "buy.campaignCancelledRefund": "Rückerstattung im Portfolio anfordern",
+  "portfolio.cancelledCampaign": "Kampagne abgebrochen",
+  "detail.resaleCancelled": "Kampagne abgebrochen: Ihre Tokens können hier nicht mehr gekauft oder verkauft werden. Wenn du beigetragen hast, fordere deine Rückerstattung im Portfolio an."
 }

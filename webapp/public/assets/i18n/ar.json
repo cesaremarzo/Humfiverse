@@ -522,5 +522,15 @@
   "portfolio.copyAddress": "نسخ العنوان",
   "portfolio.copied": "تم النسخ",
   "portfolio.copyFailed": "تعذّر النسخ — حدّد العنوان وانسخه يدويًا.",
-  "buy.onchainPendingEmbedded": "جارٍ إرسال المعاملة…"
+  "buy.onchainPendingEmbedded": "جارٍ إرسال المعاملة…",
+  "portfolio.refundsTitle": "المبالغ القابلة للاسترداد",
+  "portfolio.refundsIntro": "أُلغيت هذه الحملات. يمكنك استرداد حصتك مما لم يُصرف بعد. لا تُستردّ رسوم المساهمة البالغة 2%، وتبقى رموزك في محفظتك.",
+  "portfolio.refundAmount": "الاسترداد",
+  "portfolio.refundBtn": "طلب الاسترداد",
+  "portfolio.refunding": "جارٍ الاسترداد…",
+  "toast.refundDone": "تم استلام الاسترداد: {{amount}} USDC.",
+  "buy.campaignCancelled": "أُلغيت هذه الحملة ولم تعد تقبل المساهمات.",
+  "buy.campaignCancelledRefund": "اطلب الاسترداد من محفظتك الاستثمارية",
+  "portfolio.cancelledCampaign": "أُلغيت الحملة",
+  "detail.resaleCancelled": "أُلغيت الحملة: لم يعد بالإمكان شراء رموزها أو بيعها هنا. إذا كنت قد ساهمت، فاطلب الاسترداد من محفظتك الاستثمارية."
 }

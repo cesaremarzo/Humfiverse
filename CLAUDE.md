@@ -69,6 +69,19 @@ who's driving:
    is still the most reliable way to avoid two people editing the same
    thing at once.
 
+## Wallet names
+
+Use these names for the platform's own wallets, in conversation, docs and
+UI (`webapp/src/app/core/known-wallets.ts`):
+
+| Name | Address | What it is |
+|---|---|---|
+| **Founder** | `0x142F945e13f59FdE3583bea8F78528a44317BfC6` | `owner()` of all three contracts, and the backend's `CHAIN_OPERATOR_PRIVATE_KEY` (Render env, local `.env`s). Token: mint, `releaseFromPool` (hands out pool tokens with no payment), `setEscrowContract`, `setFeeRecipient`, `setPayoutRecipient`, `setURI`, `setTrackAudioUri`. Escrow: `createCampaign`, `cancelCampaign`, studio registry, `setFeeRecipient`. Marketplace: `setFeeRecipient`. Plus Ownable's `transferOwnership`/`renounceOwnership` on each. |
+| **Fees** | `0xd156BDD971c9034A2C78496889E258c4601b7524` | `feeRecipient()` of all three contracts: where `withdrawFees()` sends platform fees. Receives only; holds no role. |
+
+If a redeploy or a `setFeeRecipient`/`transferOwnership` changes either
+address, update this table and `known-wallets.ts` in the same commit.
+
 ## Render deploy
 
 `humfiverse-api` on Render deploys from whatever branch its dashboard is

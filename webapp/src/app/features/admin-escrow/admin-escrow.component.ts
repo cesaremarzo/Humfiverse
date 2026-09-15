@@ -1,9 +1,10 @@
-import { Component, signal } from '@angular/core';
+import { Component, computed, signal } from '@angular/core';
 import { ApiService } from '../../core/api.service';
 import { WalletService } from '../../core/wallet.service';
 import { EscrowCampaignInfo, EscrowMilestone, FeeContractState, FeeSummary } from '../../core/models';
 import { fmtUSD } from '../../core/format.util';
 import { usdcToUsd } from '../../core/usdc.util';
+import { knownWalletName } from '../../core/known-wallets';
 
 type CampaignRow = EscrowCampaignInfo & { assetId: string };
 type LoadedCampaignRow = Extract<CampaignRow, { escrow: true }>;
@@ -38,8 +39,31 @@ export class AdminEscrowComponent {
   withdrawing = signal<FeeKey | null>(null);
   withdrawResult = signal<{ which: string; explorerUrl?: string; error?: string } | null>(null);
 
+  /** Owner of each escrow contract, keyed by address — cancelCampaign is
+   * owner-only, so the button is live only for that wallet. */
+  owners = signal<Record<string, string>>({});
+  /** Refund figures for cancelled campaigns, keyed by campaign id (§2.85). */
+  refundStates = signal<Record<number, { raised: bigint; released: bigint; pool: bigint } | { error: string }>>({});
+  confirmingCancel = signal<number | null>(null);
+  cancelling = signal<number | null>(null);
+  cancelResult = signal<{ campaignId: number; explorerUrl?: string; error?: string } | null>(null);
+
   fmt = fmtUSD;
   usdcToUsd = usdcToUsd;
+  bigUsd = (units: bigint) => fmtUSD(usdcToUsd(units));
+
+  /** "Founder (0x142F…BfC6)" for the platform's own wallets, the bare
+   * truncated address for anyone else. */
+  walletLabel(address: string | null | undefined): string {
+    if (!address) return '';
+    const name = knownWalletName(address);
+    return name ? `${name} (${this.wallet.truncateAddr(address)})` : this.wallet.truncateAddr(address);
+  }
+
+  isOwner = computed(() => {
+    const me = this.wallet.state().address?.toLowerCase();
+    return (contractAddress: string) => !!me && this.owners()[contractAddress.toLowerCase()]?.toLowerCase() === me;
+  });
 
   constructor(
     private api: ApiService,
@@ -53,10 +77,54 @@ export class AdminEscrowComponent {
     this.error.set(null);
     this.api
       .getEscrowCampaigns()
-      .then((res) => this.campaigns.set(res.campaigns.filter((c): c is LoadedCampaignRow => c.escrow === true)))
+      .then((res) => {
+        const rows = res.campaigns.filter((c): c is LoadedCampaignRow => c.escrow === true);
+        this.campaigns.set(rows);
+        this.loadOnchainExtras(rows);
+      })
       .catch((err) => this.error.set(String(err?.message || err)))
       .finally(() => this.loading.set(false));
     this.loadFees();
+  }
+
+  private loadOnchainExtras(rows: LoadedCampaignRow[]): void {
+    for (const address of new Set(rows.map((c) => c.contractAddress.toLowerCase()))) {
+      this.wallet
+        .readEscrowOwner(address)
+        .then((owner) => this.owners.update((o) => ({ ...o, [address]: owner })))
+        .catch((err) => console.warn('Could not read the escrow owner.', err));
+    }
+    for (const c of rows.filter((r) => r.status === 'cancelled' && !r.legacy)) {
+      this.wallet
+        .readRefundState(c.contractAddress, c.campaignId, null)
+        .then(({ raised, released, pool }) => this.refundStates.update((s) => ({ ...s, [c.campaignId]: { raised, released, pool } })))
+        .catch((err) => this.refundStates.update((s) => ({ ...s, [c.campaignId]: { error: String(err?.shortMessage || err?.message || err) } })));
+    }
+  }
+
+  refundState(campaignId: number) {
+    return this.refundStates()[campaignId] ?? null;
+  }
+
+  /** Two clicks on purpose: cancelling is irreversible on the contract. */
+  async cancelCampaign(c: LoadedCampaignRow): Promise<void> {
+    if (this.confirmingCancel() !== c.campaignId) {
+      this.confirmingCancel.set(c.campaignId);
+      return;
+    }
+    this.confirmingCancel.set(null);
+    this.cancelling.set(c.campaignId);
+    this.cancelResult.set(null);
+    try {
+      const { explorerUrl } = await this.wallet.cancelCampaignOnchain({ contractAddress: c.contractAddress, campaignId: c.campaignId });
+      this.cancelResult.set({ campaignId: c.campaignId, explorerUrl });
+      this.load();
+    } catch (err: unknown) {
+      const e = err as { shortMessage?: string; reason?: string; message?: string };
+      this.cancelResult.set({ campaignId: c.campaignId, error: e?.reason || e?.shortMessage || e?.message || String(err) });
+    } finally {
+      this.cancelling.set(null);
+    }
   }
 
   loadFees(): void {

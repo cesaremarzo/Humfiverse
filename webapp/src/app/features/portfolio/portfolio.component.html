@@ -53,6 +53,31 @@
     <div class="card stat-tile"><div class="label">{{ 'portfolio.value' | translate }}</div><div class="value">{{ loaded() ? fmt(totalValue()) : '—' }}</div></div>
   </div>
 
+  @if (refunds().length) {
+    <div class="card" style="margin-bottom:24px; padding:20px;">
+      <h3 style="font-family:'IBM Plex Sans',sans-serif; font-size:17px; margin-bottom:6px;">{{ 'portfolio.refundsTitle' | translate }}</h3>
+      <p style="font-size:12.5px; color:var(--text-secondary); margin:0 0 12px;">{{ 'portfolio.refundsIntro' | translate }}</p>
+      <div class="table-wrap">
+        <table class="table-stack">
+          <thead><tr><th>{{ 'portfolio.tableAsset' | translate }}</th><th class="cell-num">{{ 'portfolio.refundAmount' | translate }}</th><th></th></tr></thead>
+          <tbody>
+            @for (r of refunds(); track r.campaignId) {
+              <tr>
+                <td><a [routerLink]="['/asset', r.assetId]" style="color:inherit;">{{ r.title }}</a></td>
+                <td class="cell-num mono">{{ fmtUsdcExact(r.refundable) }} USDC</td>
+                <td style="text-align:right;">
+                  <button class="btn btn-primary btn-sm" [disabled]="refunding() !== null" (click)="claimRefund(r)">
+                    <app-icon name="coins"></app-icon> {{ (refunding() === r.campaignId ? 'portfolio.refunding' : 'portfolio.refundBtn') | translate }}
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
   @if (loading()) {
     <p class="prose">{{ 'portfolio.loadingReal' | translate }}</p>
   }
@@ -99,7 +124,7 @@
               <th>{{ 'portfolio.tableAsset' | translate }}</th><th class="cell-num">{{ 'portfolio.tableTokens' | translate }}</th><th class="cell-num">{{ 'portfolio.value' | translate }}</th><th></th>
             </tr></thead>
             <tbody>
-              @for (h of holdings(); track h.assetId) {
+              @for (h of effectiveHoldings(); track h.assetId) {
                 <tr>
                   <td><a [routerLink]="['/asset', h.assetId]" style="text-decoration:none; color:inherit;"><div class="row-song">
                     <div class="row-thumb" [style.background]="bg(h.assetId, 'catalogue')"></div>
@@ -108,7 +133,9 @@
                   <td class="cell-num mono">{{ h.tokens }}</td>
                   <td class="cell-num mono">{{ fmt(h.valueUsd) }}</td>
                   <td style="text-align:right;">
-                    @if (h.tokens > 0) {
+                    @if (h.cancelled) {
+                      <span class="chip chip-neutral">{{ 'portfolio.cancelledCampaign' | translate }}</span>
+                    } @else if (h.tokens > 0) {
                       <button class="btn btn-ghost btn-sm" (click)="openSell(h.assetId)">
                         <app-icon name="coins"></app-icon> {{ 'portfolio.sell' | translate }}
                       </button>

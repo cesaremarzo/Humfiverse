@@ -295,6 +295,8 @@ export type EscrowCampaignInfo =
       raised: string;
       deadline: number;
       status: 'active' | 'cancelled';
+      /** Campaign on a superseded escrow (CHAIN_ESCROW_LEGACY_ADDRESS). */
+      legacy?: boolean;
       releasedBps: number;
       /** §2.72: the goal less the 2% contribution fee — what a sold-out
        * campaign holds, and what tranches are sized against. Equal to the

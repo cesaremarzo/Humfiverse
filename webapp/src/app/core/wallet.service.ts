@@ -77,6 +77,16 @@ const ERC20_ABI = [
 ];
 /* Same function on the escrow and the marketplace (§2.71). */
 const WITHDRAW_FEES_ABI = ['function withdrawFees() external'];
+/* Cancellation and refunds (§2.85). cancelCampaign is owner-only; refund
+   pays only msg.sender, so every contributor claims their own. */
+const ESCROW_REFUND_ABI = [
+  'function owner() view returns (address)',
+  'function campaigns(uint256) view returns (address artist, uint256 studioId, uint256 fundingGoal, uint256 raised, uint256 deadline, uint8 status, uint256 releasedBps, string assetId)',
+  'function campaignReleased(uint256) view returns (uint256)',
+  'function contributions(uint256, address) view returns (uint256)',
+  'function cancelCampaign(uint256 campaignId) external',
+  'function refund(uint256 campaignId) external'
+];
 const CONFIRM_MILESTONE_ABI = [
   'function confirmMilestoneAsArtist(uint256 campaignId, uint256 milestoneIndex) external',
   'function confirmMilestoneAsStudio(uint256 campaignId, uint256 milestoneIndex) external'
@@ -252,7 +262,7 @@ export class WalletService {
    * `paymentTokenSource`'s own paymentToken() (§2.73), never from config;
    * `usdc` is null when there is no contract to ask. */
   async readBalances(address: string, paymentTokenSource: string | null): Promise<{ eth: bigint; usdc: bigint | null }> {
-    const provider = (this.readProvider ??= new ethers.JsonRpcProvider(SEPOLIA_ADD_PARAMS.rpcUrls[0], 11155111, { staticNetwork: true }));
+    const provider = this.reader();
     const usdc = async () => {
       if (!paymentTokenSource) return null;
       const token = await new ethers.Contract(paymentTokenSource, PAYMENT_TOKEN_ABI, provider)['paymentToken']();
@@ -260,6 +270,51 @@ export class WalletService {
     };
     const [eth, usdcBalance] = await Promise.all([provider.getBalance(address), usdc()]);
     return { eth, usdc: usdcBalance };
+  }
+
+  private reader(): ethers.JsonRpcProvider {
+    return (this.readProvider ??= new ethers.JsonRpcProvider(SEPOLIA_ADD_PARAMS.rpcUrls[0], 11155111, { staticNetwork: true }));
+  }
+
+  async readEscrowOwner(contractAddress: string): Promise<string> {
+    return new ethers.Contract(contractAddress, ESCROW_REFUND_ABI, this.reader())['owner']();
+  }
+
+  /** A campaign's refund figures, straight from the contract. `pool` is
+   * what the campaign still held when cancelled (raised less released
+   * tranches); refunds already claimed are not subtracted, since the
+   * contract keeps no running total of them. `refundable` mirrors refund()'s
+   * own formula for `contributor`: contributed × pool / raised. */
+  async readRefundState(contractAddress: string, campaignId: number, contributor: string | null):
+    Promise<{ raised: bigint; released: bigint; pool: bigint; contributed: bigint; refundable: bigint }> {
+    const escrow = new ethers.Contract(contractAddress, ESCROW_REFUND_ABI, this.reader());
+    const [c, released, contributed] = await Promise.all([
+      escrow['campaigns'](campaignId),
+      escrow['campaignReleased'](campaignId) as Promise<bigint>,
+      contributor ? (escrow['contributions'](campaignId, contributor) as Promise<bigint>) : Promise.resolve(0n)
+    ]);
+    const raised = c.raised as bigint;
+    const pool = raised - released;
+    return { raised, released, pool, contributed, refundable: raised > 0n ? (contributed * pool) / raised : 0n };
+  }
+
+  /** Owner-only on the contract: stops contributions and opens refund(). */
+  async cancelCampaignOnchain(params: { contractAddress: string; campaignId: number }): Promise<{ txHash: string; explorerUrl: string }> {
+    const contract = await this.signerFor(params.contractAddress, ESCROW_REFUND_ABI);
+    const tx = await contract['cancelCampaign'](params.campaignId);
+    const receipt = await tx.wait();
+    if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
+    return { txHash: tx.hash, explorerUrl: `${EXPLORER_BASE}/tx/${tx.hash}` };
+  }
+
+  /** The connected wallet's own refund from a cancelled campaign. The 2%
+   * contribution fee is not refunded, and the tokens stay where they are. */
+  async refundOnchain(params: { contractAddress: string; campaignId: number }): Promise<{ txHash: string; explorerUrl: string }> {
+    const contract = await this.signerFor(params.contractAddress, ESCROW_REFUND_ABI);
+    const tx = await contract['refund'](params.campaignId);
+    const receipt = await tx.wait();
+    if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
+    return { txHash: tx.hash, explorerUrl: `${EXPLORER_BASE}/tx/${tx.hash}` };
   }
 
   /** Switches the wallet to Sepolia, adding it first if the wallet doesn't

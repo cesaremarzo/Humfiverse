@@ -61,6 +61,14 @@ export class AssetDetailComponent {
      this one asset, read from the same endpoint the Portfolio uses. */
   myTokens = signal(0);
   mySeller = computed(() => (this.wallet.state().address ?? '').toLowerCase());
+
+  /** §2.85: a cancelled campaign's tokens outlive its refunds (refund()
+   * does not take them back), so the page stops offering to trade them. */
+  campaignCancelled = computed(() => {
+    const escrow = this.escrowInfo();
+    return !!escrow?.escrow && escrow.status === 'cancelled';
+  });
+
   myListings = computed(() => {
     const me = this.mySeller();
     return me ? this.listings().filter((l) => l.seller.toLowerCase() === me) : [];
@@ -535,7 +543,7 @@ export class AssetDetailComponent {
   // --- offering your own tokens for resale ---
 
   openSell(a: Asset): void {
-    if (!this.mySeller() || this.myTokens() <= 0) return;
+    if (!this.mySeller() || this.myTokens() <= 0 || this.campaignCancelled()) return;
     this.sellQty.set(1);
     this.sellPrice.set(this.marketPrice() ?? a.tokenPrice);
     this.sellOpen.set(true);
@@ -621,6 +629,7 @@ export class AssetDetailComponent {
    * retained by the contract (§2.71). Nothing here simulates a transfer any more,
    * so there is also nothing to undo if it fails. */
   async buyFromListing(listing: SecondaryListing): Promise<void> {
+    if (this.campaignCancelled()) return;
     const marketplace = this.store.marketplaceAddress();
     if (!marketplace || !this.wallet.state().address) {
       this.toast.show(this.translate.instant('toast.escrowNeedsWallet'), 'alert');
