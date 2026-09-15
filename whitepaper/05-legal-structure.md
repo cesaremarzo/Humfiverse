@@ -22,7 +22,7 @@ Financing an *unfinished* track sits in extra territory beyond the above. The EU
 
 ## Secondary trading is deliberately not built yet
 
-Letting investors trade tokens with each other at a price that moves automatically would require an entirely separate, heavier license — the kind that runs a stock exchange, not the kind that issues shares. That's a real, multi-year undertaking, not something a contract update solves. Humfiverse's resale feature is kept simple on purpose: individually priced listings between holders, not an automated market.
+Letting investors trade tokens with each other at a price that moves automatically would require an entirely separate, heavier license — the kind that runs a stock exchange, not the kind that issues shares. That's a real, multi-year undertaking, not something a contract update solves. Humfiverse's resale feature is kept simple on purpose: individually priced listings between holders, not an automated market. Whether that simpler form still counts as operating a trading venue has not been confirmed by counsel, so it should not be read as settled.
 
 ## What this costs, roughly
 
@@ -34,4 +34,4 @@ Independent of how the token is regulated, someone still has to confirm the unde
 
 ## Investor protection, built into onboarding
 
-Before buying anything, an investor completes an identity check and a short suitability questionnaire, modeled on the EU's standard rules for selling complex instruments without financial advice. A low score produces a clear warning, not an automatic block — matching how those real rules actually work. This is a working prototype of that process, not a certified, lawyer-reviewed version ready for a real regulated launch.
+Before a purchase, the app asks the investor to complete an identity check and a short suitability questionnaire, modeled on the EU's standard rules for selling complex instruments without financial advice. A low score produces a clear warning, not an automatic block — matching how those real rules actually work. This is a working prototype of that process, not a certified, lawyer-reviewed version ready for a real regulated launch. The prototype contracts do not enforce it — anyone can call them directly — so a real launch needs transfer restrictions at contract level, not only in the app.

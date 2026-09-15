@@ -1321,10 +1321,33 @@ On `dev/cesare`; a feature, so it waits for the go-ahead before `main`.
   disabled for them (it was live on `honest-man-595` in production), and the
   $0/no-resale treatment applies only to cancelled campaigns with something
   unreleased. Contract still allows it — phase 2.
-- **Phase 2 correction**: no "anyone may cancel an expired campaign"; instead
-  `refund()` opens by rule past a deadline below target. Needs deadlines —
-  today every campaign is created with `deadline = 0`.
+- **No deadlines, by decision**: neither "anyone may cancel an expired
+  campaign" nor refunds opening past a deadline; no milestone dates. The
+  contract's inert `deadline` field can go at the phase 2 redeploy. A
+  campaign ends only by selling out, full release, or cancellation.
+- **To fix**: the contract-template `refund` clause (v0.3-draft, 9 languages,
+  frontend + server copies) still promises refunds "if the funding goal is
+  not reached, or a milestone is not delivered on time" — untrue on chain.
 - **Open question recorded** (§4 of technical-architecture): the portfolio
   value must become the price tokens actually trade at on chain, if price
   discovery exists — today it is the fixed primary price / lowest ask / $0.
+- **Legal decision recorded** (`legal-regulatory-notes.md` §7.10, and
+  question 8 for counsel): Founder keeps the power to cancel a campaign for
+  unlawful or copyright-infringing content; investors get the unreleased part
+  pro rata and keep recourse against the artist for the rest plus damages.
+  To implement: new clauses (grounds, procedure, artist warranties and
+  indemnity, investor recourse), fixes to `refund` and `manager-discretion`,
+  template `v0.4-draft`; both artists and investors sign at registration,
+  investors also accept Terms and Conditions after scrolling the full text.
+- **Takedown requirements recorded** (technical §2.87, legal §7.10): cancelling
+  removes no content (page, IPFS audio, token metadata and on-chain title all
+  stay). Procedure to implement once `legal/08` fixes the grounds: stated
+  ground + reasons + decision record, notice to artist, hide page, unpin from
+  Pinata, clear on-chain audio URI, neutral metadata. Other session notified.
+- **Four decisions (evening, given in the legal session, recorded in §7.10 and
+  §2.87):** 5-day notice period (a setting); the 2% fee always stays with the
+  platform, claimed as damages if the artist is at fault; refunds and claims
+  follow tokens held at cancellation (phase 2 redeploy); artists sign with an
+  eIDAS qualified electronic signature via a QTSP, investors with scroll,
+  checkboxes and a wallet signature. Open for counsel: C2, C5, C9, A9.
 

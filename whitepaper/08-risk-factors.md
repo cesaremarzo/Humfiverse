@@ -24,7 +24,21 @@ Specific to Humfiverse's actual design and stage — not generic boilerplate. Re
 
 ## Operational
 
-- **Milestone deadlock is possible by design.** If the artist and studio genuinely disagree about a milestone, the money stays locked with no automatic way to resolve it — a deliberate tradeoff against giving Humfiverse override power (see [Governance](06-governance.md)).
+- **Milestone deadlock is possible by design.** If the artist and studio genuinely disagree about a milestone, the money stays in the escrow with no automatic way to resolve it — a deliberate tradeoff against giving Humfiverse override power (see [Governance](06-governance.md)).
+- **Campaigns have no deadline and no all-or-nothing rule.** A partly funded campaign can pay out its first tranches and stay open indefinitely.
+- **A campaign without a studio is released by the artist alone.**
+- **Refunds follow contributions, not tokens, on today's contracts.** Resale buyers of a cancelled campaign's tokens receive nothing until the planned contract change.
+
+## Platform powers
+
+- **The operator can release pool tokens without payment.** Until this power is restricted, it could dilute existing holders' share, or leave a campaign unable to sell its full supply.
+- **The operator can cancel a campaign** on stated legal grounds. Contributors are then refunded only the unreleased part, less the 2% fee; recovering released tranches from the artist is a legal claim, not an on-chain guarantee.
+- **One key controls the operator role today.** If it were compromised, everything that role can do could be done by someone else.
+- **Token metadata and the linked audio can be changed** by the operator after tokens are sold.
+
+## Data
+
+- **What is written on-chain or to IPFS is permanent** — including artist names, track titles and audio — and cannot be deleted on request.
 - **Confirming a royalty right is real is still a human, not a blockchain, job.** An error or an undisclosed prior claim at that stage isn't something the token layer can catch.
 - **Humfiverse itself is an early-stage venture.** The platform's own ability to keep operating is a dependency this system doesn't yet have a way around.
 

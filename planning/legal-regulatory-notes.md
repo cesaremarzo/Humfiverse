@@ -55,6 +55,7 @@ Independent of how the token itself is regulated, the underlying royalty right h
 5. What tax treatment applies to royalty distributions received by token holders, and what reporting obligations does that create for the platform?
 6. If pursuing the pre-production financing model (§4): does the SPV-per-track structure risk classification as an AIF under AIFMD, and does the royalty-share instrument have any realistic path to ECSPR treatment, or is full MiFID II/national-securities treatment the only option?
 7. If pursuing token-holder governance in any binding form: what legal wrapper (if any) would shield participating token holders from partnership-style liability, given the Lido DAO precedent, and does an EU-law equivalent to that protection currently exist?
+8. The platform's power to cancel a campaign for unlawful or infringing content (§7.10): is a cancellation power limited to stated legal grounds enforceable against artists and consumer investors as drafted, how must it be approved (art. 1341(2) c.c., consumer unfair-terms rules, Luxembourg equivalents), what do the DSA notice-and-action rules already require, and how can investors practically recover released tranches and damages from the artist?
 
 ## 7. Working decisions (28 Aug 2026) and cost modeling for the chosen path
 
@@ -100,6 +101,67 @@ Five of its eight clauses are flagged `vessatoria: true` — a first-pass judgme
 - **Source-of-funds declaration and a PEP (politically exposed person) self-declaration** — standard AML onboarding fields, recorded but not screened against any real PEP list (this is a prototype).
 
 This is single-session/no-real-auth state (`store.state.investor` client-side, `kyc_records` table server-side keyed only by submission, not by an authenticated user identity) — a real implementation needs this tied to an actual authenticated account, not just a session flag.
+
+**7.10 Founder keeps the power to cancel a campaign — for unlawful or infringing content — with refunds of the unreleased part and recourse against the artist (15 Sep 2026, user decision; to implement in the contract templates).** "Founder" is the wallet that owns the three contracts (see "Wallet names" in `CLAUDE.md`; technical doc §2.85–§2.86 for what it can do on chain).
+
+*The decision.*
+- **Founder must keep the power to cancel a campaign.** At the very least, a campaign may carry unlawful content, or content infringing someone else's copyright or related rights. The platform has to be able to take it down, and that cannot be left to an automatic rule or to the artist. This is also why the deadline-based alternatives were dropped (technical doc §2.86).
+- **Investors are refunded, pro rata, for the part not yet released** — what the escrow's `refund()` pays today.
+- **For the rest** — tranches already released to the artist or studio — **investors have recourse against the artist** to recover it, **plus compensation for damages**.
+
+*What the contract templates need, for artists and investors alike.* Draft requirements, not wording, and all to be confirmed by counsel under the governing law the templates choose. The vehicle is envisioned in Luxembourg (§7.7), and the current template's authoritative language is French; the Italian references below are the ones this analysis could name, not a conclusion that Italian law applies.
+- **Grounds for cancellation, stated and limited, not discretionary:**
+  - unlawful content;
+  - infringement of third-party rights — copyright, related rights, image/personality rights, trademarks, uncleared samples — evidenced by a rights holder's notice, an authority's order or a court decision;
+  - false artist warranties about any of the above.
+
+  A power tied to stated legal grounds is also what keeps it compatible with the "not actively managed" position of §4.1.1/§7.3: a compliance takedown, not an investment decision. That compatibility is an argument, not an opinion.
+- **Procedure:**
+  - notice to the artist with the reasons;
+  - a short term to answer, except where the content must come down at once;
+  - a written, dated decision kept on record.
+
+  If Humfiverse counts as a hosting service under the Digital Services Act, its notice-and-action and statement-of-reasons obligations (arts. 16–17 DSA) may already require much of this — to confirm.
+- **Artist warranties and indemnity:**
+  - originality, and ownership or clearance of every right in the work, samples included;
+  - no infringement, and lawful content;
+  - an indemnity (*manleva*) in favour of the platform, the SPV and the investors;
+  - acknowledgment that a cancellation on the stated grounds is not a breach by the platform or the SPV.
+- **Investors' recourse:**
+  - the refund of the unreleased part does not waive their claims;
+  - the artist remains liable for the released tranches and for damages — contractual liability for breach of the warranties, and tort liability towards third parties (in Italian terms arts. 1218, 1223 and 2043 c.c.).
+
+  Open: whether each investor pursues alone, which is impractical for small tickets, or the SPV or platform acts for all under a mandate or assignment of claims.
+- **Unfair and onerous terms.** A unilateral cancellation power, and a refund limited to the unreleased part, are the kind of terms that need specific written approval under art. 1341(2) c.c. — the template's `vessatoria` mechanism — and for consumer investors must pass the unfair-terms tests (Codice del Consumo arts. 33–36: a unilateral withdrawal right generally needs a justified reason stated in the contract). Luxembourg equivalents to confirm.
+
+*Open points recorded with the decision.*
+- **Whether the 2% contribution fee is refunded** when the cancellation is for the artist's fault. The contract never refunds it today (technical doc §2.85).
+- **Whether a studio that received tranches in good faith** is exposed to any claim, or recourse runs against the artist only.
+- **That the refund today follows contributions, not tokens.** Resale buyers get nothing, and the contributor keeps the tokens. The phase 2 contract change (technical doc §2.85) is meant to fix this, and the templates must describe whichever mechanism is live when they are signed.
+
+*Decisions taken the same evening (15 Sep 2026)*, given by the user in the legal-drafting session and relayed from it; `legal/08`, `04`, `02` and `07` carry the wording.
+1. **Notice period before cancellation: 5 days**, except where the law or an authority requires immediate removal (A-1 §2). The platform keeps it as a setting whose default is 5.
+2. **The 2% contribution fee always stays with the platform**, cancellation included. When the cancellation is the artist's fault, the fee becomes part of the damages claimed from the artist. The live escrow already works this way, so no contract change is needed.
+3. **Refunds and the claim against the artist belong to whoever holds the tokens at cancellation, pro rata by tokens.** This supersedes the contributor-based open point above. The live escrow pays contributors instead, so this needs the phase 2 redeploy (refund per token held, burning the tokens; technical doc §2.85). Until then the Terms (§5.4) and the risk disclaimer describe what the contract actually does.
+4. **Artists sign with a qualified electronic signature** (FEQ/QES, eIDAS art. 25), through a qualified trust service provider on the EU trusted list. The signature is applied to a PDF of the accepted text, its hash is recorded, and no campaign can be created without a valid signature (`legal/08` C-9). **Investors** keep scroll-to-accept, separate checkboxes for onerous clauses, and a wallet signature. The user's reasoning: through the platform, the artist is effectively setting up an entity that issues securities. Counsel question A9 in `legal/07` asks who the issuer legally is.
+
+Still open for counsel: C2 (who pursues the artist), C5 (studio that received tranches in good faith), C9 (the tokens of a cancelled, fully released campaign).
+
+*When and how it gets signed.*
+- **Today** only artists accept the template, clause by clause, in the campaign wizard at launch (§7.6, `POST /api/contract-acceptance`). Investors sign nothing: they fill in the KYC/appropriateness form (§7.9).
+- **Target:** both sign **at registration on the site** — since technical doc §2.83 that is the Google/Apple/email sign-in (or the first wallet connection).
+  - **Artists** sign the artist agreement.
+  - **Investors** sign the investor agreement and also accept the **Terms and Conditions of use**. Their checkbox is enabled only after scrolling through the whole text.
+  - **Every acceptance is recorded** with template version, timestamp, account/wallet and a receipt hash — the pattern `contract_acceptances` already uses.
+  - Scrolling to the end is good evidence that the text was offered, not a legal requirement in itself, and it **does not replace** the separate specific approval the onerous clauses need.
+
+*Cancelling does not take the content down — added the same day.* Checked against the code: the on-chain cancellation stops contributions and opens refunds, but the campaign page, the audio pinned on IPFS, the token metadata the platform serves, and the title and artist written into the token contract at mint all remain. For unlawful or infringing content, the legally relevant act is removal, so the platform needs a takedown procedure alongside the cancellation power. Technical requirements are in technical doc §2.87: stated ground and reasons, decision record, notice to the artist, hiding the page, unpinning the audio, clearing the on-chain audio pointer, neutral token metadata. Two limits the templates must state openly: copies already fetched by other IPFS nodes may persist beyond the platform's reach, and the title and artist text written into the token contract at mint cannot be erased.
+
+*Corrections due in the current template* (`server/contract-template.js`, mirrored in `webapp/src/app/core/mock-data/contract-template.json`, `v0.3-draft`, all nine languages):
+- `refund` still promises refunds "if the funding goal is not reached, or a milestone is not delivered on time" — neither exists on chain, and deadlines are out by decision (technical doc §2.86). It should say that unreleased amounts are refunded pro rata when a campaign is cancelled.
+- `manager-discretion` still gives the SPV Manager "sole discretion to confirm or not confirm that a milestone has been reached", a power removed in technical doc §2.27. Release now needs the artist's and the studio's own confirmations.
+- The new cancellation, warranty, indemnity and recourse clauses above.
+- Bump the version to `v0.4-draft` so acceptances recorded under `v0.3-draft` stay distinguishable.
 
 ---
 *Research compiled from public sources current as of August 2026 (see chat for source list). Not legal advice — this project should not proceed to any investor-facing offering or token sale without qualified securities/fintech counsel review specific to the chosen jurisdictions.*
