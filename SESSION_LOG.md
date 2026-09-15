@@ -1321,9 +1321,13 @@ On `dev/cesare`; a feature, so it waits for the go-ahead before `main`.
   disabled for them (it was live on `honest-man-595` in production), and the
   $0/no-resale treatment applies only to cancelled campaigns with something
   unreleased. Contract still allows it — phase 2.
-- **Phase 2 correction**: no "anyone may cancel an expired campaign"; instead
-  `refund()` opens by rule past a deadline below target. Needs deadlines —
-  today every campaign is created with `deadline = 0`.
+- **No deadlines, by decision**: neither "anyone may cancel an expired
+  campaign" nor refunds opening past a deadline; no milestone dates. The
+  contract's inert `deadline` field can go at the phase 2 redeploy. A
+  campaign ends only by selling out, full release, or cancellation.
+- **To fix**: the contract-template `refund` clause (v0.3-draft, 9 languages,
+  frontend + server copies) still promises refunds "if the funding goal is
+  not reached, or a milestone is not delivered on time" — untrue on chain.
 - **Open question recorded** (§4 of technical-architecture): the portfolio
   value must become the price tokens actually trade at on chain, if price
   discovery exists — today it is the fixed primary price / lowest ask / $0.
