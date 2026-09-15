@@ -1353,3 +1353,94 @@ On `dev/cesare`; a feature, so it waits for the go-ahead before `main`.
   verification is signed by its wallet (as a digest) and its public status
   says only verified yes/no.
 
+
+---
+
+## State at the end of 2026-09-16 — read this first next session
+
+Everything below is on `main` and live, except where marked. Frontend bundle
+`main-SZGRAZHQ.js`; backend on Render at the same commit. Last merged PR #62.
+
+### What shipped over 14–16 Sep (details: technical §2.83–§2.89, legal §7.10)
+
+- **Sign-in without MetaMask** (§2.83): thirdweb in-app wallets (Google,
+  Apple, email), EIP-7702 with sponsored gas; MetaMask still available.
+  Verified end to end with a Google wallet (`0x2f62…7f1a`): buy with 0 ETH.
+- **Portfolio**: ETH/USDC balances, full copyable address, refunds section.
+- **Cancel and refund** (§2.85–§2.86): Founder-only cancel on `/admin/escrow`,
+  disabled for fully released campaigns; contributors claim refunds in the
+  portfolio; cancelled campaigns' tokens shown at $0, not resellable.
+- **Signed writes** (§2.88–§2.89): campaign launch, royalty figures and KYC
+  are signed by the wallet they concern; artist ≠ studio enforced off-chain;
+  public KYC status says only verified yes/no.
+- **Fix**: escrow contributions pay qty × on-chain price (sub-cent prices).
+- **`legal/`** (written by the "Avvocato Humfiverse" session): regulation
+  explainer, contract review, draft Terms/privacy/disclaimers, draft clauses
+  (`08`), questions for counsel (`07`). Not reviewed by a lawyer.
+
+### Rules learned this week
+
+- Names: **Founder** = contracts' owner `0x142F…BfC6`; **Fees** = fee
+  recipient `0xd156…7524` (`CLAUDE.md` "Wallet names").
+- Another Claude session may be editing the same tree: **stage by path**,
+  never `git add -A`.
+- Touching contracts, fees, refunds, personal data, sign-in, contract template
+  or whitepaper: run `./legal/check.sh`, follow `.claude/skills/legal-review`,
+  and grep `legal/` for the old behaviour.
+- Public repo: security weaknesses go only in
+  `.claude/legal-private/backend-sicurezza.md` (gitignored).
+- Test signed endpoints on a throwaway backend without Founder's key
+  (`CHAIN_OPERATOR_PRIVATE_KEY= DB_PATH=/tmp/x.db PORT=3099 node server.js`):
+  a request that passes authorization reaches the 503 "disabled", one that
+  fails stops at 401/403. Only probe production after confirming Render runs
+  the new code.
+
+### Next work, in order (user's decisions already taken)
+
+1. **Registration and acceptance** (`legal/08` section C; closes private B-4):
+   - verified email at first sign-in, MetaMask included (C-11);
+   - artist and investor agreements from `legal/08` into
+     `server/contract-template.js` as `v0.4-draft`, in 9 languages — this also
+     fixes the wrong `refund` and `manager-discretion` clauses;
+   - investors: scroll to the end, separate onerous-clause checkboxes, Terms
+     and Conditions, wallet signature carrying template version and text
+     hash (reuse the §2.88/§2.89 signing path);
+   - record version, time, account, wallet, text hash and IP;
+   - a new version means a new acceptance.
+2. **Qualified electronic signature for artists** (eIDAS QES): choose a QTSP
+   on the EU trusted list, sign a PDF of the accepted text, store its hash,
+   refuse campaign creation without a valid signature. Provider not chosen.
+3. **Cancellation with grounds and takedown** (§2.87, `legal/08` A-1/A-1-bis):
+   - grounds `unlawful_content` / `third_party_rights` (with evidence type) /
+     `false_warranties`;
+   - notice period a setting, default 5 days;
+   - append-only decision record, notice to the artist by email;
+   - hide the page, unpin from Pinata, `setTrackAudioUri(id, "")`, neutral
+     token metadata;
+   - with a ground, fully released campaigns can be cancelled too.
+4. **Phase 2 contract redeploy** (escrow + token together; use the
+   `contract-redeploy` skill):
+   - refund per token held, burning the tokens;
+   - `require(studio != artist)`;
+   - `cancelCampaign` refuses fully released campaigns unless there is a legal
+     ground;
+   - remove the inert `deadline`;
+   - ownership to a multisig, backend with a separate mint-only role;
+   - consider minting with an opaque reference instead of title/artist text.
+
+### Open questions (not for code yet)
+
+- Portfolio value should be the price tokens actually trade at on chain, if
+  price discovery exists (technical §4) — and whether that raises the MTF/OTF
+  question (legal §7.8).
+- For counsel (`legal/07`): C2 who pursues the artist, C5 a studio paid in
+  good faith, C9 tokens of a cancelled fully released campaign, A9 who the
+  issuer is.
+- Not verified yet: signatures from a Google in-app wallet on the §2.88/§2.89
+  endpoints.
+
+### Test data
+
+- "Douvikas is OP" (escrow campaign 2, token 4) exists on Sepolia and in the
+  local DB only; cancelled, refund claimed, 30 tokens remain with `0x2f62…`.
+- `honest-man-595` (campaign 1) in production: fully released, still active.
