@@ -106,8 +106,16 @@ export class AdminEscrowComponent {
     return this.refundStates()[campaignId] ?? null;
   }
 
+  /** §2.86: the contract lets a fully released campaign be cancelled — it
+   * has no "completed" status — which refunds nothing and would only mark
+   * the tokens of a delivered project as cancelled. Refused here. */
+  fullyReleased(c: LoadedCampaignRow): boolean {
+    return c.releasedBps >= 10_000;
+  }
+
   /** Two clicks on purpose: cancelling is irreversible on the contract. */
   async cancelCampaign(c: LoadedCampaignRow): Promise<void> {
+    if (this.fullyReleased(c)) return;
     if (this.confirmingCancel() !== c.campaignId) {
       this.confirmingCancel.set(c.campaignId);
       return;

@@ -66,7 +66,7 @@ export class AssetDetailComponent {
    * does not take them back), so the page stops offering to trade them. */
   campaignCancelled = computed(() => {
     const escrow = this.escrowInfo();
-    return !!escrow?.escrow && escrow.status === 'cancelled';
+    return !!escrow?.escrow && escrow.status === 'cancelled' && escrow.releasedBps < 10_000;
   });
 
   myListings = computed(() => {

@@ -97,13 +97,15 @@
     @if (c.status === 'active') {
       <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
         <button class="btn btn-sm" [class.btn-secondary]="confirmingCancel() !== c.campaignId" [class.btn-primary]="confirmingCancel() === c.campaignId"
-                [disabled]="!isOwner()(c.contractAddress) || cancelling() !== null" (click)="cancelCampaign(c)">
+                [disabled]="fullyReleased(c) || !isOwner()(c.contractAddress) || cancelling() !== null" (click)="cancelCampaign(c)">
           {{ cancelling() === c.campaignId ? 'Cancelling…' : confirmingCancel() === c.campaignId ? 'Confirm: cancel campaign #' + c.campaignId + ' (irreversible)' : 'Cancel campaign' }}
         </button>
         @if (confirmingCancel() === c.campaignId) {
           <button class="btn btn-ghost btn-sm" (click)="confirmingCancel.set(null)">Keep it active</button>
         }
-        @if (!isOwner()(c.contractAddress)) {
+        @if (fullyReleased(c)) {
+          <span style="font-size:12px; color:var(--text-secondary);">Fully released: nothing is left to refund, and cancelling would only mark a delivered project's tokens as cancelled.</span>
+        } @else if (!isOwner()(c.contractAddress)) {
           <span style="font-size:12px; color:var(--text-secondary);">
             Owner only{{ owners()[c.contractAddress.toLowerCase()] ? ': connect ' + walletLabel(owners()[c.contractAddress.toLowerCase()]) : '' }}.
           </span>
