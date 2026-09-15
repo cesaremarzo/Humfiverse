@@ -1219,10 +1219,8 @@ Both were **a browser tab running an old bundle**. Ask for the loaded
 
 ### Open items for next session
 
-- **Decide: artist and studio on the same wallet.** Recommended: forbid it
-  (wizard + `createCampaign` require), since one wallet doing both makes the
-  dual confirmation meaningless. The user asked whether one confirmation
-  should suffice; not decided.
+- **Artist and studio on the same wallet: decided 16 Sep, forbidden** off-chain
+  (§2.89); the contract `require` waits for phase 2.
 - **`guns-394`** in production: asset record only (no token, no escrow, no
   wallet), created by a stale tab. Delete it.
 - Backend security items are tracked outside this public repo.
@@ -1350,4 +1348,8 @@ On `dev/cesare`; a feature, so it waits for the go-ahead before `main`.
   from the artist wallet over what is launched; the backend checks it on every
   write that makes Founder's key act for the campaign. Security notes stay out
   of this repo.
+- **§2.89**: artist ≠ studio enforced in the wizard, launch authorization and
+  escrow service; royalty figures need the asset owner's signature; investor
+  verification is signed by its wallet (as a digest) and its public status
+  says only verified yes/no.
 

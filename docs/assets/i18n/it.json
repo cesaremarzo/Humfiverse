@@ -534,5 +534,10 @@
   "portfolio.cancelledCampaign": "Campagna annullata",
   "detail.resaleCancelled": "Campagna annullata: i suoi token non si possono più comprare né vendere qui. Se avevi contribuito, richiedi il rimborso dal Portfolio.",
   "toast.launchSignRejected": "Hai rifiutato la firma di autorizzazione: non è stato creato nulla.",
-  "toast.launchSignFailed": "Impossibile autorizzare il lancio. Controlla il wallet e riprova."
+  "toast.launchSignFailed": "Impossibile autorizzare il lancio. Controlla il wallet e riprova.",
+  "toast.actionSignRejected": "Hai rifiutato la firma: non è stato modificato nulla.",
+  "detail.royaltyReportOwnerOnly": "Solo il wallet dell’artista di questo asset può dichiarare o rimuovere dati di royalty.",
+  "kyc.alreadyVerifiedBodyGeneric": "Questo wallet ha già completato la verifica. Puoi procedere all’acquisto.",
+  "toast.kycSubmitFailed": "Impossibile salvare la verifica. Riprova tra poco.",
+  "wizSource.studioIsArtist": "Il wallet dello studio deve essere diverso dal tuo: ogni milestone richiede due conferme indipendenti."
 }

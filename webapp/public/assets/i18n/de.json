@@ -534,5 +534,10 @@
   "portfolio.cancelledCampaign": "Kampagne abgebrochen",
   "detail.resaleCancelled": "Kampagne abgebrochen: Ihre Tokens können hier nicht mehr gekauft oder verkauft werden. Wenn du beigetragen hast, fordere deine Rückerstattung im Portfolio an.",
   "toast.launchSignRejected": "Du hast die Autorisierungssignatur abgelehnt, daher wurde nichts erstellt.",
-  "toast.launchSignFailed": "Der Start konnte nicht autorisiert werden. Prüfe dein Wallet und versuche es erneut."
+  "toast.launchSignFailed": "Der Start konnte nicht autorisiert werden. Prüfe dein Wallet und versuche es erneut.",
+  "toast.actionSignRejected": "Du hast die Signatur abgelehnt, daher wurde nichts geändert.",
+  "detail.royaltyReportOwnerOnly": "Nur das Wallet des Künstlers dieses Assets kann Tantiemen-Angaben erfassen oder entfernen.",
+  "kyc.alreadyVerifiedBodyGeneric": "Dieses Wallet hat die Verifizierung bereits abgeschlossen. Du kannst kaufen.",
+  "toast.kycSubmitFailed": "Deine Verifizierung konnte nicht gespeichert werden. Versuche es gleich noch einmal.",
+  "wizSource.studioIsArtist": "Das Studio-Wallet muss sich von deinem unterscheiden: Jeder Meilenstein braucht zwei unabhängige Bestätigungen."
 }

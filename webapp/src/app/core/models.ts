@@ -390,3 +390,14 @@ export interface LaunchAuthorization {
   payload: LaunchPayload;
   signature: string;
 }
+
+/** §2.89: a single write signed by the wallet it concerns. */
+export type SignedActionKind = 'royalty-report' | 'royalty-remove' | 'kyc-submit';
+
+export interface SignedAction {
+  kind: SignedActionKind;
+  wallet: string;
+  fields: Record<string, unknown>;
+  issuedAt: string;
+  signature: string;
+}

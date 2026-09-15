@@ -44,6 +44,8 @@ module.exports = function registerEscrowRoutes(router) {
     } catch (e) {
       if (e.code === "unauthorized") {
         sendJson(res, 401, { error: e.message });
+      } else if (e.code === "invalid") {
+        sendJson(res, 400, { error: e.message });
       } else if (e.code === "already_created") {
         sendJson(res, 409, { error: "asset already has an escrow campaign", record: e.record });
       } else if (e.code === "no_token") {

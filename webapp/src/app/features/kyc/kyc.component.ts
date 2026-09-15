@@ -9,6 +9,7 @@ import { WalletService } from '../../core/wallet.service';
 import { ToastService } from '../../core/toast.service';
 import { fakeTxHash, scoreAppropriatenessLocal } from '../../core/yield.util';
 import { KycResult } from '../../core/models';
+import { SignedActionService, isSignatureRejection } from '../../core/signed-action.service';
 
 @Component({
   selector: 'app-kyc',
@@ -56,7 +57,8 @@ export class KycComponent {
     public wallet: WalletService,
     private api: ApiService,
     private toast: ToastService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private signedAction: SignedActionService
   ) {}
 
   async submit(): Promise<void> {
@@ -79,20 +81,31 @@ export class KycComponent {
       sourceOfFunds: this.sourceOfFunds(),
       pep: this.pep()
     };
-    try {
-      if (!this.store.backendAvailable()) throw new Error('backend unavailable');
-      this.result.set(await this.api.submitKyc(payload));
-    } catch (err) {
-      console.warn('KYC backend submission unavailable, using local fallback scoring.', err);
-      const local = scoreAppropriatenessLocal(payload.answers);
-      this.result.set({
-        verified: true,
-        classification: this.classification(),
-        appropriatenessResult: local.result,
-        score: local.score,
-        receiptHash: fakeTxHash()
-      });
+    if (this.store.backendAvailable()) {
+      // §2.89: the wallet signs a digest of these answers (not the answers:
+      // an in-app wallet signs on thirdweb's servers), so only it can mark
+      // itself verified. A declined signature records nothing.
+      try {
+        const auth = await this.signedAction.sign('kyc-submit', { submission: payload });
+        this.result.set(await this.api.submitKyc(payload, auth));
+      } catch (err) {
+        const key = isSignatureRejection(err) ? 'toast.actionSignRejected' : (err as Error)?.message === 'no-wallet' ? 'toast.noWalletDetected' : 'toast.kycSubmitFailed';
+        if (key === 'toast.kycSubmitFailed') console.warn('KYC submission failed on the backend.', err);
+        this.toast.show(this.translate.instant(key), 'alert');
+      } finally {
+        this.submitting.set(false);
+      }
+      return;
     }
+    // No backend to record it: the prototype's local scoring, as before.
+    const local = scoreAppropriatenessLocal(payload.answers);
+    this.result.set({
+      verified: true,
+      classification: this.classification(),
+      appropriatenessResult: local.result,
+      score: local.score,
+      receiptHash: fakeTxHash()
+    });
     this.submitting.set(false);
   }
 

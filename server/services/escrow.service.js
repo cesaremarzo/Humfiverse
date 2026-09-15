@@ -15,6 +15,11 @@ const onchainService = require("./onchain.service");
  * with the milestones the wizard collected, each routed to either the
  * artist's or the studio's wallet. */
 async function createCampaign(assetId, artistAddress, studioName, studioWallet, milestones) {
+  // §2.89: artist and studio must be two wallets, or the dual confirmation
+  // of every milestone (§2.27) is one wallet confirming twice.
+  if (String(artistAddress).toLowerCase() === String(studioWallet).toLowerCase()) {
+    throw Object.assign(new Error("the studio wallet must be different from the artist wallet"), { code: "invalid" });
+  }
   const existingOnchain = await escrowChain.getCampaignInfoByAssetId(assetId);
   if (existingOnchain) throw Object.assign(new Error("asset already has an escrow campaign"), { code: "already_created", record: existingOnchain });
 

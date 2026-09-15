@@ -74,16 +74,24 @@ function normalizePayload(p, { issuedAt } = {}) {
   const stamp = issuedAt ?? p.issuedAt;
   if (!stamp || Number.isNaN(Date.parse(stamp))) throw codedError("invalid", "issuedAt is required");
 
+  const artistWallet = address(p.artistWallet, "artistWallet");
+  const studioWallet = address(p.studioWallet, "studioWallet", { optional: true });
+  // §2.89: a milestone releases on two independent confirmations, artist and
+  // studio (§2.27); one wallet in both roles would confirm alone.
+  if (studioWallet && studioWallet === artistWallet) {
+    throw codedError("invalid", "the studio wallet must be different from the artist wallet");
+  }
+
   return {
     assetId: text(p.assetId, "assetId"),
     title: text(p.title, "title"),
     artistName: text(p.artistName, "artistName"),
-    artistWallet: address(p.artistWallet, "artistWallet"),
+    artistWallet,
     supply,
     fundingUsdc: funding.toString(),
     directSale: p.directSale,
     studioName: text(p.studioName, "studioName", { optional: true }),
-    studioWallet: address(p.studioWallet, "studioWallet", { optional: true }),
+    studioWallet,
     milestones,
     issuedAt: new Date(stamp).toISOString()
   };
