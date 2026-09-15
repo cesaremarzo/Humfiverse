@@ -11,6 +11,20 @@ perché.
   del wallet sull'accettazione dell'Accordo Artista; mancano versione del
   template e hash del testo nel messaggio firmato.
 
+## 2026-09-16 (sera) · artista ≠ studio, royalty e verifica firmate
+
+- **Codice (§2.89):** artista e studio devono avere wallet diversi (wizard,
+  autorizzazione di lancio, servizio del backend; non ancora nel contratto). I
+  dati di royalty li può scrivere solo il wallet proprietario dell'asset, con
+  firma. La verifica dell'investitore è firmata dal suo wallet su un'impronta
+  delle risposte, e lo stato pubblico dice solo verificato sì/no.
+- **02 C-3:** segnata come risolta in parte. Il contratto accetta ancora
+  artista = studio.
+- **05 §3 e §5:** aggiunta la firma della verifica (solo l'impronta, non
+  salvata); chiarito che l'esito non è più pubblico e che thirdweb riceve solo
+  l'impronta.
+- **Sicurezza:** B-2 e B-3 chiusi nella nota privata.
+
 ## 2026-09-16 · autorizzazione di lancio firmata dall'artista
 
 - **Codice:** per creare una campagna il wallet dell'artista firma un testo con i

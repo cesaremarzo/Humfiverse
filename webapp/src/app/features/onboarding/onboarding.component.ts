@@ -261,8 +261,20 @@ export class OnboardingComponent {
     return vessatoriaClauseIds(this.store.contractTemplate()).every((id) => d.contract.vessatoriaAccepted[id] === true);
   }
 
+  /** §2.89: the studio confirms milestones independently of the artist
+   * (§2.27), so it cannot be the connected wallet itself. */
+  studioIsArtist(studioWallet: string): boolean {
+    const me = this.wallet.state().address?.toLowerCase();
+    return !!me && studioWallet.trim().toLowerCase() === me;
+  }
+
   canAdvance(): boolean {
     const key = this.stepKey();
+    if (key === 'source') {
+      const d = this.data();
+      const studio = d.model === 'preproduction' ? d.preprod.studioWallet : d.catalogueCampaign.enabled ? d.catalogueCampaign.studioWallet : '';
+      if (studio && this.studioIsArtist(studio)) return false;
+    }
     // The contract step is the one check that can't be a pure function: it
     // needs the clause list off the loaded template, not just the draft.
     if (key === 'contract') return this.isContractComplete();
@@ -333,6 +345,12 @@ export class OnboardingComponent {
     const directSale = !(isPre || d.catalogueCampaign.enabled);
     const escrowStudio = isPre ? d.preprod : d.catalogueCampaign.enabled ? d.catalogueCampaign : null;
     const escrowMilestones = isPre ? d.preprodMilestones : d.catalogueCampaign.enabled ? d.catalogueMilestones : [];
+
+    if (escrowStudio && this.studioIsArtist(escrowStudio.studioWallet)) {
+      this.toast.show(this.translate.instant('wizSource.studioIsArtist'), 'alert');
+      this.submitting.set(false);
+      return;
+    }
 
     // §2.88: every backend write below makes Founder's key act for this
     // campaign, so the owner wallet first signs what is being launched —

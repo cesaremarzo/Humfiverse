@@ -4,7 +4,11 @@
     <div class="card panel" style="padding:28px; display:flex; flex-direction:column; gap:14px;">
       <div class="risk-item" style="background:var(--good-soft); border-color:transparent;">
         <app-icon name="checkCircle"></app-icon>
-        <div>{{ 'kyc.alreadyVerifiedBody' | translate: { classification: ('kyc.' + store.investor().classification + 'Title' | translate) } }}</div>
+        @if (store.investor().classification) {
+          <div>{{ 'kyc.alreadyVerifiedBody' | translate: { classification: ('kyc.' + store.investor().classification + 'Title' | translate) } }}</div>
+        } @else {
+          <div>{{ 'kyc.alreadyVerifiedBodyGeneric' | translate }}</div>
+        }
       </div>
       <a class="btn btn-primary btn-lg" [routerLink]="continuePath()"><app-icon name="arrowRight"></app-icon> {{ 'kyc.continueBtn' | translate }}</a>
     </div>

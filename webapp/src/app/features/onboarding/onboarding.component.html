@@ -65,6 +65,8 @@
           <input type="text" class="mono" [value]="data().preprod.studioWallet" (input)="updatePreprodTextField('studioWallet', $any($event.target).value)" placeholder="0x…">
           @if (data().preprod.studioWallet && !isValidWalletAddress(data().preprod.studioWallet)) {
             <span class="hint" style="color:var(--warning-ink, #b45309);">{{ 'wizSource.studioWalletInvalid' | translate }}</span>
+          } @else if (studioIsArtist(data().preprod.studioWallet)) {
+            <span class="hint" style="color:var(--warning-ink, #b45309);">{{ 'wizSource.studioIsArtist' | translate }}</span>
           } @else {
             <span class="hint">{{ 'wizSource.studioWalletHint' | translate }}</span>
           }
@@ -157,6 +159,8 @@
             <input type="text" class="mono" [value]="data().catalogueCampaign.studioWallet" (input)="updateCatalogueCampaignTextField('studioWallet', $any($event.target).value)" placeholder="0x…">
             @if (data().catalogueCampaign.studioWallet && !isValidWalletAddress(data().catalogueCampaign.studioWallet)) {
               <span class="hint" style="color:var(--warning-ink, #b45309);">{{ 'wizSource.studioWalletInvalid' | translate }}</span>
+            } @else if (studioIsArtist(data().catalogueCampaign.studioWallet)) {
+              <span class="hint" style="color:var(--warning-ink, #b45309);">{{ 'wizSource.studioIsArtist' | translate }}</span>
             } @else {
               <span class="hint">{{ 'wizSource.studioWalletHint' | translate }}</span>
             }

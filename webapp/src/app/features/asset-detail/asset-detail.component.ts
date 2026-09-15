@@ -25,6 +25,7 @@ import { onchainErrorTranslation } from '../../core/onchain-error.util';
 import { addHolding } from '../../core/portfolio-holdings.util';
 import { milestonesWithOnchainStatus } from '../../core/milestone-status.util';
 import { retrying } from '../../core/retry.util';
+import { SignedActionService, isSignatureRejection } from '../../core/signed-action.service';
 
 type TabKey = 'overview' | 'royalty' | 'milestones' | 'disclosure' | 'documents' | 'risk';
 
@@ -95,7 +96,8 @@ export class AssetDetailComponent {
     public wallet: WalletService,
     private api: ApiService,
     private toast: ToastService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private signedAction: SignedActionService
   ) {
     effect(() => {
       const id = this.id();
@@ -294,6 +296,18 @@ export class AssetDetailComponent {
     this.royaltyUsdInput.set(v);
   }
 
+  /** §2.89: royalty figures feed the yield shown to investors, so only the
+   * asset's owner wallet may record or remove them — the one the wizard
+   * stored, or its escrow campaign's artist for an older asset. The server
+   * enforces the same rule; this only decides what to offer. */
+  isAssetOwner(a: Asset): boolean {
+    const me = this.wallet.state().address?.toLowerCase();
+    if (!me) return false;
+    const escrow = this.escrowInfo();
+    const owner = a.artistWallet?.toLowerCase() ?? (escrow?.escrow ? escrow.artist.toLowerCase() : null);
+    return owner === me;
+  }
+
   canSubmitRoyaltyReport(): boolean {
     if (!this.wallet.state().address) return false;
     if (!isValidRoyaltyMonth(this.royaltyMonthInput())) return false;
@@ -305,13 +319,16 @@ export class AssetDetailComponent {
     if (!this.canSubmitRoyaltyReport() || this.royaltySubmitting()) return;
     this.royaltySubmitting.set(true);
     try {
-      const res = await this.api.submitRoyaltyReport(a.id, this.royaltyMonthInput(), Number(this.royaltyUsdInput()), this.wallet.state().address ?? undefined);
+      const month = this.royaltyMonthInput();
+      const royaltyUSD = Number(this.royaltyUsdInput());
+      const auth = await this.signedAction.sign('royalty-report', { assetId: a.id, month, royaltyUSD });
+      const res = await this.api.submitRoyaltyReport(a.id, month, royaltyUSD, auth);
       this.store.assets.update((list) => list.map((x) => (x.id === a.id ? { ...x, royaltyHistory: res.royaltyHistory } : x)));
       this.royaltyMonthInput.set('');
       this.royaltyUsdInput.set('');
       this.toast.show(this.translate.instant('detail.royaltyReportSuccessToast'));
     } catch (err) {
-      this.toast.show(this.translate.instant('detail.royaltyReportErrorToast'), 'alert');
+      this.toast.show(this.translate.instant(isSignatureRejection(err) ? 'toast.actionSignRejected' : 'detail.royaltyReportErrorToast'), 'alert');
     } finally {
       this.royaltySubmitting.set(false);
     }
@@ -319,10 +336,11 @@ export class AssetDetailComponent {
 
   async removeRoyaltyReport(a: Asset, month: string): Promise<void> {
     try {
-      const res = await this.api.deleteRoyaltyReport(a.id, month);
+      const auth = await this.signedAction.sign('royalty-remove', { assetId: a.id, month });
+      const res = await this.api.deleteRoyaltyReport(a.id, month, auth);
       this.store.assets.update((list) => list.map((x) => (x.id === a.id ? { ...x, royaltyHistory: res.royaltyHistory } : x)));
     } catch (err) {
-      this.toast.show(this.translate.instant('detail.royaltyReportErrorToast'), 'alert');
+      this.toast.show(this.translate.instant(isSignatureRejection(err) ? 'toast.actionSignRejected' : 'detail.royaltyReportErrorToast'), 'alert');
     }
   }
 

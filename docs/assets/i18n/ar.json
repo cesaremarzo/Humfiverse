@@ -534,5 +534,10 @@
   "portfolio.cancelledCampaign": "أُلغيت الحملة",
   "detail.resaleCancelled": "أُلغيت الحملة: لم يعد بالإمكان شراء رموزها أو بيعها هنا. إذا كنت قد ساهمت، فاطلب الاسترداد من محفظتك الاستثمارية.",
   "toast.launchSignRejected": "رفضت توقيع التفويض، لذلك لم يُنشأ أي شيء.",
-  "toast.launchSignFailed": "تعذّر تفويض الإطلاق. تحقّق من محفظتك ثم أعد المحاولة."
+  "toast.launchSignFailed": "تعذّر تفويض الإطلاق. تحقّق من محفظتك ثم أعد المحاولة.",
+  "toast.actionSignRejected": "رفضت التوقيع، لذلك لم يتغيّر شيء.",
+  "detail.royaltyReportOwnerOnly": "لا يمكن تسجيل بيانات العائدات أو حذفها إلا من محفظة فنان هذا الأصل.",
+  "kyc.alreadyVerifiedBodyGeneric": "أكملت هذه المحفظة التحقق مسبقًا. يمكنك متابعة الشراء.",
+  "toast.kycSubmitFailed": "تعذّر حفظ التحقق. أعد المحاولة بعد قليل.",
+  "wizSource.studioIsArtist": "يجب أن تختلف محفظة الاستوديو عن محفظتك: يتطلب كل إنجاز تأكيدين مستقلين."
 }

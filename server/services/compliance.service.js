@@ -86,17 +86,11 @@ async function recordKyc(body) {
  * asked again on a later visit or purchase (§2.30, fixing a real gap the
  * user caught — this check previously didn't exist at all, so every
  * session re-required KYC regardless of wallet). Looks up the most recent
- * record for this wallet; not verified if it has never completed one. */
+ * record for this wallet; not verified if it has never completed one.
+ * Returns only that yes/no (§2.89): the route is public. */
 async function getKycStatusForWallet(walletAddress) {
   const row = await complianceRepo.findLatestKycByWallet(walletAddress);
-  if (!row) return { verified: false };
-  return {
-    verified: true,
-    classification: row.classification,
-    appropriatenessResult: row.appropriateness_result,
-    score: row.score,
-    receiptHash: row.receipt_hash
-  };
+  return { verified: !!row };
 }
 
 module.exports = {

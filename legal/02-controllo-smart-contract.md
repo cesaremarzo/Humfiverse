@@ -1,6 +1,6 @@
 # Controllo degli smart contract e del backend, dal punto di vista legale
 
-*Revisione del 2026-09-15, commit `82a7a1b`. Non è un audit di sicurezza e non
+*Revisione del 2026-09-16, commit `cc06a70` con le modifiche del §2.89. Non è un audit di sicurezza e non
 è consulenza legale.*
 
 ## Cosa è e cosa non è questo controllo
@@ -164,6 +164,14 @@ SESSION_LOG del 14 set.
 **Proposta.** `require(studios[studioId].wallet != artist)` in `createCampaign`.
 Per campagne senza studio, dichiararlo in modo esplicito sulla pagina della
 campagna ("questa campagna è rilasciata dalla sola conferma dell'artista").
+
+**Risolto in parte (2026-09-16, technical §2.89).** Decisione dell'utente: artista
+e studio devono avere wallet diversi. Il vincolo ora è applicato fuori dalla
+blockchain in tre punti: il wizard, l'autorizzazione di lancio firmata e il
+servizio che crea la campagna nel backend. **Il contratto lo accetta ancora**:
+chi chiama `createCampaign` direttamente con la chiave del Founder può
+aggirarlo. Il `require` va aggiunto al redeploy della "phase 2". Resta aperto
+anche il caso delle campagne senza studio, e `honest-man-595` resta com'è.
 
 ### C-4 · Alta · Nessuna regola "tutto o niente" e nessuna scadenza
 

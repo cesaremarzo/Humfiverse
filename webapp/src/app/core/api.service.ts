@@ -14,6 +14,8 @@ import {
   KycResult,
   LaunchAuthorization,
   LaunchPayload,
+  SignedAction,
+  SignedActionKind,
   OnchainInfo,
   OnchainMintResult,
   RealHoldingDto,
@@ -61,8 +63,13 @@ export class ApiService {
     return firstValueFrom(this.http.post<ContractAcceptanceResult>(`${this.base}/api/contract-acceptance`, payload));
   }
 
-  submitKyc(payload: unknown): Promise<KycResult> {
-    return firstValueFrom(this.http.post<KycResult>(`${this.base}/api/kyc`, payload));
+  /** §2.89: the text a wallet signs for one write. */
+  prepareSignedAction(req: { kind: SignedActionKind; wallet: string; fields: Record<string, unknown> }): Promise<{ action: Omit<SignedAction, 'signature'>; message: string }> {
+    return firstValueFrom(this.http.post<{ action: Omit<SignedAction, 'signature'>; message: string }>(`${this.base}/api/signed-action/message`, req));
+  }
+
+  submitKyc(payload: Record<string, unknown>, auth: SignedAction): Promise<KycResult> {
+    return firstValueFrom(this.http.post<KycResult>(`${this.base}/api/kyc`, { ...payload, auth }));
   }
 
   /** Whether this wallet has already completed KYC/appropriateness on a
@@ -169,15 +176,15 @@ export class ApiService {
    * month, so resubmitting the same month corrects it. `reportedBy` is an
    * audit trail (the connected wallet that submitted it), not an
    * authorization check — see server.js for why. */
-  submitRoyaltyReport(assetId: string, month: string, royaltyUSD: number, reportedBy?: string): Promise<{ ok: boolean; royaltyHistory: RoyaltyMonth[] }> {
+  submitRoyaltyReport(assetId: string, month: string, royaltyUSD: number, auth: SignedAction): Promise<{ ok: boolean; royaltyHistory: RoyaltyMonth[] }> {
     return firstValueFrom(
-      this.http.post<{ ok: boolean; royaltyHistory: RoyaltyMonth[] }>(`${this.base}/api/assets/${encodeURIComponent(assetId)}/royalty-report`, { month, royaltyUSD, reportedBy })
+      this.http.post<{ ok: boolean; royaltyHistory: RoyaltyMonth[] }>(`${this.base}/api/assets/${encodeURIComponent(assetId)}/royalty-report`, { month, royaltyUSD, auth })
     );
   }
 
-  deleteRoyaltyReport(assetId: string, month: string): Promise<{ ok: boolean; royaltyHistory: RoyaltyMonth[] }> {
+  deleteRoyaltyReport(assetId: string, month: string, auth: SignedAction): Promise<{ ok: boolean; royaltyHistory: RoyaltyMonth[] }> {
     return firstValueFrom(
-      this.http.delete<{ ok: boolean; royaltyHistory: RoyaltyMonth[] }>(`${this.base}/api/assets/${encodeURIComponent(assetId)}/royalty-report/${encodeURIComponent(month)}`)
+      this.http.delete<{ ok: boolean; royaltyHistory: RoyaltyMonth[] }>(`${this.base}/api/assets/${encodeURIComponent(assetId)}/royalty-report/${encodeURIComponent(month)}`, { body: { auth } })
     );
   }
 

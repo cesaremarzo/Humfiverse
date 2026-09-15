@@ -20,11 +20,13 @@ const registerFeeRoutes = require("./fees.routes");
 const registerAdminRoutes = require("./admin.routes");
 const registerAuthRoutes = require("./auth.routes");
 const registerLaunchRoutes = require("./launch.routes");
+const registerSignedActionRoutes = require("./signed-action.routes");
 
 module.exports = function registerRoutes(router) {
   registerSystemRoutes(router);
   registerAuthRoutes(router);
   registerLaunchRoutes(router);
+  registerSignedActionRoutes(router);
   registerCatalogueRoutes(router);
   registerComplianceRoutes(router);
   registerOnchainRoutes(router);

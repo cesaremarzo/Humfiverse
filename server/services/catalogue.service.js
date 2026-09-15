@@ -10,6 +10,7 @@
    below — plus an admin cleanup path for the rows created before the fix
    (stripRoyaltyHistory). */
 
+const escrowChain = require("../chainEscrow");
 const catalogueRepo = require("../data/catalogue.repo");
 
 const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
@@ -54,4 +55,14 @@ async function stripRoyaltyHistory(asset) {
   await catalogueRepo.saveAsset(asset);
 }
 
-module.exports = { isValidMonth, normalizeReporter, upsertRoyaltyReport, removeRoyaltyReport, stripRoyaltyHistory };
+/** The wallet that owns an asset, for writes only its owner may make
+ * (§2.89): the wallet recorded when the wizard created it (§2.77), or, for
+ * an asset created before that, the artist of its escrow campaign. null
+ * when neither exists. */
+async function ownerWalletOf(asset) {
+  if (asset.artistWallet) return String(asset.artistWallet).toLowerCase();
+  const escrow = await escrowChain.getCampaignInfoByAssetId(asset.id).catch(() => null);
+  return escrow?.artist ? String(escrow.artist).toLowerCase() : null;
+}
+
+module.exports = { isValidMonth, normalizeReporter, upsertRoyaltyReport, removeRoyaltyReport, stripRoyaltyHistory, ownerWalletOf };

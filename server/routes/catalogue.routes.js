@@ -9,6 +9,7 @@ const catalogueRepo = require("../data/catalogue.repo");
 const portfolioRepo = require("../data/portfolio.repo");
 const catalogueService = require("../services/catalogue.service");
 const { verifyLaunch, requireMatch } = require("../lib/launch-auth");
+const { verifyAction } = require("../lib/signed-action");
 
 module.exports = function registerCatalogueRoutes(router) {
   /* The app-boot aggregate: one round trip instead of three, since the
@@ -57,6 +58,8 @@ module.exports = function registerCatalogueRoutes(router) {
         sendJson(res, 400, { error: "malformed JSON body" });
       } else if (e.code === "unauthorized") {
         sendJson(res, 401, { error: e.message });
+      } else if (e.code === "invalid") {
+        sendJson(res, 400, { error: e.message });
       } else if (e.code === "too_large") {
         sendJson(res, 413, { error: "request body too large" });
       } else {
@@ -76,16 +79,28 @@ module.exports = function registerCatalogueRoutes(router) {
     sendJson(res, 200, { ok: true, deleted });
   });
 
-  /* Lets whoever is looking at a catalogue asset record a real, dated
-     royalty figure into its royaltyHistory — the write path that replaces
-     the fabricated random-walk generator the fake-yield fix removed (see
-     DELETE /api/admin/royalty-history/:assetId). Deliberately
-     unauthenticated beyond requiring a connected wallet address for the
-     audit trail: unlike an escrow campaign, a catalogue asset has no
-     stored owner-wallet field to check a submitter against, and this app
-     has no broader identity system to build real authorization on top of
-     — same trust posture as every other prototype-stage write endpoint
-     here (contract acceptance, KYC). */
+  /* Records a real, dated royalty figure into an asset's royaltyHistory —
+     the write path that replaced the fabricated random-walk generator (see
+     DELETE /api/admin/royalty-history/:assetId). These figures feed the
+     yield shown to investors, so only the asset's owner wallet may write
+     them, proven by a signature over this exact figure (§2.89). */
+  async function requireOwnerSignature(asset, kind, auth, expected) {
+    const signed = verifyAction(kind, auth);
+    const owner = await catalogueService.ownerWalletOf(asset);
+    if (!owner) throw Object.assign(new Error("this asset has no owner wallet on record"), { code: "forbidden" });
+    if (signed.wallet !== owner) throw Object.assign(new Error("only the asset's owner wallet can change its royalty figures"), { code: "forbidden" });
+    for (const [key, value] of Object.entries(expected)) {
+      if (signed.fields[key] !== value) throw Object.assign(new Error(`${key} does not match the signature`), { code: "unauthorized" });
+    }
+    return signed.wallet;
+  }
+
+  function sendAuthError(res, e) {
+    if (e.code === "unauthorized") { sendJson(res, 401, { error: e.message }); return true; }
+    if (e.code === "forbidden") { sendJson(res, 403, { error: e.message }); return true; }
+    return false;
+  }
+
   router.post("/api/assets/:assetId/royalty-report", async (req, res, { params }) => {
     try {
       const asset = await catalogueRepo.findAssetById(params.assetId);
@@ -104,13 +119,14 @@ module.exports = function registerCatalogueRoutes(router) {
         sendJson(res, 400, { error: "royaltyUSD must be a non-negative number" });
         return;
       }
-      const reportedBy = catalogueService.normalizeReporter(body.reportedBy);
+      const signer = await requireOwnerSignature(asset, "royalty-report", body.auth, { assetId: asset.id, month, royaltyUSD });
+      const reportedBy = catalogueService.normalizeReporter(signer);
       const royaltyHistory = await catalogueService.upsertRoyaltyReport(asset, { month, royaltyUSD, reportedBy });
       sendJson(res, 200, { ok: true, royaltyHistory });
     } catch (e) {
       if (e instanceof SyntaxError) {
         sendJson(res, 400, { error: "malformed JSON body" });
-      } else {
+      } else if (!sendAuthError(res, e)) {
         sendJson(res, 502, { error: "could not save royalty report", detail: String(e.message || e) });
       }
     }
@@ -123,10 +139,13 @@ module.exports = function registerCatalogueRoutes(router) {
         sendJson(res, 404, { error: "no asset with this id" });
         return;
       }
+      const body = await readBody(req);
+      await requireOwnerSignature(asset, "royalty-remove", body.auth, { assetId: asset.id, month: params.month });
       const royaltyHistory = await catalogueService.removeRoyaltyReport(asset, params.month);
       sendJson(res, 200, { ok: true, royaltyHistory });
     } catch (e) {
-      sendJson(res, 502, { error: "could not remove royalty report", detail: String(e.message || e) });
+      if (e instanceof SyntaxError) sendJson(res, 400, { error: "malformed JSON body" });
+      else if (!sendAuthError(res, e)) sendJson(res, 502, { error: "could not remove royalty report", detail: String(e.message || e) });
     }
   });
 };
