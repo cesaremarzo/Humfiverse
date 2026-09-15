@@ -6,7 +6,7 @@ import { StoreService } from '../../core/store.service';
 import { WalletService } from '../../core/wallet.service';
 import { ApiService } from '../../core/api.service';
 import { ToastService } from '../../core/toast.service';
-import { AiDisclosure, DisclosureLevel } from '../../core/models';
+import { AiDisclosure, DisclosureLevel, LaunchAuthorization } from '../../core/models';
 import { fmtUSD, fmtUSDExact } from '../../core/format.util';
 import { usdToUsdc } from '../../core/usdc.util';
 import { clauseCategory, clauseText, contractLegalBasisNote, vessatoriaClauseIds } from '../../core/contract-text.util';
@@ -322,6 +322,48 @@ export class OnboardingComponent {
     const d = this.data();
     const audioFile = this.audioFile(); // captured before the reset below
 
+    const isPre = d.model === 'preproduction';
+    const id = draftAssetId(d.title);
+    const total = draftRaiseTotal(d, this.preprodTotal());
+    const asset = buildAssetDraft(d, id, total, owner);
+    const campaign = buildCampaignDraft(asset);
+    const fundingUsdc = usdToUsdc(total).toString();
+    // §2.81: a campaign released by milestones is sold only through its
+    // escrow, so its token is never open to a direct purchase.
+    const directSale = !(isPre || d.catalogueCampaign.enabled);
+    const escrowStudio = isPre ? d.preprod : d.catalogueCampaign.enabled ? d.catalogueCampaign : null;
+    const escrowMilestones = isPre ? d.preprodMilestones : d.catalogueCampaign.enabled ? d.catalogueMilestones : [];
+
+    // §2.88: every backend write below makes Founder's key act for this
+    // campaign, so the owner wallet first signs what is being launched —
+    // payout wallet, supply, funding, studio, milestones — and each write is
+    // checked against that signature. Signed before anything else, so a
+    // declined signature leaves nothing behind.
+    let launch: LaunchAuthorization | null = null;
+    if (this.store.backendAvailable()) {
+      try {
+        const prepared = await this.api.prepareLaunch({
+          assetId: id,
+          title: asset.title,
+          artistName: asset.artistName,
+          artistWallet: owner,
+          supply: asset.tokensTotal,
+          fundingUsdc,
+          directSale,
+          studioName: escrowStudio?.studioName ?? '',
+          studioWallet: escrowStudio?.studioWallet ?? '',
+          milestones: escrowMilestones.map((m) => ({ name: m.name, bps: m.bps, payee: m.payee }))
+        });
+        launch = { payload: prepared.payload, signature: await this.wallet.signMessage(prepared.message) };
+      } catch (err) {
+        console.warn('Launch authorization was not signed.', err);
+        const rejected = (err as { code?: unknown })?.code === 4001 || (err as { code?: unknown })?.code === 'ACTION_REJECTED';
+        this.toast.show(this.translate.instant(rejected ? 'toast.launchSignRejected' : 'toast.launchSignFailed'), 'alert');
+        this.submitting.set(false);
+        return;
+      }
+    }
+
     if (this.store.backendAvailable()) {
       try {
         const receipt = await this.api.submitContractAcceptance({
@@ -340,12 +382,6 @@ export class OnboardingComponent {
       }
     }
 
-    const isPre = d.model === 'preproduction';
-    const id = draftAssetId(d.title);
-    const total = draftRaiseTotal(d, this.preprodTotal());
-    const asset = buildAssetDraft(d, id, total, owner);
-    const campaign = buildCampaignDraft(asset);
-
     this.store.assets.update((assets) => [asset, ...assets]);
     this.store.campaigns.update((campaigns) => [campaign, ...campaigns]);
 
@@ -362,8 +398,8 @@ export class OnboardingComponent {
     // planning/technical-architecture.md §2.20. Best-effort, same
     // graceful-degradation pattern as the on-chain calls below: the local
     // UI already reflects the campaign either way.
-    if (this.store.backendAvailable()) {
-      this.api.createAsset({ asset, campaign }).catch((err) => {
+    if (launch) {
+      this.api.createAsset({ asset, campaign, launch }).catch((err) => {
         console.warn('Could not persist campaign to the backend (it still exists locally in this tab).', err);
         this.toast.show(this.translate.instant('toast.assetSaveFailed'), 'alert');
       });
@@ -375,9 +411,8 @@ export class OnboardingComponent {
     // campaigns additionally get a real milestone-escrow campaign below,
     // which is what actually controls fund release — the token here is
     // just the claim/quantity record, same role it plays for catalogues.
-    if (this.store.backendAvailable()) {
+    if (launch) {
       // §2.79: the funding and supply go on chain; the contract sets the price.
-      const fundingUsdc = usdToUsdc(total).toString();
       // Awaited now (§2.42) — createCampaign on the escrow contract
       // requires this token to already exist on-chain, since contribute()
       // releases tokens from this same pool atomically. The two calls used
@@ -392,11 +427,10 @@ export class OnboardingComponent {
           supply: asset.tokensTotal,
           fundingUsdc,
           payoutWallet: owner,
-          // §2.81: a campaign released by milestones is sold only through its
-          // escrow, so its token is never open to a direct purchase.
-          directSale: !(isPre || d.catalogueCampaign.enabled),
+          directSale,
           title: asset.title,
-          artist: asset.artistName
+          artist: asset.artistName,
+          launch
         });
         mintedTokenId = result.tokenId;
         this.toast.show(this.translate.instant('toast.onchainMinted', { tokenId: result.tokenId }), 'checkCircle');
@@ -426,7 +460,7 @@ export class OnboardingComponent {
       // with no playable preview.
       if (audioFile && mintedTokenId !== null) {
         try {
-          await this.api.uploadTrackAudio(id, audioFile);
+          await this.api.uploadTrackAudio(id, audioFile, launch);
           this.toast.show(this.translate.instant('toast.audioLinked'), 'checkCircle');
         } catch (err) {
           console.warn('Audio upload did not happen (campaign was still created normally).', err);
@@ -464,7 +498,8 @@ export class OnboardingComponent {
             artistAddress: owner,
             studioName: d.preprod.studioName,
             studioWallet: d.preprod.studioWallet,
-            milestones: d.preprodMilestones
+            milestones: d.preprodMilestones,
+            launch
           });
           this.toast.show(this.translate.instant('toast.escrowCreated'), 'checkCircle');
         } catch (err) {
@@ -482,7 +517,8 @@ export class OnboardingComponent {
             artistAddress: owner,
             studioName: d.catalogueCampaign.studioName,
             studioWallet: d.catalogueCampaign.studioWallet,
-            milestones: d.catalogueMilestones
+            milestones: d.catalogueMilestones,
+            launch
           });
           this.toast.show(this.translate.instant('toast.escrowCreated'), 'checkCircle');
         } catch (err) {

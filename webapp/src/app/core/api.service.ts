@@ -12,6 +12,8 @@ import {
   EscrowCampaignInfo,
   HolderCountsResponse,
   KycResult,
+  LaunchAuthorization,
+  LaunchPayload,
   OnchainInfo,
   OnchainMintResult,
   RealHoldingDto,
@@ -35,7 +37,13 @@ export class ApiService {
 
   /** Persists a campaign the onboarding wizard just created, so it's in
    * GET /api/data for every visitor, not just the tab that created it. */
-  createAsset(payload: { asset: Asset; campaign?: Campaign }): Promise<{ ok: true; id: string }> {
+  /** §2.88: the exact text the artist wallet signs to authorize a launch,
+   * built by the server so the signed text can't drift from what it checks. */
+  prepareLaunch(payload: Omit<LaunchPayload, 'issuedAt'>): Promise<{ payload: LaunchPayload; message: string }> {
+    return firstValueFrom(this.http.post<{ payload: LaunchPayload; message: string }>(`${this.base}/api/launch/message`, { payload }));
+  }
+
+  createAsset(payload: { asset: Asset; campaign?: Campaign; launch: LaunchAuthorization }): Promise<{ ok: true; id: string }> {
     return firstValueFrom(this.http.post<{ ok: true; id: string }>(`${this.base}/api/assets`, payload));
   }
 
@@ -72,7 +80,7 @@ export class ApiService {
     return firstValueFrom(this.http.get<OnchainInfo>(`${this.base}/api/onchain/${encodeURIComponent(assetId)}`));
   }
 
-  mintOnchainToken(payload: { assetId: string; slug: string; supply: number; fundingUsdc: string; payoutWallet?: string; directSale: boolean; title?: string; artist?: string }): Promise<OnchainMintResult> {
+  mintOnchainToken(payload: { assetId: string; slug: string; supply: number; fundingUsdc: string; payoutWallet?: string; directSale: boolean; title?: string; artist?: string; launch: LaunchAuthorization }): Promise<OnchainMintResult> {
     return firstValueFrom(this.http.post<OnchainMintResult>(`${this.base}/api/onchain/mint`, payload));
   }
 
@@ -80,11 +88,14 @@ export class ApiService {
    * CID on-chain (§2.43) — sends the file's raw bytes directly as the
    * request body (no multipart form needed for this hop; the backend
    * handles the multipart step towards Pinata itself). */
-  uploadTrackAudio(assetId: string, file: File): Promise<{ uri: string; txHash: string; explorerUrl: string }> {
+  uploadTrackAudio(assetId: string, file: File, launch: LaunchAuthorization): Promise<{ uri: string; txHash: string; explorerUrl: string }> {
+    // The body is the file, so the authorization rides in a header (§2.88).
+    const header = btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(launch))));
     return firstValueFrom(
       this.http.post<{ uri: string; txHash: string; explorerUrl: string }>(
         `${this.base}/api/onchain/audio/${encodeURIComponent(assetId)}?filename=${encodeURIComponent(file.name)}`,
-        file
+        file,
+        { headers: { 'X-Humfiverse-Launch': header } }
       )
     );
   }
@@ -180,6 +191,7 @@ export class ApiService {
     studioName: string;
     studioWallet: string;
     milestones: { name: string; bps: number; payee: 'artist' | 'studio' }[];
+    launch: LaunchAuthorization;
   }): Promise<EscrowCampaignCreateResult> {
     return firstValueFrom(this.http.post<EscrowCampaignCreateResult>(`${this.base}/api/escrow/campaign`, payload));
   }

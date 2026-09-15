@@ -532,5 +532,7 @@
   "buy.campaignCancelled": "Cette campagne a été annulée et n’accepte plus de contributions.",
   "buy.campaignCancelledRefund": "Demander un remboursement dans votre portefeuille",
   "portfolio.cancelledCampaign": "Campagne annulée",
-  "detail.resaleCancelled": "Campagne annulée : ses tokens ne peuvent plus être achetés ni vendus ici. Si vous avez contribué, demandez votre remboursement dans votre portefeuille."
+  "detail.resaleCancelled": "Campagne annulée : ses tokens ne peuvent plus être achetés ni vendus ici. Si vous avez contribué, demandez votre remboursement dans votre portefeuille.",
+  "toast.launchSignRejected": "Vous avez refusé la signature d’autorisation : rien n’a été créé.",
+  "toast.launchSignFailed": "Le lancement n’a pas pu être autorisé. Vérifiez votre wallet et réessayez."
 }

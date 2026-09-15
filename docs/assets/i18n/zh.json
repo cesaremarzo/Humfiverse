@@ -532,5 +532,7 @@
   "buy.campaignCancelled": "此活动已取消，不再接受出资。",
   "buy.campaignCancelledRefund": "在投资组合中申请退款",
   "portfolio.cancelledCampaign": "活动已取消",
-  "detail.resaleCancelled": "活动已取消：其代币无法再在此买卖。如果你曾出资，请在投资组合中申请退款。"
+  "detail.resaleCancelled": "活动已取消：其代币无法再在此买卖。如果你曾出资，请在投资组合中申请退款。",
+  "toast.launchSignRejected": "你拒绝了授权签名，因此未创建任何内容。",
+  "toast.launchSignFailed": "无法授权发布。请检查你的钱包后重试。"
 }

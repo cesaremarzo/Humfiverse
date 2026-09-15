@@ -298,6 +298,15 @@ export class WalletService {
     return { raised, released, pool, contributed, refundable: raised > 0n ? (contributed * pool) / raised : 0n };
   }
 
+  /** EIP-191 signature of `message` by the connected wallet — no network
+   * switch, no transaction. Used for the launch authorization (§2.88). */
+  async signMessage(message: string): Promise<string> {
+    const eip1193 = this.eip1193();
+    if (!eip1193) throw new Error('no-wallet');
+    const provider = new ethers.BrowserProvider(eip1193 as unknown as ethers.Eip1193Provider);
+    return (await provider.getSigner()).signMessage(message);
+  }
+
   /** Owner-only on the contract: stops contributions and opens refund(). */
   async cancelCampaignOnchain(params: { contractAddress: string; campaignId: number }): Promise<{ txHash: string; explorerUrl: string }> {
     const contract = await this.signerFor(params.contractAddress, ESCROW_REFUND_ABI);

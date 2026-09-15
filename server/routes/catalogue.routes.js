@@ -8,6 +8,7 @@ const { requireAdmin } = require("../lib/admin-auth");
 const catalogueRepo = require("../data/catalogue.repo");
 const portfolioRepo = require("../data/portfolio.repo");
 const catalogueService = require("../services/catalogue.service");
+const { verifyLaunch, requireMatch } = require("../lib/launch-auth");
 
 module.exports = function registerCatalogueRoutes(router) {
   /* The app-boot aggregate: one round trip instead of three, since the
@@ -26,11 +27,8 @@ module.exports = function registerCatalogueRoutes(router) {
      created it — previously this only ever updated that one tab's local
      signal, so a new campaign vanished on refresh even though its
      on-chain token/escrow are real and permanent. See
-     planning/technical-architecture.md §2.20. No auth here, consistent
-     with every other write endpoint in this prototype backend (KYC,
-     contract acceptance, on-chain mint/escrow all have the same trust
-     model) — a real launch would need to gate this behind whatever
-     authenticates "artist" sessions. */
+     planning/technical-architecture.md §2.20. Requires the launch
+     authorization signed by the artist wallet the asset names (§2.88). */
   router.post("/api/assets", async (req, res) => {
     try {
       const body = await readBody(req);
@@ -39,6 +37,12 @@ module.exports = function registerCatalogueRoutes(router) {
         sendJson(res, 400, { error: "asset.id, asset.title and asset.kind are required" });
         return;
       }
+      const launch = verifyLaunch(body.launch);
+      requireMatch("asset.id", asset.id, launch.assetId);
+      requireMatch("asset.title", asset.title, launch.title);
+      requireMatch("asset.artistName", asset.artistName, launch.artistName);
+      requireMatch("asset.artistWallet", asset.artistWallet, launch.artistWallet);
+      requireMatch("asset.tokensTotal", Number(asset.tokensTotal), launch.supply);
       if (await catalogueRepo.findAssetById(asset.id)) {
         sendJson(res, 409, { error: "an asset with this id already exists" });
         return;
@@ -51,6 +55,8 @@ module.exports = function registerCatalogueRoutes(router) {
     } catch (e) {
       if (e instanceof SyntaxError) {
         sendJson(res, 400, { error: "malformed JSON body" });
+      } else if (e.code === "unauthorized") {
+        sendJson(res, 401, { error: e.message });
       } else if (e.code === "too_large") {
         sendJson(res, 413, { error: "request body too large" });
       } else {

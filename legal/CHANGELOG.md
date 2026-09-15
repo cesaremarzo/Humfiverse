@@ -3,6 +3,18 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-09-16 · autorizzazione di lancio firmata dall'artista
+
+- **Codice:** per creare una campagna il wallet dell'artista firma un testo con i
+  dati del lancio (wallet che incassa, token, importo, studio, milestone); il
+  backend lo verifica prima di far agire la chiave del Founder (technical §2.88).
+  `embedded-wallet.ts` ora firma messaggi (`personal_sign`).
+- **05:** nuova riga nel §3 per l'autorizzazione di lancio, non salvata nel
+  database; nel §5 thirdweb riceve anche il testo dei messaggi firmati con il
+  wallet integrato, perché la firma avviene sui suoi server. Da verificare
+  l'informativa allo studio, i cui nome e wallet compaiono nel testo.
+- **Sicurezza:** aggiornata solo la nota privata (fuori da git), come da regola.
+
 ## 2026-09-15 (notte) · whitepaper corretto, sezione backend privata
 
 - **Whitepaper:** applicate le correzioni W-1…W-15 del file 03 e i rischi del file

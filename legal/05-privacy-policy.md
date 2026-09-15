@@ -1,6 +1,6 @@
 # Informativa Privacy: bozza
 
-*Bozza del 2026-09-15, commit `82a7a1b`. **Da far rivedere a un avvocato o a un
+*Bozza del 2026-09-16, commit `697c7b7` con l'autorizzazione di lancio (technical §2.88). **Da far rivedere a un avvocato o a un
 esperto privacy prima della pubblicazione.** Non è consulenza legale.*
 
 ## Note per chi usa questa bozza (da togliere prima di pubblicare)
@@ -56,6 +56,7 @@ resti pubblico in modo permanente.
 | **Modulo di verifica (dimostrativo):** nome completo, data di nascita, nazionalità, classificazione dell'investitore, risposte al questionario e punteggio, origine dei fondi, dichiarazione PEP, wallet | Tu | Dimostrare il flusso di verifica del prototipo | [Consenso (art. 6.1.a)? Da decidere con l'avvocato: vedi nota] | [30 giorni], poi cancellazione |
 | Accettazione del contratto artista: nome artista, titolo, clausole accettate, versione, data e ora | Tu | Prova dell'accettazione | Esecuzione del contratto; legittimo interesse alla prova (art. 6.1.f) | [10 anni dalla fine del rapporto, termine di prescrizione ordinario] **[verificare]** |
 | Dati del brano: titolo, nome artista, audio, dichiarazione sull'uso di AI, storico royalty inserito | Tu | Pubblicare l'asset | Esecuzione del servizio | Database: finché l'asset è pubblicato + [12 mesi]. Blockchain e IPFS: per sempre |
+| **Autorizzazione di lancio della campagna:** testo firmato con il tuo wallet che contiene id e titolo dell'asset, nome artista, wallet che incassa, numero di token, importo della raccolta, nome e wallet dello studio, milestone, data e ora | Tu | Verificare che la campagna sia lanciata da chi incassa, prima che la piattaforma crei token e campagna | Esecuzione del servizio; legittimo interesse alla sicurezza (art. 6.1.f) | Non salvata nel nostro database (verificato in `server/lib/launch-auth.js` e nelle route che la usano): usata solo per il controllo della richiesta. Nome e wallet dello studio sono dati di un terzo: vanno previsti nell'informativa allo studio **[verificare]** |
 | Login con Google, Apple o email (wallet integrato) | Tu, tramite thirdweb | Creare e ripristinare il tuo wallet integrato | Esecuzione del servizio | Trattati da thirdweb: vedi §5 |
 | Indirizzo IP, dati tecnici della richiesta | Il tuo browser | Sicurezza, funzionamento, prevenzione degli abusi | Legittimo interesse | Log dei fornitori: [secondo le loro politiche, di norma pochi giorni o settimane] |
 
@@ -87,7 +88,7 @@ titolari autonomi:
 |---|---|---|---|---|
 | Render (Render Services, Inc.) | Hosting del backend | Tutti i dati del database in transito, IP | USA [verificare la regione] | [DPF / SCC] |
 | Turso (ChiselStrike, Inc.) | Database | Dati del §3 | [regione da verificare] | [DPF / SCC] |
-| thirdweb (Non-Fungible Labs, Inc.) | Login e wallet integrato, sponsorizzazione del gas | Email o account Google/Apple, wallet, IP | USA | [DPF / SCC] |
+| thirdweb (Non-Fungible Labs, Inc.) | Login e wallet integrato, sponsorizzazione del gas, firma dei messaggi | Email o account Google/Apple, wallet, IP; **testo dei messaggi firmati con il wallet integrato**, compresa l'autorizzazione di lancio (la firma avviene sui server di thirdweb: `/api/v1/enclave-wallet/sign-message` nell'SDK) | USA | [DPF / SCC] |
 | Google (Google Fonts) | Caratteri tipografici del sito | IP, user agent | USA | [DPF]. **In alternativa, ospitare i font sul nostro dominio ed eliminare questo trasferimento** |
 | Alchemy Insights, Inc. | Accesso alla blockchain (RPC) | Wallet, IP del server | USA | [DPF / SCC] |
 | Pinata Cloud, Inc. | Pubblicazione dei file audio su IPFS | Audio, metadati | USA | [DPF / SCC] |

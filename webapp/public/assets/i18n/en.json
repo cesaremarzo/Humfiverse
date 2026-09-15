@@ -532,5 +532,7 @@
   "buy.campaignCancelled": "This campaign was cancelled and no longer accepts contributions.",
   "buy.campaignCancelledRefund": "Claim a refund in your portfolio",
   "portfolio.cancelledCampaign": "Campaign cancelled",
-  "detail.resaleCancelled": "Campaign cancelled: its tokens can no longer be bought or sold here. If you contributed, claim your refund in your portfolio."
+  "detail.resaleCancelled": "Campaign cancelled: its tokens can no longer be bought or sold here. If you contributed, claim your refund in your portfolio.",
+  "toast.launchSignRejected": "You declined the launch signature, so nothing was created.",
+  "toast.launchSignFailed": "The launch could not be authorized. Check your wallet and try again."
 }

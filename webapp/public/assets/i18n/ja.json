@@ -532,5 +532,7 @@
   "buy.campaignCancelled": "このキャンペーンは中止され、拠出を受け付けていません。",
   "buy.campaignCancelledRefund": "ポートフォリオで返金を請求",
   "portfolio.cancelledCampaign": "キャンペーン中止",
-  "detail.resaleCancelled": "キャンペーンは中止されました。このトークンはここで売買できません。拠出していた場合は、ポートフォリオで返金を請求してください。"
+  "detail.resaleCancelled": "キャンペーンは中止されました。このトークンはここで売買できません。拠出していた場合は、ポートフォリオで返金を請求してください。",
+  "toast.launchSignRejected": "承認の署名が拒否されたため、何も作成されていません。",
+  "toast.launchSignFailed": "公開を承認できませんでした。ウォレットを確認して、もう一度お試しください。"
 }

@@ -1224,12 +1224,8 @@ Both were **a browser tab running an old bundle**. Ask for the loaded
   dual confirmation meaningless. The user asked whether one confirmation
   should suffice; not decided.
 - **`guns-394`** in production: asset record only (no token, no escrow, no
-  wallet), created by a stale tab. Delete it, and make `POST /api/assets`
-  require `artistWallet` — wallet enforcement is still frontend-only.
-- **`POST /api/onchain/mint` and `POST /api/escrow/campaign` are
-  unauthenticated**: anyone can make the operator key mint a token with a
-  payout wallet of their choosing, or register a campaign. Pre-existing,
-  more consequential now that tokens pay artists directly.
+  wallet), created by a stale tab. Delete it.
+- Backend security items are tracked outside this public repo.
 - `honest-man-595` (completed test) is still live — keep as a demo or delete.
 - Resale (`buyListing`, now USDC with approve) has never been clicked
   through in MetaMask; neither has a cancelled campaign's `refund()`.
@@ -1350,4 +1346,8 @@ On `dev/cesare`; a feature, so it waits for the go-ahead before `main`.
   follow tokens held at cancellation (phase 2 redeploy); artists sign with an
   eIDAS qualified electronic signature via a QTSP, investors with scroll,
   checkboxes and a wallet signature. Open for counsel: C2, C5, C9, A9.
+- **Launch authorization** (§2.88): creating a campaign now needs a signature
+  from the artist wallet over what is launched; the backend checks it on every
+  write that makes Founder's key act for the campaign. Security notes stay out
+  of this repo.
 
