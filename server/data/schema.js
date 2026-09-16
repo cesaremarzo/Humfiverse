@@ -110,6 +110,33 @@ async function initSchema() {
       block INTEGER,
       checked_at TEXT NOT NULL
     );
+    -- §2.93 registration. One row per code sent: the history is the proof
+    -- of when an address was verified for a wallet, so rows are never
+    -- deleted; a used or expired code is only marked. The code itself is
+    -- never stored, only a hash of it.
+    CREATE TABLE IF NOT EXISTS email_verifications (
+      id TEXT PRIMARY KEY,
+      wallet TEXT NOT NULL,
+      email TEXT NOT NULL,
+      code_hash TEXT NOT NULL,
+      attempts INTEGER NOT NULL DEFAULT 0,
+      ip TEXT,
+      created_at TEXT NOT NULL,
+      expires_at TEXT NOT NULL,
+      verified_at TEXT
+    );
+    CREATE INDEX IF NOT EXISTS email_verifications_wallet ON email_verifications (wallet, created_at);
+    CREATE INDEX IF NOT EXISTS email_verifications_email ON email_verifications (email, created_at);
+    -- The current verified address of each wallet. Changing it is a new
+    -- verification, which overwrites this row and adds to the history above.
+    CREATE TABLE IF NOT EXISTS registrations (
+      wallet TEXT PRIMARY KEY,
+      email TEXT NOT NULL,
+      verification_id TEXT NOT NULL,
+      signature TEXT NOT NULL,
+      verified_at TEXT NOT NULL,
+      ip TEXT
+    );
     CREATE TABLE IF NOT EXISTS portfolio_snapshots (
       wallet TEXT NOT NULL,
       snapshot_date TEXT NOT NULL,

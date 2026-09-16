@@ -1,0 +1,53 @@
+@if (store.registrationOpen()) {
+  <div class="modal-scrim" (click)="$event.target === $event.currentTarget ? close() : null">
+    <div class="modal connect-modal" role="dialog" aria-modal="true" aria-labelledby="register-title">
+      <button type="button" class="icon-btn connect-close" [attr.aria-label]="'connect.close' | translate" [disabled]="!!busy()" (click)="close()">
+        <app-icon name="close"></app-icon>
+      </button>
+
+      @if (done()) {
+        <div class="success-icon"><app-icon name="checkCircle"></app-icon></div>
+        <div style="text-align:center;">
+          <h3 id="register-title" class="panel-title panel-title-lg" style="margin-bottom:6px;">{{ 'register.doneTitle' | translate }}</h3>
+          <p style="font-size:13px; color:var(--text-secondary); margin:0;">{{ 'register.doneBody' | translate: { email: sentTo() } }}</p>
+        </div>
+        <button type="button" class="btn btn-primary btn-block" (click)="close()">{{ 'register.continue' | translate }}</button>
+      } @else {
+        <div>
+          <span class="page-kicker" style="margin-bottom:8px;">{{ 'register.kicker' | translate }}</span>
+          <h3 id="register-title" class="panel-title panel-title-lg" style="margin-bottom:6px;">{{ 'register.title' | translate }}</h3>
+          <p style="font-size:13px; color:var(--text-secondary); margin:0;">{{ 'register.subtitle' | translate }}</p>
+        </div>
+
+        @if (!sentTo()) {
+          <form class="connect-email" (submit)="$event.preventDefault(); sendCode()">
+            <input type="email" autocomplete="email" [placeholder]="'connect.emailPlaceholder' | translate" [attr.aria-label]="'connect.emailPlaceholder' | translate"
+                   [value]="email()" (input)="email.set($any($event.target).value)" [disabled]="!!busy()" />
+            <button type="submit" class="btn btn-primary" [disabled]="!!busy() || !email().trim()">
+              {{ (busy() === 'send' ? 'connect.sending' : 'connect.emailSend') | translate }}
+            </button>
+          </form>
+        } @else {
+          <p style="font-size:12.5px; color:var(--text-secondary); margin:0;">
+            {{ 'register.codeSent' | translate: { email: sentTo() } }}
+            <button type="button" class="link-btn" [disabled]="!!busy()" (click)="changeEmail()">{{ 'connect.changeEmail' | translate }}</button>
+          </p>
+          <form class="connect-email" (submit)="$event.preventDefault(); verify()">
+            <input type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" class="mono" [placeholder]="'connect.codePlaceholder' | translate" [attr.aria-label]="'connect.codePlaceholder' | translate"
+                   [value]="code()" (input)="code.set($any($event.target).value)" [disabled]="!!busy()" />
+            <button type="submit" class="btn btn-primary" [disabled]="!!busy() || !code().trim()">
+              {{ (busy() === 'verify' ? 'connect.verifying' : 'connect.verify') | translate }}
+            </button>
+          </form>
+          <p class="hint" style="font-size:12px; color:var(--text-muted); margin:0;">{{ 'register.signNote' | translate }}</p>
+        }
+
+        @if (errorKey()) {
+          <p role="alert" style="font-size:12.5px; color:var(--critical); margin:0;">{{ errorKey()! | translate: errorParams() }}</p>
+        }
+
+        <p style="font-size:11.5px; color:var(--text-muted); margin:0; line-height:1.5;">{{ 'register.privacyNote' | translate }}</p>
+      }
+    </div>
+  </div>
+}

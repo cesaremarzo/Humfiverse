@@ -51,7 +51,7 @@ function setStoredSession(on: boolean): void {
    SDK, which turned the build into ~1,100 chunk files committed to docs/.
    The adapter below is the part of it this app uses. */
 async function loadSdk() {
-  const [{ createThirdwebClient, getRpcClient, prepareTransaction, sendTransaction }, { sepolia }, { inAppWallet, preAuthenticate }] =
+  const [{ createThirdwebClient, getRpcClient, prepareTransaction, sendTransaction }, { sepolia }, { inAppWallet, preAuthenticate, getUserEmail }] =
     await Promise.all([import('thirdweb'), import('thirdweb/chains'), import('thirdweb/wallets/in-app')]);
   const client = createThirdwebClient({ clientId: environment.thirdwebClientId });
   /* EIP-7702 keeps the user's address a plain EOA — the one the contracts
@@ -104,7 +104,7 @@ async function loadSdk() {
       }
     }
   };
-  return { client, chain: sepolia, wallet, preAuthenticate, provider };
+  return { client, chain: sepolia, wallet, preAuthenticate, getUserEmail, provider };
 }
 
 type Sdk = Awaited<ReturnType<typeof loadSdk>>;
@@ -168,6 +168,19 @@ export async function connectJwt(jwt: string): Promise<EmbeddedSession> {
   const s = await sdk();
   const account = await s.wallet.connect({ client: s.client, chain: s.chain, strategy: 'jwt', jwt });
   return toSession(s, account.address);
+}
+
+/** The address thirdweb holds for the signed-in in-app wallet (Google, Apple
+ * or email login), to prefill registration (§2.93). Only a convenience: the
+ * backend still sends its own code to whatever address is submitted. */
+export async function embeddedUserEmail(): Promise<string | null> {
+  if (!sdkPromise) return null;
+  try {
+    const s = await sdkPromise;
+    return (await s.getUserEmail({ client: s.client })) ?? null;
+  } catch {
+    return null;
+  }
 }
 
 /** Restores a stored session without any prompt; null when there is none. */

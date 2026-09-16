@@ -11,10 +11,11 @@ import { fakeTxHash, scoreAppropriatenessLocal } from '../../core/yield.util';
 import { KycResult } from '../../core/models';
 import { SignedActionService, isSignatureRejection } from '../../core/signed-action.service';
 
+import { RegistrationGateComponent } from '../../shared/registration-gate.component';
 @Component({
   selector: 'app-kyc',
   standalone: true,
-  imports: [RouterLink, TranslatePipe, IconComponent],
+  imports: [RegistrationGateComponent, RouterLink, TranslatePipe, IconComponent],
   templateUrl: './kyc.component.html'
 })
 export class KycComponent {

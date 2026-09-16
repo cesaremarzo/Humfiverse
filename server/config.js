@@ -29,4 +29,25 @@ const AUTH_JWT_PRIVATE_KEY = process.env.AUTH_JWT_PRIVATE_KEY || "";
 const AUTH_JWT_ISSUER = process.env.AUTH_JWT_ISSUER || TOKEN_METADATA_BASE;
 const AUTH_JWT_AUDIENCE = process.env.AUTH_JWT_AUDIENCE || "humfiverse-wallet";
 
-module.exports = { PORT, ADMIN_API_KEY, TOKEN_METADATA_BASE, AUTH_JWT_PRIVATE_KEY, AUTH_JWT_ISSUER, AUTH_JWT_AUDIENCE };
+/* §2.93 — transactional email through Brevo (verification codes at
+   registration). Unset disables sending: registration then cannot complete
+   and is not required either, see services/registration.service.js.
+   EMAIL_FROM must be a sender verified in the Brevo dashboard.
+   EMAIL_DEV_LOG=1 prints codes to the console instead, for local runs only. */
+const BREVO_API_KEY = process.env.BREVO_API_KEY || "";
+const EMAIL_FROM = process.env.EMAIL_FROM || "";
+const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || "Humfiverse";
+const EMAIL_DEV_LOG = process.env.EMAIL_DEV_LOG === "1";
+
+module.exports = {
+  PORT,
+  ADMIN_API_KEY,
+  TOKEN_METADATA_BASE,
+  AUTH_JWT_PRIVATE_KEY,
+  AUTH_JWT_ISSUER,
+  AUTH_JWT_AUDIENCE,
+  BREVO_API_KEY,
+  EMAIL_FROM,
+  EMAIL_FROM_NAME,
+  EMAIL_DEV_LOG
+};

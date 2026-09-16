@@ -10,6 +10,7 @@ const portfolioRepo = require("../data/portfolio.repo");
 const catalogueService = require("../services/catalogue.service");
 const { verifyLaunch, requireMatch } = require("../lib/launch-auth");
 const { verifyAction } = require("../lib/signed-action");
+const registration = require("../services/registration.service");
 
 module.exports = function registerCatalogueRoutes(router) {
   /* The app-boot aggregate: one round trip instead of three, since the
@@ -44,6 +45,7 @@ module.exports = function registerCatalogueRoutes(router) {
       requireMatch("asset.artistName", asset.artistName, launch.artistName);
       requireMatch("asset.artistWallet", asset.artistWallet, launch.artistWallet);
       requireMatch("asset.tokensTotal", Number(asset.tokensTotal), launch.supply);
+      await registration.requireRegistered(launch.artistWallet);
       if (await catalogueRepo.findAssetById(asset.id)) {
         sendJson(res, 409, { error: "an asset with this id already exists" });
         return;
@@ -60,6 +62,8 @@ module.exports = function registerCatalogueRoutes(router) {
         sendJson(res, 401, { error: e.message });
       } else if (e.code === "invalid") {
         sendJson(res, 400, { error: e.message });
+      } else if (e.code === "not-registered") {
+        sendJson(res, 403, { error: e.message, code: e.code });
       } else if (e.code === "too_large") {
         sendJson(res, 413, { error: "request body too large" });
       } else {

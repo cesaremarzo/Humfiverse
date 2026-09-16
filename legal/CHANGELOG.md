@@ -3,6 +3,27 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-09-16 (notte) · email verificata alla registrazione, immagini e video (§2.93)
+
+Revisione limitata ai file del §2.93 (`server/data/schema.js`,
+`server/routes/compliance.routes.js`, `webapp/src/app/core/embedded-wallet.ts`).
+I contratti della fase 2 (commit `0f819ec`) **non** sono rivisti qui: le loro
+impronte in `reviewed-files.sha256` restano quelle vecchie, così `check.sh` li
+segnala ancora.
+
+- **05 §2, §3, §5:** nuove righe per l'email di registrazione (`registrations`,
+  `email_verifications`, IP, firma) e per immagini e video su IPFS; Brevo tra i
+  fornitori, con DPA art. 28 da firmare.
+- **01 §7:** l'email verificata e Brevo si aggiungono ai dati raccolti senza
+  titolare né termine di conservazione (07 H1 resta aperta e più urgente).
+- **04 §8.4, 08 A-1-bis comma 1 (b):** audio, immagini e video, non solo audio.
+- **08 C-11:** implementato, con i suoi limiti: blocco solo lato app per acquisto
+  e contributo; non attivo finché Brevo non è configurato.
+- Da notare per l'avvocato: le immagini e i video caricati dagli artisti sono
+  pubblici e difficili da togliere da IPFS; la procedura di rimozione (§2.87)
+  deve coprirli insieme all'audio. Il caricamento avverte di usare solo contenuti
+  di cui si hanno i diritti.
+
 ## 2026-09-16 (notte) · banner del 06 §1 applicato; `index.html` solo meta SEO
 
 - **06 §1:** il testo del banner è ora quello del sito (tecnico §2.91), anche in

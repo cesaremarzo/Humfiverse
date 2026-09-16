@@ -10,7 +10,7 @@ function sendJson(res, status, body) {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET,POST,DELETE,OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, X-Admin-Key, X-Humfiverse-Launch"
+    "Access-Control-Allow-Headers": "Content-Type, X-Admin-Key, X-Humfiverse-Launch, X-Humfiverse-Action"
   });
   res.end(json);
 }

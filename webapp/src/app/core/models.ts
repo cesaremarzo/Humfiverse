@@ -64,6 +64,8 @@ export interface Asset {
   documents: AssetDocument[];
   milestones?: Milestone[];
   status: 'funding' | 'sold-out';
+  /** §2.93: the artist's own cover image and short video, if uploaded. */
+  media?: Partial<Record<MediaKind, MediaRef>>;
 }
 
 export interface Campaign {
@@ -392,7 +394,26 @@ export interface LaunchAuthorization {
 }
 
 /** §2.89: a single write signed by the wallet it concerns. */
-export type SignedActionKind = 'royalty-report' | 'royalty-remove' | 'kyc-submit';
+export type SignedActionKind = 'royalty-report' | 'royalty-remove' | 'kyc-submit' | 'email-verify' | 'asset-media';
+
+/** §2.93: whether a wallet has a verified email, and whether this deployment
+ * asks for one (it can't without email sending configured). */
+export interface RegistrationStatus {
+  registered: boolean;
+  required: boolean;
+}
+
+export type MediaKind = 'image' | 'video';
+
+/** §2.93: a file pinned to IPFS for a track, recorded on its asset. */
+export interface MediaRef {
+  uri: string;
+  mime: string;
+  bytes: number;
+  durationSeconds?: number;
+  uploadedAt: string;
+  uploadedBy?: string;
+}
 
 export interface SignedAction {
   kind: SignedActionKind;

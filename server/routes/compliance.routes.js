@@ -7,6 +7,7 @@ const { sendJson, readBody } = require("../lib/http");
 const { CONTRACT_TEMPLATE } = require("../contract-template");
 const compliance = require("../services/compliance.service");
 const { verifyAction, kycDigest } = require("../lib/signed-action");
+const registration = require("../services/registration.service");
 
 module.exports = function registerComplianceRoutes(router) {
   router.get("/api/contract-template", (req, res) => {
@@ -45,9 +46,11 @@ module.exports = function registerComplianceRoutes(router) {
         sendJson(res, 401, { error: "the answers do not match the signature" });
         return;
       }
+      await registration.requireRegistered(signed.wallet);
       sendJson(res, 200, await compliance.recordKyc(body));
     } catch (e) {
       if (e.code === "unauthorized") sendJson(res, 401, { error: e.message });
+      else if (e.code === "not-registered") sendJson(res, 403, { error: e.message, code: e.code });
       else sendJson(res, 400, { error: "invalid request body" });
     }
   });

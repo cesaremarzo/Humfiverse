@@ -1676,3 +1676,31 @@ Left for phase 2, in order:
    to the multisig, `setOperator(Founder)`;
 4. `legal/` review in the same PR (`check.sh` flags both contracts).
 
+
+---
+
+## 2026-09-16 (notte, 3) — registration with a verified email; image and video per track (§2.93)
+
+Request: *"ora passiamo alla registrazione con email verificata, voglio poter
+avere la capacità di caricare una immagine o un breve video insieme al brano
+caricato"*. User's choices: **Brevo**, **email only** in this step (signed terms
+acceptance next), **image 5 MB, video 30 s / 25 MB, editable after launch**.
+
+**On `dev/cesare`, not merged.** Ran alongside the phase 2 contracts session
+(`0f819ec`, which took §2.92): no file overlap; that session's contracts are
+still unreviewed in `legal/` on purpose.
+
+- Backend: `registration.*`, `lib/mailer.js` (Brevo), `media.routes.js`,
+  `lib/media-sniff.js`, signed kinds `email-verify` and `asset-media`, gates on
+  launch/mint/asset save/KYC. Pinata generalized, with unpin.
+- Frontend: registration dialog (auto-opens once after connecting), gates on
+  buy panel / KYC / launch, image+video pickers in the wizard, "Media" on the
+  owner's campaign cards, covers use the uploaded image, video on the asset page.
+- Fixed: modal scrims cancelled form submits and checkbox toggles inside dialogs.
+- `legal/` 01, 04, 05, 08, CHANGELOG updated for email, Brevo and media.
+
+**Before merging to `main`, on Render (`humfiverse-api` → Environment):**
+`BREVO_API_KEY`, `EMAIL_FROM` (a sender verified in Brevo), `EMAIL_FROM_NAME=Humfiverse`.
+Without them the site works as before and registration is simply not asked.
+Then test on the live site: a real code by email, a MetaMask and a Google
+wallet signing, an image and a video upload.

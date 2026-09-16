@@ -248,6 +248,11 @@ e raccoglie dati adesso:**
   privacy e senza termine di conservazione.
 - L'**origine dei fondi** e lo **stato PEP** sono dati delicati: non sono
   "categorie particolari" dell'art. 9, ma hanno un rischio elevato.
+- Dal §2.93 il backend conserva anche l'**email verificata** di ogni wallet
+  registrato (`registrations`) e lo storico dei codici inviati
+  (`email_verifications`, con IP), inviati tramite **Brevo**. Stesso problema dei
+  dati di verifica: nessun titolare, nessuna informativa definitiva, nessun
+  termine di conservazione. La finestra di registrazione lo dice all'utente.
 - **Blockchain e IPFS non si cancellano.** Nome artista e titolo sono scritti
   on-chain (`artistName`, `trackTitle`) e l'audio è fissato su IPFS tramite
   Pinata. Il diritto alla cancellazione (art. 17) non si può esercitare su quei

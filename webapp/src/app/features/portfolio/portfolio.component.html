@@ -177,7 +177,7 @@
 }
 
 @if (sellDraft(); as d) {
-  <div class="modal-scrim" (click)="$event.target === $event.currentTarget && closeSellDraft()">
+  <div class="modal-scrim" (click)="$event.target === $event.currentTarget ? closeSellDraft() : null">
     <div class="modal">
       <h3 class="panel-title panel-title-lg">{{ 'portfolio.sellModalTitle' | translate }}</h3>
       <p style="font-size:13px; color:var(--text-secondary);">{{ d.assetId }}</p>
@@ -215,7 +215,7 @@
 }
 
 @if (sellResult(); as r) {
-  <div class="modal-scrim" (click)="$event.target === $event.currentTarget && closeSellResult()">
+  <div class="modal-scrim" (click)="$event.target === $event.currentTarget ? closeSellResult() : null">
     <div class="modal">
       <div class="success-icon"><app-icon name="check"></app-icon></div>
       <h3 class="panel-title panel-title-lg">{{ 'portfolio.sellSuccessTitle' | translate }}</h3>

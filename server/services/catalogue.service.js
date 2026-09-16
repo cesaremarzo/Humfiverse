@@ -65,4 +65,14 @@ async function ownerWalletOf(asset) {
   return escrow?.artist ? String(escrow.artist).toLowerCase() : null;
 }
 
-module.exports = { isValidMonth, normalizeReporter, upsertRoyaltyReport, removeRoyaltyReport, stripRoyaltyHistory, ownerWalletOf };
+/** Records an image or video on the asset (§2.93) and returns the one it
+ * replaces, so the caller can unpin it. */
+async function setAssetMedia(asset, kind, ref) {
+  const media = asset.media && typeof asset.media === "object" ? asset.media : {};
+  const previous = media[kind] || null;
+  asset.media = { ...media, [kind]: ref };
+  await catalogueRepo.saveAsset(asset);
+  return previous;
+}
+
+module.exports = { setAssetMedia, isValidMonth, normalizeReporter, upsertRoyaltyReport, removeRoyaltyReport, stripRoyaltyHistory, ownerWalletOf };

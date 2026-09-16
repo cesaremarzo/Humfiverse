@@ -3,7 +3,8 @@
    signing a short text the server built. Same shape as the launch
    authorization (lib/launch-auth.js, §2.88), for writes that are one
    wallet's own business rather than a campaign launch: royalty figures on
-   an asset it owns, and its own investor verification.
+   an asset it owns, its own investor verification, its registration email
+   and the media of its tracks (§2.93).
 
    The frontend asks POST /api/signed-action/message for the text, the
    wallet signs it, and the write carries back { kind, wallet, fields,
@@ -67,6 +68,30 @@ const KINDS = {
     heading: "Humfiverse — remove a royalty figure",
     fields: (f) => ({ assetId: line(f.assetId, "assetId"), month: line(f.month, "month") }),
     lines: (f) => [`Asset: ${f.assetId}`, `Month: ${f.month}`]
+  },
+  // §2.93: binds a verified email to the wallet that signs. The code proves
+  // the inbox, the signature proves the wallet.
+  "email-verify": {
+    heading: "Humfiverse — register this email for my wallet",
+    fields: (f) => {
+      const email = line(f.email, "email").toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw codedError("invalid", "email is not valid");
+      if (!/^[0-9a-f]{32}$/.test(String(f.verificationId || ""))) throw codedError("invalid", "verificationId is required");
+      return { email, verificationId: String(f.verificationId) };
+    },
+    lines: (f) => [`Email: ${f.email}`, `Verification: ${f.verificationId}`]
+  },
+  // §2.93: an image or short video for an asset, added or replaced by its
+  // owner after launch. The hash ties the signature to these exact bytes.
+  "asset-media": {
+    heading: "Humfiverse — set the image or video of my track",
+    fields: (f) => {
+      const kind = f.kind === "image" || f.kind === "video" ? f.kind : null;
+      if (!kind) throw codedError("invalid", "kind must be image or video");
+      if (!/^[0-9a-f]{64}$/.test(String(f.sha256 || ""))) throw codedError("invalid", "sha256 is required");
+      return { assetId: line(f.assetId, "assetId"), kind, sha256: String(f.sha256) };
+    },
+    lines: (f) => [`Asset: ${f.assetId}`, `Media: ${f.kind}`, `File SHA-256: ${f.sha256}`]
   },
   "kyc-submit": {
     heading: "Humfiverse — submit my investor verification",

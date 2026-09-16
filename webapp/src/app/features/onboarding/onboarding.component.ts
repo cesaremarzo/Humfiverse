@@ -40,10 +40,13 @@ import {
 
 type MilestoneKind = 'preprod' | 'catalogue';
 
+import { RegistrationGateComponent } from '../../shared/registration-gate.component';
+import { MEDIA_LIMITS, checkMediaFile } from '../../core/media.util';
+import { MediaKind } from '../../core/models';
 @Component({
   selector: 'app-onboarding',
   standalone: true,
-  imports: [TranslatePipe, IconComponent],
+  imports: [RegistrationGateComponent, TranslatePipe, IconComponent],
   templateUrl: './onboarding.component.html'
 })
 export class OnboardingComponent {
@@ -63,6 +66,12 @@ export class OnboardingComponent {
    * transient upload state, not campaign data. Uploaded (to IPFS, then
    * linked on-chain) after a successful mint in submit() below. */
   audioFile = signal<File | null>(null);
+  /** §2.93: optional cover image and short video, uploaded after the asset is saved. */
+  imageFile = signal<File | null>(null);
+  videoFile = signal<File | null>(null);
+  imagePreview = signal<string | null>(null);
+  videoPreview = signal<string | null>(null);
+  readonly mediaLimits = MEDIA_LIMITS;
 
   /** True from the moment submit() is clicked until every best-effort
    * on-chain step (mint, audio link, escrow) has settled — see submit()'s
@@ -314,6 +323,34 @@ export class OnboardingComponent {
     this.audioFile.set(file);
   }
 
+  async onMediaFileSelected(kind: MediaKind, event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    const target = kind === 'image' ? this.imageFile : this.videoFile;
+    const preview = kind === 'image' ? this.imagePreview : this.videoPreview;
+    const old = preview();
+    if (old) URL.revokeObjectURL(old);
+    preview.set(null);
+    target.set(null);
+    if (!file) return;
+    const problem = await checkMediaFile(kind, file);
+    if (problem) {
+      this.toast.show(this.translate.instant(`media.problem.${problem}`, { kind: this.translate.instant(`media.kind.${kind}`) }), 'alert');
+      input.value = '';
+      return;
+    }
+    target.set(file);
+    preview.set(URL.createObjectURL(file));
+  }
+
+  clearMedia(kind: MediaKind): void {
+    const preview = kind === 'image' ? this.imagePreview : this.videoPreview;
+    const old = preview();
+    if (old) URL.revokeObjectURL(old);
+    preview.set(null);
+    (kind === 'image' ? this.imageFile : this.videoFile).set(null);
+  }
+
   async submit(): Promise<void> {
     if (this.submitting()) return; // guard against a double-click firing this twice
     // §2.77: every campaign belongs to the wallet that creates it — that is
@@ -330,9 +367,16 @@ export class OnboardingComponent {
       this.toast.show(this.translate.instant('wizReview.walletRequired'), 'alert');
       return;
     }
+    // §2.93: the server refuses the launch too; asking first saves a signature.
+    if (this.store.registration().checked && !this.store.registrationSatisfied()) {
+      this.store.registrationOpen.set(true);
+      return;
+    }
     this.submitting.set(true);
     const d = this.data();
     const audioFile = this.audioFile(); // captured before the reset below
+    const imageFile = this.imageFile();
+    const videoFile = this.videoFile();
 
     const isPre = d.model === 'preproduction';
     const id = draftAssetId(d.title);
@@ -375,6 +419,12 @@ export class OnboardingComponent {
         launch = { payload: prepared.payload, signature: await this.wallet.signMessage(prepared.message) };
       } catch (err) {
         console.warn('Launch authorization was not signed.', err);
+        if ((err as { error?: { code?: string } })?.error?.code === 'not-registered') {
+          this.submitting.set(false);
+          await this.store.syncRegistrationForWallet(owner);
+          this.store.registrationOpen.set(true);
+          return;
+        }
         const rejected = (err as { code?: unknown })?.code === 4001 || (err as { code?: unknown })?.code === 'ACTION_REJECTED';
         this.toast.show(this.translate.instant(rejected ? 'toast.launchSignRejected' : 'toast.launchSignFailed'), 'alert');
         this.submitting.set(false);
@@ -406,6 +456,8 @@ export class OnboardingComponent {
     this.stepIndex.set(0);
     this.data.set(freshWizardData());
     this.audioFile.set(null);
+    this.clearMedia('image');
+    this.clearMedia('video');
 
     this.toast.show(this.translate.instant('toast.campaignLaunched'), 'sparkles');
 
@@ -416,12 +468,18 @@ export class OnboardingComponent {
     // planning/technical-architecture.md §2.20. Best-effort, same
     // graceful-degradation pattern as the on-chain calls below: the local
     // UI already reflects the campaign either way.
-    if (launch) {
-      this.api.createAsset({ asset, campaign, launch }).catch((err) => {
-        console.warn('Could not persist campaign to the backend (it still exists locally in this tab).', err);
-        this.toast.show(this.translate.instant('toast.assetSaveFailed'), 'alert');
-      });
-    }
+    // §2.93: kept as a promise, because the media uploads below need the
+    // saved asset to attach to.
+    const assetSaved: Promise<boolean> = launch
+      ? this.api.createAsset({ asset, campaign, launch }).then(
+          () => true,
+          (err) => {
+            console.warn('Could not persist campaign to the backend (it still exists locally in this tab).', err);
+            this.toast.show(this.translate.instant('toast.assetSaveFailed'), 'alert');
+            return false;
+          }
+        )
+      : Promise.resolve(false);
 
     // Every campaign gets an on-chain token at upload time, catalogue and
     // preproduction alike (unified 29 Aug 2026 — see
@@ -483,6 +541,22 @@ export class OnboardingComponent {
         } catch (err) {
           console.warn('Audio upload did not happen (campaign was still created normally).', err);
           this.toast.show(this.translate.instant('toast.audioUploadFailed'), 'alert');
+        }
+      }
+
+      // §2.93: cover image and video. Off chain — pinned to IPFS and recorded
+      // on the saved asset — so they only need the asset, not the mint.
+      if ((imageFile || videoFile) && (await assetSaved)) {
+        for (const [kind, file] of [['image', imageFile], ['video', videoFile]] as const) {
+          if (!file) continue;
+          try {
+            const { media } = await this.api.uploadAssetMedia(id, kind, file, { launch });
+            this.store.assets.update((list) => list.map((x) => (x.id === id ? { ...x, media } : x)));
+            this.toast.show(this.translate.instant('media.uploaded', { kind: this.translate.instant(`media.kind.${kind}`) }), 'checkCircle');
+          } catch (err) {
+            console.warn(`${kind} upload did not happen (campaign was still created normally).`, err);
+            this.toast.show(this.translate.instant('media.uploadFailed', { kind: this.translate.instant(`media.kind.${kind}`) }), 'alert');
+          }
         }
       }
 

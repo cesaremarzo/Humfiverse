@@ -219,7 +219,7 @@ queste garanzie.
 8.3. Gli artisti accettano inoltre l'Accordo di Cessione Royalty ed Escrow a
 Milestone ([link]). Nel prototipo quell'accordo è **una bozza non vincolante**.
 
-8.4. **I file audio sono pubblicati su IPFS** e titolo e nome artista sono
+8.4. **I file audio, le immagini e i video dei brani sono pubblicati su IPFS** e titolo e nome artista sono
 **scritti sulla blockchain**. Anche se rimuoviamo un contenuto dalla
 Piattaforma, **non possiamo cancellarlo da IPFS o dalla blockchain**. Non
 caricare contenuti che potresti voler cancellare, e non usare come nome

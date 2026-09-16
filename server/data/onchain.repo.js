@@ -15,6 +15,12 @@ async function findTokenByAssetId(assetId) {
   ).get(assetId);
 }
 
+async function findTokenByTokenId(tokenId) {
+  return db.prepare(
+    "SELECT token_id, asset_id, slug, supply, tx_hash, minted_at FROM onchain_tokens WHERE token_id = ?"
+  ).get(tokenId);
+}
+
 async function insertToken(row) {
   await db.prepare(
     "INSERT INTO onchain_tokens (token_id, asset_id, slug, supply, tx_hash, minted_at) VALUES (?, ?, ?, ?, ?, ?)"
@@ -50,6 +56,7 @@ async function deleteTokenByAssetId(assetId) {
 }
 
 module.exports = {
+  findTokenByTokenId,
   findTokenByAssetId,
   insertToken,
   insertTokenIfAbsent,

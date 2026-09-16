@@ -1,4 +1,6 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, signal } from '@angular/core';
+import { MediaManagerComponent } from './media-manager.component';
+import { WalletService } from '../core/wallet.service';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { IconComponent } from './icon.component';
@@ -10,17 +12,35 @@ import { fmtUSDShort, fundingGoal } from '../core/format.util';
 import { fundingPctFor, fundingRaisedFor } from '../core/onchain-progress.util';
 import { milestonesWithOnchainStatus } from '../core/milestone-status.util';
 import { coverBackground } from '../core/cover.util';
+import { ipfsGatewayUrl } from '../core/ipfs.util';
 
 @Component({
   selector: 'app-campaign-card',
   standalone: true,
-  imports: [RouterLink, TranslatePipe, IconComponent, StatusChipComponent, MilestoneTrackComponent],
+  imports: [MediaManagerComponent, RouterLink, TranslatePipe, IconComponent, StatusChipComponent, MilestoneTrackComponent],
   templateUrl: './campaign-card.component.html'
 })
 export class CampaignCardComponent {
   @Input({ required: true }) campaign!: Campaign;
 
-  constructor(public store: StoreService) {}
+  mediaOpen = signal(false);
+
+  constructor(
+    public store: StoreService,
+    private wallet: WalletService
+  ) {}
+
+  /** §2.93: only the owner wallet can change the media; the server checks too. */
+  isOwner(): boolean {
+    const me = this.wallet.state().address?.toLowerCase();
+    const escrow = this.store.escrowFor(this.campaign.assetId);
+    const owner = this.asset?.artistWallet?.toLowerCase() ?? (escrow?.escrow ? escrow.artist.toLowerCase() : undefined);
+    return !!me && me === owner;
+  }
+
+  gateway(uri: string): string {
+    return ipfsGatewayUrl(uri);
+  }
 
   get asset() {
     return this.store.assetById(this.campaign.assetId);

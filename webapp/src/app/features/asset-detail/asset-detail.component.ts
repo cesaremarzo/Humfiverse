@@ -29,10 +29,11 @@ import { SignedActionService, isSignatureRejection } from '../../core/signed-act
 
 type TabKey = 'overview' | 'royalty' | 'milestones' | 'disclosure' | 'documents' | 'risk';
 
+import { RegistrationGateComponent } from '../../shared/registration-gate.component';
 @Component({
   selector: 'app-asset-detail',
   standalone: true,
-  imports: [RouterLink, TranslatePipe, IconComponent, CoverComponent, StatusChipComponent, MilestoneTrackComponent, DisclosureChipComponent, LineChartComponent],
+  imports: [RegistrationGateComponent, RouterLink, TranslatePipe, IconComponent, CoverComponent, StatusChipComponent, MilestoneTrackComponent, DisclosureChipComponent, LineChartComponent],
   templateUrl: './asset-detail.component.html'
 })
 export class AssetDetailComponent {
@@ -119,6 +120,10 @@ export class AssetDetailComponent {
         .catch(() => this.myTokens.set(0));
     });
   }
+  gateway(uri: string): string {
+    return ipfsGatewayUrl(uri);
+  }
+
 
   /** Re-fetches both on-chain panels from the contracts — used on initial
    * load and again right after a real purchase/contribution, so the pool

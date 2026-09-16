@@ -59,8 +59,9 @@ Sostituisce le clausole `manager-discretion`, `milestones` e `refund` e integra
    decisione di annullamento se la legge o un'autorità lo impongono:
    (a) nascondere la pagina della Campagna, la scheda e le inserzioni di
    rivendita, indicando che il contenuto è stato rimosso e il motivo generale;
-   (b) togliere il file audio dal proprio servizio IPFS (Pinata) e cancellare il
-   collegamento all'audio registrato nel contratto del token;
+   (b) togliere il file audio, l'immagine e il video dal proprio servizio IPFS
+   (Pinata) e cancellare il collegamento all'audio registrato nel contratto del
+   token;
    (c) sostituire nome e immagine del token con un segnaposto neutro.
 2. L'Artista riconosce che:
    (a) **le copie del file già scaricate o conservate da altri nodi o gateway
@@ -246,5 +247,5 @@ aver scorso tutto il testo.
 | C-7 | **Nuova versione = nuova accettazione** al primo accesso successivo; le campagne già aperte restano regolate dalla versione accettata alla loro creazione | Evita di cambiare le regole a chi ha già partecipato, come per le commissioni `constant` |
 | C-8 | Controllo lato server: niente acquisto, contributo o creazione di campagna senza accettazione valida registrata | Come già fa `validateContractAcceptance`. Resta il limite on-chain (02, C-6) |
 | C-9 | **L'Artista firma l'Accordo con firma elettronica qualificata** (FEQ: Regolamento (UE) 910/2014 "eIDAS", art. 25, equivalente alla firma autografa in tutta l'UE; in Italia art. 21 CAD), tramite un prestatore di servizi fiduciari qualificato presente nella lista di fiducia UE. La firma avviene su un PDF del testo accettato, il cui hash è registrato come in C-4. La campagna non si crea senza firma valida. L'Investitore accetta con scorrimento, spunte e firma del wallet (C-1…C-5). *Decisione del 2026-09-15* | Motivazione dell'utente: l'Artista sta di fatto costituendo, tramite la Piattaforma, un soggetto che emette titoli. **La firma qualificata resta utile anche con i comparti del veicolo lussemburghese**, dove l'Artista non emette nulla ma cede i proventi al comparto: serve a provare una cessione con data certa, opponibile ai creditori dell'Artista, e valida in tutta l'UE, oltre agli obblighi di restituzione e risarcimento (A-3). Non risulta però obbligatoria per legge in nessuno dei due schemi **[verificare, domanda A9]** |
-| C-11 | **Raccogliere e verificare un'email** di artisti e investitori alla registrazione, anche per chi usa MetaMask | Serve per l'avviso motivato all'artista e per informare gli investitori (A-1 §2-3). Oggi la piattaforma conosce solo il wallet |
+| C-11 | **Raccogliere e verificare un'email** di artisti e investitori alla registrazione, anche per chi usa MetaMask | Serve per l'avviso motivato all'artista e per informare gli investitori (A-1 §2-3). Oggi la piattaforma conosce solo il wallet **Implementato il 2026-09-16 (tecnico §2.93)**: codice di 6 cifre via Brevo a tutti, anche a chi entra con Google, Apple o email, più firma del wallet su indirizzo e id della verifica; richiesta prima di lanciare una campagna e prima della verifica investitore. Acquisto e contributo sono bloccati solo dall'app, non dal contratto (02, C-6). Non attiva finché Brevo non è configurato sul server |
 | C-10 | Traduzioni: il testo autorevole è indicato e le altre lingue lo dicono (già presente) | Già in `legalBasisNote` |

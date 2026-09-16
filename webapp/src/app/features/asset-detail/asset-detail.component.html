@@ -31,6 +31,15 @@
         </div>
       </div>
 
+      @if (a.media?.video; as video) {
+        <!-- §2.93: the artist's short video. Muted until the viewer turns the
+             sound on; the track preview on the cover is the audio. -->
+        <figure class="detail-video">
+          <video [src]="gateway(video.uri)" [attr.poster]="a.media?.image ? gateway(a.media!.image!.uri) : null"
+                 controls muted loop playsinline preload="metadata"></video>
+        </figure>
+      }
+
       <div class="tabs">
         @for (tabDef of tabs(a); track tabDef[0]) {
           <button type="button" [class.active]="tab() === tabDef[0]" (click)="tab.set(tabDef[0])">{{ tabDef[1] | translate }}</button>
@@ -367,6 +376,8 @@
         </div>
       } @else if (soldOut(a)) {
         <div class="chip chip-neutral" style="justify-content:center; padding:10px;"><app-icon name="checkCircle"></app-icon> {{ 'buy.fullySubscribed' | translate }}</div>
+      } @else if (store.registration().checked && !store.registrationSatisfied()) {
+        <app-registration-gate messageKey="register.gateBuy"></app-registration-gate>
       } @else if (!store.investor().verified) {
         <div class="risk-item"><app-icon name="shield"></app-icon><div>{{ 'buy.kycRequired' | translate }}</div></div>
         <a class="btn btn-primary btn-block btn-lg" [routerLink]="['/kyc', a.id]"><app-icon name="shield"></app-icon> {{ 'buy.completeVerification' | translate }}</a>
@@ -435,7 +446,7 @@
   </div>
 
   @if (success(); as s) {
-    <div class="modal-scrim" (click)="$event.target === $event.currentTarget && closeModal()">
+    <div class="modal-scrim" (click)="$event.target === $event.currentTarget ? closeModal() : null">
       <div class="modal">
         <div class="success-icon"><app-icon name="check"></app-icon></div>
         <h3 class="panel-title panel-title-lg">{{ (a.kind === 'preproduction' ? 'success.contributionConfirmed' : 'success.purchaseConfirmed') | translate }}</h3>
@@ -466,7 +477,7 @@
   }
 
   @if (sellOpen()) {
-    <div class="modal-scrim" (click)="$event.target === $event.currentTarget && closeSell()">
+    <div class="modal-scrim" (click)="$event.target === $event.currentTarget ? closeSell() : null">
       <div class="modal">
         <h3 class="panel-title panel-title-lg">{{ 'portfolio.sellModalTitle' | translate }}</h3>
         <p style="font-size:13px; color:var(--text-secondary);">{{ a.title }}</p>
@@ -500,7 +511,7 @@
   }
 
   @if (sellResult(); as sr) {
-    <div class="modal-scrim" (click)="$event.target === $event.currentTarget && closeSellResult()">
+    <div class="modal-scrim" (click)="$event.target === $event.currentTarget ? closeSellResult() : null">
       <div class="modal" style="text-align:center;">
         <div class="success-badge"><app-icon name="checkCircle"></app-icon></div>
         <h3 class="panel-title panel-title-lg">{{ 'portfolio.sellResultTitle' | translate }}</h3>
@@ -511,7 +522,7 @@
   }
 
   @if (resaleResult(); as r) {
-    <div class="modal-scrim" (click)="$event.target === $event.currentTarget && closeResaleResult()">
+    <div class="modal-scrim" (click)="$event.target === $event.currentTarget ? closeResaleResult() : null">
       <div class="modal">
         <div class="success-icon"><app-icon name="check"></app-icon></div>
         <h3 class="panel-title panel-title-lg">{{ 'detail.resaleSuccessTitle' | translate }}</h3>

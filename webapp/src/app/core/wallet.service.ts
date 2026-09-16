@@ -8,6 +8,7 @@ import {
   connectEmail,
   connectJwt,
   connectSocial,
+  embeddedUserEmail,
   embeddedWalletEnabled,
   hasStoredEmbeddedSession,
   openSocialPopup,
@@ -300,6 +301,11 @@ export class WalletService {
 
   /** EIP-191 signature of `message` by the connected wallet — no network
    * switch, no transaction. Used for the launch authorization (§2.88). */
+  /** The in-app wallet's login email, for prefilling registration (§2.93). */
+  async loginEmail(): Promise<string | null> {
+    return this.state().kind === 'embedded' ? embeddedUserEmail() : null;
+  }
+
   async signMessage(message: string): Promise<string> {
     const eip1193 = this.eip1193();
     if (!eip1193) throw new Error('no-wallet');
