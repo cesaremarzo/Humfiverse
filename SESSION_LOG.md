@@ -1645,3 +1645,34 @@ user's go-ahead. `docs/` is rebuilt and committed with it.
 Still open from this pass: human review of the es/fr/de/ru/zh/ja/ar strings;
 submitting `https://cesaremarzo.github.io/Humfiverse/sitemap.xml` in Google Search
 Console (needs the user's Google account).
+
+---
+
+## 2026-09-16 (notte, 2) — phase 2 contracts with royalty distribution (§2.92)
+
+Asked by the user: *"dobbiamo mettere in piedi il processo di distribuzione
+(airdrop) delle revenues on chain… non è governato dagli smart contract
+attuali?"* — it was not: no contract paid royalties to holders. The user chose
+an accumulator inside the token (no off-chain snapshot) and asked to complete
+phase 2 with it.
+
+**Contracts only, on `dev/cesare`, not deployed.** Details in §2.92.
+
+- Token: `depositRoyalties` (anyone), `claimRoyalties(holder, ids)` (anyone,
+  pays the holder), `claimPoolRoyalties` (unsold share → payout wallet),
+  settlement on every transfer, `burnForRefund` (escrow only), `operator`.
+- Escrow: refund per token held with burn, `cancelCampaign(id, ground,
+  decisionHash)` refusing fully released campaigns without a ground, artist ≠
+  studio `require`, deadline removed, `operator`.
+- 109 tests passing.
+
+Left for phase 2, in order:
+1. decide the multisig (signers, threshold) and the opaque on-chain reference
+   instead of title/artist (§2.87 point 7) — both change what gets deployed;
+2. backend + frontend on the new ABI (`createCampaign`, `cancelCampaign`,
+   `refund`, `campaigns`), royalty deposit and claim screens — **wait for the
+   uncommitted registration work in `server/` and `webapp/` to land first**;
+3. redeploy with the `contract-redeploy` skill, restore state, move ownership
+   to the multisig, `setOperator(Founder)`;
+4. `legal/` review in the same PR (`check.sh` flags both contracts).
+
