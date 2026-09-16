@@ -1,6 +1,6 @@
 # Domande per l'avvocato
 
-*Revisione del 2026-09-15, commit `82a7a1b`.*
+*Revisione del 2026-09-16, commit `27d8d5f`.*
 
 Le domande vengono dai file 01-03 e dalle decisioni già prese (note legali §7,
 §7.10; technical-architecture §2.86). Sostituiscono e ampliano l'elenco del §6
@@ -72,6 +72,22 @@ Lussemburgo (CSSF) e Italia (CONSOB).*
   opponibile ai creditori dell'artista (in Italia art. 1265 e 2704 c.c.; in
   Lussemburgo la legge del 22 marzo 2004 sulla cartolarizzazione)? *(A5, 02 C-8,
   file 08 C-9)*
+- **A10** 🔴 **ANote Music** (Lussemburgo, dal 2020) dichiara nei propri termini
+  che i *royalty interest* **non sono strumenti finanziari** ai sensi di MiFID e
+  della legge lussemburghese del 5 aprile 1993, e per questo non è vigilata dalla
+  CSSF: vende quote di proventi al pubblico al dettaglio, con un mercato
+  secondario interno, e affida solo i pagamenti a Mangopay. La tesi regge? E
+  regge in **Italia**, davanti alla nozione più ampia di *prodotto finanziario*
+  (art. 1, comma 1, lett. u, TUF) e all'obbligo di prospetto dell'art. 94? Cosa
+  cambia se lo stesso diritto viene **incorporato in un token**, e quindi si
+  ricade in MiCA (white paper, esenzioni, CASP per il marketplace)? *(09 §2, §6)*
+- **A11** 🟠 Un **veicolo di cartolarizzazione lussemburghese** che emette
+  strumenti finanziari **al pubblico in modo continuativo** (più di tre emissioni
+  l'anno) deve essere autorizzato dalla CSSF. Una campagna per brano supera
+  subito entrambi i criteri: conviene un veicolo autorizzato, oppure restare
+  fuori con tagli da almeno 100.000 €, soli clienti professionali o collocamenti
+  privati — e cosa comporta ciascuna scelta per il pubblico che vogliamo
+  raggiungere? *(09 §8, note §7.7)*
 
 ## Gruppo B · Campagne di pre-produzione e crowdfunding
 *Stesso avvocato del gruppo A.*
@@ -95,6 +111,25 @@ Lussemburgo (CSSF) e Italia (CONSOB).*
   con token consegnati subito e fondi già in escrow? *(01 §3, §8)*
 - **B5** 🟠 Una campagna **senza studio** viene rilasciata dalla sola conferma
   dell'artista. Basta dichiararlo o va vietato? *(02 C-3)*
+- **B6** 🟠 L'ECSPR ammette l'uso di **veicoli dedicati** solo per trasferire agli
+  investitori un bene illiquido o indivisibile. Il flusso di royalty di un
+  singolo brano rientra in quella nozione, o l'uso di un comparto del veicolo
+  lussemburghese chiude la strada dell'ECSPR? *(09 §7, note §7.2)*
+- **B7** 🔴 Detenere **USDC degli investitori** in un escrow di cui la piattaforma
+  è `owner` richiede una licenza di pagamento, di moneta elettronica o CASP?
+  Nessuna delle tre piattaforme confrontate nel file 09 tocca il denaro degli
+  investitori: passano tutte da un istituto autorizzato. *(09 §5, 01 §3)*
+- **B8** 🔴 Il tetto ECSPR di **5 milioni di euro in 12 mesi** vale per
+  **titolare del progetto** (art. 1(2)(c)) **[verificare il testo vigente]**.
+  Nella struttura veicolo lussemburghese + un comparto per brano, **chi è il
+  titolare del progetto**: l'artista, il singolo comparto o l'intero veicolo?
+  Se è l'artista o il comparto, il tetto non pesa: una pre-produzione costa
+  qualche migliaio o decina di migliaia di euro. Se è il veicolo, **tutte le
+  campagne di tutti gli artisti si sommano** in un unico tetto da 5 milioni
+  l'anno, e il modello non scala. Nel conto entrano anche le raccolte dello
+  stesso titolare su altre piattaforme e le sue offerte esenti da prospetto?
+  E come si lega all'aggregazione per la soglia del prospetto (A7,
+  01 §2, note §7.1.1): le due risposte vanno date insieme. *(01 §3, B1, B6)*
 
 ## Gruppo C · Annullamento delle campagne e rivalsa verso l'artista
 *Stesso avvocato del gruppo A, più un avvocato civilista o contrattualista per
@@ -222,7 +257,7 @@ l'azione di recupero. Decisione del 15 settembre 2026, note legali §7.10.*
 
 ## Da chiarire per primo (🔴)
 
-A1 · A2 · A4 · A5 · A9 · B1 · B3 · C1 · C2 · G1 · H1
+A1 · A2 · A4 · A5 · A9 · A10 · B1 · B3 · B7 · B8 · C1 · C2 · G1 · H1
 
 **H1 e G1 si possono affrontare subito e costano poco.** Le altre richiedono
 l'incontro con l'avvocato dei mercati finanziari.
@@ -237,6 +272,7 @@ l'incontro con l'avvocato dei mercati finanziari.
 | `planning/business-overview.md` §4 e §8 | Flusso del denaro e modello pre-produzione |
 | `whitepaper/` (o link GitBook) | Cosa è già pubblico |
 | `server/contract-template.js` (testo IT o FR) | Il contratto artista attuale |
+| `legal/09-confronto-piattaforme.md` | Come si sono messe in regola ANote Music, SongVest e Royalty Exchange: mostra che le alternative sono state studiate su fonti dirette |
 | `legal/04`, `05`, `06`, `08` | Bozze da rivedere |
 | Link ai contratti verificati su Etherscan | Per chi vuole leggere il codice |
 | Una pagina: numeri del piano (campagne per anno, importi medi, Paesi di investitori e artisti) | Senza questi dati l'avvocato non può valutare soglie ed esenzioni |

@@ -3,6 +3,42 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-09-16 (notte) · banner del 06 §1 applicato; `index.html` solo meta SEO
+
+- **06 §1:** il testo del banner è ora quello del sito (tecnico §2.91), anche in
+  fondo alla landing. Senza link a Termini e Privacy, che non esistono ancora.
+- **`index.html`:** aggiunti solo meta tag SEO, Open Graph e dati strutturati;
+  l'immagine di anteprima è sul sito stesso. Nessuna risorsa esterna nuova, quindi
+  05 §3–6 non cambia.
+- Dal sito sono state tolte frasi non vere rispetto al codice ("verificati prima
+  della quotazione", "pagati automaticamente con le royalty", "rimborso pro-rata se
+  la campagna si blocca", "governance consultiva"). Nessun documento di `legal/` le
+  citava.
+
+## 2026-09-16 (notte) · domanda B8: chi è il titolare del progetto per il tetto ECSPR
+
+- **07:** aggiunta B8 🔴. Il tetto ECSPR di 5 M€ in 12 mesi si calcola per
+  titolare del progetto: con veicolo lussemburghese e un comparto per brano,
+  se il titolare è il veicolo tutte le campagne si sommano in un solo tetto e
+  la pre-produzione non scala. Collegata ad A7 (aggregazione per il prospetto),
+  B1 e B6. Aggiunta all'elenco 🔴; riga di revisione aggiornata a `27d8d5f`.
+
+## 2026-09-16 (sera) · nuovo file 09: confronto con ANote, SongVest, Royalty Exchange
+
+- **09 (nuovo):** come le tre piattaforme hanno risolto la qualificazione
+  giuridica, da fonti dirette (loro termini, Form 1-A di SongVest alla SEC).
+  ANote dichiara che il *royalty interest* non è uno strumento finanziario MiFID
+  e non è vigilata dalla CSSF; SongVest offre security con Reg A+ Tier 2;
+  Royalty Exchange vende asset interi a un solo acquirente e ha annullato l'unico
+  tentativo di frazionamento (Royalty Flow, 2018). Nessuna delle tre tocca il
+  denaro degli investitori, nessuna finanzia brani non ancora pubblicati.
+  Strategia a fasi proposta per Humfiverse (§7).
+- **07:** aggiunte A10 (la tesi di ANote regge in Italia? e con un token?),
+  A11 (autorizzazione CSSF per il veicolo che emette al pubblico in modo
+  continuativo), B6 (veicoli dedicati nell'ECSPR), B7 🔴 (USDC di terzi
+  nell'escrow). A10 e B7 aggiunte alle 🔴; 09 nel materiale da mandare.
+- **README:** 09 nell'indice.
+
 ## 2026-09-16 · effetti del §2.89 su 01, 02 e 03
 
 - **01 §6, 03 N-3:** le risposte KYC ora sono firmate dal wallet; resta

@@ -1471,3 +1471,177 @@ Not tracked anywhere else in the next-work list above:
   history rewrite and force push: the user's call, not done.
 - **`.claude/legal-private/backend-sicurezza.md` exists only on Cesare's Mac**
   (gitignored). B-1…B-3 resolved, B-4 open. Vincenzo doesn't have it.
+
+---
+
+## 2026-09-16 (late) — Frontend restyle, merged to main (§2.90)
+
+The whole session was one request: *"sei il front end engineer di humfiverse,
+rendi il sito più accattivante e raffinato, ma serio allo stesso momento."*
+Visual pass only — no copy, no translation keys, no behaviour, no contracts,
+no backend. `./legal/check.sh` reported clean before the PR, so nothing in
+`legal/` needed to move.
+
+**Shipped** — PR #63, merged into `main` as `7765a2d`, live on GitHub Pages
+(bundle `main-X4KURMUV.js`, verified after deploy). `dev/cesare` was synced
+back with `main` afterwards. The production API's read endpoints were swept
+after the merge: `/api/health`, `/api/data`, `/api/contract-template`,
+`/api/onchain/:id`, `/api/holders` all 200.
+
+**What changed** (details and the reasoning in `planning/technical-architecture.md`
+§2.90, which is the place to read before touching the design again):
+- tokens in `webapp/src/styles.css` — aubergine accent in both themes,
+  warmer neutrals, hairline borders, layered shadows, one easing curve;
+- typography — Fraunces 500 with optical sizing, bigger page titles,
+  tabular mono figures, kickers with a leading rule;
+- landing rebuilt (`features/landing/`): centred hero, brand waveform as a
+  level meter, the two choices side by side, and the shared footer, which
+  the landing never rendered before — so its disclaimer was missing;
+- for-artists (`features/for-artists/`): the page-wide logo watermark that
+  bled through the cards and the lime-green block replaced by one composed
+  visual (waveform over a milestone track), features numbered 01–03;
+- prototype banner quieted to a neutral surface with an accent rule;
+- cards and covers: muted gradients, vignette, thinner meters;
+- `.panel-title` class replacing 17 inline font declarations across
+  asset-detail, portfolio and the connect modal.
+
+**Checked by hand** in both themes at 1440px and 400px: landing, marketplace,
+asset detail, portfolio, for-artists, onboarding wizard. Production build
+(`npx ng build`) passes and `docs/` is committed with it — remember that
+`docs/` is the deployed artifact, so a frontend change is only live once it
+is rebuilt and committed.
+
+**Next session: nothing here is left half-done.** The next work is still the
+list in the previous entry ("State at the end of 2026-09-16"), unchanged and
+in the same order: registration and acceptance per `legal/08` section C, the
+artist's qualified e-signature (QES), cancellation with legal grounds and
+takedown (§2.87), then the phase 2 contract redeploy. The legal-side items in
+that entry are also untouched by this session.
+
+If the design comes up again, these are the ones I would do next, in order:
+1. the asset detail page is still the least designed screen — the right
+   column empties out on a wide viewport while the left column runs long;
+2. the main topbar stacks into three rows below ~700px;
+3. `features/portfolio/` and `features/onboarding/` still carry a lot of
+   inline styles that belong in `styles.css`, the way `.panel-title` now does.
+
+---
+
+## 2026-09-16 (sera) — how ANote, SongVest and Royalty Exchange stay legal (`legal/09`)
+
+A research-only session: no code touched. The question was how the three
+platforms that already sell royalty shares to the public solved the regulatory
+problem, and what Humfiverse should do about financial regulation. Sources were
+their own terms and legal pages, plus SongVest's Form 1-A filed with the SEC.
+Everything is written up in **`legal/09-confronto-piattaforme.md`**, with the
+comparison table, the per-platform analysis and the source list.
+
+It ran alongside the frontend-restyle session above: this branch was cut from
+`7765a2d` and rebased onto that session's `fadde03`. No files overlap except
+this log.
+
+### What the three do
+
+- **ANote Music** (Luxembourg, live since Jul 2020): sells shares of a *royalty
+  interest* — a contractual right to future royalty income. Its terms state that
+  **royalty interests are not MiFID financial instruments**, so it is **not
+  supervised by the CSSF**; only the money is regulated, held in segregated
+  Mangopay e-wallets. Retail investors, auction at listing, then an internal
+  secondary market (4% / 8%). Catalogues need ≥5 years of history and ≥€10k/year.
+- **SongVest** (US): the opposite choice. RoyaltyTraders LLC (Delaware) offers
+  *Royalty Share Units* per series under **Reg A+ Tier 2**, first qualified
+  28 Sep 2021. KYC/AML is done by a broker-dealer (Dalmore), escrow by North
+  Capital, non-accredited investors capped at 10% of income or net worth,
+  quarterly distributions, and **no secondary market at all**. Price discovery
+  comes from a non-binding "test the waters" auction (Rule 255).
+- **Royalty Exchange** (US): sells the **whole asset to a single buyer** — the
+  order book cannot split a catalogue — which is why it stays open to
+  non-accredited buyers. Its one attempt at fractionalising, *Royalty Flow*
+  (Eminem catalogue, Reg A+, Nasdaq), was **cancelled on 9 Apr 2018**. Fractions
+  now exist only in accredited-only private syndicates.
+
+### The three things all of them share (and Humfiverse doesn't)
+
+1. None sells the copyright — only the income stream. Humfiverse already
+   matches this.
+2. **None touches investors' money**: a payment institution, a broker-dealer or
+   an escrow agent always sits in between. Humfiverse holds funds in an escrow
+   the Founder owns, and primary proceeds go straight to the artist's wallet.
+3. **None funds unreleased tracks.** They list catalogues that have earned for
+   years. The pre-production model has no precedent among the three.
+
+Plus: fractionalising is what triggers securities law (Royalty Flow), and the
+most cautious platform is the one without a secondary market — while
+`HumfiverseMarketplace` is real and takes 1%.
+
+### Why the ANote route doesn't transfer
+
+Their argument is **their own statement**, not a CSSF decision or a court
+ruling, and the shares are standardised, fungible and tradable on their own
+market. On top of that: a token puts the same right inside **MiCA** (white paper,
+narrow exemptions, CASP licence for the marketplace), and in Italy the TUF's
+wider notion of *prodotto finanziario* (art. 1(1)(u), prospectus under art. 94)
+catches it even if the MiFID argument held.
+
+### Recommended path, unchanged in direction (§7 of `legal/09`)
+
+Keep the 28 Aug decision (financial instrument, Luxembourg vehicle), phase it:
+
+0. **Now:** testnet only and say so, drop return-promising wording, **geo-block
+   the US**, close the KYC-data backlog (07 H1) and pick the company (07 G1).
+1. **First real pilot:** published catalogues only with ANote-style admission
+   thresholds; place through an **already-authorised party** (ECSP or SIM)
+   rather than licensing ourselves; funds at a licensed payment institution;
+   **marketplace off or reduced to an ECSPR art. 25 bulletin board** with no
+   order matching; **permissioned token** (ERC-3643) with a real KYC provider;
+   SongVest-style non-binding auction for price discovery.
+2. **Own ECSP licence, then pre-production back on:** KIIS per campaign, entry
+   test, explicit consent above €1,000 or 5% of net worth, **4-day reflection
+   period** (so `contribute()` can no longer hand over the token instantly),
+   €5M per artist per 12 months, probably a minimum raise before tranche 1.
+3. **Real secondary market** only with an MTF partner or inside the DLT Pilot
+   Regime.
+
+### New questions for counsel (in `legal/07`)
+
+- **A10** 🔴 does ANote's "not a financial instrument" thesis hold in Italy, and
+  what changes once the right sits in a token (MiCA)?
+- **A11** a Luxembourg securitisation vehicle issuing **to the public on a
+  continuous basis** (more than three times a year) needs CSSF authorisation —
+  one compartment per track crosses that at once.
+- **B6** does ECSPR's narrow allowance for special purpose vehicles cover a
+  single track's royalty stream?
+- **B7** 🔴 does holding investors' **USDC** in a platform-owned escrow require a
+  payment, e-money or CASP licence?
+
+### Where this lives
+
+Pushed to `dev/cesare`. Docs only: `legal/09` (new), `legal/07`,
+`legal/README.md`, `legal/CHANGELOG.md`, this log. Merging it to `main` needs
+Cesare's go-ahead — it isn't a bug fix.
+
+---
+
+## 2026-09-16 (notte) — DeFi layer, music-and-finance backdrop, copy and SEO (§2.91)
+
+Request: *"sei il graphic designer e SEO di Humfiverse, rendi il sito ancora più
+bello e accattivante sullo stile defi, popola il background con elementi in linea
+con il concept musica e finanza e modifica le scritte nelle pagine per rendere più
+in linea con lo stato attuale del progetto."*
+
+**On `dev/cesare`, not merged to `main`** — it is a feature, so it waits for the
+user's go-ahead. `docs/` is rebuilt and committed with it.
+
+- Animated backdrop behind every page (`layout/backdrop.component.*`), quieter on
+  inner pages; glass surfaces, teal second accent, gradient titles and buttons.
+- Landing: live-on-testnet pill, subtitle, protocol ticker, "how it works",
+  "project status" (live / coming next) and the banner disclaimer at the bottom.
+- Copy in all 9 locales: removed claims the code doesn't back; banner = `legal/06` §1.
+  The status list mirrors "Next work" above: **update it when an item ships.**
+- SEO: meta, Open Graph image, JSON-LD, route titles, `sitemap.xml`.
+- Checked by screenshot at 1440px (dark and light) and 400px: landing, marketplace,
+  for-artists. `./legal/check.sh` clean after recording `index.html`.
+
+Still open from this pass: human review of the es/fr/de/ru/zh/ja/ar strings;
+submitting `https://cesaremarzo.github.io/Humfiverse/sitemap.xml` in Google Search
+Console (needs the user's Google account).

@@ -1,0 +1,294 @@
+:host {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+
+/* ---------- Light ---------- */
+.bd-orb {
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform;
+}
+
+.bd-orb--a {
+  width: 70vmax;
+  height: 70vmax;
+  left: -18vmax;
+  top: -26vmax;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 34%, transparent), transparent);
+  animation: bd-drift-a 26s ease-in-out infinite alternate;
+}
+
+.bd-orb--b {
+  width: 60vmax;
+  height: 60vmax;
+  right: -20vmax;
+  top: 18vh;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--accent-2) 22%, transparent), transparent);
+  animation: bd-drift-b 32s ease-in-out infinite alternate;
+}
+
+.bd-orb--c {
+  width: 50vmax;
+  height: 50vmax;
+  left: 20vw;
+  bottom: -30vmax;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--gold) 16%, transparent), transparent);
+  animation: bd-drift-a 40s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes bd-drift-a {
+  to { transform: translate3d(6vw, 5vh, 0) scale(1.08); }
+}
+
+@keyframes bd-drift-b {
+  to { transform: translate3d(-7vw, -4vh, 0) scale(0.94); }
+}
+
+/* Perspective ledger grid on the floor of the page */
+.bd-grid {
+  position: absolute;
+  left: -50%;
+  right: -50%;
+  bottom: -8%;
+  height: 62%;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 64px 64px;
+  transform: perspective(700px) rotateX(62deg);
+  transform-origin: 50% 100%;
+  mask-image: linear-gradient(to top, #000 10%, transparent 85%);
+  -webkit-mask-image: linear-gradient(to top, #000 10%, transparent 85%);
+  animation: bd-grid-run 18s linear infinite;
+}
+
+@keyframes bd-grid-run {
+  to { background-position: 0 64px, 0 0; }
+}
+
+.bd-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+}
+
+/* ---------- Stave ---------- */
+.bd-staff path {
+  stroke: var(--text);
+  stroke-width: 1;
+  opacity: 0.09;
+}
+
+.bd-note {
+  animation: bd-bob 6s ease-in-out infinite alternate;
+}
+
+.bd-note circle {
+  fill: color-mix(in srgb, var(--gold) 26%, transparent);
+  stroke: var(--gold);
+  stroke-width: 1.2;
+  opacity: 0.55;
+}
+
+.bd-note .bd-note-inner {
+  fill: none;
+  opacity: 0.45;
+}
+
+.bd-note line {
+  stroke: var(--gold);
+  stroke-width: 1.2;
+  opacity: 0.45;
+}
+
+@keyframes bd-bob {
+  from { translate: 0 0; }
+  to { translate: 0 -7px; }
+}
+
+/* ---------- Record + gauge ---------- */
+.bd-vinyl-spin {
+  animation: bd-spin 38s linear infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes bd-spin {
+  from { rotate: 0deg; }
+  to { rotate: 360deg; }
+}
+
+.bd-groove {
+  stroke: var(--text);
+  stroke-width: 1;
+  opacity: 0.08;
+}
+
+.bd-shine {
+  stroke: var(--accent-ink);
+  stroke-width: 22;
+  stroke-linecap: round;
+  opacity: 0.1;
+}
+
+.bd-label {
+  fill: color-mix(in srgb, var(--accent) 30%, transparent);
+  stroke: var(--accent-ink);
+  stroke-width: 1;
+  stroke-opacity: 0.4;
+}
+
+.bd-hole {
+  fill: var(--bg);
+}
+
+.bd-tick {
+  stroke: var(--text);
+  stroke-width: 1.2;
+  opacity: 0.16;
+}
+
+.bd-gauge-track {
+  stroke: var(--text);
+  stroke-width: 3;
+  opacity: 0.06;
+}
+
+.bd-gauge {
+  stroke: var(--accent-2);
+  stroke-width: 3;
+  stroke-linecap: round;
+  opacity: 0.7;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent-2) 60%, transparent));
+}
+
+/* ---------- Spectrum ---------- */
+.bd-spectrum rect {
+  fill: var(--accent-ink);
+  opacity: 0.16;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: bd-eq 1.8s ease-in-out infinite alternate;
+}
+
+.bd-spectrum rect:nth-child(odd) {
+  fill: var(--accent-2);
+}
+
+/* ---------- Candles ---------- */
+.bd-candles > g {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: bd-eq 3.2s ease-in-out infinite alternate;
+}
+
+.bd-candles line {
+  stroke: var(--accent-ink);
+  stroke-width: 1.2;
+  opacity: 0.22;
+}
+
+.bd-candles rect {
+  fill: color-mix(in srgb, var(--accent) 45%, transparent);
+  stroke: var(--accent-ink);
+  stroke-width: 1;
+  opacity: 0.2;
+}
+
+.bd-candles .up line {
+  stroke: var(--accent-2);
+}
+
+.bd-candles .up rect {
+  fill: color-mix(in srgb, var(--accent-2) 40%, transparent);
+  stroke: var(--accent-2);
+}
+
+@keyframes bd-eq {
+  from { transform: scaleY(0.82); }
+  to { transform: scaleY(1); }
+}
+
+/* ---------- Wave ---------- */
+.bd-wave {
+  stroke: url(#bd-wave);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: bd-draw 3.2s cubic-bezier(.2,.7,.2,1) 0.3s forwards;
+}
+
+.bd-wave-glow {
+  stroke: url(#bd-wave);
+  stroke-width: 10;
+  opacity: 0.12;
+}
+
+.bd-wave-echo {
+  stroke: var(--accent-ink);
+  stroke-width: 1;
+  stroke-dasharray: 2 6;
+  opacity: 0.22;
+}
+
+@keyframes bd-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+.bd-label-text {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  fill: var(--text-muted);
+  opacity: 0.55;
+}
+
+/* Keeps the lower part of long pages calm */
+.bd-fade {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 90% at 50% 40%, transparent 55%, var(--bg) 100%);
+}
+
+/* ---------- Inner pages: same world, turned down ---------- */
+:host(.quiet) .bd-svg {
+  opacity: 0.5;
+}
+
+/* The wave is the brightest stroke; on pages full of text it only hints. */
+:host(.quiet) .bd-wave,
+:host(.quiet) .bd-wave-glow {
+  opacity: 0.3;
+}
+
+:host(.quiet) .bd-label-text,
+:host(.quiet) .bd-staff {
+  display: none;
+}
+
+:host(.quiet) .bd-orb {
+  opacity: 0.6;
+}
+
+:host(.quiet) .bd-grid {
+  opacity: 0.6;
+}
+
+@media (max-width: 700px) {
+  .bd-label-text,
+  .bd-spectrum {
+    display: none;
+  }
+
+  .bd-vinyl {
+    opacity: 0.7;
+  }
+}

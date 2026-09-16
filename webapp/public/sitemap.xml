@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The app uses hash routing (#/marketplace), which crawlers treat as one
+     page, so the root is the only indexable URL. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://cesaremarzo.github.io/Humfiverse/</loc>
+    <lastmod>2026-09-16</lastmod>
+  </url>
+</urlset>
