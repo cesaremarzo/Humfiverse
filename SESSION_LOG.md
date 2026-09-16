@@ -1471,3 +1471,56 @@ Not tracked anywhere else in the next-work list above:
   history rewrite and force push: the user's call, not done.
 - **`.claude/legal-private/backend-sicurezza.md` exists only on Cesare's Mac**
   (gitignored). B-1…B-3 resolved, B-4 open. Vincenzo doesn't have it.
+
+---
+
+## 2026-09-16 (late) — Frontend restyle, merged to main (§2.90)
+
+The whole session was one request: *"sei il front end engineer di humfiverse,
+rendi il sito più accattivante e raffinato, ma serio allo stesso momento."*
+Visual pass only — no copy, no translation keys, no behaviour, no contracts,
+no backend. `./legal/check.sh` reported clean before the PR, so nothing in
+`legal/` needed to move.
+
+**Shipped** — PR #63, merged into `main` as `7765a2d`, live on GitHub Pages
+(bundle `main-X4KURMUV.js`, verified after deploy). `dev/cesare` was synced
+back with `main` afterwards. The production API's read endpoints were swept
+after the merge: `/api/health`, `/api/data`, `/api/contract-template`,
+`/api/onchain/:id`, `/api/holders` all 200.
+
+**What changed** (details and the reasoning in `planning/technical-architecture.md`
+§2.90, which is the place to read before touching the design again):
+- tokens in `webapp/src/styles.css` — aubergine accent in both themes,
+  warmer neutrals, hairline borders, layered shadows, one easing curve;
+- typography — Fraunces 500 with optical sizing, bigger page titles,
+  tabular mono figures, kickers with a leading rule;
+- landing rebuilt (`features/landing/`): centred hero, brand waveform as a
+  level meter, the two choices side by side, and the shared footer, which
+  the landing never rendered before — so its disclaimer was missing;
+- for-artists (`features/for-artists/`): the page-wide logo watermark that
+  bled through the cards and the lime-green block replaced by one composed
+  visual (waveform over a milestone track), features numbered 01–03;
+- prototype banner quieted to a neutral surface with an accent rule;
+- cards and covers: muted gradients, vignette, thinner meters;
+- `.panel-title` class replacing 17 inline font declarations across
+  asset-detail, portfolio and the connect modal.
+
+**Checked by hand** in both themes at 1440px and 400px: landing, marketplace,
+asset detail, portfolio, for-artists, onboarding wizard. Production build
+(`npx ng build`) passes and `docs/` is committed with it — remember that
+`docs/` is the deployed artifact, so a frontend change is only live once it
+is rebuilt and committed.
+
+**Next session: nothing here is left half-done.** The next work is still the
+list in the previous entry ("State at the end of 2026-09-16"), unchanged and
+in the same order: registration and acceptance per `legal/08` section C, the
+artist's qualified e-signature (QES), cancellation with legal grounds and
+takedown (§2.87), then the phase 2 contract redeploy. The legal-side items in
+that entry are also untouched by this session.
+
+If the design comes up again, these are the ones I would do next, in order:
+1. the asset detail page is still the least designed screen — the right
+   column empties out on a wide viewport while the left column runs long;
+2. the main topbar stacks into three rows below ~700px;
+3. `features/portfolio/` and `features/onboarding/` still carry a lot of
+   inline styles that belong in `styles.css`, the way `.panel-title` now does.
