@@ -1,6 +1,6 @@
 # Domande per l'avvocato
 
-*Revisione del 2026-09-15, commit `82a7a1b`.*
+*Revisione del 2026-09-16, commit `27d8d5f`.*
 
 Le domande vengono dai file 01-03 e dalle decisioni già prese (note legali §7,
 §7.10; technical-architecture §2.86). Sostituiscono e ampliano l'elenco del §6
@@ -119,6 +119,17 @@ Lussemburgo (CSSF) e Italia (CONSOB).*
   è `owner` richiede una licenza di pagamento, di moneta elettronica o CASP?
   Nessuna delle tre piattaforme confrontate nel file 09 tocca il denaro degli
   investitori: passano tutte da un istituto autorizzato. *(09 §5, 01 §3)*
+- **B8** 🔴 Il tetto ECSPR di **5 milioni di euro in 12 mesi** vale per
+  **titolare del progetto** (art. 1(2)(c)) **[verificare il testo vigente]**.
+  Nella struttura veicolo lussemburghese + un comparto per brano, **chi è il
+  titolare del progetto**: l'artista, il singolo comparto o l'intero veicolo?
+  Se è l'artista o il comparto, il tetto non pesa: una pre-produzione costa
+  qualche migliaio o decina di migliaia di euro. Se è il veicolo, **tutte le
+  campagne di tutti gli artisti si sommano** in un unico tetto da 5 milioni
+  l'anno, e il modello non scala. Nel conto entrano anche le raccolte dello
+  stesso titolare su altre piattaforme e le sue offerte esenti da prospetto?
+  E come si lega all'aggregazione per la soglia del prospetto (A7,
+  01 §2, note §7.1.1): le due risposte vanno date insieme. *(01 §3, B1, B6)*
 
 ## Gruppo C · Annullamento delle campagne e rivalsa verso l'artista
 *Stesso avvocato del gruppo A, più un avvocato civilista o contrattualista per
@@ -246,7 +257,7 @@ l'azione di recupero. Decisione del 15 settembre 2026, note legali §7.10.*
 
 ## Da chiarire per primo (🔴)
 
-A1 · A2 · A4 · A5 · A9 · A10 · B1 · B3 · B7 · C1 · C2 · G1 · H1
+A1 · A2 · A4 · A5 · A9 · A10 · B1 · B3 · B7 · B8 · C1 · C2 · G1 · H1
 
 **H1 e G1 si possono affrontare subito e costano poco.** Le altre richiedono
 l'incontro con l'avvocato dei mercati finanziari.

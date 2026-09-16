@@ -3,6 +3,14 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-09-16 (notte) · domanda B8: chi è il titolare del progetto per il tetto ECSPR
+
+- **07:** aggiunta B8 🔴. Il tetto ECSPR di 5 M€ in 12 mesi si calcola per
+  titolare del progetto: con veicolo lussemburghese e un comparto per brano,
+  se il titolare è il veicolo tutte le campagne si sommano in un solo tetto e
+  la pre-produzione non scala. Collegata ad A7 (aggregazione per il prospetto),
+  B1 e B6. Aggiunta all'elenco 🔴; riga di revisione aggiornata a `27d8d5f`.
+
 ## 2026-09-16 (sera) · nuovo file 09: confronto con ANote, SongVest, Royalty Exchange
 
 - **09 (nuovo):** come le tre piattaforme hanno risolto la qualificazione
