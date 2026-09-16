@@ -3,6 +3,22 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-09-16 (sera) · nuovo file 09: confronto con ANote, SongVest, Royalty Exchange
+
+- **09 (nuovo):** come le tre piattaforme hanno risolto la qualificazione
+  giuridica, da fonti dirette (loro termini, Form 1-A di SongVest alla SEC).
+  ANote dichiara che il *royalty interest* non è uno strumento finanziario MiFID
+  e non è vigilata dalla CSSF; SongVest offre security con Reg A+ Tier 2;
+  Royalty Exchange vende asset interi a un solo acquirente e ha annullato l'unico
+  tentativo di frazionamento (Royalty Flow, 2018). Nessuna delle tre tocca il
+  denaro degli investitori, nessuna finanzia brani non ancora pubblicati.
+  Strategia a fasi proposta per Humfiverse (§7).
+- **07:** aggiunte A10 (la tesi di ANote regge in Italia? e con un token?),
+  A11 (autorizzazione CSSF per il veicolo che emette al pubblico in modo
+  continuativo), B6 (veicoli dedicati nell'ECSPR), B7 🔴 (USDC di terzi
+  nell'escrow). A10 e B7 aggiunte alle 🔴; 09 nel materiale da mandare.
+- **README:** 09 nell'indice.
+
 ## 2026-09-16 · effetti del §2.89 su 01, 02 e 03
 
 - **01 §6, 03 N-3:** le risposte KYC ora sono firmate dal wallet; resta

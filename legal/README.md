@@ -18,10 +18,11 @@
 | [06-disclaimer-rischi.md](06-disclaimer-rischi.md) | Testi brevi di avvertenza per sito, pagine asset e campagne, e scheda rischi estesa | Avvocato (da rivedere) |
 | [07-domande-per-avvocato.md](07-domande-per-avvocato.md) | Le domande, in ordine di priorità, divise per tipo di avvocato, con il materiale da portare | Cesare, Vincenzo → avvocato |
 | [08-bozza-clausole-contratti.md](08-bozza-clausole-contratti.md) | Clausole per Accordo Artista e Accordo Investitore (annullamento, rimborso, rivalsa verso l'artista, garanzie, commissioni) e requisiti per l'accettazione alla registrazione | Avvocato (da rivedere), chi implementa il template |
+| [09-confronto-piattaforme.md](09-confronto-piattaforme.md) | Come si sono messe in regola ANote Music, SongVest e Royalty Exchange, e cosa può prendere Humfiverse da ognuna: strategia a fasi | Cesare, Vincenzo → avvocato |
 | [CHANGELOG.md](CHANGELOG.md) | Storico degli aggiornamenti di questa cartella | Tutti |
 
 Ordine di lettura consigliato: 01 → 02 → 07. Il 03 serve prima di modificare
-il whitepaper. 04, 05, 06 e 08 vanno portati all’avvocato insieme al 07.
+il whitepaper. 04, 05, 06, 08 e 09 vanno portati all’avvocato insieme al 07.
 
 ## Stato della revisione
 
