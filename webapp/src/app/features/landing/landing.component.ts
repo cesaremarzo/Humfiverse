@@ -20,6 +20,16 @@ export class LandingComponent {
   locales = SUPPORTED_LOCALES;
   localeLabel = LOCALE_LABEL;
 
+  /** Protocol facts scrolled under the hero; each must stay true of the live prototype. */
+  tickerKeys = [1, 2, 3, 4, 5, 6, 7, 8].map((i) => `landing.ticker.${i}`);
+
+  steps = [
+    { key: 'step1', icon: 'mic' },
+    { key: 'step2', icon: 'coins' },
+    { key: 'step3', icon: 'shield' },
+    { key: 'step4', icon: 'pulse' }
+  ];
+
   /** The brand mark's nine bars (same geometry as the topbar logo). */
   markBars = [
     { x: 16, y1: 55, y2: 65, o: 0.4 }, { x: 27, y1: 44.7, y2: 75.3, o: 0.6 }, { x: 38, y1: 35.9, y2: 84.1, o: 0.8 },

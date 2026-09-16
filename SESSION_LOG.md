@@ -1619,3 +1619,29 @@ Keep the 28 Aug decision (financial instrument, Luxembourg vehicle), phase it:
 Pushed to `dev/cesare`. Docs only: `legal/09` (new), `legal/07`,
 `legal/README.md`, `legal/CHANGELOG.md`, this log. Merging it to `main` needs
 Cesare's go-ahead — it isn't a bug fix.
+
+---
+
+## 2026-09-16 (notte) — DeFi layer, music-and-finance backdrop, copy and SEO (§2.91)
+
+Request: *"sei il graphic designer e SEO di Humfiverse, rendi il sito ancora più
+bello e accattivante sullo stile defi, popola il background con elementi in linea
+con il concept musica e finanza e modifica le scritte nelle pagine per rendere più
+in linea con lo stato attuale del progetto."*
+
+**On `dev/cesare`, not merged to `main`** — it is a feature, so it waits for the
+user's go-ahead. `docs/` is rebuilt and committed with it.
+
+- Animated backdrop behind every page (`layout/backdrop.component.*`), quieter on
+  inner pages; glass surfaces, teal second accent, gradient titles and buttons.
+- Landing: live-on-testnet pill, subtitle, protocol ticker, "how it works",
+  "project status" (live / coming next) and the banner disclaimer at the bottom.
+- Copy in all 9 locales: removed claims the code doesn't back; banner = `legal/06` §1.
+  The status list mirrors "Next work" above: **update it when an item ships.**
+- SEO: meta, Open Graph image, JSON-LD, route titles, `sitemap.xml`.
+- Checked by screenshot at 1440px (dark and light) and 400px: landing, marketplace,
+  for-artists. `./legal/check.sh` clean after recording `index.html`.
+
+Still open from this pass: human review of the es/fr/de/ru/zh/ja/ar strings;
+submitting `https://cesaremarzo.github.io/Humfiverse/sitemap.xml` in Google Search
+Console (needs the user's Google account).

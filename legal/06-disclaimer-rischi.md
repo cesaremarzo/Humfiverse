@@ -22,6 +22,11 @@ Nulla su questo sito è un'offerta di investimento o una consulenza.
 **EN** · Testnet prototype. No token has value or entitles you to royalties.
 Nothing on this site is an investment offer or advice. [Terms](…) · [Privacy](…)
 
+*In uso dal 2026-09-16 (tecnico §2.91) nelle 9 lingue, sulle pagine interne e in fondo
+alla landing, con in più la frase del §2.1 "cifre e rendimenti mostrati sono
+dimostrativi e non verificati". Mancano ancora i link a Termini e Privacy: le
+pagine non esistono.*
+
 ## 2. Avvertenze nel punto in cui si paga
 
 ### 2.1 Acquisto diretto di un token (catalogo)

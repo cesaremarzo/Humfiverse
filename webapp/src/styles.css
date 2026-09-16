@@ -17,6 +17,12 @@
     --accent-on: #FFFFFF;
     --accent-soft: #EFE7F7;
     --accent-soft-border: #D9C8EC;
+    --accent-2: #0F9488;
+    --gold: #B0863A;
+    --grid-line: rgba(91,52,145,0.10);
+    --glass: color-mix(in srgb, var(--surface) 82%, transparent);
+    --glass-border: color-mix(in srgb, var(--accent-ink) 14%, var(--border));
+    --glow: 0 0 0 1px color-mix(in srgb, var(--accent-ink) 18%, transparent), 0 18px 50px -20px color-mix(in srgb, var(--accent) 45%, transparent);
     --good: #1C8A3A;
     --good-soft: #E3F2E3;
     --warning: #9A6A0C;
@@ -61,6 +67,12 @@
       --accent-on: #FFFFFF;
       --accent-soft: #2A2137;
       --accent-soft-border: #45365C;
+      --accent-2: #3FD2BE;
+      --gold: #D9B26A;
+      --grid-line: rgba(196,166,236,0.10);
+      --glass: color-mix(in srgb, var(--surface) 72%, transparent);
+      --glass-border: color-mix(in srgb, var(--accent-ink) 16%, var(--border));
+      --glow: 0 0 0 1px color-mix(in srgb, var(--accent-ink) 20%, transparent), 0 24px 60px -24px color-mix(in srgb, var(--accent) 70%, transparent);
       --good: #4CC46A;
       --good-soft: #17271B;
       --warning: #E2B04A;
@@ -104,6 +116,12 @@
     --accent-on: #FFFFFF;
     --accent-soft: #2A2137;
     --accent-soft-border: #45365C;
+    --accent-2: #3FD2BE;
+    --gold: #D9B26A;
+    --grid-line: rgba(196,166,236,0.10);
+    --glass: color-mix(in srgb, var(--surface) 72%, transparent);
+    --glass-border: color-mix(in srgb, var(--accent-ink) 16%, var(--border));
+    --glow: 0 0 0 1px color-mix(in srgb, var(--accent-ink) 20%, transparent), 0 24px 60px -24px color-mix(in srgb, var(--accent) 70%, transparent);
     --good: #4CC46A;
     --good-soft: #17271B;
     --warning: #E2B04A;
@@ -164,7 +182,7 @@
   .visually-hidden{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
   :focus-visible{ outline: 2px solid var(--focus-ring); outline-offset: 2px; border-radius: 4px; }
   @media (prefers-reduced-motion: reduce){
-    *{ animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+    *{ animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
   }
 
   img,svg{ display:block; max-width:100%; }
@@ -642,3 +660,75 @@
     .topnav{ order:3; flex-basis:100%; padding-top:2px; }
     .side-spacer{ flex:1; }
   }
+
+  /* ============================= DEFI LAYER (§2.91) =============================
+     The page sits on <app-backdrop>: music and finance drawn as one picture.
+     Everything here lets that picture show through without costing legibility —
+     translucent surfaces, a second accent for "up"/live states, soft glows. */
+  #app{ position:relative; z-index:1; }
+  body{ background: var(--bg); }
+
+  .topbar{
+    background: color-mix(in srgb, var(--bg) 68%, transparent);
+    border-bottom-color: var(--glass-border);
+  }
+
+  .card, .panel{
+    background: var(--glass);
+    border-color: var(--glass-border);
+    backdrop-filter: blur(14px) saturate(1.2);
+    -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  }
+  .card .card{ backdrop-filter:none; -webkit-backdrop-filter:none; }
+  .pilot-banner{ background: var(--glass); border-color: var(--glass-border); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+
+  /* Gradient hairline that lights up on hover: the DeFi "card edge" */
+  .asset-card, .feature-card, .campaign-card{ position:relative; }
+  .asset-card::before, .feature-card::before{
+    content:""; position:absolute; inset:0; border-radius:inherit; padding:1px; pointer-events:none; z-index:4;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--accent-ink) 70%, transparent), transparent 40%, transparent 60%, color-mix(in srgb, var(--accent-2) 70%, transparent));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    opacity:0; transition: opacity .35s var(--ease);
+  }
+  .asset-card:hover::before, .feature-card:hover::before{ opacity:1; }
+  .asset-card:hover{ box-shadow: var(--shadow-lg), var(--glow); }
+
+  .btn-primary{
+    background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 88%, white 12%), var(--accent) 55%, color-mix(in srgb, var(--accent) 70%, var(--accent-2) 30%));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 1px 2px rgba(0,0,0,0.12), 0 10px 28px -10px color-mix(in srgb, var(--accent) 85%, transparent);
+  }
+  .btn-primary:hover{
+    background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 80%, white 20%), color-mix(in srgb, var(--accent) 92%, white 8%) 55%, color-mix(in srgb, var(--accent) 60%, var(--accent-2) 40%));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.22), 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent), 0 14px 34px -12px color-mix(in srgb, var(--accent) 90%, transparent);
+  }
+  .btn-secondary{ background: var(--glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+
+  .meter > span{ background: linear-gradient(90deg, var(--accent), var(--accent-ink) 60%, var(--accent-2)); box-shadow: 0 0 10px color-mix(in srgb, var(--accent-2) 45%, transparent); }
+  .asset-foot .yield{ color: var(--accent-2); }
+
+  .page-kicker{ color: var(--accent-ink); }
+  .page-head h1, .hero-split h1{
+    background: linear-gradient(100deg, var(--text) 30%, color-mix(in srgb, var(--accent-ink) 80%, var(--text)) 75%, var(--accent-2));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    padding-bottom: .06em;
+  }
+
+  .stat-tile .value{ color: var(--text); }
+  .segmented, .role-switch, .lang-select select, .search-box{ background: var(--glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+
+  /* Live status pill: a pulsing dot, used for "on testnet" facts */
+  .live-pill{
+    display:inline-flex; align-items:center; gap:9px; padding:6px 13px 6px 11px; border-radius:999px;
+    font-family:"IBM Plex Mono", ui-monospace, monospace; font-size:11.5px; letter-spacing:0.06em; text-transform:uppercase;
+    color: var(--text-secondary); background: var(--glass); border:1px solid var(--glass-border);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  }
+  .live-dot{ position:relative; width:7px; height:7px; border-radius:50%; background: var(--accent-2); flex:none; }
+  .live-dot::after{ content:""; position:absolute; inset:-4px; border-radius:50%; border:1.5px solid var(--accent-2); animation: live-ping 2s var(--ease) infinite; }
+  @keyframes live-ping{ from{ transform:scale(.5); opacity:.9; } to{ transform:scale(1.6); opacity:0; } }
+
+  .hero-visual{ box-shadow: var(--shadow-lg), var(--glow), inset 0 1px 0 rgba(255,255,255,0.08); }
+  .hero-eq span{ background: linear-gradient(180deg, #F3E9FF, #B996E6 60%, #3FD2BE); }
+  /* Some icons in icons.json carry no width/height; give the landing step tiles a size. */
+  .landing-step-icon svg{ width:20px; height:20px; }

@@ -31,11 +31,11 @@
   </header>
 
   <section class="landing-stage">
-    <div class="landing-grid-lines" aria-hidden="true"></div>
-
     <div class="landing-hero">
-      <h1 class="landing-eyebrow">Humfiverse</h1>
-      <p class="landing-tagline">{{ 'landing.tagline' | translate }}</p>
+      <span class="live-pill"><span class="live-dot"></span>{{ 'landing.livePill' | translate }}</span>
+      <p class="landing-eyebrow">Humfiverse</p>
+      <h1 class="landing-tagline">{{ 'landing.tagline' | translate }}</h1>
+      <p class="landing-subtitle">{{ 'landing.subtitle' | translate }}</p>
 
       <div class="landing-eq" aria-hidden="true">
         @for (b of markBars; track $index) {
@@ -57,6 +57,17 @@
       <span></span>
     </a>
   </section>
+
+  <!-- Protocol facts, not figures: every item is true of the live prototype. -->
+  <div class="landing-ticker">
+    <ul class="landing-ticker-track">
+      @for (pass of [0, 1]; track pass) {
+        @for (k of tickerKeys; track k) {
+          <li [attr.aria-hidden]="pass === 1 ? 'true' : null"><span class="landing-ticker-mark" aria-hidden="true">◆</span>{{ k | translate }}</li>
+        }
+      }
+    </ul>
+  </div>
 
   <section class="landing-panels" id="landing-panels">
     <div class="landing-panel landing-panel--artist">
@@ -88,6 +99,51 @@
       </ul>
       <button type="button" class="btn btn-secondary btn-lg" (click)="choose('investor')">{{ 'landing.investorBtn' | translate }} <app-icon name="arrowRight"></app-icon></button>
     </div>
+  </section>
+
+  <section class="landing-section" aria-labelledby="landing-how-title">
+    <div class="landing-section-head">
+      <span class="page-kicker">{{ 'landing.how.kicker' | translate }}</span>
+      <h2 id="landing-how-title">{{ 'landing.how.title' | translate }}</h2>
+    </div>
+    <ol class="landing-steps">
+      @for (st of steps; track st.key) {
+        <li class="landing-step">
+          <div class="landing-step-head">
+            <span class="landing-step-icon"><app-icon [name]="st.icon"></app-icon></span>
+            <span class="landing-step-index mono">0{{ $index + 1 }}</span>
+          </div>
+          <h3>{{ 'landing.how.' + st.key + 'Title' | translate }}</h3>
+          <p>{{ 'landing.how.' + st.key + 'Body' | translate }}</p>
+        </li>
+      }
+    </ol>
+  </section>
+
+  <section class="landing-section" aria-labelledby="landing-status-title">
+    <div class="landing-section-head">
+      <span class="page-kicker">{{ 'landing.status.kicker' | translate }}</span>
+      <h2 id="landing-status-title">{{ 'landing.status.title' | translate }}</h2>
+    </div>
+    <div class="landing-status">
+      <div class="landing-status-col">
+        <h3 class="panel-title"><span class="live-dot"></span>{{ 'landing.status.liveTitle' | translate }}</h3>
+        <ul>
+          @for (i of [1, 2, 3, 4, 5]; track i) {
+            <li><app-icon name="check"></app-icon> {{ 'landing.status.live' + i | translate }}</li>
+          }
+        </ul>
+      </div>
+      <div class="landing-status-col landing-status-col--next">
+        <h3 class="panel-title"><app-icon name="clock"></app-icon>{{ 'landing.status.nextTitle' | translate }}</h3>
+        <ul>
+          @for (i of [1, 2, 3, 4]; track i) {
+            <li><span class="landing-status-bullet mono">→</span> {{ 'landing.status.next' + i | translate }}</li>
+          }
+        </ul>
+      </div>
+    </div>
+    <p class="landing-status-note"><app-icon name="info"></app-icon> <span><b>{{ 'banner.title' | translate }}</b> {{ 'banner.body' | translate }}</span></p>
   </section>
 
   <app-footer></app-footer>

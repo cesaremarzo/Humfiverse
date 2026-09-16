@@ -6,13 +6,14 @@ import { PilotBannerComponent } from './layout/pilot-banner.component';
 import { FooterComponent } from './layout/footer.component';
 import { ToastWrapComponent } from './layout/toast-wrap.component';
 import { ConnectModalComponent } from './layout/connect-modal.component';
+import { BackdropComponent } from './layout/backdrop.component';
 import { StoreService } from './core/store.service';
 import { WalletService } from './core/wallet.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, TopbarComponent, PilotBannerComponent, FooterComponent, ToastWrapComponent, ConnectModalComponent],
+  imports: [RouterOutlet, TopbarComponent, PilotBannerComponent, FooterComponent, ToastWrapComponent, ConnectModalComponent, BackdropComponent],
   templateUrl: './app.html'
 })
 export class App implements OnInit {

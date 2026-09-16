@@ -3,6 +3,18 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-09-16 (notte) · banner del 06 §1 applicato; `index.html` solo meta SEO
+
+- **06 §1:** il testo del banner è ora quello del sito (tecnico §2.91), anche in
+  fondo alla landing. Senza link a Termini e Privacy, che non esistono ancora.
+- **`index.html`:** aggiunti solo meta tag SEO, Open Graph e dati strutturati;
+  l'immagine di anteprima è sul sito stesso. Nessuna risorsa esterna nuova, quindi
+  05 §3–6 non cambia.
+- Dal sito sono state tolte frasi non vere rispetto al codice ("verificati prima
+  della quotazione", "pagati automaticamente con le royalty", "rimborso pro-rata se
+  la campagna si blocca", "governance consultiva"). Nessun documento di `legal/` le
+  citava.
+
 ## 2026-09-16 (notte) · domanda B8: chi è il titolare del progetto per il tetto ECSPR
 
 - **07:** aggiunta B8 🔴. Il tetto ECSPR di 5 M€ in 12 mesi si calcola per
