@@ -3,6 +3,21 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-09-17 · milestone pagate solo in ordine (§2.96)
+
+Il contratto escrow live paga una milestone quando ha le conferme e i fondi
+coprono lei più quelle già pagate, **senza guardare l'ordine**: una milestone
+successiva poteva essere pagata prima di una precedente non consegnata. Dal
+17 set il sito nasconde la conferma finché la precedente non è pagata (PR #68);
+il contratto di fase 2 rifiuta la conferma fuori ordine.
+- **02 §1:** la riga `confirmMilestoneAs…` dice cosa verifica il contratto live e
+  cosa verificherà quello di fase 2.
+- **04 §5.3** e **08 A-5 (punto 2-bis):** l'ordine fissato dall'artista entra nei
+  Termini e nell'accordo.
+- **06 §2.2** non cambia: non descrive l'ordine e resta vera.
+I contratti della fase 2 restano **non** rivisti nel loro insieme: le impronte
+in `reviewed-files.sha256` non sono aggiornate, come nella voce sotto.
+
 ## 2026-09-17 · royalties e rimborsi di fase 2 nel backend e nel sito (§2.95)
 
 Nuova tabella `royalty_deposits` in `schema.js`: copia dei versamenti di royalty

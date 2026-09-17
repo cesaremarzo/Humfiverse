@@ -1,6 +1,6 @@
 # Bozza di clausole: Accordo Artista, Accordo Investitore, accettazione
 
-*Bozza del 2026-09-15, commit `82a7a1b`. **Da far rivedere a un avvocato.** Non
+*Bozza del 2026-09-15, commit `82a7a1b`; A-5 aggiornata il 2026-09-17 (ordine delle milestone). **Da far rivedere a un avvocato.** Non
 è consulenza legale.*
 
 Traduce in testo contrattuale la decisione del 15 settembre 2026 (note legali
@@ -159,6 +159,9 @@ Sostituisce le clausole `manager-discretion`, `milestones` e `refund` e integra
    conferma dell'Artista.]
 2. Le tranche contrassegnate "Studio" sono pagate al wallet dello Studio; le
    altre al wallet dell'Artista.
+2-bis. Le milestone si rilasciano **nell'ordine stabilito dall'Artista alla
+   creazione della Campagna**. Una milestone non può essere confermata finché
+   quella precedente non è stata pagata, qualunque sia l'importo raccolto.
 3. L'Artista si impegna a confermare una milestone solo quando è effettivamente
    raggiunta. Una conferma falsa è una violazione delle garanzie della clausola
    A-4.

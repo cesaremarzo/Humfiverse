@@ -1845,3 +1845,24 @@ Open before the redeploy:
    signer addresses and who creates the Safe.
 2. Redeploy (`contract-redeploy` skill), restore state, `setOperator`.
 3. `legal/` review of both contracts in that PR.
+
+---
+
+## 2026-09-17 — fees checked; milestones only in order (§2.96)
+
+**Fees check** (asked: *"controlla che le fees abbiano funzionato"*): all correct
+to the unit on chain. Escrow 4.465999 USDC (2% on 10+40+40+0.99999 contributed,
+3% on every tranche), marketplace 0.4 (1% of one 40 USDC trade), catalogue token
+0 (no `buy()` ever called, so the 2% primary fee is still untested live). All
+withdrawn to Fees; the wallet's other 20 USDC came from an external address on
+14 Sep, not fees.
+
+**Milestone order.** The live escrow let a later milestone release before an
+earlier one whenever the cumulative funding covered it. The user wants strict
+order, funding still gating each tranche.
+- Site: PR #68 merged (bug fix), live bundle `main-6LJS5MMQ.js` — confirm button
+  hidden until the previous milestone is released.
+- Contract: `_requirePreviousReleased` in both confirm functions, in the phase 2
+  source on `dev/cesare`; 112 tests passing. Ships with the phase 2 redeploy —
+  until then a direct contract call can still go out of order.
+- `legal/` 02, 04, 08 updated; phase 2 contracts still not fully reviewed.

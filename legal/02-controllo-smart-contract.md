@@ -1,6 +1,6 @@
 # Controllo degli smart contract e del backend, dal punto di vista legale
 
-*Revisione del 2026-09-16, commit `cc06a70` con le modifiche del §2.89. Non è un audit di sicurezza e non
+*Revisione del 2026-09-16, commit `cc06a70` con le modifiche del §2.89; ordine delle milestone aggiornato il 2026-09-17 (§2.96). Non è un audit di sicurezza e non
 è consulenza legale.*
 
 ## Cosa è e cosa non è questo controllo
@@ -45,7 +45,7 @@ Pagamenti in USDC di test (`0x1c7D…7238`). Test: **94 passati**.
 | `setURI`, `setTrackAudioUri` | Founder | Cambia i metadati (nome, immagine, descrizione) e il link all'audio dopo la vendita |
 | `createCampaign` | Founder | Apre una campagna escrow su un token non in vendita diretta e mai venduto |
 | `contribute` | chiunque | Paga in USDC. 2% trattenuto, 98% accreditato alla campagna, token consegnati subito |
-| `confirmMilestoneAsArtist` / `…AsStudio` | wallet artista / wallet studio | Quando entrambi hanno confermato e i fondi coprono la tranche, la paga meno il 3% |
+| `confirmMilestoneAsArtist` / `…AsStudio` | wallet artista / wallet studio | Quando entrambi hanno confermato e i fondi coprono la tranche, la paga meno il 3%. **L'ordine delle milestone non è verificato** dal contratto live: una milestone successiva può essere pagata prima di una precedente. Dal 17 set il sito non lo permette più; il contratto di fase 2 rifiuta la conferma finché la milestone precedente non è pagata (technical §2.96) |
 | `cancelCampaign` | Founder | Blocca la campagna e apre i rimborsi |
 | `refund` | chi ha contribuito | Restituisce la sua quota di `raccolto − rilasciato`. Il 2% resta trattenuto |
 | `registerStudio`, `setStudioActive`, `renameStudio` | Founder | Gestisce l'elenco degli studi ammessi |

@@ -1,6 +1,6 @@
 # Termini di Servizio: bozza
 
-*Bozza del 2026-09-15, commit `82a7a1b`. **Da far rivedere a un avvocato prima
+*Bozza del 2026-09-15, commit `82a7a1b`; §5.3 aggiornato il 2026-09-17 (ordine delle milestone). **Da far rivedere a un avvocato prima
 della pubblicazione.** Non è consulenza legale.*
 
 ## Note per chi usa questa bozza (da togliere prima di pubblicare)
@@ -119,8 +119,12 @@ riceve le commissioni.
 5.3. **Campagne di pre-produzione (escrow).** I contributi restano nel contratto
 escrow e vengono rilasciati a tranche quando sia l'artista sia lo studio
 confermano la milestone. Se la campagna non ha uno studio, basta la conferma
-dell'artista. Una tranche si rilascia appena i fondi raccolti la coprono, **anche
-se l'obiettivo complessivo non è stato raggiunto**. **Le campagne non hanno
+dell'artista. Le milestone si confermano **nell'ordine fissato dall'artista alla
+creazione della campagna**: una milestone non può essere pagata prima di quella
+precedente. Una tranche si rilascia appena i fondi raccolti coprono lei e quelle
+già pagate, **anche se l'obiettivo complessivo non è stato raggiunto**.
+> *Nota per il team:* oggi l'ordine lo impone il sito; il contratto escrow live
+> non lo verifica. Lo verificherà quello di fase 2 (technical §2.96). **Le campagne non hanno
 scadenza**: una campagna si chiude solo quando tutti i token sono venduti, quando
 tutte le tranche sono rilasciate o quando viene annullata. Non esiste un rimborso
 automatico se l'obiettivo non viene raggiunto. Se artista e studio non
