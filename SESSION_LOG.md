@@ -1762,3 +1762,56 @@ Unchanged from "State at the end of 2026-09-16" and the §2.93 entry above:
    grounds and takedown, phase 2 redeploy.
 3. Still unverified: signatures from a Google in-app wallet on the
    §2.88/§2.89 endpoints.
+
+---
+
+## 2026-09-17 — legal side: launch plan, pre-production, €5M cap (B8), which company
+
+"Avvocato Humfiverse" session, Q&A in Italian. Only file change: **`legal/07`
+B8** 🔴 (`6d11873`, already on `main` via PR #64). Not legal advice; no counsel
+has reviewed anything yet.
+
+**What was explained to Cesare (no decisions taken):**
+- **Launching without legal trouble** = the phases of `legal/09` §7: phase 0
+  now (testnet only and said so, no return-promising wording, geo-block the US,
+  close 07 H1/G1), pilot with published catalogues through an authorised party,
+  pre-production only with an ECSP licence.
+- **Why pre-production is the exposed part:** it raises public money for a
+  project that doesn't exist yet → crowdfunding/offer of financial products,
+  needing authorisation; no history to fill a KIIS; the investor also bears the
+  risk the track is never made (07 C1, C2, C9, B5); funds sit in an escrow the
+  Founder owns (B2, B7); the code lacks the 4-day reflection period, entry test
+  and a minimum raise (B3, B4); Founder powers feed the AIFMD question (01 §4).
+- **The ECSPR €5M / 12 months cap** is per project owner. Harmless if that is
+  the artist or the compartment; fatal to scale if it is the Luxembourg
+  vehicle. Now question **B8**, tied to A7, B1, B6.
+- **Which company, where:** advice given, to confirm with a commercialista:
+  - no jurisdiction "worldwide" lowers compliance for an EU investor base:
+    EU rules apply wherever the company sits, and ECSPR needs an EU entity;
+  - a foreign company run from Italy is Italian tax resident (art. 73 TUIR,
+    *esterovestizione*), and a low-tax one falls under CFC rules (art. 167);
+    only a real move of the founders changes that;
+  - recommended: **Italian SRL now** (operator: platform, IP, data controller,
+    fees; ideally registered as *startup innovativa*, requirements changed by
+    L. 193/2024 [verificare]); **Luxembourg vehicle only at the first pilot**
+    (decision of 28 Aug unchanged); the ECSP licence later in the SRL's name at
+    CONSOB. Advised against: Dubai/Singapore/Cayman, Estonia OÜ, Delaware,
+    Luxembourg Sàrl as operator, Malta.
+
+**Waiting on Cesare** (asked, not answered):
+1. where he and Vincenzo are resident, and whether either plans to move;
+2. whether they plan to raise equity for the company itself;
+3. plan figures: campaign size (min/avg/max), campaigns per year for 3 years,
+   campaigns per artist per 12 months — needed for B8 and for the plan-figures
+   page still missing from the counsel material.
+
+**Offered, not done:** update 07 G1 and add commercialista questions to group L
+(esterovestizione, startup innovativa, SRL ↔ vehicle transfer pricing); write
+the plan-figures page; draft the first email to a law firm.
+
+**Next legal session, first thing:** `./legal/check.sh` flags both contracts —
+§2.92 (phase 2: refunds per token held with burn, cancel grounds, royalty
+distribution, no deadline) is still unreviewed in `legal/` on purpose. Run the
+`legal-review` skill on it (02 C-2…C-5, C-8; 04 §5; 06 §2; 08 A-2; 07 C6, C9)
+in the PR that deploys phase 2. Earlier legal-side items (H1 KYC data, GitBook
+Git Sync on `dev/cesare`, history in `025e92e`, private B-4) are unchanged.
