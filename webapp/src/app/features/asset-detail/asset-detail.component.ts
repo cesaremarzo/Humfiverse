@@ -12,8 +12,8 @@ import { StoreService } from '../../core/store.service';
 import { ApiService } from '../../core/api.service';
 import { WalletService } from '../../core/wallet.service';
 import { ToastService } from '../../core/toast.service';
-import { Asset, DisclosureLevel, EscrowCampaignInfo, Milestone, OnchainInfo, SecondaryListing } from '../../core/models';
-import { fmtUSD, fmtUSDShort } from '../../core/format.util';
+import { Asset, DisclosureLevel, EscrowCampaignInfo, Milestone, OnchainInfo, PriceHistory, RoyaltyMonth, SecondaryListing } from '../../core/models';
+import { fmtUSD, fmtUSDExact, fmtUSDShort } from '../../core/format.util';
 import { fundingPctFor, remainingFor, tokensSoldFor } from '../../core/onchain-progress.util';
 import { ipfsGatewayUrl } from '../../core/ipfs.util';
 import { computeYieldBreakdown } from '../../core/yield.util';
@@ -47,6 +47,17 @@ export class AssetDetailComponent {
   success = signal<{ qty: number; total: number; txHash?: string; explorerUrl?: string; simulated?: boolean } | null>(null);
   yieldInfoOpen = signal(false);
   onchainInfo = signal<OnchainInfo | null>(null);
+  /** Null while loading or when the history could not be read. */
+  priceHistory = signal<PriceHistory | null>(null);
+  /** The daily lowest traded price, in the shape the line chart draws. */
+  priceSeries = computed<RoyaltyMonth[]>(() => {
+    const lang = this.translate.currentLang() || 'en';
+    return (this.priceHistory()?.daily ?? []).map((d) => ({
+      month: new Date(`${d.date}T00:00:00Z`).toLocaleDateString(lang, { day: 'numeric', month: 'short', timeZone: 'UTC' }),
+      royaltyUSD: usdcToUsd(d.priceUsdc)
+    }));
+  });
+  fmtExact = fmtUSDExact;
   onchainLoading = signal(false);
   onchainBuyPending = signal(false);
   escrowInfo = signal<EscrowCampaignInfo | null>(null);
@@ -104,6 +115,7 @@ export class AssetDetailComponent {
       if (!id) return;
       this.onchainInfo.set(null);
       this.escrowInfo.set(null);
+      this.priceHistory.set(null);
       this.refreshOnchainState(id);
     });
 
@@ -148,6 +160,10 @@ export class AssetDetailComponent {
       // wrong number. The template already renders both identically.
       .catch(() => this.onchainInfo.set(null))
       .finally(() => this.onchainLoading.set(false));
+
+    retrying(() => this.api.getPriceHistory(id))
+      .then((history) => { if (history.assetId === this.id()) this.priceHistory.set(history); })
+      .catch(() => { /* keep whatever was shown; the card says when there is nothing */ });
 
     retrying(() => this.api.getEscrowCampaign(id))
       .then((info) => this.escrowInfo.set(info))

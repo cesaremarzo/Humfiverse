@@ -18,6 +18,7 @@ import {
   SignedActionKind,
   OnchainInfo,
   OnchainMintResult,
+  PriceHistory,
   RealHoldingDto,
   RedeemResult,
   RoyaltyMonth,
@@ -85,6 +86,11 @@ export class ApiService {
 
   getOnchainInfo(assetId: string): Promise<OnchainInfo> {
     return firstValueFrom(this.http.get<OnchainInfo>(`${this.base}/api/onchain/${encodeURIComponent(assetId)}`));
+  }
+
+  /** Prices the token has actually traded at, read from transaction receipts. */
+  getPriceHistory(assetId: string): Promise<PriceHistory> {
+    return firstValueFrom(this.http.get<PriceHistory>(`${this.base}/api/price-history/${encodeURIComponent(assetId)}`));
   }
 
   mintOnchainToken(payload: { assetId: string; slug: string; supply: number; fundingUsdc: string; payoutWallet?: string; directSale: boolean; title?: string; artist?: string; launch: LaunchAuthorization }): Promise<OnchainMintResult> {
