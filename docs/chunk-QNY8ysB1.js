@@ -1,1 +1,0 @@
-import{ji as Kt,st as Ct}from"./chunk-tBgelQpR.js";import{i as et}from"./chunk-jVItkf1w.js";function p(e){return!!(e&&typeof e==`object`&&`type`in e&&e.type===`event`)}function c(e){let{signature:r}=e,t;return p(r)?t=r:t=et(r),{abiEvent:t,hash:Kt(t),topics:Ct({abi:[t],args:e.filters})}}export{p as n,c as t};
