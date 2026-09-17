@@ -27,9 +27,19 @@ const REQUEST_TIMEOUT_MS = 60_000;
 /* Answers are short by design (see the system prompt); this is the ceiling
    on one, not a target. Thinking is left at the model's default and the
    effort at "low": a question about how a page works does not need a long
-   deliberation, and the latency of one would be felt in a chat bubble. */
+   deliberation, and the latency of one would be felt in a chat bubble.
+
+   `effort` is not a universal parameter: the small and older models reject
+   the whole request with a 400 rather than ignore it, so a deployment that
+   sets ANTHROPIC_MODEL to one of them (a reasonable thing to do — this is a
+   FAQ widget, not a reasoning task) must not have it sent. */
 const MAX_OUTPUT_TOKENS = 1200;
 const EFFORT = "low";
+const EFFORT_UNSUPPORTED = /^claude-(haiku|sonnet-4-5|sonnet-3|opus-4-1|opus-4-20|3-)/;
+
+function supportsEffort(model) {
+  return !EFFORT_UNSUPPORTED.test(String(model || ""));
+}
 
 /* What one request may carry. A conversation longer than this is trimmed to
    its most recent turns rather than refused — the visitor should not lose a
@@ -150,7 +160,7 @@ async function ask({ messages, locale, ip }) {
       body: JSON.stringify({
         model: config.ANTHROPIC_MODEL,
         max_tokens: MAX_OUTPUT_TOKENS,
-        output_config: { effort: EFFORT },
+        ...(supportsEffort(config.ANTHROPIC_MODEL) ? { output_config: { effort: EFFORT } } : {}),
         /* The brief is the same on every request and dwarfs the question,
            so it is cached: the second question within five minutes reads it
            back at a tenth of the price instead of paying for it again. */
@@ -197,4 +207,4 @@ async function prune() {
   await repo.deleteBefore(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
 }
 
-module.exports = { ask, status, available, usage, prune };
+module.exports = { ask, status, available, usage, prune, supportsEffort };

@@ -1,6 +1,6 @@
 # Avvertenze e scheda rischi: bozza
 
-*Bozza del 2026-09-17, commit `fd7f822` (§3 versamenti di royalty), prima `94ae18f` (§2.4 storico prezzi) e `82a7a1b`. **Da far rivedere a un avvocato.** Non
+*Bozza del 2026-09-17, commit `fd7f822` + §2.101 (§2.1 vendita diretta al 6%, §2.3-bis commissione sulle royalty), prima `94ae18f` (§2.4 storico prezzi) e `82a7a1b`. **Da far rivedere a un avvocato.** Non
 è consulenza legale.*
 
 Testi pronti da inserire nel sito, in italiano e in inglese. Sono pensati per il
@@ -33,7 +33,7 @@ pagine non esistono.*
 
 **IT**
 > - Stai usando USDC di test su Sepolia, **senza valore**.
-> - Il 98% del prezzo va direttamente al wallet dell'artista; il 2% è la
+> - Il 94% del prezzo va direttamente al wallet dell'artista; il 6% è la
 >   commissione della piattaforma e **non è rimborsabile**.
 > - Le royalty si pagano solo se qualcuno le versa sul contratto, e **nessuno
 >   verifica** che corrispondano agli incassi reali. Dati di royalty e rendimenti
@@ -42,7 +42,7 @@ pagine non esistono.*
 
 **EN**
 > - You are using Sepolia test USDC, **which has no value**.
-> - 98% of the price goes straight to the artist's wallet; 2% is the platform
+> - 94% of the price goes straight to the artist's wallet; 6% is the platform
 >   fee and is **non-refundable**.
 > - Royalties are paid only if someone deposits them on the contract, and **no
 >   one checks** that they match the track's real income. Royalty figures and
@@ -108,6 +108,24 @@ pagine non esistono.*
 >   refund per token as the original contributor, by handing the tokens back.
 >   **The price you paid does not matter**: you may receive less.
 > - There is no guarantee you can resell.
+
+### 2.3-bis Versamento di royalty (modulo dell'artista)
+
+**IT**
+> - La piattaforma trattiene l'**1%** di quanto versi come commissione di
+>   distribuzione; il resto è diviso fra tutti i token esistenti.
+> - L'1% si applica anche alla quota dei token **invenduti**, che torna al tuo
+>   stesso wallet.
+> - Un versamento **non si può ritirare** e nessuno verifica che corrisponda
+>   agli incassi reali del brano.
+
+**EN**
+> - The platform keeps **1%** of what you deposit as a distribution fee; the
+>   rest is shared over every token that exists.
+> - The 1% applies to the **unsold** tokens' share too, which comes back to your
+>   own wallet.
+> - A deposit **cannot be taken back**, and no one checks that it matches the
+>   track's real income.
 
 ### 2.4 Storico prezzi del token (pagina asset)
 

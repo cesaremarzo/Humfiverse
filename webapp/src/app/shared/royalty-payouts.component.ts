@@ -8,6 +8,7 @@ import { ToastService } from '../core/toast.service';
 import { AssetRoyalties, RoyaltyDeposit } from '../core/models';
 import { onchainErrorTranslation } from '../core/onchain-error.util';
 import { usdToUsdc } from '../core/usdc.util';
+import { ROYALTY_FEE_BPS } from '../core/primary-fee.util';
 import { ipfsGatewayUrl } from '../core/ipfs.util';
 import { knownWalletName } from '../core/known-wallets';
 
@@ -49,7 +50,7 @@ async function sha256Ref(file: Blob): Promise<string> {
         <p class="prose" style="font-size:12.5px; margin-bottom:14px;">{{ 'royaltyPayouts.intro' | translate }}</p>
 
         <div class="stat-row" style="margin-bottom:14px;">
-          <div class="card stat-tile"><div class="label">{{ 'royaltyPayouts.deposited' | translate }}</div><div class="value mono">{{ fmt(s.totalDepositedUsdc) }}</div></div>
+          <div class="card stat-tile"><div class="label">{{ 'royaltyPayouts.deposited' | translate }}</div><div class="value mono">{{ fmt(s.totalDistributedUsdc) }}</div></div>
           <div class="card stat-tile"><div class="label">{{ 'royaltyPayouts.claimed' | translate }}</div><div class="value mono">{{ fmt(s.totalClaimedUsdc) }}</div></div>
           @if (s.claimableUsdc !== null) {
             <div class="card stat-tile"><div class="label">{{ 'royaltyPayouts.yours' | translate }}</div><div class="value mono">{{ fmt(s.claimableUsdc) }}</div></div>
@@ -94,6 +95,9 @@ async function sha256Ref(file: Blob): Promise<string> {
                 <app-icon name="plus"></app-icon> {{ (busy() === 'deposit' ? 'royaltyPayouts.depositing' : 'royaltyPayouts.depositBtn') | translate }}
               </button>
             </div>
+            @if (depositSplit(); as split) {
+              <p style="font-size:12px; margin:10px 0 0;">{{ 'royaltyPayouts.splitNote' | translate: { fee: split.fee, net: split.net } }}</p>
+            }
             @if (statementFile(); as f) {
               <p class="mono" style="font-size:11.5px; color:var(--text-secondary); margin:10px 0 0; word-break:break-all;">{{ 'royaltyPayouts.statementHash' | translate: { name: f.file.name, hash: f.ref } }}</p>
             }
@@ -211,6 +215,19 @@ export class RoyaltyPayoutsComponent implements OnChanges {
     const amount = Number(this.amountInput());
     return Number.isFinite(amount) && amount >= 0.01 && this.statementFile() !== null;
   }
+
+  /** How the amount typed will split: the platform's 1% for running the
+   * distribution, and what the tokens actually share (§2.101). Computed in
+   * USDC base units, rounded down like the contract, so the figure shown is
+   * the figure that will be deposited — not a percentage of it taken in
+   * floating point. Null until a positive amount is typed. */
+  depositSplit = computed<{ fee: string; net: string } | null>(() => {
+    const amount = Number(this.amountInput());
+    if (!Number.isFinite(amount) || amount <= 0) return null;
+    const units = usdToUsdc(amount);
+    const fee = (units * BigInt(ROYALTY_FEE_BPS)) / 10_000n;
+    return { fee: this.fmt(fee), net: this.fmt(units - fee) };
+  });
 
   gateway(uri: string): string {
     return ipfsGatewayUrl(uri);

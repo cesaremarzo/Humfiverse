@@ -128,7 +128,7 @@ describe("HumfiverseCatalogueToken", function () {
   });
 
   describe("buy() — public, paid first-purchase path", function () {
-    it("lets anyone buy at the fixed price, paying the payout recipient the price less the 2% fee", async function () {
+    it("lets anyone buy at the fixed price, paying the payout recipient the price less the 6% fee", async function () {
       const { token, owner, buyer } = await deployFixture();
       await token.mintCatalogue(MIDNIGHT_STATIC_ID, ["midnight-static", "Test Track", "Test Artist"], MIDNIGHT_STATIC_SUPPLY, BigInt(MIDNIGHT_STATIC_SUPPLY) * PRICE_PER_TOKEN, ethers.ZeroAddress, true);
       const cost = 10n * PRICE_PER_TOKEN;
@@ -140,7 +140,7 @@ describe("HumfiverseCatalogueToken", function () {
 
       expect(await token.balanceOf(buyer.address, MIDNIGHT_STATIC_ID)).to.equal(10);
       expect(await token.releasedOf(MIDNIGHT_STATIC_ID)).to.equal(10);
-      expect(await usdc.balanceOf(owner.address)).to.equal(ownerBalanceBefore + cost - cost / 50n);
+      expect(await usdc.balanceOf(owner.address)).to.equal(ownerBalanceBefore + cost - (cost * 600n) / 10_000n);
     });
 
     it("refuses to buy a catalogue with no price set", async function () {
@@ -165,9 +165,9 @@ describe("HumfiverseCatalogueToken", function () {
       const price = ethers.parseUnits("15.37", 6); // $15.37
       await token.mintCatalogue(MIDNIGHT_STATIC_ID, ["midnight-static", "Test Track", "Test Artist"], MIDNIGHT_STATIC_SUPPLY, BigInt(MIDNIGHT_STATIC_SUPPLY) * price, ethers.ZeroAddress, true);
       const before = await usdc.balanceOf(owner.address);
-      await token.connect(buyer).buy(MIDNIGHT_STATIC_ID, 3); // $46.11, fee $0.9222
-      expect(await token.accruedFees()).to.equal(922_200n);
-      expect(await usdc.balanceOf(owner.address)).to.equal(before + 46_110_000n - 922_200n);
+      await token.connect(buyer).buy(MIDNIGHT_STATIC_ID, 3); // $46.11, fee 6% = $2.7666
+      expect(await token.accruedFees()).to.equal(2_766_600n);
+      expect(await usdc.balanceOf(owner.address)).to.equal(before + 46_110_000n - 2_766_600n);
     });
 
     it("refuses to buy more than remains in the pool", async function () {
@@ -237,8 +237,8 @@ describe("HumfiverseCatalogueToken", function () {
       await token.mintCatalogue(MIDNIGHT_STATIC_ID, ["midnight-static", "T", "A"], 10, ethers.parseUnits("100", 6), other.address, true);
       const ownerBefore = await usdc.balanceOf(owner.address);
       const artistBefore = await usdc.balanceOf(other.address);
-      await token.connect(buyer).buy(MIDNIGHT_STATIC_ID, 2); // $20, fee $0.40
-      expect(await usdc.balanceOf(other.address)).to.equal(artistBefore + ethers.parseUnits("19.6", 6));
+      await token.connect(buyer).buy(MIDNIGHT_STATIC_ID, 2); // $20, fee 6% = $1.20
+      expect(await usdc.balanceOf(other.address)).to.equal(artistBefore + ethers.parseUnits("18.8", 6));
       expect(await usdc.balanceOf(owner.address)).to.equal(ownerBefore);
     });
 
@@ -272,7 +272,7 @@ describe("HumfiverseCatalogueToken", function () {
       const cost = 3n * PRICE_PER_TOKEN;
       await token.connect(buyer).buy(MIDNIGHT_STATIC_ID, 3);
 
-      expect(await usdc.balanceOf(other.address)).to.equal(otherBalanceBefore + cost - cost / 50n);
+      expect(await usdc.balanceOf(other.address)).to.equal(otherBalanceBefore + cost - (cost * 600n) / 10_000n);
     });
 
     it("only the owner can set the payout recipient", async function () {
@@ -301,11 +301,16 @@ describe("HumfiverseCatalogueToken", function () {
   describe("primary purchase fee (§2.72)", function () {
     const PRICE = ethers.parseUnits("0.001", 6);
 
-    it("deducts 2% from a buy(): the buyer gets every token, the payout recipient 98%, the fee accrues", async function () {
+    it("is 6%, not the escrow's 2%: a direct sale is charged once, an escrow campaign again on each tranche (§2.101)", async function () {
+      const { token } = await deployFixture();
+      expect(await token.PRIMARY_FEE_BPS()).to.equal(600);
+    });
+
+    it("deducts 6% from a buy(): the buyer gets every token, the payout recipient 94%, the fee accrues", async function () {
       const { token, owner, buyer } = await deployFixture();
       await token.mintCatalogue(7, ["fee-track", "Fee Track", "Artist"], 1000, BigInt(1000) * PRICE, ethers.ZeroAddress, true);
       const cost = PRICE * 100n;
-      const fee = cost / 50n;
+      const fee = (cost * 600n) / 10_000n;
       const payoutBefore = await usdc.balanceOf(owner.address);
 
       await expect(token.connect(buyer).buy(7, 100))
@@ -329,7 +334,7 @@ describe("HumfiverseCatalogueToken", function () {
       const { token, owner, buyer, other } = await deployFixture();
       await token.mintCatalogue(9, ["withdraw-track", "T", "A"], 1000, BigInt(1000) * PRICE, ethers.ZeroAddress, true);
       await token.connect(buyer).buy(9, 50);
-      const fee = (PRICE * 50n) / 50n;
+      const fee = (PRICE * 50n * 600n) / 10_000n;
 
       await expect(token.connect(other).setFeeRecipient(other.address)).to.be.revertedWithCustomError(token, "OwnableUnauthorizedAccount");
       await token.connect(owner).setFeeRecipient(other.address);
@@ -359,19 +364,47 @@ describe("HumfiverseCatalogueToken", function () {
       await token.connect(bob).buy(ID, 150); // 250 stay in the pool
 
       const ref = ethers.id("statement 2026-Q3");
+      // 10,000 deposited, 1% kept: 9,900 shared over 1,000 tokens.
       await expect(token.connect(admin).depositRoyalties(ID, 10_000n, ref))
         .to.emit(token, "RoyaltiesDeposited")
-        .withArgs(ID, admin.address, 10_000n, ref);
+        .withArgs(ID, admin.address, 9_900n, ref)
+        .and.to.emit(token, "RoyaltyFeeRetained")
+        .withArgs(ID, admin.address, 100n);
 
-      expect(await token.claimableRoyalties(ID, alice.address)).to.equal(6_000n);
-      expect(await token.claimableRoyalties(ID, bob.address)).to.equal(1_500n);
-      expect(await token.claimableRoyalties(ID, await token.getAddress())).to.equal(2_500n);
+      expect(await token.claimableRoyalties(ID, alice.address)).to.equal(5_940n);
+      expect(await token.claimableRoyalties(ID, bob.address)).to.equal(1_485n);
+      expect(await token.claimableRoyalties(ID, await token.getAddress())).to.equal(2_475n);
+      expect(await token.totalRoyaltiesDistributed(ID)).to.equal(9_900n);
 
       const before = await usdc.balanceOf(artist.address);
       await expect(token.connect(bob).claimPoolRoyalties(ID))
         .to.emit(token, "RoyaltiesClaimed")
-        .withArgs(ID, await token.getAddress(), artist.address, 2_500n);
-      expect((await usdc.balanceOf(artist.address)) - before).to.equal(2_500n);
+        .withArgs(ID, await token.getAddress(), artist.address, 2_475n);
+      expect((await usdc.balanceOf(artist.address)) - before).to.equal(2_475n);
+    });
+
+    it("charges the 1% on the whole deposit, the pool's share included (§2.101)", async function () {
+      const { token, artist, alice, admin } = await royaltyFixture();
+      await token.connect(alice).buy(ID, 100); // 900 of 1,000 stay unsold
+      const feesBefore = await token.accruedFees();
+
+      await token.connect(admin).depositRoyalties(ID, 50_000n, ethers.ZeroHash);
+
+      // 500 on the whole deposit, not only on the 10% that is in other hands.
+      expect((await token.accruedFees()) - feesBefore).to.equal(500n);
+      expect(await token.claimableRoyalties(ID, alice.address)).to.equal(4_950n);
+      const before = await usdc.balanceOf(artist.address);
+      await token.claimPoolRoyalties(ID);
+      expect((await usdc.balanceOf(artist.address)) - before).to.equal(44_550n);
+    });
+
+    it("shares a deposit too small to round up a fee whole", async function () {
+      const { token, alice, admin } = await royaltyFixture();
+      await token.connect(alice).buy(ID, 1000);
+      const feesBefore = await token.accruedFees();
+      await token.connect(admin).depositRoyalties(ID, 99n, ethers.ZeroHash);
+      expect((await token.accruedFees()) - feesBefore).to.equal(0n);
+      expect(await token.totalRoyaltiesDistributed(ID)).to.equal(99n);
     });
 
     it("pays the holder whoever calls the claim, and refuses an empty claim", async function () {
@@ -382,7 +415,7 @@ describe("HumfiverseCatalogueToken", function () {
       const aliceBefore = await usdc.balanceOf(alice.address);
       const bobBefore = await usdc.balanceOf(bob.address);
       await token.connect(bob).claimRoyalties(alice.address, [ID]);
-      expect((await usdc.balanceOf(alice.address)) - aliceBefore).to.equal(100n);
+      expect((await usdc.balanceOf(alice.address)) - aliceBefore).to.equal(99n);
       expect(await usdc.balanceOf(bob.address)).to.equal(bobBefore);
 
       await expect(token.claimRoyalties(alice.address, [ID])).to.be.revertedWith("HumfiverseCatalogueToken: nothing to claim");
@@ -392,12 +425,12 @@ describe("HumfiverseCatalogueToken", function () {
     it("follows the token: a seller keeps what it earned before the transfer, the buyer earns only after", async function () {
       const { token, alice, bob, admin } = await royaltyFixture();
       await token.connect(alice).buy(ID, 500);
-      await token.connect(admin).depositRoyalties(ID, 1_000n, ethers.ZeroHash); // alice earns 500
+      await token.connect(admin).depositRoyalties(ID, 1_000n, ethers.ZeroHash); // 990 shared: alice earns 495
       await token.connect(alice).safeTransferFrom(alice.address, bob.address, ID, 500, "0x");
-      await token.connect(admin).depositRoyalties(ID, 2_000n, ethers.ZeroHash); // bob earns 1,000
+      await token.connect(admin).depositRoyalties(ID, 2_000n, ethers.ZeroHash); // 1,980 shared: bob earns 990
 
-      expect(await token.claimableRoyalties(ID, alice.address)).to.equal(500n);
-      expect(await token.claimableRoyalties(ID, bob.address)).to.equal(1_000n);
+      expect(await token.claimableRoyalties(ID, alice.address)).to.equal(495n);
+      expect(await token.claimableRoyalties(ID, bob.address)).to.equal(990n);
     });
 
     it("keeps every unit: remainders are carried, so what all parties claim equals what was deposited", async function () {
@@ -405,12 +438,12 @@ describe("HumfiverseCatalogueToken", function () {
       const holders = [alice, bob, admin];
       await token.connect(alice).buy(ID, 333);
       await token.connect(bob).buy(ID, 1);
-      let deposited = 0n;
+      let distributed = 0n;
       // Uneven deposits interleaved with transfers, including to a new holder.
       const steps = [7n, 1n, 999n, 13n, 2n, 100_003n, 5n];
       for (let i = 0; i < steps.length; i++) {
         await token.connect(admin).depositRoyalties(ID, steps[i], ethers.ZeroHash);
-        deposited += steps[i];
+        distributed += steps[i] - (steps[i] * 100n) / 10_000n;
         const from = i % 2 === 0 ? alice : bob;
         const to = holders[(i + 1) % holders.length];
         const bal = await token.balanceOf(from.address, ID);
@@ -431,12 +464,12 @@ describe("HumfiverseCatalogueToken", function () {
       if (pool > 0n) await token.claimPoolRoyalties(ID);
       claimed += pool;
 
-      expect(claimed <= deposited).to.equal(true);
+      expect(claimed <= distributed).to.equal(true);
       // Only sub-unit residues can remain: at most one unit per account.
-      expect(deposited - claimed <= BigInt(holders.length + 1)).to.equal(true);
+      expect(distributed - claimed <= BigInt(holders.length + 1)).to.equal(true);
       expect(await token.totalRoyaltiesClaimed(ID)).to.equal(claimed);
-      expect(await token.totalRoyaltiesDeposited(ID)).to.equal(deposited);
-      expect(await usdc.balanceOf(await token.getAddress())).to.equal(deposited - claimed + (await token.accruedFees()));
+      expect(await token.totalRoyaltiesDistributed(ID)).to.equal(distributed);
+      expect(await usdc.balanceOf(await token.getAddress())).to.equal(distributed - claimed + (await token.accruedFees()));
     });
 
     it("keeps royalties apart from fees, and claims several tokens at once", async function () {
@@ -444,14 +477,14 @@ describe("HumfiverseCatalogueToken", function () {
       await token.mintCatalogue(8, ["second", "Second", "Artist"], 10, ethers.parseUnits("10", 6), ethers.ZeroAddress, true);
       await token.connect(alice).buy(ID, 1000);
       await token.connect(alice).buy(8, 10);
-      await token.connect(admin).depositRoyalties(ID, 300n, ethers.ZeroHash);
-      await token.connect(admin).depositRoyalties(8, 40n, ethers.ZeroHash);
+      await token.connect(admin).depositRoyalties(ID, 300n, ethers.ZeroHash); // 1% = 3, shares 297
+      await token.connect(admin).depositRoyalties(8, 40n, ethers.ZeroHash); // under 100: no fee
 
       const fees = await token.accruedFees();
       await token.withdrawFees();
       const before = await usdc.balanceOf(alice.address);
       await token.claimRoyalties(alice.address, [ID, 8]);
-      expect((await usdc.balanceOf(alice.address)) - before).to.equal(340n);
+      expect((await usdc.balanceOf(alice.address)) - before).to.equal(337n);
       expect(fees > 0n).to.equal(true);
       expect(await usdc.balanceOf(await token.getAddress())).to.equal(0n);
     });

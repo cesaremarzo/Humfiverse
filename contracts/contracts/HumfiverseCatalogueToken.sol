@@ -22,9 +22,10 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 ///         standard (ERC-3643-style) per technical-architecture.md §2.4,
 ///         not this plain ERC-1155.
 ///
-///         Royalties (§2.92): whoever holds the income a catalogue earns
-///         deposits it with depositRoyalties, and every token of that id
-///         earns the same share of it — including the tokens still in the
+///         Royalties (§2.92, §2.101): whoever holds the income a catalogue
+///         earns deposits it with depositRoyalties, the platform's 1% for
+///         running the distribution is deducted, and every token of that id
+///         earns the same share of the rest — including the tokens still in the
 ///         pool, whose share belongs to the token's payout wallet (the
 ///         artist kept that part of the income by not selling it). Holders
 ///         pull their share with claimRoyalties; nothing is pushed, so a
@@ -120,11 +121,39 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
     }
 
     /// @notice Platform fee on every paid primary purchase through buy(), in
-    ///         basis points of the payment (200 bps = 2.00%), deducted from
+    ///         basis points of the payment (600 bps = 6.00%), deducted from
     ///         it: the buyer pays the listed price and receives every token,
-    ///         and payoutRecipient receives the price less the fee (§2.72).
+    ///         and payoutRecipient receives the price less the fee (§2.72,
+    ///         §2.101).
+    ///
+    ///         Higher than the escrow's 2% contribution fee on purpose, and
+    ///         not an inconsistency (§2.101): buy() sells a catalogue that
+    ///         already earns, with no milestones to release, so this is the
+    ///         whole of what the platform ever charges on that raise. An
+    ///         escrow campaign charges 2% on arrival and 3% again on each
+    ///         tranche it releases — 4.94% of a goal that sells out and
+    ///         releases in full. The two paths are priced as a whole, not
+    ///         rate by rate.
+    ///
     ///         A constant, so the rate cannot change under anyone.
-    uint256 public constant PRIMARY_FEE_BPS = 200;
+    uint256 public constant PRIMARY_FEE_BPS = 600;
+
+    /// @notice Platform fee on every royalty deposit, in basis points of the
+    ///         amount deposited (100 bps = 1.00%), deducted from it before it
+    ///         is shared out (§2.101): the depositor sends what the catalogue
+    ///         earned, the holders share 99% of it, and the 1% is what the
+    ///         platform charges for administering the distribution — the
+    ///         per-token accounting, the statement reference, the claims.
+    ///
+    ///         Charged on the whole deposit, the pool's share included, so
+    ///         the rate does not depend on how much of a catalogue has been
+    ///         sold: an artist depositing on a catalogue that is mostly
+    ///         unsold pays 1% on the part that comes back to their own payout
+    ///         wallet too. Making it depend on the sold fraction would price
+    ///         the same service differently every deposit.
+    ///
+    ///         A constant, for the same reason as the fees above.
+    uint256 public constant ROYALTY_FEE_BPS = 100;
     /// @notice Where withdrawFees() sends accrued fees. Defaults to the deployer.
     address public feeRecipient;
     /// @notice Fees retained from primary purchases and not yet withdrawn.
@@ -155,7 +184,9 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
     event FeeRecipientUpdated(address indexed previous, address indexed next);
     event OperatorUpdated(address indexed previous, address indexed next);
     event TokensBurned(uint256 indexed tokenId, address indexed holder, uint256 amount);
-    event RoyaltiesDeposited(uint256 indexed tokenId, address indexed depositor, uint256 amount, bytes32 statementRef);
+    /// @param distributed what the holders share — the deposit less ROYALTY_FEE_BPS.
+    event RoyaltiesDeposited(uint256 indexed tokenId, address indexed depositor, uint256 distributed, bytes32 statementRef);
+    event RoyaltyFeeRetained(uint256 indexed tokenId, address indexed depositor, uint256 fee);
     event RoyaltiesClaimed(uint256 indexed tokenId, address indexed holder, address indexed paidTo, uint256 amount);
 
     /// @notice The backend's key: may mint a catalogue and set its audio
@@ -181,8 +212,13 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
     mapping(uint256 => mapping(address => uint256)) private royaltySettledAt;
     /// @dev tokenId => holder => settled and unclaimed royalties, times 1e18.
     mapping(uint256 => mapping(address => uint256)) private royaltyOwedScaled;
-    /// @notice tokenId => every royalty deposited for it.
-    mapping(uint256 => uint256) public totalRoyaltiesDeposited;
+    /// @notice tokenId => every royalty shared out for it, net of
+    ///         ROYALTY_FEE_BPS — not what was deposited (§2.101). This is the
+    ///         figure that makes `totalRoyaltiesDistributed -
+    ///         totalRoyaltiesClaimed` exactly what is still claimable; a gross
+    ///         total would leave a permanent, unclaimable difference on every
+    ///         screen that shows the two side by side.
+    mapping(uint256 => uint256) public totalRoyaltiesDistributed;
     /// @notice tokenId => every royalty claimed for it.
     mapping(uint256 => uint256) public totalRoyaltiesClaimed;
 
@@ -305,7 +341,7 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
     ///         purchase — it only ever moves tokens out of the platform pool,
     ///         same as releaseFromPool, so it carries no resale fee (see
     ///         HumfiverseMarketplace.sol for the resale path). It does carry
-    ///         the 2% primary fee, deducted from the payment and accrued here
+    ///         the 6% primary fee, deducted from the payment and accrued here
     ///         rather than pushed, so a fee recipient that cannot receive cannot
     ///         block a purchase. releaseFromPool, which takes no payment,
     ///         carries none.
@@ -402,18 +438,34 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
     ///         catalogue really earned. `statementRef` ties the deposit to
     ///         the statement it pays (e.g. a hash of it); the contract only
     ///         records it. The depositor approves this contract first.
+    ///
+    ///         ROYALTY_FEE_BPS (1%) is deducted from `amount` before it is
+    ///         shared (§2.101), the same way every other fee in this project
+    ///         is deducted rather than added: the depositor sends what the
+    ///         catalogue earned and the holders share the rest. The fee joins
+    ///         the same accruedFees as the primary fee and leaves only through
+    ///         withdrawFees().
     function depositRoyalties(uint256 tokenId, uint256 amount, bytes32 statementRef) external nonReentrant {
         require(amount > 0, "HumfiverseCatalogueToken: zero amount");
         uint256 outstanding = outstandingSupply(tokenId);
         require(outstanding > 0, "HumfiverseCatalogueToken: no outstanding tokens");
 
-        uint256 scaled = amount * ROYALTY_PRECISION + royaltyRemainder[tokenId];
+        // Rounded down, so a deposit under a hundred base units pays no fee
+        // and is shared whole; there is no amount above zero the fee can
+        // swallow entirely, so nothing needs guarding against here.
+        uint256 fee = (amount * ROYALTY_FEE_BPS) / 10_000;
+        uint256 distributed = amount - fee;
+        accruedFees += fee;
+        totalFeesCollected += fee;
+
+        uint256 scaled = distributed * ROYALTY_PRECISION + royaltyRemainder[tokenId];
         royaltyPerToken[tokenId] += scaled / outstanding;
         royaltyRemainder[tokenId] = scaled % outstanding;
-        totalRoyaltiesDeposited[tokenId] += amount;
+        totalRoyaltiesDistributed[tokenId] += distributed;
 
         paymentToken.safeTransferFrom(msg.sender, address(this), amount);
-        emit RoyaltiesDeposited(tokenId, msg.sender, amount, statementRef);
+        emit RoyaltiesDeposited(tokenId, msg.sender, distributed, statementRef);
+        emit RoyaltyFeeRetained(tokenId, msg.sender, fee);
     }
 
     /// @notice Royalties of `tokenId` that `holder` can claim now, to the base unit.

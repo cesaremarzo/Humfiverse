@@ -1,6 +1,6 @@
 # La normativa che riguarda Humfiverse, spiegata
 
-*Revisione del 2026-09-15, commit `82a7a1b`; §7 e §13 aggiornati il 2026-09-17 (guida automatica, §2.100). Non è consulenza legale.*
+*Revisione del 2026-09-15, commit `82a7a1b`; §10 aggiornato il 2026-09-17 (aliquote delle commissioni, §2.101); §7 e §13 aggiornati il 2026-09-17 (guida automatica, §2.100). Non è consulenza legale.*
 
 Questo documento non ripete `planning/legal-regulatory-notes.md`, che resta la
 ricerca di partenza. Lo riorganizza in una mappa unica e aggiunge le aree che
@@ -354,9 +354,13 @@ portato al 33% dal 2026 l'aliquota sulle plusvalenze da cripto-attività
 **In parole semplici.** La natura del token decide anche come vengono tassati i
 guadagni dell'investitore: cripto-attività o strumento finanziario, royalty come
 reddito di capitale o reddito diverso. Decide anche quali obblighi di
-comunicazione ha la piattaforma. La **commissione di Humfiverse** (2%, 3%, 1%) è
-un ricavo della società, e l'IVA sui servizi di intermediazione finanziaria può
-essere esente o no a seconda della qualificazione. Serve un commercialista o un
+comunicazione ha la piattaforma. Le **commissioni di Humfiverse** (6% sulla
+vendita diretta di un catalogo, 2% sui contributi, 3% sulle tranche, 1% sulle
+rivendite e 1% su ogni versamento di royalty, §2.101) sono un ricavo della
+società, e l'IVA sui servizi di intermediazione finanziaria può
+essere esente o no a seconda della qualificazione. La commissione sulle royalty
+è un compenso per un'attività di distribuzione, non per un'intermediazione su
+una vendita: va qualificata a parte (07 A13). Serve un commercialista o un
 tributarista, non solo l'avvocato.
 
 ## 12. Diritto d'autore, diritti connessi e contenuti caricati

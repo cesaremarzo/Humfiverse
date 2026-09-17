@@ -73,10 +73,10 @@ const ABI = [
   "function royaltyPerToken(uint256) view returns (uint256)",
   "function outstandingSupply(uint256) view returns (uint256)",
   "function claimableRoyalties(uint256 tokenId, address holder) view returns (uint256)",
-  "function totalRoyaltiesDeposited(uint256) view returns (uint256)",
+  "function totalRoyaltiesDistributed(uint256) view returns (uint256)",
   "function totalRoyaltiesClaimed(uint256) view returns (uint256)",
   "function payoutRecipient() view returns (address)",
-  "event RoyaltiesDeposited(uint256 indexed tokenId, address indexed depositor, uint256 amount, bytes32 statementRef)"
+  "event RoyaltiesDeposited(uint256 indexed tokenId, address indexed depositor, uint256 distributed, bytes32 statementRef)"
 ];
 
 const provider = new ethers.JsonRpcProvider(RPC_URL, CHAIN_ID);
@@ -230,7 +230,7 @@ async function getBalance(tokenId, address) {
   return Number(bal);
 }
 
-/** The 2% primary-sale fee's state, read off the contract. Null when the
+/** The 6% primary-sale fee's state, read off the contract (§2.101). Null when the
  * configured token predates USDC (§2.73), whose fees would be wei. */
 async function getFeeState() {
   if (!(await paymentTokenOf(readContract))) return null;
@@ -272,8 +272,8 @@ function royaltiesSupported() {
  * without royalties. */
 async function getRoyaltyState(tokenId) {
   if (!(await royaltiesSupported())) return null;
-  const [deposited, claimed, outstanding, pool, poolClaimable, payout] = await Promise.all([
-    withRetry(() => readContract.totalRoyaltiesDeposited(tokenId)),
+  const [distributed, claimed, outstanding, pool, poolClaimable, payout] = await Promise.all([
+    withRetry(() => readContract.totalRoyaltiesDistributed(tokenId)),
     withRetry(() => readContract.totalRoyaltiesClaimed(tokenId)),
     withRetry(() => readContract.outstandingSupply(tokenId)),
     withRetry(() => readContract.poolBalance(tokenId)),
@@ -284,7 +284,7 @@ async function getRoyaltyState(tokenId) {
   return {
     tokenId,
     contractAddress: CONTRACT_ADDRESS,
-    totalDepositedUsdc: deposited.toString(),
+    totalDistributedUsdc: distributed.toString(),
     totalClaimedUsdc: claimed.toString(),
     outstandingSupply: outstanding.toString(),
     poolBalance: pool.toString(),
@@ -316,7 +316,7 @@ async function getRoyaltyDepositsFromTx(txHash) {
       logIndex: log.index,
       tokenId: Number(parsed.args.tokenId),
       depositor: parsed.args.depositor.toLowerCase(),
-      amountUsdc: parsed.args.amount.toString(),
+      amountUsdc: parsed.args.distributed.toString(),
       statementRef: parsed.args.statementRef,
       block: receipt.blockNumber,
       depositedAt: new Date(Number(block.timestamp) * 1000).toISOString()

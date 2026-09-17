@@ -35,6 +35,42 @@ Cosa cambia nei documenti:
   cambiare con loro.
 - **02** e **06** invariati: nessun contratto e nessun punto di pagamento toccati.
 
+## 2026-09-17 · vendita diretta al 6%, 1% sulla distribuzione delle royalty (§2.101)
+
+Decisione dell'utente dopo aver visto le aliquote una accanto all'altra: un
+catalogo già collegato a un flusso di cassa, venduto senza milestone, pagava il
+2% e nient'altro per sempre. `PRIMARY_FEE_BPS` passa da 200 a 600 e nasce
+`ROYALTY_FEE_BPS` (100), trattenuto da ogni versamento prima della divisione.
+Non ancora in produzione: serve il quinto redeploy del token.
+
+Cosa cambia nei documenti:
+
+- **02** §1 (`buy`, `depositRoyalties`), C-8, C-12 (non è più vero che «nessuna
+  commissione sulle royalty»), C-14, e nuovo **C-15 · Media**: la Piattaforma
+  trattiene una quota di denaro di terzi che sta distribuendo.
+- **07** nuova domanda **A13 🟠**: come si qualifica quel compenso, e se cambia
+  qualcosa perché è trattenuto dal contratto invece che fatturato. Va
+  all'avvocato insieme ad A12: sono la stessa attività vista da due lati.
+- **04** §5.7 e §6: tabella delle commissioni con la nuova riga sulle royalty e
+  il nuovo §6.1.1 sul perché le due aliquote sulla raccolta sono diverse.
+- **06** §2.1 (94/6) e nuovo §2.3-bis, avvertenza sul modulo di versamento,
+  compreso il fatto che l'1% colpisce anche la quota dei token invenduti.
+- **08** A-6 riscritta con la tabella di confronto dei due percorsi su 10.000
+  USDC e l'esempio sulle royalty.
+- **03** nuova **W-20**: il whitepaper, corretto a suo tempo con «less the 2%
+  platform fee» (W-6), è di nuovo falso. Proposta pronta, **da applicare solo
+  quando l'utente lo dice**. **T-4** aggiornata con le quattro aliquote.
+- **01** §10 (fisco): elenco delle aliquote e nota che la commissione sulle
+  royalty non è un'intermediazione su una vendita.
+
+Aggiornato anche il testo che il widget guida dà ai visitatori
+(`server/assistant-knowledge.js` e le chiavi `assistant.kb.fees.a` e
+`assistant.kb.royalties.a` nelle nove lingue): diceva «2% su ogni acquisto
+primario» e royalty divise senza trattenuta. È un file sorvegliato da
+`check.sh` proprio perché è ciò che la piattaforma afferma a chi le chiede.
+
+Non toccato: 05 (nessun dato personale nuovo), 09.
+
 ## 2026-09-17 · icone dell'app: nessuna risorsa esterna nuova (§2.99)
 
 `webapp/src/index.html` cambia (due `<link>` di icone: `icon-512.png` e
