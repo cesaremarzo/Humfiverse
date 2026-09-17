@@ -30,10 +30,11 @@ import { SignedActionService, isSignatureRejection } from '../../core/signed-act
 type TabKey = 'overview' | 'royalty' | 'milestones' | 'disclosure' | 'documents' | 'risk';
 
 import { RegistrationGateComponent } from '../../shared/registration-gate.component';
+import { RoyaltyPayoutsComponent } from '../../shared/royalty-payouts.component';
 @Component({
   selector: 'app-asset-detail',
   standalone: true,
-  imports: [RegistrationGateComponent, RouterLink, TranslatePipe, IconComponent, CoverComponent, StatusChipComponent, MilestoneTrackComponent, DisclosureChipComponent, LineChartComponent],
+  imports: [RegistrationGateComponent, RoyaltyPayoutsComponent, RouterLink, TranslatePipe, IconComponent, CoverComponent, StatusChipComponent, MilestoneTrackComponent, DisclosureChipComponent, LineChartComponent],
   templateUrl: './asset-detail.component.html'
 })
 export class AssetDetailComponent {

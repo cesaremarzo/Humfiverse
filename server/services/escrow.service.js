@@ -50,7 +50,7 @@ async function createCampaign(assetId, artistAddress, studioName, studioWallet, 
   const names = milestones.map((m) => m.name);
   const bps = milestones.map((m) => m.bps);
   const payees = milestones.map((m) => (m.payee === "studio" ? 1 : 0));
-  const created = await escrowChain.createCampaignOnchain(artistAddress, studioId, 0, assetId, onchainRecord.token_id, names, bps, payees);
+  const created = await escrowChain.createCampaignOnchain(artistAddress, studioId, assetId, onchainRecord.token_id, names, bps, payees);
 
   await escrowRepo.insertCampaign({
     campaignId: created.campaignId,

@@ -217,6 +217,50 @@ export interface BackendData {
 /** A token's paid trades and its lowest traded price per UTC day, from
  * GET /api/price-history/:assetId. Amounts are USDC base units. On a day
  * with no trade, `priceUsdc` is the last day's and `traded` is false. */
+/** Why a campaign was cancelled — HumfiverseMilestoneEscrow.CancelGround. */
+export type CancelGround = 'none' | 'unlawful_content' | 'third_party_rights' | 'false_warranties';
+
+/** One RoyaltiesDeposited on the token, as recorded from its receipt. */
+export interface RoyaltyDeposit {
+  txHash: string;
+  explorerUrl: string;
+  depositor: string;
+  amountUsdc: string;
+  statementRef: string;
+  /** The text whose hash is `statementRef`, when the depositor reported it. */
+  statement: string | null;
+  block: number;
+  depositedAt: string;
+}
+
+/** GET /api/royalties/:assetId (§2.92). Amounts are USDC base units. */
+export type AssetRoyalties =
+  | { assetId: string; onchain: boolean; supported: false }
+  | {
+      assetId: string;
+      onchain: true;
+      supported: true;
+      tokenId: number;
+      contractAddress: string;
+      totalDepositedUsdc: string;
+      totalClaimedUsdc: string;
+      outstandingSupply: string;
+      poolBalance: string;
+      /** The unsold tokens' share, paid to `payoutWallet` (the artist). */
+      poolClaimableUsdc: string;
+      payoutWallet: string;
+      /** What the wallet passed as ?wallet= can claim; null without one. */
+      claimableUsdc: string | null;
+      deposits: RoyaltyDeposit[];
+    };
+
+/** GET /api/royalties/wallet/:wallet — every token with something to claim. */
+export interface WalletRoyalties {
+  supported: boolean;
+  contractAddress: string;
+  claimable: { assetId: string; tokenId: number; claimableUsdc: string }[];
+}
+
 export interface PriceHistory {
   assetId: string;
   tokenId: number;
@@ -308,8 +352,18 @@ export type EscrowCampaignInfo =
       studio: { name: string; wallet: string; active: boolean } | null;
       fundingGoal: string;
       raised: string;
-      deadline: number;
+      /** null on a phase 2 escrow, which has no deadlines (§2.92). */
+      deadline: number | null;
       status: 'active' | 'cancelled';
+      /** §2.92: refunds per token held (burning them) and cancellation
+       * grounds. Absent or false on the escrow deployed before phase 2. */
+      phase2?: boolean;
+      /** Set once a phase 2 campaign is cancelled; null otherwise. */
+      cancelGround?: CancelGround | null;
+      /** Unreleased USDC still to be refunded, and the tokens that can claim
+       * it. Both fall with each refund, so the rate per token stays equal. */
+      refundPoolUsdc?: string | null;
+      refundTokens?: string | null;
       /** Campaign on a superseded escrow (CHAIN_ESCROW_LEGACY_ADDRESS). */
       legacy?: boolean;
       releasedBps: number;

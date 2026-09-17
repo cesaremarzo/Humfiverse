@@ -34,6 +34,16 @@ interface RealHolding {
   valueUsd: number;
 }
 
+interface RefundRow {
+  assetId: string;
+  title: string;
+  campaignId: number;
+  contractAddress: string;
+  refundable: bigint;
+  /** Tokens a phase 2 refund burns; null on the earlier escrow. */
+  tokens: bigint | null;
+}
+
 function formatSnapshotDate(iso: string, granularity: ChartGranularity): string {
   const d = new Date(iso + 'T00:00:00Z');
   if (granularity === 'yearly') return d.toLocaleString('en', { year: 'numeric', timeZone: 'UTC' });
@@ -67,9 +77,18 @@ export class PortfolioComponent {
   copied = signal(false);
 
   /** Cancelled campaigns this wallet can still claim from (§2.85): every
-   * contributor claims their own, since refund() pays only its caller. */
-  refunds = signal<{ assetId: string; title: string; campaignId: number; contractAddress: string; refundable: bigint }[]>([]);
+   * contributor claims their own, since refund() pays only its caller. On a
+   * phase 2 escrow (§2.92) the refund follows the tokens held, which it
+   * burns, so `tokens` is how many would be handed back. */
+  refunds = signal<RefundRow[]>([]);
   refunding = signal<number | null>(null);
+  refundsPhase2 = computed(() => this.refunds().some((r) => r.tokens !== null));
+
+  /** Royalties this wallet can claim, token by token (§2.92). Includes
+   * tokens it has since sold: what they earned before the sale is its own. */
+  royalties = signal<{ contractAddress: string; rows: { assetId: string; title: string; tokenId: number; claimable: bigint }[] } | null>(null);
+  claimingRoyalties = signal(false);
+  royaltiesTotal = computed(() => (this.royalties()?.rows ?? []).reduce((sum, r) => sum + r.claimable, 0n));
 
   balances = signal<{ eth: bigint; usdc: bigint | null } | null>(null);
 
@@ -186,6 +205,12 @@ export class PortfolioComponent {
 
     effect(() => {
       const address = this.wallet.state().address;
+      if (address) this.loadRoyalties(address);
+      else this.royalties.set(null);
+    });
+
+    effect(() => {
+      const address = this.wallet.state().address;
       if (address) this.load(address);
       else {
         this.balances.set(null);
@@ -235,35 +260,77 @@ export class PortfolioComponent {
   private loadRefunds(address: string, campaigns: EscrowCampaignInfo[]): void {
     const cancelled = campaigns.filter((c): c is Extract<EscrowCampaignInfo, { escrow: true }> => c.escrow && c.status === 'cancelled' && !c.legacy);
     Promise.all(
-      cancelled.map((c) =>
-        this.wallet
-          .readRefundState(c.contractAddress, c.campaignId, address)
-          .then(({ refundable }) => ({ assetId: c.assetId, title: this.store.assetById(c.assetId)?.title ?? c.assetId, campaignId: c.campaignId, contractAddress: c.contractAddress, refundable }))
-          .catch((err) => {
-            console.warn('Could not read a refund.', err);
-            return null;
-          })
-      )
+      cancelled.map((c): Promise<RefundRow | null> => {
+        const base = { assetId: c.assetId, title: this.store.assetById(c.assetId)?.title ?? c.assetId, campaignId: c.campaignId, contractAddress: c.contractAddress };
+        const read = c.phase2
+          ? this.wallet.readTokenRefund(c.contractAddress, c.campaignId, address).then(({ tokens, refundable }) => ({ ...base, refundable, tokens }))
+          : this.wallet.readRefundState(c.contractAddress, c.campaignId, address).then(({ refundable }) => ({ ...base, refundable, tokens: null }));
+        return read.catch((err) => {
+          console.warn('Could not read a refund.', err);
+          return null;
+        });
+      })
     ).then((rows) => {
       if (this.wallet.state().address !== address) return;
-      this.refunds.set(rows.filter((r): r is NonNullable<typeof r> => !!r && r.refundable > 0n));
+      this.refunds.set(rows.filter((r): r is RefundRow => !!r && r.refundable > 0n));
     });
   }
 
-  async claimRefund(r: { campaignId: number; contractAddress: string; refundable: bigint }): Promise<void> {
+  async claimRefund(r: RefundRow): Promise<void> {
     const address = this.wallet.state().address;
     if (!address || this.refunding() !== null) return;
     this.refunding.set(r.campaignId);
     try {
-      await this.wallet.refundOnchain({ contractAddress: r.contractAddress, campaignId: r.campaignId });
+      if (r.tokens !== null) await this.wallet.refundTokensOnchain({ contractAddress: r.contractAddress, campaignId: r.campaignId, tokens: r.tokens });
+      else await this.wallet.refundOnchain({ contractAddress: r.contractAddress, campaignId: r.campaignId });
       this.toast.show(this.translate.instant('toast.refundDone', { amount: this.fmtUsdcExact(r.refundable) }), 'wallet');
       this.loadRefunds(address, [...this.store.escrowInfoMap().values()]);
       this.loadBalances(address, this.store.marketplaceAddress());
+      if (r.tokens !== null) this.load(address);
     } catch (err) {
       console.warn('Refund did not complete.', err);
       this.toast.show(this.onchainErrorMessage(err), 'alert');
     } finally {
       this.refunding.set(null);
+    }
+  }
+
+  private loadRoyalties(address: string): void {
+    this.api
+      .getWalletRoyalties(address)
+      .then((res) => {
+        if (this.wallet.state().address !== address) return;
+        if (!res.supported) { this.royalties.set(null); return; }
+        this.royalties.set({
+          contractAddress: res.contractAddress,
+          rows: res.claimable.map((r) => ({
+            assetId: r.assetId,
+            title: this.store.assetById(r.assetId)?.title ?? r.assetId,
+            tokenId: r.tokenId,
+            claimable: BigInt(r.claimableUsdc)
+          }))
+        });
+      })
+      .catch((err) => console.warn('Could not read claimable royalties.', err));
+  }
+
+  /** One transaction for every token with something to claim. */
+  async claimRoyalties(): Promise<void> {
+    const address = this.wallet.state().address;
+    const current = this.royalties();
+    if (!address || !current || !current.rows.length || this.claimingRoyalties()) return;
+    const total = this.royaltiesTotal();
+    this.claimingRoyalties.set(true);
+    try {
+      await this.wallet.claimRoyaltiesOnchain({ contractAddress: current.contractAddress, tokenIds: current.rows.map((r) => r.tokenId) });
+      this.toast.show(this.translate.instant('toast.royaltiesClaimed', { amount: this.fmtUsdcExact(total) + ' USDC' }), 'wallet');
+      this.loadRoyalties(address);
+      this.loadBalances(address, this.store.marketplaceAddress());
+    } catch (err) {
+      console.warn('Royalty claim did not complete.', err);
+      this.toast.show(this.onchainErrorMessage(err), 'alert');
+    } finally {
+      this.claimingRoyalties.set(false);
     }
   }
 

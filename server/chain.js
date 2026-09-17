@@ -67,7 +67,15 @@ const ABI = [
   "function feeRecipient() view returns (address)",
   "function accruedFees() view returns (uint256)",
   "function totalFeesCollected() view returns (uint256)",
-  "event CatalogueMinted(uint256 indexed tokenId, string slug, uint256 supply, uint256 pricePerToken, string title, string artist)"
+  "event CatalogueMinted(uint256 indexed tokenId, string slug, uint256 supply, uint256 pricePerToken, string title, string artist)",
+  // §2.92 royalties — absent on tokens deployed before phase 2.
+  "function royaltyPerToken(uint256) view returns (uint256)",
+  "function outstandingSupply(uint256) view returns (uint256)",
+  "function claimableRoyalties(uint256 tokenId, address holder) view returns (uint256)",
+  "function totalRoyaltiesDeposited(uint256) view returns (uint256)",
+  "function totalRoyaltiesClaimed(uint256) view returns (uint256)",
+  "function payoutRecipient() view returns (address)",
+  "event RoyaltiesDeposited(uint256 indexed tokenId, address indexed depositor, uint256 amount, bytes32 statementRef)"
 ];
 
 const provider = new ethers.JsonRpcProvider(RPC_URL, CHAIN_ID);
@@ -241,7 +249,84 @@ async function getFeeState() {
   };
 }
 
+/** Whether the configured token pays royalties (§2.92), cached: bytecode
+ * never changes. Only a revert means "no"; an RPC failure is rethrown. */
+let royaltiesPromise = null;
+function royaltiesSupported() {
+  if (!royaltiesPromise) {
+    royaltiesPromise = withRetry(() => readContract.royaltyPerToken(0))
+      .then(() => true)
+      .catch((err) => {
+        if (err.code === "CALL_EXCEPTION" || err.code === "BAD_DATA") return false;
+        royaltiesPromise = null;
+        throw err;
+      });
+  }
+  return royaltiesPromise;
+}
+
+/** One token's royalty totals, straight from the contract. `poolClaimable`
+ * is the unsold tokens' share, which claimPoolRoyalties pays to the
+ * token's payout wallet — the artist (§2.92). Null on a token contract
+ * without royalties. */
+async function getRoyaltyState(tokenId) {
+  if (!(await royaltiesSupported())) return null;
+  const [deposited, claimed, outstanding, pool, poolClaimable, payout] = await Promise.all([
+    withRetry(() => readContract.totalRoyaltiesDeposited(tokenId)),
+    withRetry(() => readContract.totalRoyaltiesClaimed(tokenId)),
+    withRetry(() => readContract.outstandingSupply(tokenId)),
+    withRetry(() => readContract.poolBalance(tokenId)),
+    withRetry(() => readContract.claimableRoyalties(tokenId, CONTRACT_ADDRESS)),
+    withRetry(() => readContract.payoutOf(tokenId))
+  ]);
+  const payoutWallet = payout !== ethers.ZeroAddress ? payout : await withRetry(() => readContract.payoutRecipient());
+  return {
+    tokenId,
+    contractAddress: CONTRACT_ADDRESS,
+    totalDepositedUsdc: deposited.toString(),
+    totalClaimedUsdc: claimed.toString(),
+    outstandingSupply: outstanding.toString(),
+    poolBalance: pool.toString(),
+    poolClaimableUsdc: poolClaimable.toString(),
+    payoutWallet
+  };
+}
+
+/** What `holder` can claim on `tokenId` now, in USDC base units, or null
+ * on a token contract without royalties. */
+async function getClaimableRoyalties(tokenId, holder) {
+  if (!(await royaltiesSupported())) return null;
+  return (await withRetry(() => readContract.claimableRoyalties(tokenId, holder))).toString();
+}
+
+/** Every RoyaltiesDeposited this token contract emitted in `txHash`.
+ * The receipt is the proof: a deposit enters the history only if the
+ * chain says it happened, whoever reports it. */
+async function getRoyaltyDepositsFromTx(txHash) {
+  const receipt = await withRetry(() => provider.getTransactionReceipt(txHash));
+  if (!receipt || receipt.status !== 1) return null;
+  const block = await withRetry(() => provider.getBlock(receipt.blockNumber));
+  return receipt.logs
+    .filter((l) => l.address.toLowerCase() === CONTRACT_ADDRESS.toLowerCase())
+    .map((l) => { try { return { log: l, parsed: readContract.interface.parseLog(l) }; } catch { return null; } })
+    .filter((e) => e && e.parsed && e.parsed.name === "RoyaltiesDeposited")
+    .map(({ log, parsed }) => ({
+      txHash: receipt.hash,
+      logIndex: log.index,
+      tokenId: Number(parsed.args.tokenId),
+      depositor: parsed.args.depositor.toLowerCase(),
+      amountUsdc: parsed.args.amount.toString(),
+      statementRef: parsed.args.statementRef,
+      block: receipt.blockNumber,
+      depositedAt: new Date(Number(block.timestamp) * 1000).toISOString()
+    }));
+}
+
 module.exports = {
+  royaltiesSupported,
+  getRoyaltyState,
+  getClaimableRoyalties,
+  getRoyaltyDepositsFromTx,
   getFeeState,
   getBalance,
   mintingEnabled,

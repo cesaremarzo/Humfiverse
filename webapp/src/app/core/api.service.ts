@@ -19,6 +19,8 @@ import {
   OnchainInfo,
   OnchainMintResult,
   PriceHistory,
+  AssetRoyalties,
+  WalletRoyalties,
   RealHoldingDto,
   RedeemResult,
   RoyaltyMonth,
@@ -117,6 +119,23 @@ export class ApiService {
   /** Prices the token has actually traded at, read from transaction receipts. */
   getPriceHistory(assetId: string): Promise<PriceHistory> {
     return firstValueFrom(this.http.get<PriceHistory>(`${this.base}/api/price-history/${encodeURIComponent(assetId)}`));
+  }
+
+  /** Royalty totals and deposit history of an asset's token (§2.92), plus
+   * what `wallet` can claim when given. */
+  getAssetRoyalties(assetId: string, wallet?: string | null): Promise<AssetRoyalties> {
+    const query = wallet ? `?wallet=${encodeURIComponent(wallet)}` : '';
+    return firstValueFrom(this.http.get<AssetRoyalties>(`${this.base}/api/royalties/${encodeURIComponent(assetId)}${query}`));
+  }
+
+  getWalletRoyalties(wallet: string): Promise<WalletRoyalties> {
+    return firstValueFrom(this.http.get<WalletRoyalties>(`${this.base}/api/royalties/wallet/${encodeURIComponent(wallet)}`));
+  }
+
+  /** Adds a deposit to the history. The server reads the receipt, so this
+   * only works for a deposit that really happened. */
+  recordRoyaltyDeposit(txHash: string, statement: string | null): Promise<{ recorded: unknown[] }> {
+    return firstValueFrom(this.http.post<{ recorded: unknown[] }>(`${this.base}/api/royalties/deposits`, { txHash, statement }));
   }
 
   mintOnchainToken(payload: { assetId: string; slug: string; supply: number; fundingUsdc: string; payoutWallet?: string; directSale: boolean; title?: string; artist?: string; launch: LaunchAuthorization }): Promise<OnchainMintResult> {

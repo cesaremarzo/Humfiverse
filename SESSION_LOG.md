@@ -1815,3 +1815,33 @@ distribution, no deadline) is still unreviewed in `legal/` on purpose. Run the
 `legal-review` skill on it (02 C-2…C-5, C-8; 04 §5; 06 §2; 08 A-2; 07 C6, C9)
 in the PR that deploys phase 2. Earlier legal-side items (H1 KYC data, GitBook
 Git Sync on `dev/cesare`, history in `025e92e`, private B-4) are unchanged.
+
+---
+
+## 2026-09-17 — phase 2 backend and frontend: royalties, refunds per token, cancel grounds (§2.95)
+
+Request: *"creiamo l'infrastruttura per la distribuzione delle royalties"*. The
+first pass built a Merkle-snapshot distributor, which §2.92 had already rejected
+(the log was read from a branch without that entry); it was deleted unmerged.
+Then the user answered the open items: **delete it; the artist signs the
+multisig; title and artist stay on chain; the unsold pool's royalty share goes
+to the artist; "infrastructure" means step 2** (backend + frontend on the new ABI).
+
+**On `dev/cesare`, not merged** — a feature, waits for the go-ahead. Safe to merge
+before the redeploy: the code detects which contract generation is live and the
+current site is unchanged (checked against the live Sepolia contracts).
+
+- Backend: `/api/royalties/*`, `royalty_deposits` table, dual-ABI escrow module.
+- Frontend: royalty panel on the asset page, royalties + token refunds in
+  Portfolio, cancel-with-ground in `/admin/escrow`, 31 keys × 9 locales.
+- Verified end to end on a local chain (API scenario + headless Chrome clicks). §2.95.
+- `legal/05` gained the new table; contracts still unreviewed on purpose.
+
+Open before the redeploy:
+1. **Multisig signed by the artist — needs clarifying.** `owner()` is one wallet
+   for the whole platform: an artist among its signers would hold powers over
+   every other artist's campaigns and a veto on cancelling their own on legal
+   grounds. Options to put to the user: a per-campaign artist confirmation, or
+   the multisig with platform signers only.
+2. Redeploy (`contract-redeploy` skill), restore state, `setOperator`.
+3. `legal/` review of both contracts in that PR.

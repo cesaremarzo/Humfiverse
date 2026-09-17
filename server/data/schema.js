@@ -162,6 +162,25 @@ async function initSchema() {
       scanned_at TEXT NOT NULL,
       PRIMARY KEY (token_contract, tx_hash)
     );
+    -- Royalty deposits on the token (§2.92), for the history on the asset
+    -- page. A cache of RoyaltiesDeposited logs, keyed by the log that proves
+    -- each one and scoped by token contract, like token_trades. The
+    -- statement text is kept only when its hash is the statementRef the
+    -- depositor wrote on chain.
+    CREATE TABLE IF NOT EXISTS royalty_deposits (
+      token_contract TEXT NOT NULL,
+      tx_hash TEXT NOT NULL,
+      log_index INTEGER NOT NULL,
+      token_id INTEGER NOT NULL,
+      depositor TEXT NOT NULL,
+      amount_usdc TEXT NOT NULL,
+      statement_ref TEXT NOT NULL,
+      statement TEXT,
+      block INTEGER NOT NULL,
+      deposited_at TEXT NOT NULL,
+      PRIMARY KEY (token_contract, tx_hash, log_index)
+    );
+    CREATE INDEX IF NOT EXISTS royalty_deposits_token ON royalty_deposits (token_contract, token_id, block);
     CREATE TABLE IF NOT EXISTS portfolio_snapshots (
       wallet TEXT NOT NULL,
       snapshot_date TEXT NOT NULL,

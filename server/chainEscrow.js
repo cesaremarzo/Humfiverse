@@ -44,12 +44,11 @@ const RECENT_SCAN_BLOCKS = 500;
 const CHAIN_ID = 11155111; // Sepolia
 const EXPLORER_BASE = "https://sepolia.etherscan.io";
 
-const ABI = [
+/* Functions every escrow deployment since §2.72 shares. */
+const COMMON_ABI = [
   "function registerStudio(address wallet, string name) returns (uint256)",
   "function setStudioActive(uint256 studioId, bool active)",
   "function renameStudio(uint256 studioId, string name)",
-  // §2.79: no goal parameter — the contract takes it from the token.
-  "function createCampaign(address artist, uint256 studioId, uint256 deadline, string assetId, uint256 tokenId, string[] milestoneNames, uint16[] milestoneBps, uint8[] milestonePayees) returns (uint256)",
   "function campaignTokenId(uint256) view returns (uint256)",
   "function contribute(uint256 campaignId, uint256 amount)",
   "function paymentToken() view returns (address)",
@@ -57,9 +56,6 @@ const ABI = [
   "function confirmMilestoneAsStudio(uint256 campaignId, uint256 milestoneIndex)",
   "function artistConfirmed(uint256 campaignId, uint256 milestoneIndex) view returns (bool)",
   "function studioConfirmed(uint256 campaignId, uint256 milestoneIndex) view returns (bool)",
-  "function cancelCampaign(uint256 campaignId)",
-  "function refund(uint256 campaignId)",
-  "function campaigns(uint256) view returns (address artist, uint256 studioId, uint256 fundingGoal, uint256 raised, uint256 deadline, uint8 status, uint256 releasedBps, string assetId)",
   "function studios(uint256) view returns (string name, address wallet, bool active)",
   "function getMilestones(uint256 campaignId) view returns (tuple(string name, uint16 bps, uint8 payee, bool released)[])",
   "function campaignIdByAssetId(string) view returns (uint256)",
@@ -71,24 +67,87 @@ const ABI = [
   "function accruedFees() view returns (uint256)",
   "function totalFeesCollected() view returns (uint256)",
   "function campaignFeesCollected(uint256) view returns (uint256)",
+  "function campaignReleased(uint256) view returns (uint256)",
   "event StudioRegistered(uint256 indexed studioId, address indexed wallet, string name)",
-  "event CampaignCreated(uint256 indexed campaignId, address indexed artist, uint256 fundingGoal, uint256 studioId, uint256 deadline, string assetId)",
   "event Contributed(uint256 indexed campaignId, address indexed contributor, uint256 amount, uint256 totalRaised)"
 ];
 
-const provider = new ethers.JsonRpcProvider(RPC_URL, CHAIN_ID);
-const readContract = new ethers.Contract(ESCROW_ADDRESS, ABI, provider);
-const legacyContract = LEGACY_ESCROW_ADDRESS ? new ethers.Contract(LEGACY_ESCROW_ADDRESS, ABI, provider) : null;
+/* The escrow live until the phase 2 redeploy: a deadline on every campaign,
+   refunds per contribution, cancellation without a ground. */
+const ABI_V1 = [
+  ...COMMON_ABI,
+  // §2.79: no goal parameter — the contract takes it from the token.
+  "function createCampaign(address artist, uint256 studioId, uint256 deadline, string assetId, uint256 tokenId, string[] milestoneNames, uint16[] milestoneBps, uint8[] milestonePayees) returns (uint256)",
+  "function cancelCampaign(uint256 campaignId)",
+  "function refund(uint256 campaignId)",
+  "function campaigns(uint256) view returns (address artist, uint256 studioId, uint256 fundingGoal, uint256 raised, uint256 deadline, uint8 status, uint256 releasedBps, string assetId)",
+  "event CampaignCreated(uint256 indexed campaignId, address indexed artist, uint256 fundingGoal, uint256 studioId, uint256 deadline, string assetId)"
+];
 
-let writeContract = null;
-const operatorKey = process.env.CHAIN_OPERATOR_PRIVATE_KEY;
-if (operatorKey) {
-  const wallet = new ethers.Wallet(operatorKey, provider);
-  writeContract = new ethers.Contract(ESCROW_ADDRESS, ABI, wallet);
+/* Phase 2 (§2.92): no deadline, cancellation with a legal ground and a
+   decision hash, refunds per token held that burn the tokens. */
+const ABI_V2 = [
+  ...COMMON_ABI,
+  "function createCampaign(address artist, uint256 studioId, string assetId, uint256 tokenId, string[] milestoneNames, uint16[] milestoneBps, uint8[] milestonePayees) returns (uint256)",
+  "function cancelCampaign(uint256 campaignId, uint8 ground, bytes32 decisionHash)",
+  "function refund(uint256 campaignId, uint256 tokens)",
+  "function refundQuote(uint256 campaignId, uint256 tokens) view returns (uint256)",
+  "function refundPoolOf(uint256) view returns (uint256)",
+  "function refundTokensOf(uint256) view returns (uint256)",
+  "function cancelGroundOf(uint256) view returns (uint8)",
+  "function operator() view returns (address)",
+  "function campaigns(uint256) view returns (address artist, uint256 studioId, uint256 fundingGoal, uint256 raised, uint8 status, uint256 releasedBps, string assetId)",
+  "event CampaignCreated(uint256 indexed campaignId, address indexed artist, uint256 fundingGoal, uint256 studioId, string assetId)",
+  "event CampaignCancelled(uint256 indexed campaignId, uint8 ground, bytes32 decisionHash, uint256 refundPool, uint256 refundTokens)",
+  "event Refunded(uint256 indexed campaignId, address indexed holder, uint256 tokensBurned, uint256 amount)"
+];
+
+/** The contract's cancellation grounds, in enum order (§2.92). */
+const CANCEL_GROUNDS = ["none", "unlawful_content", "third_party_rights", "false_warranties"];
+
+const provider = new ethers.JsonRpcProvider(RPC_URL, CHAIN_ID);
+const operatorWallet = process.env.CHAIN_OPERATOR_PRIVATE_KEY ? new ethers.Wallet(process.env.CHAIN_OPERATOR_PRIVATE_KEY, provider) : null;
+
+/** Which escrow generation lives at `address`, cached: bytecode never
+ * changes. Phase 2 is the one with refundQuote(), which returns 0 for an
+ * uncancelled campaign and does not exist on the earlier contract. Only a
+ * revert or undecodable data means "no such function"; an RPC failure is
+ * rethrown, never read as "old contract". */
+const versionPromises = new Map();
+function escrowVersion(address) {
+  const key = address.toLowerCase();
+  if (!versionPromises.has(key)) {
+    const probe = new ethers.Contract(address, ABI_V2, provider);
+    versionPromises.set(
+      key,
+      withRetry(() => probe.refundQuote(0, 0))
+        .then(() => 2)
+        .catch((err) => {
+          if (err.code === "CALL_EXCEPTION" || err.code === "BAD_DATA") return 1;
+          versionPromises.delete(key);
+          throw err;
+        })
+    );
+  }
+  return versionPromises.get(key);
 }
 
+async function readerFor(address) {
+  return new ethers.Contract(address, (await escrowVersion(address)) === 2 ? ABI_V2 : ABI_V1, provider);
+}
+
+async function writerFor(address) {
+  if (!operatorWallet) throw new Error("escrow admin actions are disabled (no operator key configured)");
+  return new ethers.Contract(address, (await escrowVersion(address)) === 2 ? ABI_V2 : ABI_V1, operatorWallet);
+}
+
+/* Synchronous handles for the calls that are the same on both generations
+   (campaignIdByAssetId, fees, studios, Contributed). */
+const readContract = new ethers.Contract(ESCROW_ADDRESS, ABI_V1, provider);
+const legacyContract = LEGACY_ESCROW_ADDRESS ? new ethers.Contract(LEGACY_ESCROW_ADDRESS, ABI_V1, provider) : null;
+
 function writeEnabled() {
-  return writeContract !== null;
+  return operatorWallet !== null;
 }
 
 /** The escrow's two fee rates in bps — `{ contributionBps, milestoneBps }`
@@ -157,7 +216,7 @@ async function getContributionFromTx(txHash) {
 }
 
 async function registerStudioOnchain(walletAddress, name) {
-  if (!writeContract) throw new Error("escrow admin actions are disabled (no operator key configured)");
+  const writeContract = await writerFor(ESCROW_ADDRESS);
   const tx = await withRetry(() => writeContract.registerStudio(walletAddress, name));
   const receipt = await tx.wait();
   const parsed = receipt.logs.map((l) => { try { return readContract.interface.parseLog(l); } catch { return null; } }).find((e) => e && e.name === "StudioRegistered");
@@ -169,19 +228,25 @@ async function registerStudioOnchain(walletAddress, name) {
  * needed. Renames every campaign already pointing at this studioId too,
  * since a campaign stores a studioId, not a name. */
 async function renameStudioOnchain(studioId, name) {
-  if (!writeContract) throw new Error("escrow admin actions are disabled (no operator key configured)");
+  const writeContract = await writerFor(ESCROW_ADDRESS);
   const tx = await withRetry(() => writeContract.renameStudio(studioId, name));
   const receipt = await tx.wait();
   return { txHash: receipt.hash };
 }
 
-async function createCampaignOnchain(artist, studioId, deadline, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees) {
-  if (!writeContract) throw new Error("escrow admin actions are disabled (no operator key configured)");
+/** Creates a campaign on whichever escrow generation is configured. Phase 2
+ * dropped the deadline argument (§2.92); the earlier contract still takes
+ * one, and 0 there has always meant "none". */
+async function createCampaignOnchain(artist, studioId, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees) {
+  const writeContract = await writerFor(ESCROW_ADDRESS);
+  const phase2 = (await escrowVersion(ESCROW_ADDRESS)) === 2;
   const tx = await withRetry(() =>
-    writeContract.createCampaign(artist, studioId, deadline, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees)
+    phase2
+      ? writeContract.createCampaign(artist, studioId, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees)
+      : writeContract.createCampaign(artist, studioId, 0, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees)
   );
   const receipt = await tx.wait();
-  const parsed = receipt.logs.map((l) => { try { return readContract.interface.parseLog(l); } catch { return null; } }).find((e) => e && e.name === "CampaignCreated");
+  const parsed = receipt.logs.map((l) => { try { return writeContract.interface.parseLog(l); } catch { return null; } }).find((e) => e && e.name === "CampaignCreated");
   return { campaignId: Number(parsed.args.campaignId), txHash: receipt.hash };
 }
 
@@ -194,8 +259,9 @@ async function createCampaignOnchain(artist, studioId, deadline, assetId, tokenI
  * module can still read the confirmation state (below) but cannot write it
  * on anyone's behalf. */
 
-async function getCampaignInfo(campaignId, contract = readContract) {
-  const address = contract.target;
+async function getCampaignInfo(campaignId, address = ESCROW_ADDRESS) {
+  const contract = await readerFor(address);
+  const phase2 = (await escrowVersion(address)) === 2;
   const [c, milestones, rates, toUsdc] = await Promise.all([contract.campaigns(campaignId), contract.getMilestones(campaignId), getFeeRates(contract), toUsdcFor(contract)]);
   const [campaignFees, target] =
     rates === null
@@ -233,11 +299,18 @@ async function getCampaignInfo(campaignId, contract = readContract) {
       };
     })
   );
+  // §2.92: what a cancelled campaign still owes, and to how many tokens.
+  // Both fall as holders refund, so the rate per token is the same for all.
+  const refund = phase2 && Number(c.status) === 1
+    ? await Promise.all([contract.refundPoolOf(campaignId), contract.refundTokensOf(campaignId), contract.cancelGroundOf(campaignId)])
+    : null;
   return {
     campaignId,
     assetId: c.assetId,
     contractAddress: address,
-    legacy: contract !== readContract,
+    legacy: address.toLowerCase() !== ESCROW_ADDRESS.toLowerCase(),
+    // §2.92: refunds per token held, cancellation grounds, no deadline.
+    phase2,
     network: "sepolia",
     explorerUrl: `${EXPLORER_BASE}/address/${address}`,
     artist: c.artist,
@@ -248,12 +321,15 @@ async function getCampaignInfo(campaignId, contract = readContract) {
     fundingGoal: toUsdc(c.fundingGoal).toString(),
     fundingTargetUsdc: toUsdc(target).toString(),
     raised: toUsdc(c.raised).toString(),
-    deadline: Number(c.deadline),
+    deadline: phase2 ? null : Number(c.deadline),
     status: Number(c.status) === 0 ? "active" : "cancelled",
     releasedBps: Number(c.releasedBps),
     contributionFeeBps: rates?.contributionBps ?? null,
     milestoneFeeBps: rates?.milestoneBps ?? null,
     feesCollectedUsdc: campaignFees === null ? null : toUsdc(campaignFees).toString(),
+    cancelGround: refund ? CANCEL_GROUNDS[Number(refund[2])] ?? null : null,
+    refundPoolUsdc: refund ? toUsdc(refund[0]).toString() : null,
+    refundTokens: refund ? refund[1].toString() : null,
     milestones: milestonesWithConfirmations
   };
 }
@@ -268,7 +344,7 @@ async function getCampaignInfoByAssetId(assetId) {
   if (campaignId !== 0n) return getCampaignInfo(Number(campaignId));
   if (!legacyContract) return null;
   const legacyId = await legacyContract.campaignIdByAssetId(assetId);
-  return legacyId === 0n ? null : getCampaignInfo(Number(legacyId), legacyContract);
+  return legacyId === 0n ? null : getCampaignInfo(Number(legacyId), LEGACY_ESCROW_ADDRESS);
 }
 
 /** A *recent-activity* scan only (§2.39) — same rationale as chain.js's
@@ -282,11 +358,12 @@ async function listRecentlyCreatedCampaignAssetIdsFromChain() {
   try {
     const latest = await provider.getBlockNumber();
     const from = Math.max(ESCROW_DEPLOY_BLOCK, latest - RECENT_SCAN_BLOCKS);
-    const filter = readContract.filters.CampaignCreated();
+    const scanner = await readerFor(ESCROW_ADDRESS);
+    const filter = scanner.filters.CampaignCreated();
     const events = [];
     for (let f = from; f <= latest; f += EVENT_QUERY_CHUNK + 1) {
       const to = Math.min(f + EVENT_QUERY_CHUNK, latest);
-      const chunk = await withRetry(() => readContract.queryFilter(filter, f, to));
+      const chunk = await withRetry(() => scanner.queryFilter(filter, f, to));
       events.push(...chunk);
     }
     return events.map((e) => ({ campaignId: Number(e.args.campaignId), assetId: e.args.assetId, txHash: e.transactionHash }));
@@ -297,6 +374,8 @@ async function listRecentlyCreatedCampaignAssetIdsFromChain() {
 }
 
 module.exports = {
+  CANCEL_GROUNDS,
+  escrowVersion,
   writeEnabled,
   getFeeState,
   getContributionFromTx,

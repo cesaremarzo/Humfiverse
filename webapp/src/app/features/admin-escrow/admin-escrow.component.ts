@@ -1,7 +1,8 @@
 import { Component, computed, signal } from '@angular/core';
+import { ethers } from 'ethers';
 import { ApiService } from '../../core/api.service';
 import { WalletService } from '../../core/wallet.service';
-import { EscrowCampaignInfo, EscrowMilestone, FeeContractState, FeeSummary } from '../../core/models';
+import { CancelGround, EscrowCampaignInfo, EscrowMilestone, FeeContractState, FeeSummary } from '../../core/models';
 import { fmtUSD } from '../../core/format.util';
 import { usdcToUsd } from '../../core/usdc.util';
 import { knownWalletName } from '../../core/known-wallets';
@@ -47,6 +48,15 @@ export class AdminEscrowComponent {
   confirmingCancel = signal<number | null>(null);
   cancelling = signal<number | null>(null);
   cancelResult = signal<{ campaignId: number; explorerUrl?: string; error?: string } | null>(null);
+  /** Phase 2 (§2.92): the ground and the written decision chosen per
+   * campaign. Only the decision's hash goes on chain. */
+  cancelDrafts = signal<Record<number, { ground: CancelGround; decision: string }>>({});
+  readonly grounds: { value: CancelGround; label: string }[] = [
+    { value: 'none', label: 'No legal ground (only while a milestone is unreleased)' },
+    { value: 'unlawful_content', label: 'Unlawful content' },
+    { value: 'third_party_rights', label: 'Third-party rights' },
+    { value: 'false_warranties', label: 'False warranties by the artist' }
+  ];
 
   fmt = fmtUSD;
   usdcToUsd = usdcToUsd;
@@ -94,7 +104,7 @@ export class AdminEscrowComponent {
         .then((owner) => this.owners.update((o) => ({ ...o, [address]: owner })))
         .catch((err) => console.warn('Could not read the escrow owner.', err));
     }
-    for (const c of rows.filter((r) => r.status === 'cancelled' && !r.legacy)) {
+    for (const c of rows.filter((r) => r.status === 'cancelled' && !r.legacy && !r.phase2)) {
       this.wallet
         .readRefundState(c.contractAddress, c.campaignId, null)
         .then(({ raised, released, pool }) => this.refundStates.update((s) => ({ ...s, [c.campaignId]: { raised, released, pool } })))
@@ -113,9 +123,35 @@ export class AdminEscrowComponent {
     return c.releasedBps >= 10_000;
   }
 
+  cancelDraft(campaignId: number): { ground: CancelGround; decision: string } {
+    return this.cancelDrafts()[campaignId] ?? { ground: 'none', decision: '' };
+  }
+
+  setCancelDraft(campaignId: number, patch: Partial<{ ground: CancelGround; decision: string }>): void {
+    this.cancelDrafts.update((d) => ({ ...d, [campaignId]: { ...this.cancelDraft(campaignId), ...patch } }));
+    this.confirmingCancel.set(null);
+  }
+
+  /** What the contract would accept. The earlier escrow has no grounds and
+   * refuses nothing, so §2.86's rule is applied here instead. Phase 2
+   * enforces it itself: without a ground a fully released campaign is
+   * refused, and a ground needs the hash of a written decision. */
+  cancelBlocked(c: LoadedCampaignRow): string | null {
+    if (!c.phase2) return this.fullyReleased(c) ? 'Fully released: nothing is left to refund, and cancelling would only mark a delivered project\'s tokens as cancelled.' : null;
+    const draft = this.cancelDraft(c.campaignId);
+    if (draft.ground === 'none') return this.fullyReleased(c) ? 'Fully released: only a legal ground can cancel it.' : null;
+    return draft.decision.trim() ? null : 'A legal ground needs the written decision; its hash is recorded on chain.';
+  }
+
+  /** keccak256 of the decision text as written. Keep that exact text: it is
+   * what proves which decision the on-chain hash refers to. */
+  decisionHash(decision: string): string {
+    return ethers.keccak256(ethers.toUtf8Bytes(decision.trim()));
+  }
+
   /** Two clicks on purpose: cancelling is irreversible on the contract. */
   async cancelCampaign(c: LoadedCampaignRow): Promise<void> {
-    if (this.fullyReleased(c)) return;
+    if (this.cancelBlocked(c)) return;
     if (this.confirmingCancel() !== c.campaignId) {
       this.confirmingCancel.set(c.campaignId);
       return;
@@ -124,7 +160,15 @@ export class AdminEscrowComponent {
     this.cancelling.set(c.campaignId);
     this.cancelResult.set(null);
     try {
-      const { explorerUrl } = await this.wallet.cancelCampaignOnchain({ contractAddress: c.contractAddress, campaignId: c.campaignId });
+      const draft = this.cancelDraft(c.campaignId);
+      const { explorerUrl } = c.phase2
+        ? await this.wallet.cancelCampaignWithGround({
+            contractAddress: c.contractAddress,
+            campaignId: c.campaignId,
+            ground: draft.ground,
+            decisionHash: draft.ground === 'none' ? ethers.ZeroHash : this.decisionHash(draft.decision)
+          })
+        : await this.wallet.cancelCampaignOnchain({ contractAddress: c.contractAddress, campaignId: c.campaignId });
       this.cancelResult.set({ campaignId: c.campaignId, explorerUrl });
       this.load();
     } catch (err: unknown) {

@@ -3,6 +3,18 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-09-17 · royalties e rimborsi di fase 2 nel backend e nel sito (§2.95)
+
+Nuova tabella `royalty_deposits` in `schema.js`: copia dei versamenti di royalty
+letti dalle ricevute on-chain, per lo storico nella pagina dell'asset.
+- **05 §3:** nuova riga. Qui sì c'è l'indirizzo wallet di chi versa (già
+  pubblico on-chain) e, facoltativo, il testo del rendiconto.
+I contratti della fase 2 restano **non** rivisti: le loro impronte in
+`reviewed-files.sha256` sono ancora le vecchie e `check.sh` continua a
+segnalarli. La revisione completa va fatta nella PR del redeploy. Il codice di
+backend e frontend riconosce da solo i contratti attuali e non cambia nulla
+finché il redeploy non c'è.
+
 ## 2026-09-17 · storico prezzi dei token (§2.94)
 
 Commit `94ae18f`. Nuove tabelle `token_trades` e `token_trade_scans` in
