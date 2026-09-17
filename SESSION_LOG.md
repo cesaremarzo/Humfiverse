@@ -1676,6 +1676,14 @@ Left for phase 2, in order:
    to the multisig, `setOperator(Founder)`;
 4. `legal/` review in the same PR (`check.sh` flags both contracts).
 
+*Update 17 Sep:* the registration work landed (`69558ff`), so step 2 is no
+longer blocked. Open for the user before the redeploy, besides step 1:
+**confirm that the unsold pool's royalty share goes to the artist's payout
+wallet** (the alternative: only sold tokens share, holders take 100%) — the
+code does the former, §2.92 "The pool's share". Merging these sources to
+`main` changes nothing live (nothing reads the new ABI yet), but `main` would
+then hold contract sources that differ from the deployed ones.
+
 
 ---
 
