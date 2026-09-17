@@ -183,6 +183,19 @@ async function initSchema() {
       PRIMARY KEY (token_contract, tx_hash, log_index)
     );
     CREATE INDEX IF NOT EXISTS royalty_deposits_token ON royalty_deposits (token_contract, token_id, block);
+    -- One row per answered assistant question (§2.100). Kept only to
+    -- enforce the per-IP and platform-wide caps on a paid API, and to show
+    -- what the widget has cost: no question, no answer and no wallet is
+    -- stored, only when a call was made and how many tokens it used.
+    CREATE TABLE IF NOT EXISTS assistant_requests (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ip TEXT,
+      created_at TEXT NOT NULL,
+      input_tokens INTEGER,
+      output_tokens INTEGER
+    );
+    CREATE INDEX IF NOT EXISTS assistant_requests_ip ON assistant_requests (ip, created_at);
+    CREATE INDEX IF NOT EXISTS assistant_requests_created ON assistant_requests (created_at);
     CREATE TABLE IF NOT EXISTS portfolio_snapshots (
       wallet TEXT NOT NULL,
       snapshot_date TEXT NOT NULL,

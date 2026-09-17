@@ -1,6 +1,6 @@
 # Informativa Privacy: bozza
 
-*Bozza del 2026-09-17: storico prezzi dal §2.94 (commit `94ae18f`); prima commit `cc06a70` con le modifiche dei §2.88 e §2.89; email di registrazione, immagini e video dal §2.93; file del rendiconto royalty dal §2.98. **Da far rivedere a un avvocato o a un
+*Bozza del 2026-09-17: storico prezzi dal §2.94 (commit `94ae18f`); prima commit `cc06a70` con le modifiche dei §2.88 e §2.89; email di registrazione, immagini e video dal §2.93; file del rendiconto royalty dal §2.98; guida automatica dal §2.100. **Da far rivedere a un avvocato o a un
 esperto privacy prima della pubblicazione.** Non è consulenza legale.*
 
 ## Note per chi usa questa bozza (da togliere prima di pubblicare)
@@ -65,6 +65,8 @@ resti pubblico in modo permanente.
 | **Email di registrazione** (§2.93): indirizzo, wallet a cui è collegato, data e ora della verifica, firma del wallet, IP della richiesta. Per ogni codice inviato: indirizzo, wallet, impronta SHA-256 del codice (non il codice), tentativi, IP, scadenza | Tu | Registrazione (`legal/08` C-11): contattarti sulle campagne che crei o sostieni, provare quando e da quale wallet l'indirizzo è stato verificato, limitare gli abusi dell'invio | Esecuzione del servizio (art. 6.1.b); legittimo interesse alla prova e alla sicurezza (art. 6.1.f) | Tabelle `registrations` e `email_verifications` (`server/data/schema.js`). Oggi **nessuna cancellazione automatica**: [durata del rapporto + 10 anni per la prova, 12 mesi per i codici non usati] **[verificare]**. L'indirizzo non è mostrato pubblicamente: `GET /api/registration/status/:wallet` dice solo sì/no |
 | **Immagine e video del brano** (§2.93) e firma del wallet sull'impronta SHA-256 del file | Tu | Pubblicare l'asset | Esecuzione del servizio | Sul nostro database solo il riferimento IPFS, tipo, dimensione, durata, data e wallet che ha caricato. I file su IPFS: finché restano fissati da Pinata; un file sostituito viene tolto da Pinata, ma copie già distribuite possono restare |
 | Login con Google, Apple o email (wallet integrato) | Tu, tramite thirdweb | Creare e ripristinare il tuo wallet integrato | Esecuzione del servizio | Trattati da thirdweb: vedi §5 |
+| **Guida automatica — conteggio delle domande** (`assistant_requests`, §2.100): indirizzo IP di chi chiede, data e ora, numero di token consumati dalla richiesta e dalla risposta. **Non salviamo né la domanda né la risposta**, e nessun wallet | Il tuo browser | Limitare gli abusi di un servizio a pagamento aperto a chiunque (15 domande/ora e 50/giorno per IP, più un tetto giornaliero di piattaforma) e sapere quanto costa | Legittimo interesse alla sicurezza e alla sostenibilità del servizio (art. 6.1.f) | Cancellazione automatica dopo **30 giorni** (`prune()` in `server/services/assistant.service.js`) |
+| **Guida automatica — testo della conversazione**, solo se la modalità generata è attiva su quel server: quello che scrivi nella chat e le risposte precedenti. Nelle risposte scritte (impostazione predefinita, senza chiave API) **non esce nulla dal browser** | Tu | Generare la risposta | Esecuzione del servizio (art. 6.1.b); legittimo interesse a offrire assistenza (art. 6.1.f) | **Non conservato da noi**: passa dal nostro server ad Anthropic e non viene scritto in nessuna tabella. Conservazione presso Anthropic: [secondo le sue politiche, di norma 30 giorni] **[verificare, 07 H4]**. I Termini (§12.3) chiedono di non scrivere dati personali nella chat |
 | Indirizzo IP, dati tecnici della richiesta | Il tuo browser | Sicurezza, funzionamento, prevenzione degli abusi | Legittimo interesse | Log dei fornitori: [secondo le loro politiche, di norma pochi giorni o settimane] |
 
 > **Chi vede l'esito della verifica.** Dal §2.89 l'indirizzo pubblico
@@ -105,6 +107,7 @@ titolari autonomi:
 | Alchemy Insights, Inc. | Accesso alla blockchain (RPC) | Wallet, IP del server | USA | [DPF / SCC] |
 | Pinata Cloud, Inc. | Pubblicazione su IPFS di audio, immagini e video dei brani | Audio, immagini, video, metadati | USA | [DPF / SCC] |
 | Brevo (Sendinblue SAS) | Invio delle email con il codice di verifica (§2.93) | Indirizzo email, testo del messaggio (codice) | Francia (UE) **[verificare la sede dei server]** | Responsabile del trattamento: serve l'accordo art. 28 (DPA di Brevo) |
+| Anthropic PBC (Claude) | Genera le risposte della guida automatica, solo dove la chiave API è configurata (§2.100) | Testo della conversazione con la guida e l'istruzione di sistema; **non inviamo wallet, email né il tuo IP** (la chiamata parte dal nostro server) | USA | [DPF / SCC]. Serve l'accordo art. 28 (DPA di Anthropic) e la verifica che i dati dell'API non siano usati per l'addestramento **[verificare, 07 H4]** |
 | GitHub (Pages) e Netlify | Hosting del sito | IP, user agent | USA | [DPF / SCC] |
 | Etherscan | Link di verifica delle transazioni (solo se li apri) | IP | [verificare] | Titolare autonomo |
 

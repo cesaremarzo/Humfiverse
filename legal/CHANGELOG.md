@@ -3,6 +3,38 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-09-17 · guida automatica sul sito (§2.100)
+
+Il sito ha un pulsante in basso a destra che apre una guida. Risponde con
+dodici argomenti scritti da noi (in tutte e nove le lingue) e, **solo dove è
+configurata una chiave API**, con risposte generate da Claude (Anthropic) a
+partire da `server/assistant-knowledge.js`. Nessun contratto è cambiato.
+
+Cosa cambia nei documenti:
+
+- **05** §3: due righe nuove. La tabella `assistant_requests` conserva IP, data
+  e ora e numero di token — **non la domanda, non la risposta, nessun wallet** —
+  e si cancella da sola dopo 30 giorni; è il primo trattamento del prototipo con
+  una conservazione automatica. Il testo della conversazione non è conservato da
+  noi ma, in modalità generata, esce verso Anthropic. §5: **Anthropic PBC** tra i
+  fornitori (USA), senza wallet, email né IP dell'utente.
+- **04** §12.2 e §12.3: la guida non è una persona, non è assistenza clienti,
+  non dà consulenza, può sbagliare, non chiede mai chiavi o seed phrase, e le
+  domande in modalità generata vengono inviate ad Anthropic — quindi niente dati
+  personali nella chat.
+- **01** §7 (nuovo fornitore extra-UE e primo dato con cancellazione automatica)
+  e §13 (la piattaforma ora **usa** un sistema di AI: trasparenza art. 50.1
+  dell'AI Act, dichiarata nel pannello e nei Termini).
+- **07** tre domande nuove: **A14 🟠** una risposta generata che suoni come
+  consiglio è consulenza in materia di investimenti? **F4 🟠** tiene la
+  limitazione di responsabilità se la guida informa male un consumatore?
+  **H4 🟠** DPA, base del trasferimento, addestramento e conservazione presso
+  Anthropic.
+- **check.sh** ora sorveglia `server/assistant-knowledge.js`: è il testo con cui
+  la piattaforma parla agli utenti, e se le commissioni o i ruoli cambiano deve
+  cambiare con loro.
+- **02** e **06** invariati: nessun contratto e nessun punto di pagamento toccati.
+
 ## 2026-09-17 · icone dell'app: nessuna risorsa esterna nuova (§2.99)
 
 `webapp/src/index.html` cambia (due `<link>` di icone: `icon-512.png` e

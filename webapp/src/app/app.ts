@@ -8,13 +8,14 @@ import { ToastWrapComponent } from './layout/toast-wrap.component';
 import { ConnectModalComponent } from './layout/connect-modal.component';
 import { BackdropComponent } from './layout/backdrop.component';
 import { RegistrationModalComponent } from './layout/registration-modal.component';
+import { AssistantComponent } from './layout/assistant.component';
 import { StoreService } from './core/store.service';
 import { WalletService } from './core/wallet.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, TopbarComponent, PilotBannerComponent, FooterComponent, ToastWrapComponent, ConnectModalComponent, BackdropComponent, RegistrationModalComponent],
+  imports: [RouterOutlet, TopbarComponent, PilotBannerComponent, FooterComponent, ToastWrapComponent, ConnectModalComponent, BackdropComponent, RegistrationModalComponent, AssistantComponent],
   templateUrl: './app.html'
 })
 export class App implements OnInit {

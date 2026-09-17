@@ -94,6 +94,7 @@ counsel. Not legal advice; not reviewed by a lawyer.
 **Keep it current in the same PR as the change.** Before opening a PR that
 touches the contracts, fees, Founder powers, refunds/cancellation, personal
 data or KYC, sign-in providers, `server/contract-template.js`,
+`server/assistant-knowledge.js` (what the guide widget tells users, §2.100),
 `webapp/src/index.html` external resources or `whitepaper/`, run
 `./legal/check.sh`. If it reports changes, follow
 `.claude/skills/legal-review/SKILL.md`. A change that makes a legal document

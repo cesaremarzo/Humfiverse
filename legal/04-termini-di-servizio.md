@@ -1,6 +1,6 @@
 # Termini di Servizio: bozza
 
-*Bozza del 2026-09-15, commit `82a7a1b`; §5.3 aggiornato il 2026-09-17 (ordine delle milestone); §5.7 il 2026-09-17 (chi versa le royalty e rendiconto, pubblicazione facoltativa, §2.98). **Da far rivedere a un avvocato prima
+*Bozza del 2026-09-15, commit `82a7a1b`; §5.3 aggiornato il 2026-09-17 (ordine delle milestone); §5.7 il 2026-09-17 (chi versa le royalty e rendiconto, pubblicazione facoltativa, §2.98); §12 il 2026-09-17 (guida automatica, §2.100). **Da far rivedere a un avvocato prima
 della pubblicazione.** Non è consulenza legale.*
 
 ## Note per chi usa questa bozza (da togliere prima di pubblicare)
@@ -310,8 +310,25 @@ possono derogare.
 
 ## 12. Nessuna consulenza
 
-Nulla sulla Piattaforma, whitepaper compreso, è consulenza finanziaria, legale
-o fiscale, né una raccomandazione a comprare o vendere.
+12.1. Nulla sulla Piattaforma, whitepaper compreso, è consulenza finanziaria,
+legale o fiscale, né una raccomandazione a comprare o vendere.
+
+12.2. **Guida automatica.** Il pulsante in basso a destra apre una guida
+automatica. Non è una persona e non è assistenza clienti: risponde con testi
+scritti da noi e, dove è attivata, con risposte generate da un sistema di
+intelligenza artificiale (Claude di Anthropic PBC). Lo dichiara nella propria
+intestazione e sotto ogni risposta generata. Vale il §12.1: non dà consulenza,
+non consiglia cosa comprare e non promette rendimenti. Le risposte generate
+possono essere **incomplete o sbagliate**: fanno testo la pagina dell'asset, i
+contratti on-chain e questi Termini, non la guida. La guida non compie
+operazioni al posto tuo e non ti chiederà mai la chiave privata, la seed phrase
+o una password: nessuno di Humfiverse lo farà mai.
+
+12.3. Quando la guida risponde in modalità generata, il testo della tua domanda
+e delle risposte precedenti è inviato ad Anthropic per produrre la risposta
+(informativa privacy, §3 e §5). Non scrivere nella guida dati personali,
+credenziali o informazioni riservate: per quel che serve al servizio ci sono i
+moduli, non la chat.
 
 ## 13. Modifiche, sospensione e chiusura
 

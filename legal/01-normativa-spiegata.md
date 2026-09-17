@@ -1,6 +1,6 @@
 # La normativa che riguarda Humfiverse, spiegata
 
-*Revisione del 2026-09-15, commit `82a7a1b`. Non è consulenza legale.*
+*Revisione del 2026-09-15, commit `82a7a1b`; §7 e §13 aggiornati il 2026-09-17 (guida automatica, §2.100). Non è consulenza legale.*
 
 Questo documento non ripete `planning/legal-regulatory-notes.md`, che resta la
 ricerca di partenza. Lo riorganizza in una mappa unica e aggiunge le aree che
@@ -261,6 +261,15 @@ e raccoglie dati adesso:**
   (`email_verifications`, con IP), inviati tramite **Brevo**. Stesso problema dei
   dati di verifica: nessun titolare, nessuna informativa definitiva, nessun
   termine di conservazione. La finestra di registrazione lo dice all'utente.
+- Dal §2.100 la guida automatica scrive una riga per ogni domanda a cui
+  risponde in modalità generata (`assistant_requests`): **IP, data e ora e
+  numero di token**, senza domanda, risposta né wallet, cancellata dopo 30
+  giorni. È il primo dato raccolto qui con una conservazione automatica:
+  è il modello da estendere alle altre tabelle. Il testo della conversazione
+  **non è conservato da noi**, ma viene inviato ad **Anthropic** (USA): un
+  fornitore extra-UE in più, e un trattamento di dati che l'utente scrive
+  liberamente, quindi imprevedibili. I Termini (§12.3) chiedono di non
+  scrivervi dati personali; l'avvertenza nel pannello lo ripete.
 - **Blockchain e IPFS non si cancellano.** Nome artista e titolo sono scritti
   on-chain (`artistName`, `trackTitle`) e l'audio è fissato su IPFS tramite
   Pinata. Il diritto alla cancellazione (art. 17) non si può esercitare su quei
@@ -382,6 +391,23 @@ trasparenza sui contenuti generati), applicabile dal 2 agosto 2026
 contratto e whitepaper prevedono una dichiarazione sull'uso di AI. È coerente con
 la direzione normativa. Resta da capire chi porta la responsabilità se la
 dichiarazione è falsa e un DSP smette di pagare i diritti.
+
+**Dal §2.100 la piattaforma usa essa stessa un sistema di AI**: la guida in
+basso a destra, dove è configurata una chiave API, fa scrivere le risposte a
+Claude (Anthropic). Due obblighi diversi, entrambi dell'art. 50:
+
+- *Trasparenza verso chi interagisce* (art. 50.1): la persona deve sapere che
+  sta parlando con un sistema di AI. Il pannello lo dichiara nell'intestazione
+  ("Assistente AI"), nel testo sotto ogni risposta generata e nel piè di
+  pagina; i Termini lo ripetono al §12.2. **[verificare che basti]**
+- *Marcatura dei contenuti generati* (art. 50.2): riguarda chi genera contenuti
+  sintetici destinati alla diffusione; una risposta di chat mostrata a chi l'ha
+  chiesta è un caso diverso **[verificare]**.
+
+Non è un sistema ad alto rischio dell'Allegato III: non valuta le persone e non
+decide nulla sul loro accesso al servizio. Il rischio concreto è un altro ed è
+di mercato, non di AI Act: una risposta generata che *suoni* come un consiglio
+di investimento (07 A14).
 
 ## 14. Responsabilità dei partecipanti (DAO e governance)
 

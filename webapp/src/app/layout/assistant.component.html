@@ -1,0 +1,96 @@
+<button
+  type="button"
+  class="assist-launcher"
+  [class.is-open]="assistant.open()"
+  [attr.aria-label]="(assistant.open() ? 'assistant.closeLabel' : 'assistant.openLabel') | translate"
+  [attr.aria-expanded]="assistant.open()"
+  aria-controls="assistant-panel"
+  (click)="toggle()">
+  <span class="assist-launcher-face">
+    @if (assistant.open()) {
+      <app-icon name="close"></app-icon>
+    } @else {
+      <svg class="assist-mark" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+        <line x1="24" y1="30" x2="24" y2="90" stroke="currentColor" stroke-width="8" stroke-linecap="round"/>
+        <line x1="42" y1="38" x2="42" y2="82" stroke="currentColor" stroke-width="8" stroke-linecap="round" opacity="0.85"/>
+        <line x1="60" y1="52" x2="60" y2="68" stroke="currentColor" stroke-width="8" stroke-linecap="round" opacity="0.7"/>
+        <line x1="78" y1="38" x2="78" y2="82" stroke="currentColor" stroke-width="8" stroke-linecap="round" opacity="0.85"/>
+        <line x1="96" y1="30" x2="96" y2="90" stroke="currentColor" stroke-width="8" stroke-linecap="round"/>
+      </svg>
+    }
+  </span>
+  <span class="assist-launcher-pill">{{ 'assistant.tip' | translate }}</span>
+</button>
+
+@if (assistant.open()) {
+  <section id="assistant-panel" class="assist-panel" role="dialog" aria-modal="false" aria-labelledby="assistant-title">
+    <header class="assist-head">
+      <div class="assist-head-text">
+        <h2 id="assistant-title">{{ 'assistant.title' | translate }}</h2>
+        <span class="assist-mode" [class.is-ai]="assistant.mode() === 'ai'">
+          {{ (assistant.mode() === 'ai' ? 'assistant.modeAi' : 'assistant.modeGuided') | translate }}
+        </span>
+      </div>
+      <button type="button" class="assist-icon-btn" [attr.aria-label]="'assistant.reset' | translate" [title]="'assistant.reset' | translate" (click)="assistant.reset()">
+        <app-icon name="plus"></app-icon>
+      </button>
+      <button type="button" class="assist-icon-btn" [attr.aria-label]="'assistant.closeLabel' | translate" (click)="assistant.close()">
+        <app-icon name="close"></app-icon>
+      </button>
+    </header>
+
+    <div class="assist-log" #log>
+      @for (message of assistant.messages(); track message.id) {
+        <div class="assist-row" [class.from-visitor]="message.from === 'visitor'">
+          <div class="assist-bubble" [class.is-visitor]="message.from === 'visitor'" [class.is-warning]="message.tone === 'warning'">
+            <p class="assist-text">@for (segment of message.segments; track $index) {@if (segment.route) {<a [routerLink]="segment.route" (click)="assistant.close()">{{ segment.text }}</a>} @else {{{ segment.text }}}}</p>
+            @if (message.route && message.routeLabel) {
+              <a class="assist-action" [routerLink]="message.route" (click)="assistant.close()">
+                {{ message.routeLabel | translate }}
+                <app-icon name="arrowRight"></app-icon>
+              </a>
+            }
+          </div>
+          @if (message.note) {
+            <p class="assist-note">{{ message.note }}</p>
+          }
+          @if (message.suggestions?.length) {
+            <div class="assist-chips">
+              @for (id of message.suggestions; track id) {
+                <button type="button" class="assist-chip" (click)="chip(id)">
+                  <app-icon [name]="topicIcon(id)"></app-icon>
+                  {{ 'assistant.kb.' + id + '.q' | translate }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
+      @if (assistant.busy()) {
+        <div class="assist-row">
+          <div class="assist-bubble assist-typing" [attr.aria-label]="'assistant.thinking' | translate">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <form class="assist-form" (submit)="$event.preventDefault(); submit()">
+      <input
+        #field
+        type="text"
+        class="assist-input"
+        [value]="draft()"
+        (input)="draft.set($any($event.target).value)"
+        [attr.placeholder]="(assistant.mode() === 'ai' ? 'assistant.placeholderAi' : 'assistant.placeholderGuided') | translate"
+        [attr.aria-label]="(assistant.mode() === 'ai' ? 'assistant.placeholderAi' : 'assistant.placeholderGuided') | translate"
+        maxlength="1000"
+        autocomplete="off" />
+      <button type="submit" class="assist-send" [disabled]="!draft().trim() || assistant.busy()" [attr.aria-label]="'assistant.send' | translate">
+        <app-icon name="arrowRight"></app-icon>
+      </button>
+    </form>
+
+    <p class="assist-foot">{{ (assistant.mode() === 'ai' ? 'assistant.footAi' : 'assistant.footGuided') | translate }}</p>
+  </section>
+}

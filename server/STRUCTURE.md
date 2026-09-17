@@ -76,7 +76,7 @@ deployment*, not a domain rule.
 |---|---|
 | `server.js` | Entry point, ~50 lines. Loads `.env`, initialises the schema, opens the port. Nothing else. |
 | `app.js` | Builds the request handler: parses the URL, answers CORS preflight, dispatches through the router, 404s the rest. Catches anything a route throws and turns it into a 500 instead of a hung request. |
-| `config.js` | Every environment-derived constant, read once: `PORT`, `ADMIN_API_KEY`, `TOKEN_METADATA_BASE`, and the `AUTH_JWT_*` trio (§2.83). |
+| `config.js` | Every environment-derived constant, read once: `PORT`, `ADMIN_API_KEY`, `TOKEN_METADATA_BASE`, the `AUTH_JWT_*` trio (§2.83), the Brevo trio (§2.93) and the `ANTHROPIC_*` pair with `ASSISTANT_DAILY_CAP` (§2.100). |
 
 ### `lib/` — framework-shaped plumbing
 
@@ -101,6 +101,7 @@ deployment*, not a domain rule.
 | `onchain.repo.js` | `onchain_tokens` | A **cache**, never the source of truth (§2.14). A miss means "not cached", not "no token". |
 | `escrow.repo.js` | `escrow_campaigns`, `escrow_studios` | Also caches, and only valid against the contract they were written for — which is why the admin reset endpoints exist. |
 | `listings.repo.js` | `marketplace_listings` | Listing ids only. The offer itself — price, seller, whether it is still open — is read off the contract. |
+| `assistant.repo.js` | `assistant_requests` | One row per answered guide question (§2.100): an IP, a timestamp and the two token counts, and nothing else. It exists so the caps on a paid, sign-in-free endpoint survive a restart. |
 | `indexer.repo.js` | `indexer_state`, `token_holders`, `token_holder_audit` | The resume cursor and its cross-process lease, the holder table, and the audit row that says whether that token's holdings were checked against supply (§2.70). |
 
 ### `services/` — domain logic
@@ -115,6 +116,7 @@ deployment*, not a domain rule.
 | `listings.service.js` | Resale: records the ids of on-chain listings and reads each one's live state back off `HumfiverseMarketplace`. No price or seller is ever taken from a request body (§2.62). |
 | `identity-jwt.service.js` | Signs RS256 JWTs that open a thirdweb in-app wallet from an identity this backend verified (§2.83), and publishes the public key. Not callable from any route yet: whatever calls it must have verified the person first. |
 | `fees.service.js` | Platform fees (§2.71, §2.72): reads the token's, the escrow's and the marketplace's own counters — accrued, lifetime total, recipient — and reports `unsupported`/`unavailable` with a reason instead of a zero when it cannot. |
+| `assistant.service.js` | The guide widget's free-text mode (§2.100): validates and trims the conversation, enforces the per-IP and platform caps, calls the Messages API with `assistant-knowledge.js` as the system prompt, and reports `available: false` where no key is set so the frontend keeps to its written topics. |
 | `indexer.service.js` | Who holds each token. `reconcile` is the authority — real balances from `balanceOf`, verified by `held + pool == totalSupply`; the eth_getLogs walk only follows movement between passes (§2.70). |
 
 ### `routes/` — one module per path prefix
@@ -136,12 +138,15 @@ deployment*, not a domain rule.
 | `holders.routes.js` | `GET /api/holders`, `GET /api/holders/:assetId`, `GET /api/indexer/status`, and the admin reconcile/reindex/step trio |
 | `fees.routes.js` | `GET /api/fees`. No withdrawal route: `withdrawFees()` is sent from a wallet on the admin page (§2.71) |
 | `admin.routes.js` | The three `X-Admin-Key` reset endpoints, all of which exist because of contract redeploys |
+| `assistant.routes.js` | `GET /api/assistant/status`, `POST /api/assistant/ask`, and the admin-only `GET /api/assistant/usage` (§2.100) |
 
 ### Not part of the split
 
 `db.js`, `chain.js`, `chainEscrow.js`, `chainRetry.js`, `chainUnits.js` (§2.73: which currency a contract's amounts are in, converting ETH-era wei to USDC base units), `pinata.js`,
 `contract-template.js` and `seed-data.js` were already single-purpose
-modules and were left exactly as they were.
+modules and were left exactly as they were. `assistant-knowledge.js`
+joins them as a content module of the same kind: everything the guide
+assistant is allowed to say (§2.100), imported only by its service.
 
 ---
 

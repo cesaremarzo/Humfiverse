@@ -2040,3 +2040,159 @@ view that an authorization is almost certainly needed.
   rebuilt from `webapp/art-src/og-cover.html`. `legal/check.sh` clean again after
   recording `index.html` (icons are self-hosted; nothing legal changed).
 
+
+## 2026-09-17 (sera, 3) — growth: which campaigns and channels (no code)
+
+Request: *"sei il growth hacker di humfiverse, quali campagne sarebbero
+necessarie per la crescita del business di humfiverse? attraverso quali canali
+potremmo guadagnare popolarità e visibilità"*. Strategy only — **nothing in the
+repo changed** except this entry.
+
+The answer was built on the constraint the repo already records, not on generic
+marketing: Sepolia + no legal vehicle (whitepaper Phase 0 "not started") +
+`legal/07` A2/G2 (does the public whitepaper already read as promotion of an
+offering — abusivismo, art. 166 TUF) mean **no "invest" and no yield language
+until Phase 0 is real**. Growth until then = artists, waitlist, credibility.
+
+Eight campaigns, in priority order:
+1. **Founding Artists** — 20–30 independent Italian artists with a demo ready,
+   contacted one by one (IG/TikTok, SoundCloud, Bandcamp, CPM, Saint Louis).
+   Any fee discount needs Cesare first: it touches the 2/3/1% decisions.
+2. **Studio partner programme** — studios are already escrow participants and
+   each carries dozens of artists; B2B in Milano/Roma/Bologna with a Sepolia demo.
+3. **"The anti-PledgeMusic"** — per-campaign segregated escrow, dual artist+
+   studio confirmation, 2-of-3 Safe, all checkable on Etherscan. Build-in-public
+   on X/LinkedIn; RWA/Web3 audience.
+4. **Documented human production (PR)** — TIDAL demonetising fully-AI tracks,
+   ~$2B/yr streaming fraud. Rockit, Billboard Italia, RS Italia; The Block,
+   Decrypt. Always "reduces exposure", never "guarantees" (whitepaper wording).
+5. **Educational content/SEO** — "quanto paga Spotify", "finanziare un disco
+   senza etichetta", "cos'è un escrow". Same audience as campaign 1.
+6. **Public testnet demo** — full flow in test USDC; finds bugs, doubles as
+   sales material for studios.
+7. **Ethereum ecosystem** — ETHMilan/ETHRome, RWA grants, accelerators.
+8. **Pilot launch (only after Phase 0)** — one artist with a real following,
+   run as an event, with an artist kit so they bring the audience.
+
+Ruled out on purpose: paid Meta/Google ads (financial/crypto ad authorisation,
+legal risk), financial influencers (CONSOB/AGCOM), and points or airdrops
+convertible into future value — that is exactly the expectation-of-value problem.
+
+North-star metric proposed: **campaigns carried through to a released track**,
+not funds raised and not sign-ups.
+
+### Next session
+
+- Open item for Cesare: ask counsel to approve one standard line
+  ("piattaforma in sviluppo, nessuna offerta attiva") to use on every channel
+  before any of this goes out.
+- Offered but not done: a shareable document version of the plan for the
+  Co-founder, and a deeper pass on the artist-facing message or a content
+  calendar. Nothing was written to `planning/`.
+- Earlier handoff items (phase 2 verification, whitepaper W-16…W-19, Safe signer
+  mapping, cancellation procedure) are unchanged by this session.
+
+---
+
+## 2026-09-17 (sera, 3) — grafica renderizzata e logo invertito, in `main` (§2.99)
+
+Two requests from Cesare, as graphic designer: make the §2.91 background elements
+more realistic and add more images; then invert the logo (from a sketch) and
+replace Angular's purple "A" favicon with the mark in white.
+
+**Both are on `main`.** The art went in with PR #69 (Cesare merged it himself at
+19:44, so phase 2 went live in the same merge); the logo and icons followed as
+**PR #70**, cherry-picked onto `main` in a `git worktree` because #69 had already
+carried the rest. Verified live: bundle `main-BXEYQLPM.js` on Pages, new
+`favicon.ico` (5383 B), `icon-512.png`/`apple-touch-icon.png` 200, and the
+production API reads the phase 2 token `0xa619…82EF` with both campaigns
+`legacy: true`.
+
+- Eight WebP images rendered procedurally in `webapp/art-src/` (numpy + Pillow,
+  fixed seed): vinyl + spinning label, coins (face/tilted/stack), studio
+  microphone, VU meter, film grain; `favicon.py` for the icons and
+  `og-cover.html` for the social card. No stock images, no extra fonts.
+- Backdrop: real record (only the label turns, the highlight stays with the
+  light), coin note heads, coins at three depths of field, glass candles, grain.
+  Landing: mic and coin stack break out of the two panels, VU meter beside
+  "project status".
+- Logo: nine bars **tall at the edges, short in the middle**, opacity following
+  height — topbar, landing logo and hero equaliser, vinyl label, both icon
+  sources. Change all five together.
+- `legal/`: only `index.html` changed (two self-hosted icon links), so Google
+  Fonts stays the single external resource and no legal conclusion moved;
+  recorded in `legal/CHANGELOG.md`, `./legal/check.sh` clean.
+
+### Next session
+
+- Re-render rather than hand-edit anything in `webapp/public/assets/art/`; the
+  README in `webapp/art-src/` has the exact commands.
+- Still open from earlier handoffs, untouched here: whitepaper W-16…W-19, Safe
+  signer mapping in `CLAUDE.md`, cancellation procedure/takedown (§2.87), the
+  `NONE` cancel ground (02 C-2), custody doc for the Safe keys, and the counsel
+  line for marketing.
+- Another session was mid-work on an "assistant" feature (uncommitted files in
+  `server/` and `webapp/src/app/layout/assistant.*`) in this shared checkout.
+
+## 2026-09-17 (sera, 3) — phase 2 live; email registration on
+
+PR #69 merged after Cesare set the five `CHAIN_*` variables on Render. Verified
+live: new bundle on GitHub Pages, `honest-man-595` on the new token, royalties
+`supported: true` on both tokens, both finished campaigns read from the legacy
+escrow, wallet `0x4ee9…6cd4` holding 5 + 20 tokens.
+
+Then Brevo: the key first pasted was an SMTP key (`xsmtpsib-`, rejected by the
+v3 API) and the variable had been named `BREVO_API_KEYS`. With
+`BREVO_API_KEY`/`EMAIL_FROM`/`EMAIL_FROM_NAME` set, `/api/registration/status`
+reports `required: true` and Cesare completed a real email verification on the
+live site (§2.93, first time tested for real).
+
+Not tested live yet: a real royalty deposit with a statement file on Pinata
+(§2.98). Still open: the per-token deposit interval (legal 08 C-12), counsel
+question 07 A12.
+
+---
+
+## 2026-09-17 (sera, 4) — guida/chat bot sul sito (§2.100)
+
+Request: *"integriamo un chat bot sulla piataforma (un pulsante bello
+graficamente nello stile del sito in basso a destra) per guidare gli utenti
+nell'utilizzo"*. Asked which engine; Cesare chose the **hybrid**: one widget,
+written answers by default, Claude where a key is configured.
+
+**On `dev/cesare`, PR open, not merged** — a feature, needs Cesare's go-ahead.
+
+- Button bottom-right: the inverted nine-bar mark on the brand gradient, bars
+  lifting like a meter on hover, `inset-inline-end` so Arabic flips it. Panel in
+  the site's glass, light and dark, full width under 560px. Toasts moved up to
+  `bottom: 92px` so they never land on it.
+- **Twelve written topics** in all nine locales (60 new keys each, parity 737):
+  what it is, wallet, buying, campaigns, milestones, royalties, resale, fees,
+  verification, artists, studios, risks. Free text is matched against the
+  locale's own keywords; no match means it says so instead of guessing.
+- **AI mode** only if `ANTHROPIC_API_KEY` is set on the backend
+  (`server/assistant-knowledge.js` is the brief, `claude-opus-5` by default).
+  The header chip says which mode is live, and every bubble says whether the
+  text was written by us or generated. Failure — no key, rate limit, refusal,
+  server down — falls back to the closest written topic with a one-line reason.
+- Caps: 15/hour and 50/day per IP, `ASSISTANT_DAILY_CAP` 300 platform-wide,
+  counted in `assistant_requests` (IP, timestamp, token counts; no question, no
+  answer, no wallet; pruned after 30 days). Admin `GET /api/assistant/usage`.
+- `legal/`: 05 §3 and §5, 04 §12.2-12.3, 01 §7 and §13 (AI Act art. 50), new
+  questions **A14, F4, H4**. `check.sh` now watches `assistant-knowledge.js`,
+  and the legal-review skill's fee row now lists the guide's fee strings.
+- Verified under CDP (guided answers, matching, no-match, AI reply and its
+  links, typing, rate-limited fallback) and with a stubbed-`fetch` test of the
+  service. **Not yet run against a real API key** — needs one from Cesare.
+
+**Watch out:** another session was editing this same checkout all evening
+(§2.101, the 6%/1% fee change: contracts, `asset-detail`, `legal/01/02/04/07`,
+the i18n fee strings). Every commit here was staged hunk by hunk to keep that
+work out, and `docs/` was rebuilt from a clean worktree at `783221a` for the
+same reason. **When §2.101 lands, the guide's fee answers must change with it**
+— `server/assistant-knowledge.js` and `assistant.kb.fees.*` / `assistant.kb.buy.*`
+in nine locales still say 2%.
+
+**Next:** set `ANTHROPIC_API_KEY` (and optionally `ANTHROPIC_MODEL`,
+`ASSISTANT_DAILY_CAP`) on Render if the AI mode is wanted in production, then
+merge the PR and check the live bundle and `/api/assistant/status`.
