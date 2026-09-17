@@ -1,0 +1,1 @@
+import{x as Rt}from"./chunk-tBgelQpR.js";async function a(o,t){return await o({method:`eth_getStorageAt`,params:[Rt(t.address),t.position,t.blockTag??`latest`]})}export{a as t};

@@ -1,0 +1,1 @@
+import{ml as je}from"./chunk-tBgelQpR.js";function c(t){return je(...t)}export{c as t};
