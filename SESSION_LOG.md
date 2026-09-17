@@ -1841,8 +1841,11 @@ Open before the redeploy:
 1. **Multisig — decided 17 Sep:** after the explanation of what `owner()`
    controls, the user accepted a **2-of-3 Safe** held by Cesare, Vincenzo and a
    third key kept offline as backup; **no artists among the signers** (they
-   confirm only their own milestones). Needed before deploying: the three
-   signer addresses and who creates the Safe.
+   confirm only their own milestones). **Created 17 Sep:** Safe
+   `0xBA2ad0Ca063092E350f1427dd86F7E9C8730245d` on Sepolia ("Humfiverse Owner
+   (Sepolia)"), v1.4.1, threshold 2, signers `0xF7bad515…B3BD`,
+   `0xE57ECed0…dB62`, `0x4878dC27…0F76` (Cesare's new signer account,
+   Co-founder, offline backup — mapping to confirm). Founder is not a signer.
 2. Redeploy (`contract-redeploy` skill), restore state, `setOperator`.
 3. `legal/` review of both contracts in that PR.
 
