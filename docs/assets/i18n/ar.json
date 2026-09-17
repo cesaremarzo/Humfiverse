@@ -507,6 +507,7 @@
   "artistMilestones.confirmError": "تعذّر تأكيد المرحلة.",
   "escrowStatus.released": "تم التحرير",
   "escrowStatus.notEnoughRaised": "المبلغ المجمَّع لا يزال غير كافٍ",
+  "escrowStatus.waitingOnPrevious": "بانتظار صرف المرحلة {{n}}",
   "escrowStatus.studio.waitingOnYou": "بانتظارك — الفنان أكّد بالفعل",
   "escrowStatus.studio.waitingOnArtist": "لقد أكّدت — بانتظار الفنان",
   "escrowStatus.studio.waitingOnBoth": "بانتظارك وبانتظار الفنان",

@@ -507,6 +507,7 @@
   "artistMilestones.confirmError": "マイルストーンを確認できませんでした。",
   "escrowStatus.released": "解放済み",
   "escrowStatus.notEnoughRaised": "まだ調達額が不足しています",
+  "escrowStatus.waitingOnPrevious": "マイルストーン {{n}} の解放待ち",
   "escrowStatus.studio.waitingOnYou": "あなたの確認待ち — アーティストはすでに確認済み",
   "escrowStatus.studio.waitingOnArtist": "確認しました — アーティストの確認待ち",
   "escrowStatus.studio.waitingOnBoth": "あなたとアーティストの確認待ち",

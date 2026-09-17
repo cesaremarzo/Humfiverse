@@ -507,6 +507,7 @@
   "artistMilestones.confirmError": "Impossible de confirmer le jalon.",
   "escrowStatus.released": "Libéré",
   "escrowStatus.notEnoughRaised": "Collecte encore insuffisante",
+  "escrowStatus.waitingOnPrevious": "En attente de la libération de l’étape {{n}}",
   "escrowStatus.studio.waitingOnYou": "En attente de vous — l'artiste a déjà confirmé",
   "escrowStatus.studio.waitingOnArtist": "Vous avez confirmé — en attente de l'artiste",
   "escrowStatus.studio.waitingOnBoth": "En attente de vous et de l'artiste",

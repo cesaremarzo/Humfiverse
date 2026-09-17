@@ -79,6 +79,12 @@ export class ArtistMilestonesComponent {
     return m.fundedEnough ?? BigInt(raised) >= BigInt(m.amountUsdc);
   }
 
+  /** Tranches release in the order the artist set them (§2.96): a milestone
+   * waits until the one before it is released, however much is raised. */
+  waitingOnPrevious(c: LoadedCampaignRow, m: EscrowMilestone): boolean {
+    return !m.released && m.index > 0 && !c.milestones[m.index - 1].released;
+  }
+
   statusKey(m: LoadedCampaignRow['milestones'][number]): string {
     if (m.released) return 'escrowStatus.released';
     if (!m.artistConfirmed && !m.studioConfirmed) return 'escrowStatus.artist.waitingOnBoth';

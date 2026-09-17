@@ -507,6 +507,7 @@
   "artistMilestones.confirmError": "Не удалось подтвердить этап.",
   "escrowStatus.released": "Выпущено",
   "escrowStatus.notEnoughRaised": "Пока собрано недостаточно",
+  "escrowStatus.waitingOnPrevious": "Ожидает выплаты по этапу {{n}}",
   "escrowStatus.studio.waitingOnYou": "Ожидает вас — артист уже подтвердил",
   "escrowStatus.studio.waitingOnArtist": "Вы подтвердили — ожидает артиста",
   "escrowStatus.studio.waitingOnBoth": "Ожидает вас и артиста",

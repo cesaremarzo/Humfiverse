@@ -507,6 +507,7 @@
   "artistMilestones.confirmError": "No se pudo confirmar el hito.",
   "escrowStatus.released": "Liberado",
   "escrowStatus.notEnoughRaised": "Recaudación aún insuficiente",
+  "escrowStatus.waitingOnPrevious": "A la espera de que se libere el hito {{n}}",
   "escrowStatus.studio.waitingOnYou": "Esperando tu confirmación — el artista ya confirmó",
   "escrowStatus.studio.waitingOnArtist": "Confirmaste — esperando al artista",
   "escrowStatus.studio.waitingOnBoth": "Esperando a ti y al artista",
