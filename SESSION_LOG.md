@@ -2040,3 +2040,54 @@ view that an authorization is almost certainly needed.
   rebuilt from `webapp/art-src/og-cover.html`. `legal/check.sh` clean again after
   recording `index.html` (icons are self-hosted; nothing legal changed).
 
+
+## 2026-09-17 (sera, 3) — growth: which campaigns and channels (no code)
+
+Request: *"sei il growth hacker di humfiverse, quali campagne sarebbero
+necessarie per la crescita del business di humfiverse? attraverso quali canali
+potremmo guadagnare popolarità e visibilità"*. Strategy only — **nothing in the
+repo changed** except this entry.
+
+The answer was built on the constraint the repo already records, not on generic
+marketing: Sepolia + no legal vehicle (whitepaper Phase 0 "not started") +
+`legal/07` A2/G2 (does the public whitepaper already read as promotion of an
+offering — abusivismo, art. 166 TUF) mean **no "invest" and no yield language
+until Phase 0 is real**. Growth until then = artists, waitlist, credibility.
+
+Eight campaigns, in priority order:
+1. **Founding Artists** — 20–30 independent Italian artists with a demo ready,
+   contacted one by one (IG/TikTok, SoundCloud, Bandcamp, CPM, Saint Louis).
+   Any fee discount needs Cesare first: it touches the 2/3/1% decisions.
+2. **Studio partner programme** — studios are already escrow participants and
+   each carries dozens of artists; B2B in Milano/Roma/Bologna with a Sepolia demo.
+3. **"The anti-PledgeMusic"** — per-campaign segregated escrow, dual artist+
+   studio confirmation, 2-of-3 Safe, all checkable on Etherscan. Build-in-public
+   on X/LinkedIn; RWA/Web3 audience.
+4. **Documented human production (PR)** — TIDAL demonetising fully-AI tracks,
+   ~$2B/yr streaming fraud. Rockit, Billboard Italia, RS Italia; The Block,
+   Decrypt. Always "reduces exposure", never "guarantees" (whitepaper wording).
+5. **Educational content/SEO** — "quanto paga Spotify", "finanziare un disco
+   senza etichetta", "cos'è un escrow". Same audience as campaign 1.
+6. **Public testnet demo** — full flow in test USDC; finds bugs, doubles as
+   sales material for studios.
+7. **Ethereum ecosystem** — ETHMilan/ETHRome, RWA grants, accelerators.
+8. **Pilot launch (only after Phase 0)** — one artist with a real following,
+   run as an event, with an artist kit so they bring the audience.
+
+Ruled out on purpose: paid Meta/Google ads (financial/crypto ad authorisation,
+legal risk), financial influencers (CONSOB/AGCOM), and points or airdrops
+convertible into future value — that is exactly the expectation-of-value problem.
+
+North-star metric proposed: **campaigns carried through to a released track**,
+not funds raised and not sign-ups.
+
+### Next session
+
+- Open item for Cesare: ask counsel to approve one standard line
+  ("piattaforma in sviluppo, nessuna offerta attiva") to use on every channel
+  before any of this goes out.
+- Offered but not done: a shareable document version of the plan for the
+  Co-founder, and a deeper pass on the artist-facing message or a content
+  calendar. Nothing was written to `planning/`.
+- Earlier handoff items (phase 2 verification, whitepaper W-16…W-19, Safe signer
+  mapping, cancellation procedure) are unchanged by this session.
