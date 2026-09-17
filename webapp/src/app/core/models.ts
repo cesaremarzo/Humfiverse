@@ -226,9 +226,12 @@ export interface RoyaltyDeposit {
   explorerUrl: string;
   depositor: string;
   amountUsdc: string;
+  /** SHA-256 of the statement file (§2.98). */
   statementRef: string;
-  /** The text whose hash is `statementRef`, when the depositor reported it. */
-  statement: string | null;
+  /** ipfs:// link to the file whose SHA-256 is `statementRef`, once published. */
+  statementUri: string | null;
+  statementMime: string | null;
+  statementBytes: number | null;
   block: number;
   depositedAt: string;
 }

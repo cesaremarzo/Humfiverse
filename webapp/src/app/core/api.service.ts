@@ -134,8 +134,16 @@ export class ApiService {
 
   /** Adds a deposit to the history. The server reads the receipt, so this
    * only works for a deposit that really happened. */
-  recordRoyaltyDeposit(txHash: string, statement: string | null): Promise<{ recorded: unknown[] }> {
-    return firstValueFrom(this.http.post<{ recorded: unknown[] }>(`${this.base}/api/royalties/deposits`, { txHash, statement }));
+  recordRoyaltyDeposit(txHash: string): Promise<{ recorded: unknown[] }> {
+    return firstValueFrom(this.http.post<{ recorded: unknown[] }>(`${this.base}/api/royalties/deposits`, { txHash }));
+  }
+
+  /** Publishes a deposit's statement file (§2.98). The server accepts only
+   * the file whose SHA-256 the deposit wrote on chain. */
+  uploadRoyaltyStatement(txHash: string, file: Blob): Promise<{ statementRef: string; uri: string; mime: string; bytes: number }> {
+    return firstValueFrom(
+      this.http.post<{ statementRef: string; uri: string; mime: string; bytes: number }>(`${this.base}/api/royalties/deposits/${encodeURIComponent(txHash)}/statement`, file)
+    );
   }
 
   mintOnchainToken(payload: { assetId: string; slug: string; supply: number; fundingUsdc: string; payoutWallet?: string; directSale: boolean; title?: string; artist?: string; launch: LaunchAuthorization }): Promise<OnchainMintResult> {

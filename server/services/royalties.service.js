@@ -9,26 +9,23 @@
  * The one thing it keeps is the deposit history, because listing past
  * RoyaltiesDeposited events would mean the full-history eth_getLogs scan
  * §2.39 rules out. The wallet that deposits reports its transaction hash;
- * the receipt is the proof, so the endpoint needs no authentication. */
+ * the receipt is the proof, so the endpoint needs no authentication.
+ *
+ * It also publishes each deposit's statement file (§2.98). The statementRef
+ * on chain is the file's SHA-256, so the file is its own authorization:
+ * only the exact bytes the depositor committed to are accepted. */
 
-const { ethers } = require("ethers");
 const chain = require("../chain");
 const onchainRepo = require("../data/onchain.repo");
 const royaltiesRepo = require("../data/royalties.repo");
+const pinata = require("../pinata");
+const { statementRefOf, checkStatementFile } = require("../lib/statement-file");
 
 const TX_HASH_PATTERN = /^0x[0-9a-fA-F]{64}$/;
 const WALLET_PATTERN = /^0x[0-9a-fA-F]{40}$/;
-/** Long enough for "DistroKid statement, August 2026 (ref 88213)". */
-const MAX_STATEMENT_LENGTH = 200;
 
 function fail(code, message) {
   return Object.assign(new Error(message), { code });
-}
-
-/** The statementRef a statement text is written on chain as. The frontend
- * computes the same hash before depositing. */
-function statementRefOf(statement) {
-  return ethers.keccak256(ethers.toUtf8Bytes(statement));
 }
 
 /** An asset's royalty totals, its deposit history and, when `wallet` is
@@ -57,36 +54,61 @@ async function royaltiesForAsset(assetId, wallet) {
       depositor: r.depositor,
       amountUsdc: r.amount_usdc,
       statementRef: r.statement_ref,
-      statement: r.statement,
+      statementUri: r.statement_uri,
+      statementMime: r.statement_mime,
+      statementBytes: r.statement_bytes,
       block: r.block,
       depositedAt: r.deposited_at
     }))
   };
 }
 
-/** Records the deposits a transaction made. `statement` is stored only on
- * the deposits whose on-chain statementRef is its hash, so nobody can
- * attach a description the depositor did not commit to. */
-async function recordDeposit(txHash, statement) {
+/** The RoyaltiesDeposited logs of `txHash`, read from its receipt. */
+async function depositsInTx(txHash) {
   if (!TX_HASH_PATTERN.test(String(txHash))) throw fail("invalid", "txHash must be a 32-byte hex transaction hash");
-  if (statement != null && (typeof statement !== "string" || statement.length > MAX_STATEMENT_LENGTH)) {
-    throw fail("invalid", `statement must be a string of at most ${MAX_STATEMENT_LENGTH} characters`);
-  }
   if (!(await chain.royaltiesSupported())) throw fail("unsupported", "the configured token contract does not pay royalties");
-
   const deposits = await chain.getRoyaltyDepositsFromTx(txHash);
   if (deposits === null) throw fail("not_found", "transaction not found or not successful yet");
   if (!deposits.length) throw fail("invalid", "transaction contains no royalty deposit on this token contract");
+  return deposits;
+}
 
-  const ref = statement ? statementRefOf(statement) : null;
+/** Records the deposits a transaction made. */
+async function recordDeposit(txHash) {
+  const deposits = await depositsInTx(txHash);
   const recorded = [];
   for (const d of deposits) {
     const token = await onchainRepo.findTokenByTokenId(d.tokenId);
-    const row = { ...d, statement: ref && ref === d.statementRef ? statement : null };
-    await royaltiesRepo.saveDeposit(chain.CONTRACT_ADDRESS, row);
-    recorded.push({ ...row, assetId: token ? token.asset_id : null });
+    await royaltiesRepo.saveDeposit(chain.CONTRACT_ADDRESS, d);
+    recorded.push({ ...d, assetId: token ? token.asset_id : null });
   }
   return { recorded };
+}
+
+/** Publishes the statement file of the deposits in `txHash` whose
+ * statementRef is the file's SHA-256: pinned to IPFS, linked from the
+ * deposit history. Anyone may send it, since only the committed bytes
+ * match. Sending it again returns the link already stored. */
+async function attachStatement(txHash, buffer) {
+  const { mime, extension } = checkStatementFile(buffer);
+  const deposits = await depositsInTx(txHash);
+  const ref = statementRefOf(buffer);
+  const matching = deposits.filter((d) => d.statementRef.toLowerCase() === ref);
+  if (!matching.length) throw fail("invalid", "this file's SHA-256 is not the statementRef of any deposit in the transaction");
+
+  for (const d of matching) await royaltiesRepo.saveDeposit(chain.CONTRACT_ADDRESS, d);
+  const existing = await royaltiesRepo.statementFileOf(chain.CONTRACT_ADDRESS, ref);
+  if (existing) {
+    for (const d of matching) await royaltiesRepo.setStatementFile(chain.CONTRACT_ADDRESS, d, existing);
+    return { statementRef: ref, ...existing };
+  }
+
+  if (!pinata.uploadsEnabled()) throw fail("disabled", "uploads are disabled on this server (no Pinata key configured)");
+  // Named by hash, not by the depositor's filename: the name is public too.
+  const uri = await pinata.uploadFile(buffer, `royalty-statement-${ref.slice(2, 18)}.${extension}`);
+  const file = { uri, mime, bytes: buffer.length };
+  for (const d of matching) await royaltiesRepo.setStatementFile(chain.CONTRACT_ADDRESS, d, file);
+  return { statementRef: ref, ...file };
 }
 
 /** Every token `wallet` can claim royalties on, including tokens it no
@@ -106,4 +128,4 @@ async function claimableForWallet(wallet) {
   return { supported: true, contractAddress: chain.CONTRACT_ADDRESS, claimable: rows.filter((r) => BigInt(r.claimableUsdc) > 0n) };
 }
 
-module.exports = { royaltiesForAsset, recordDeposit, claimableForWallet, statementRefOf, MAX_STATEMENT_LENGTH };
+module.exports = { royaltiesForAsset, recordDeposit, attachStatement, claimableForWallet };

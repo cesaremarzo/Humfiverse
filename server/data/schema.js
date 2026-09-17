@@ -165,8 +165,8 @@ async function initSchema() {
     -- Royalty deposits on the token (§2.92), for the history on the asset
     -- page. A cache of RoyaltiesDeposited logs, keyed by the log that proves
     -- each one and scoped by token contract, like token_trades. The
-    -- statement text is kept only when its hash is the statementRef the
-    -- depositor wrote on chain.
+    -- statement file (§2.98) is linked only once its SHA-256 matched the
+    -- statementRef the depositor wrote on chain.
     CREATE TABLE IF NOT EXISTS royalty_deposits (
       token_contract TEXT NOT NULL,
       tx_hash TEXT NOT NULL,
@@ -175,7 +175,9 @@ async function initSchema() {
       depositor TEXT NOT NULL,
       amount_usdc TEXT NOT NULL,
       statement_ref TEXT NOT NULL,
-      statement TEXT,
+      statement_uri TEXT,
+      statement_mime TEXT,
+      statement_bytes INTEGER,
       block INTEGER NOT NULL,
       deposited_at TEXT NOT NULL,
       PRIMARY KEY (token_contract, tx_hash, log_index)
@@ -202,6 +204,15 @@ async function initSchema() {
     await db.exec("ALTER TABLE indexer_state ADD COLUMN locked_until INTEGER NOT NULL DEFAULT 0;");
   } catch {
     /* column already exists — fine */
+  }
+  // royalty_deposits kept a statement text before statement files (§2.98);
+  // the old column stays, unused.
+  for (const column of ["statement_uri TEXT", "statement_mime TEXT", "statement_bytes INTEGER"]) {
+    try {
+      await db.exec(`ALTER TABLE royalty_deposits ADD COLUMN ${column};`);
+    } catch {
+      /* column already exists — fine */
+    }
   }
 }
 

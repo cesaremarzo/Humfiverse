@@ -527,13 +527,13 @@ export class WalletService {
   }
 
   /** Deposits `amountUsdc` of royalty income for `tokenId`, after approving
-   * exactly that amount. `statementRef` is the hash of the statement text,
-   * which ties the deposit to the income it pays out. */
-  async depositRoyaltiesOnchain(params: { contractAddress: string; tokenId: number; amountUsdc: bigint; statement: string }):
+   * exactly that amount. `statementRef` is the SHA-256 of the statement
+   * file (§2.98), which ties the deposit to the income it pays out. */
+  async depositRoyaltiesOnchain(params: { contractAddress: string; tokenId: number; amountUsdc: bigint; statementRef: string }):
     Promise<{ txHash: string; explorerUrl: string }> {
     await this.ensureUsdc(params.contractAddress, params.amountUsdc);
     const contract = await this.signerFor(params.contractAddress, ROYALTY_ABI);
-    const tx = await contract['depositRoyalties'](params.tokenId, params.amountUsdc, ethers.keccak256(ethers.toUtf8Bytes(params.statement)));
+    const tx = await contract['depositRoyalties'](params.tokenId, params.amountUsdc, params.statementRef);
     const receipt = await tx.wait();
     if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
     return { txHash: tx.hash, explorerUrl: `${EXPLORER_BASE}/tx/${tx.hash}` };
