@@ -2033,3 +2033,10 @@ Follow-up, same evening: the user made publishing the statement **optional**
 statement", on by default; the hash always goes on chain. `legal/`: 08 A-8
 point 3-bis, I4 lowered to 🟢 (no known prohibition), A12 records the user's
 view that an authorization is almost certainly needed.
+- Same session, after a sketch from Cesare: the nine-bar logo is **inverted**
+  (tall at the edges, short in the middle) everywhere it appears, and the browser
+  icon is now the mark in white on the brand gradient (`favicon.ico` +
+  `apple-touch-icon` + `icon-512`), not Angular's purple "A". `og-cover.png`
+  rebuilt from `webapp/art-src/og-cover.html`. `legal/check.sh` clean again after
+  recording `index.html` (icons are self-hosted; nothing legal changed).
+
