@@ -27,6 +27,63 @@ export interface ConnectResult {
   /** The user closed the sign-in dialog without choosing anything. */
   cancelled?: boolean;
   popupBlocked?: boolean;
+  /** The browser wallet never answered — typically two extensions both
+   * claiming window.ethereum, where the one in front hangs. */
+  timedOut?: boolean;
+}
+
+/** A browser-extension wallet the page can talk to. Found through EIP-6963,
+ * where every installed wallet announces its own provider, instead of
+ * trusting window.ethereum: with Phantom and MetaMask both installed,
+ * Phantom took window.ethereum, reported itself as MetaMask, and never
+ * answered eth_requestAccounts, so "Connect MetaMask" hung for good. */
+export interface InjectedWallet {
+  /** Stable across page loads: the wallet's reverse-DNS name, or `legacy`
+   * for a wallet that only sets window.ethereum. */
+  id: string;
+  /** Null for the legacy entry, whose real name is unknown. */
+  name: string | null;
+  icon: string | null;
+  provider: Eip1193Provider;
+}
+
+interface Eip6963ProviderDetail {
+  info: { uuid: string; name: string; icon: string; rdns: string };
+  provider: Eip1193Provider;
+}
+
+const LEGACY_WALLET_ID = 'legacy';
+/* Which browser wallet was last connected, so a page load reconnects that
+   one and not whichever extension happens to own window.ethereum. */
+const INJECTED_WALLET_KEY = 'humfiverse.injectedWallet';
+/* Long enough to unlock MetaMask and approve; short enough that a wallet
+   that will never answer doesn't leave every sign-in button disabled. */
+const CONNECT_TIMEOUT_MS = 60_000;
+const READ_TIMEOUT_MS = 5_000;
+
+class WalletTimeoutError extends Error {}
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<never>((_, reject) => (timer = setTimeout(() => reject(new WalletTimeoutError('wallet-timeout')), ms)));
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
+function readRememberedWallet(): string | null {
+  try {
+    return localStorage.getItem(INJECTED_WALLET_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function rememberWallet(id: string | null): void {
+  try {
+    if (id) localStorage.setItem(INJECTED_WALLET_KEY, id);
+    else localStorage.removeItem(INJECTED_WALLET_KEY);
+  } catch {
+    /* only costs an automatic reconnect on the next visit */
+  }
 }
 
 const CHAIN_NAMES: Record<string, string> = {
@@ -107,11 +164,50 @@ export class WalletService {
   /** Drives the sign-in dialog rendered once in the app shell. */
   readonly pickerOpen = signal(false);
   readonly embeddedEnabled = embeddedWalletEnabled();
-  readonly hasInjected = typeof window !== 'undefined' && !!window.ethereum;
+  /** Every browser wallet installed, in the order they announced themselves. */
+  readonly injectedWallets = signal<InjectedWallet[]>([]);
+  /** Which of them is connected, for the sign-in dialog to name it. */
+  readonly activeInjectedId = signal<string | null>(null);
 
   private embedded: EmbeddedSession | null = null;
+  private injected: InjectedWallet | null = null;
+  /** Bumped by every new sign-in attempt and by closing the dialog, so a
+   * wallet that answers late cannot overwrite a newer choice. */
+  private connectAttempt = 0;
+  private readonly wiredProviders = new WeakSet<Eip1193Provider>();
   private readProvider: ethers.JsonRpcProvider | null = null;
   private pickerResolve: ((r: ConnectResult) => void) | null = null;
+
+  constructor() {
+    this.discoverInjected();
+  }
+
+  get hasInjected(): boolean {
+    return this.injectedWallets().length > 0;
+  }
+
+  private discoverInjected(): void {
+    if (typeof window === 'undefined') return;
+    window.addEventListener('eip6963:announceProvider', (event) => {
+      const detail = (event as CustomEvent<Eip6963ProviderDetail>).detail;
+      if (!detail?.info?.uuid || !detail.provider) return;
+      const wallet: InjectedWallet = {
+        id: detail.info.rdns || detail.info.uuid,
+        name: detail.info.name || null,
+        icon: detail.info.icon || null,
+        provider: detail.provider
+      };
+      this.injectedWallets.update((list) =>
+        list.some((w) => w.id === wallet.id) ? list : [...list.filter((w) => w.id !== LEGACY_WALLET_ID), wallet]
+      );
+    });
+    // Wallets answer this synchronously, and announce again on their own if
+    // they load after the page.
+    window.dispatchEvent(new Event('eip6963:requestProvider'));
+    if (!this.injectedWallets().length && window.ethereum) {
+      this.injectedWallets.set([{ id: LEGACY_WALLET_ID, name: null, icon: null, provider: window.ethereum }]);
+    }
+  }
 
   chainName(hex: string | null): string {
     if (!hex) return 'Unknown network';
@@ -124,7 +220,7 @@ export class WalletService {
 
   private eip1193(): Eip1193Provider | null {
     if (this.state().kind === 'embedded') return this.embedded?.provider ?? null;
-    return window.ethereum ?? null;
+    return this.state().kind === 'injected' ? (this.injected?.provider ?? null) : null;
   }
 
   /** Opens the sign-in dialog and resolves once the user has connected or
@@ -145,20 +241,48 @@ export class WalletService {
     resolve?.(result);
   }
 
-  async connectInjected(): Promise<ConnectResult> {
-    if (!window.ethereum) return { ok: false };
+  /** Connects the browser wallet the user picked. With no id (no sign-in
+   * dialog configured) it takes the first one installed. A newer attempt,
+   * or closing the dialog, makes this one resolve as cancelled. */
+  async connectInjected(walletId?: string): Promise<ConnectResult> {
+    const wallets = this.injectedWallets();
+    const wallet = walletId ? wallets.find((w) => w.id === walletId) : wallets[0];
+    if (!wallet) return { ok: false };
+    const attempt = ++this.connectAttempt;
     this.state.update((s) => ({ ...s, connecting: true }));
     try {
-      const accounts = (await window.ethereum.request({ method: 'eth_requestAccounts' })) as string[];
-      const chainId = (await window.ethereum.request({ method: 'eth_chainId' })) as string;
+      const accounts = (await withTimeout(wallet.provider.request({ method: 'eth_requestAccounts' }), CONNECT_TIMEOUT_MS)) as string[];
+      const chainId = (await withTimeout(wallet.provider.request({ method: 'eth_chainId' }), READ_TIMEOUT_MS)) as string;
+      if (attempt !== this.connectAttempt) return { ok: false, cancelled: true };
+      if (!accounts[0]) {
+        this.state.update((s) => ({ ...s, connecting: false }));
+        return { ok: false };
+      }
       await this.dropEmbeddedSession();
-      this.state.set({ address: accounts[0] || null, chainId, connecting: false, kind: accounts[0] ? 'injected' : null });
-      return { ok: !!accounts[0] };
+      this.adoptInjected(wallet, accounts[0], chainId);
+      return { ok: true };
     } catch (err: unknown) {
+      if (attempt !== this.connectAttempt) return { ok: false, cancelled: true };
       this.state.update((s) => ({ ...s, connecting: false }));
+      if (err instanceof WalletTimeoutError) return { ok: false, timedOut: true };
       const code = (err as { code?: number })?.code;
       return { ok: false, rejected: code === 4001 };
     }
+  }
+
+  /** Stops waiting for a browser wallet, e.g. when the dialog is closed.
+   * The wallet's own popup may stay open; its answer is ignored. */
+  cancelPendingConnect(): void {
+    this.connectAttempt++;
+    this.state.update((s) => ({ ...s, connecting: false }));
+  }
+
+  private adoptInjected(wallet: InjectedWallet, address: string, chainId: string): void {
+    this.injected = wallet;
+    this.activeInjectedId.set(wallet.id);
+    rememberWallet(wallet.id);
+    this.wireProviderEvents(wallet);
+    this.state.set({ address, chainId, connecting: false, kind: 'injected' });
   }
 
   /** Google/Apple. Call straight from the click handler, with no await
@@ -184,6 +308,7 @@ export class WalletService {
   }
 
   private async connectEmbedded(open: () => Promise<EmbeddedSession>): Promise<ConnectResult> {
+    this.connectAttempt++;
     this.state.update((s) => ({ ...s, connecting: true }));
     try {
       this.adoptEmbedded(await open());
@@ -197,6 +322,9 @@ export class WalletService {
 
   private adoptEmbedded(session: EmbeddedSession): void {
     this.embedded = session;
+    this.injected = null;
+    this.activeInjectedId.set(null);
+    rememberWallet(null);
     session.onDisconnect(() => {
       if (this.embedded !== session) return;
       this.embedded = null;
@@ -215,6 +343,9 @@ export class WalletService {
    * the same login and get the same address. */
   disconnect(): void {
     void this.dropEmbeddedSession();
+    this.injected = null;
+    this.activeInjectedId.set(null);
+    rememberWallet(null);
     this.state.update((s) => ({ ...s, address: null, chainId: null, kind: null }));
   }
 
@@ -226,31 +357,44 @@ export class WalletService {
         return;
       }
     }
-    if (!window.ethereum) return;
+    // The wallet connected last time; before that choice was remembered,
+    // the only wallet installed, as the app always did.
+    const remembered = readRememberedWallet();
+    const wallets = this.injectedWallets();
+    const wallet = remembered ? wallets.find((w) => w.id === remembered) : wallets.length === 1 ? wallets[0] : undefined;
+    if (!wallet) return;
     try {
-      const accounts = (await window.ethereum.request({ method: 'eth_accounts' })) as string[];
-      if (accounts && accounts[0] && this.state().kind !== 'embedded') {
-        const chainId = (await window.ethereum.request({ method: 'eth_chainId' })) as string;
-        this.state.update((s) => ({ ...s, address: accounts[0], chainId, kind: 'injected' }));
-      }
+      const accounts = (await withTimeout(wallet.provider.request({ method: 'eth_accounts' }), READ_TIMEOUT_MS)) as string[];
+      if (!accounts?.[0] || this.state().kind || this.state().connecting) return;
+      const chainId = (await withTimeout(wallet.provider.request({ method: 'eth_chainId' }), READ_TIMEOUT_MS)) as string;
+      if (this.state().kind || this.state().connecting) return;
+      this.adoptInjected(wallet, accounts[0], chainId);
     } catch {
       /* ignore — silent check */
     }
   }
 
-  /** MetaMask's own account/network changes. Ignored while an in-app wallet
-   * is the active one, or switching accounts in an idle extension would
-   * silently replace the user's signed-in wallet. */
-  wireProviderEvents(): void {
-    if (!window.ethereum?.on) return;
-    window.ethereum.on('accountsChanged', (...args: unknown[]) => {
-      if (this.state().kind !== 'injected') return;
+  /** The connected browser wallet's own account/network changes. Ignored
+   * unless that wallet is the active one, or switching accounts in an idle
+   * extension would silently replace the user's signed-in wallet. */
+  private wireProviderEvents(wallet: InjectedWallet): void {
+    const provider = wallet.provider;
+    if (!provider.on || this.wiredProviders.has(provider)) return;
+    this.wiredProviders.add(provider);
+    const isActive = () => this.state().kind === 'injected' && this.injected?.provider === provider;
+    provider.on('accountsChanged', (...args: unknown[]) => {
+      if (!isActive()) return;
       const accounts = args[0] as string[];
       const address = (accounts && accounts[0]) || null;
-      this.state.update((s) => ({ ...s, address, kind: address ? 'injected' : null }));
+      if (!address) {
+        this.injected = null;
+        this.activeInjectedId.set(null);
+        rememberWallet(null);
+      }
+      this.state.update((s) => ({ ...s, address, chainId: address ? s.chainId : null, kind: address ? 'injected' : null }));
     });
-    window.ethereum.on('chainChanged', (...args: unknown[]) => {
-      if (this.state().kind !== 'injected') return;
+    provider.on('chainChanged', (...args: unknown[]) => {
+      if (!isActive()) return;
       const chainId = args[0] as string;
       this.state.update((s) => ({ ...s, chainId }));
     });

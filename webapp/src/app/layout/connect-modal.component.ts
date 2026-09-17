@@ -1,7 +1,8 @@
-import { Component, signal } from '@angular/core';
-import { TranslatePipe } from '@ngx-translate/core';
+import { Component, computed, signal } from '@angular/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { IconComponent } from '../shared/icon.component';
 import { ConnectResult, WalletService } from '../core/wallet.service';
+import { ToastService } from '../core/toast.service';
 
 /** The sign-in dialog behind every "Connect wallet" button (§2.83).
  * WalletService.connect() opens it and waits; whichever option the user
@@ -17,21 +18,50 @@ export class ConnectModalComponent {
   email = signal('');
   code = signal('');
   codeSentTo = signal<string | null>(null);
-  busy = signal<'google' | 'apple' | 'email' | 'injected' | null>(null);
+  busy = signal<'google' | 'apple' | 'email' | null>(null);
+  /** The browser wallet being waited on. Kept apart from `busy` so a wallet
+   * that doesn't answer never locks Google, Apple, email or another wallet. */
+  pendingWallet = signal<string | null>(null);
   errorKey = signal<string | null>(null);
 
-  constructor(public wallet: WalletService) {}
+  /** The browser wallet currently connected, when that is the source. */
+  activeWallet = computed(() => {
+    const id = this.wallet.activeInjectedId();
+    return this.wallet.state().kind === 'injected' && id ? (this.wallet.injectedWallets().find((w) => w.id === id) ?? null) : null;
+  });
+
+  constructor(
+    public wallet: WalletService,
+    private toast: ToastService,
+    private translate: TranslateService
+  ) {}
+
+  /** Opened from the connected address in the top bar: signs out without
+   * leaving the dialog's other options, which switch to another account. */
+  disconnect(): void {
+    if (this.busy()) return;
+    const embedded = this.wallet.state().kind === 'embedded';
+    this.close();
+    this.wallet.disconnect();
+    this.toast.show(this.translate.instant(embedded ? 'toast.signedOut' : 'toast.walletDisconnected'), 'info');
+  }
 
   /* No await before connectWithSocial: it opens the popup, and the browser
      only allows that while still inside the click. */
   social(strategy: 'google' | 'apple'): void {
     this.start(strategy);
+    this.pendingWallet.set(null);
     void this.wallet.connectWithSocial(strategy).then((r) => this.finish(r));
   }
 
-  async injected(): Promise<void> {
-    this.start('injected');
-    this.finish(await this.wallet.connectInjected());
+  async injected(walletId: string): Promise<void> {
+    this.pendingWallet.set(walletId);
+    this.errorKey.set(null);
+    const result = await this.wallet.connectInjected(walletId);
+    // A later choice, or closing the dialog, superseded this attempt.
+    if (result.cancelled || this.pendingWallet() !== walletId) return;
+    this.pendingWallet.set(null);
+    this.finish(result);
   }
 
   async sendCode(): Promise<void> {
@@ -74,11 +104,15 @@ export class ConnectModalComponent {
 
   close(): void {
     if (this.busy()) return;
+    if (this.pendingWallet()) {
+      this.pendingWallet.set(null);
+      this.wallet.cancelPendingConnect();
+    }
     this.reset();
     this.wallet.closePicker();
   }
 
-  private start(what: 'google' | 'apple' | 'email' | 'injected'): void {
+  private start(what: 'google' | 'apple' | 'email'): void {
     this.busy.set(what);
     this.errorKey.set(null);
   }
@@ -91,6 +125,7 @@ export class ConnectModalComponent {
       return;
     }
     if (result.popupBlocked) this.errorKey.set('connect.popupBlocked');
+    else if (result.timedOut) this.errorKey.set('connect.walletTimeout');
     else if (result.rejected) this.errorKey.set('toast.connectionRejected');
     else this.errorKey.set('connect.failed');
   }

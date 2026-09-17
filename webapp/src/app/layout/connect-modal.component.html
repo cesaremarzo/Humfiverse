@@ -6,9 +6,29 @@
       </button>
 
       <div>
-        <h3 id="connect-title" class="panel-title panel-title-lg" style="margin-bottom:6px;">{{ 'connect.title' | translate }}</h3>
-        <p style="font-size:13px; color:var(--text-secondary); margin:0;">{{ 'connect.subtitle' | translate }}</p>
+        <h3 id="connect-title" class="panel-title panel-title-lg" style="margin-bottom:6px;">{{ (wallet.state().address ? 'connect.titleConnected' : 'connect.title') | translate }}</h3>
+        <p style="font-size:13px; color:var(--text-secondary); margin:0;">{{ (wallet.state().address ? 'connect.subtitleConnected' : 'connect.subtitle') | translate }}</p>
       </div>
+
+      @if (wallet.state().address; as address) {
+        <div class="connect-current">
+          <div style="min-width:0;">
+            <div class="mono" style="font-size:13px;" [title]="address">{{ wallet.truncateAddr(address) }}</div>
+            <div style="font-size:12px; color:var(--text-secondary);">
+              @if (wallet.state().kind === 'embedded') {
+                {{ 'connect.viaInApp' | translate }}
+              } @else if (activeWallet()?.name; as name) {
+                {{ 'connect.viaWallet' | translate: { name: name } }}
+              } @else {
+                {{ 'connect.viaBrowser' | translate }}
+              }
+            </div>
+          </div>
+          <button type="button" class="btn btn-ghost btn-sm" [disabled]="!!busy()" (click)="disconnect()">
+            {{ (wallet.state().kind === 'embedded' ? 'wallet.signOut' : 'wallet.disconnect') | translate }}
+          </button>
+        </div>
+      }
 
       <div class="connect-options">
         <button type="button" class="btn btn-secondary btn-block connect-option" [disabled]="!!busy()" (click)="social('google')">
@@ -55,9 +75,22 @@
       <div class="connect-divider"><span>{{ 'connect.or' | translate }}</span></div>
 
       @if (wallet.hasInjected) {
-        <button type="button" class="btn btn-ghost btn-block connect-option" [disabled]="!!busy()" (click)="injected()">
-          <app-icon name="wallet"></app-icon> {{ (busy() === 'injected' ? 'wallet.connecting' : 'connect.injected') | translate }}
-        </button>
+        @for (w of wallet.injectedWallets(); track w.id) {
+          <button type="button" class="btn btn-ghost btn-block connect-option" [disabled]="!!busy()" (click)="injected(w.id)">
+            @if (w.icon) {
+              <img [src]="w.icon" alt="" width="18" height="18" style="border-radius:4px;" />
+            } @else {
+              <app-icon name="wallet"></app-icon>
+            }
+            @if (pendingWallet() === w.id) {
+              {{ 'wallet.connecting' | translate }}
+            } @else if (w.name) {
+              {{ 'connect.injectedNamed' | translate: { name: w.name } }}
+            } @else {
+              {{ 'connect.injected' | translate }}
+            }
+          </button>
+        }
       } @else {
         <p style="font-size:12px; color:var(--text-muted); margin:0;" [innerHTML]="'connect.noInjected' | translate"></p>
       }
