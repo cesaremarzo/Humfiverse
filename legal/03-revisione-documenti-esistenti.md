@@ -1,6 +1,6 @@
 # Revisione dei documenti esistenti
 
-*Revisione del 2026-09-15, commit `82a7a1b`. Non è consulenza legale.*
+*Revisione del 2026-09-15, commit `82a7a1b`; W-16…W-19 dal redeploy di fase 2, W-19 aggiornata il 2026-09-17 (§2.98). Non è consulenza legale.*
 
 Frasi dei documenti esistenti che oggi non corrispondono al codice, o che
 un avvocato probabilmente farebbe cambiare. Per ognuna c'è una correzione
@@ -42,7 +42,7 @@ imprecisioni pesano il doppio.
 | W-16 | cap. 2, punto 2 (*Cancellation*) | *"Today's testnet escrow refunds the wallets that contributed … Tokens bought on resale carry no refund right until then."* | Falso dal 2026-09-17: l'escrow di fase 2 rimborsa chi possiede i token e li brucia (02 C-5) | *"Holders hand back their tokens, which are burned, for an equal share per token of the part not yet released, less the 2% contribution fee. Tokens bought on resale carry the same right."* |
 | W-17 | cap. 8 | *"Refunds follow contributions, not tokens, on today's contracts."* e *"The operator can cancel a campaign"* | Falso dal 2026-09-17: rimborsi per token; annulla l'Owner (Safe 2 su 3), non l'operatore (02 C-5, C-9) | *"Refunds follow tokens: holders hand them back to be burned."* e *"The platform's multisig owner can cancel a campaign on stated legal grounds"* |
 | W-18 | cap. 2, cap. 3, cap. 6 | *"The contract itself does not check the ground"* | Superato in parte: il contratto registra motivo e hash della decisione, ma accetta ancora l'annullamento senza motivo finché resta una tranche da pagare (02 C-2) | *"The contract records the ground and a hash of the written decision; the limit to legal grounds is contractual."* |
-| W-19 | cap. 3, cap. 6, cap. 9 | Nessuna menzione dei versamenti di royalty on-chain né del multisig | Dal 2026-09-17 il token paga royalty versate da chiunque, non verificate; il proprietario dei contratti è un Safe 2 su 3 (02 C-9, C-12) | Aggiungere al cap. 3 come funzionano versamento e riscossione, con il punto di fiducia (nessuno verifica gli importi); al cap. 6 che i poteri del proprietario richiedono 2 firme su 3; al cap. 9 che i versamenti sulla rete di test sono in USDC senza valore |
+| W-19 | cap. 3, cap. 6, cap. 9 | Nessuna menzione dei versamenti di royalty on-chain né del multisig | Dal 2026-09-17 il token paga royalty, versate dall'artista o dalla Piattaforma per suo conto (il contratto le accetta da chiunque), ciascuna con il file del rendiconto pubblicato ma non verificato (§2.98); il proprietario dei contratti è un Safe 2 su 3 (02 C-9, C-12) | Aggiungere al cap. 3 come funzionano versamento e riscossione, chi versa, l'intervallo fissato per token e il rendiconto pubblicato, con il punto di fiducia (nessuno verifica rendiconto e importi, nessun obbligo on-chain di versare); al cap. 6 che i poteri del proprietario richiedono 2 firme su 3; al cap. 9 che i versamenti sulla rete di test sono in USDC senza valore |
 
 ## B. Contratto artista (`server/contract-template.js`, v0.3-draft)
 

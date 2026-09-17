@@ -1,6 +1,6 @@
 # Controllo degli smart contract e del backend, dal punto di vista legale
 
-*Revisione del 2026-09-17, dopo il redeploy di fase 2 (technical §2.92, §2.95-§2.97). Non è un audit di sicurezza e non
+*Revisione del 2026-09-17, dopo il redeploy di fase 2 (technical §2.92, §2.95-§2.97); C-12 aggiornato per il rendiconto come file (§2.98, commit `fd7f822`). Non è un audit di sicurezza e non
 è consulenza legale.*
 
 ## Cosa è e cosa non è questo controllo
@@ -52,7 +52,7 @@ revisioni precedenti; i loro token, con gli stessi saldi, sono sul nuovo token.
 | `releaseFromPool` | Owner (Safe 2 su 3) o contratto escrow | Consegna token del pool **senza pagamento** |
 | `setURI` | Owner | Cambia l'indirizzo dei metadati (nome, immagine, descrizione) |
 | `setTrackAudioUri` | Owner o operator | Cambia il link all'audio, anche dopo la vendita |
-| `depositRoyalties` | chiunque | Versa USDC come royalty di un token, divise subito in parti uguali su tutti i token esistenti (pool compreso). Registra un riferimento al rendiconto (`statementRef`) |
+| `depositRoyalties` | chiunque | Versa USDC come royalty di un token, divise subito in parti uguali su tutti i token esistenti (pool compreso). Registra un riferimento al rendiconto (`statementRef`): dal §2.98 il sito vi scrive l'impronta SHA-256 del file del rendiconto |
 | `claimRoyalties` | chiunque, per qualsiasi possessore | Paga al possessore quanto hanno maturato i suoi token; chi chiama sceglie solo quando |
 | `claimPoolRoyalties` | chiunque | Paga la quota dei token invenduti al wallet che incassa del token (l'artista) |
 | `createCampaign` | Owner o operator | Apre una campagna escrow su un token non in vendita diretta e mai venduto. **Rifiuta** uno studio con lo stesso wallet dell'artista |
@@ -403,12 +403,32 @@ priorità sale ad Alta.**
   finanziario (01 §1; 07 A1, A2), anche se oggi circolano solo USDC di test.
 - **Punto di fiducia.** Il contratto non può sapere se un versamento corrisponde a
   quanto il brano ha davvero incassato: dipende da chi versa. Il riferimento al
-  rendiconto è solo un hash, e il sito accetta il testo solo se l'hash
-  coincide. Nessuno verifica il rendiconto stesso, e nessuno obbliga a versare.
+  rendiconto è l'impronta SHA-256 del file (§2.98): il sito pubblica il file su
+  IPFS solo se l'impronta coincide, così chiunque può scaricarlo e ricontrollarla.
+  Nessuno però verifica il contenuto del rendiconto, e nessuno obbliga a versare.
 - **Proposta.** Scrivere nei Termini chi versa, quando e sulla base di quale
   rendiconto (trasparenza, §2.3 del documento tecnico); decidere con l'avvocato se
   i versamenti debbano passare da un veicolo o da un amministratore di royalty
   (C-8, 07 A5) prima di qualsiasi valore reale.
+- **Decisione dell'utente (2026-09-17) e codice (§2.98, commit `fd7f822`).**
+  - *Chi versa:* l'artista, che incassa dalle piattaforme e converte in USDC;
+    oppure la Piattaforma, dopo aver ricevuto il denaro dall'artista. Il sito
+    mostra il modulo di versamento all'artista e al wallet Founder
+    (`royalty-payouts.component.ts`). Il contratto accetta comunque versamenti
+    da chiunque: un versamento di altri è un regalo ai possessori.
+  - *Quando:* frequenza variabile, entro un intervallo fissato per ogni token
+    nell'Accordo Artista (08 A-8). **Il contratto non lo impone**: l'obbligo è
+    solo contrattuale, e oggi l'intervallo non è ancora raccolto dal wizard né
+    mostrato sul sito (08 C-12).
+  - *Su quale rendiconto:* `statementRef` = SHA-256 del file (PDF, CSV o XLSX,
+    max 10 MB), calcolato nel browser prima del versamento
+    (`server/lib/statement-file.js`). Dopo il versamento il file è fissato su
+    IPFS con nome anonimo e collegato nello storico; il server rifiuta un file
+    con impronta diversa (`royalties.service.js`, `attachStatement`).
+  - *Resta aperto:* nessuno verifica il rendiconto; la Piattaforma che riceve e
+    converte il denaro dell'artista può essere un servizio regolato (07 A12);
+    un rendiconto pubblico può violare riservatezza del distributore o dati
+    personali (07 I4, 05 §3).
 
 ### C-13 · Bassa · Dati personali scritti per sempre
 

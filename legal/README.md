@@ -29,7 +29,7 @@ il whitepaper. 04, 05, 06, 08 e 09 vanno portati all’avvocato insieme al 07.
 | | |
 |---|---|
 | Ultima revisione | 2026-09-17 |
-| Commit rivisto | redeploy di fase 2 su `dev/cesare` (technical §2.92, §2.95-§2.97): royalty on-chain, rimborsi per token con burn, motivi di annullamento, operator, proprietà a un Safe 2 su 3. Prima `94ae18f` (§2.94) |
+| Commit rivisto | `fd7f822` (§2.98: rendiconto royalty come file, chi versa, intervallo per token). Prima il redeploy di fase 2 su `dev/cesare` (technical §2.92, §2.95-§2.97): royalty on-chain, rimborsi per token con burn, motivi di annullamento, operator, proprietà a un Safe 2 su 3. Prima `94ae18f` (§2.94) |
 | Contratti (Sepolia) | Token `0xa619aCD77D2540a38a2B95FFb051357a921082EF` · Escrow `0xc0043d41693D7E4DF0785bd3c28e619a543FD368` · Marketplace `0x755500dEB66169fC605Be8Aa25ACBdAd791F1585` · vecchio escrow in sola lettura `0x16C8bfE861Ef1B102CD6D6a4FD4e881FdD38721c` |
 | Proprietario dei contratti | Safe `0xBA2ad0Ca063092E350f1427dd86F7E9C8730245d`, 2 firme su 3 |
 | Test contratti | 112 passati (`cd contracts && npm test`) |

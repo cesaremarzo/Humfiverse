@@ -1995,3 +1995,17 @@ Do next, in order:
 Working notes: Vincenzo is called **Co-founder**. Several Claude sessions share
 this checkout: stage explicit paths, never `git commit -a`, check `MERGE_HEAD`.
 
+## 2026-09-17 (sera, 2) — royalty deposits: who, when, which statement (§2.98)
+
+The user decided 02 C-12: the artist deposits (collects and converts to USDC),
+or the platform after receiving the money from the artist; frequency varies
+within a range fixed per token in the artist agreement; the statement's hash
+goes on chain. Code (commit `fd7f822`, on `dev/cesare`, part of PR #69):
+`statementRef` is now the SHA-256 of the statement **file**, published on IPFS
+and linked from the history; the deposit form shows for the artist and Founder.
+Verified on a local chain plus headless Chrome (§2.98). `legal/` updated in the
+same PR: new 07 A12 🔴, I4 🟠, 08 A-8 and C-12.
+
+Still open: the per-token range is not collected in the wizard nor shown (08
+C-12). Before merging #69, `docs/` must include this change (rebuilt from a
+clean tree: another session had uncommitted backdrop edits at the time).

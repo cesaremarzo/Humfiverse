@@ -74,8 +74,9 @@ comunque impegnative.
   può versare USDC per un token, il contratto li divide in parti uguali su tutti
   i token esistenti e ogni possessore riscuote la sua quota (02, C-12). Il token
   *on-chain* quindi **dà già un diritto economico**, anche se oggi solo con USDC
-  di test senza valore. Quanto viene versato dipende da chi versa: il contratto
-  non lo collega agli incassi reali del brano.
+  di test senza valore. Quanto viene versato dipende da chi versa (l'artista, o
+  la Piattaforma per suo conto): ogni versamento indica il file del rendiconto,
+  pubblicato, ma il contratto non lo collega agli incassi reali del brano.
 - È proprio questo il rischio: un regolatore valuta la sostanza dell'offerta
   nel suo insieme (sito, whitepaper, testi della pagina campagna), non solo il
   contratto Solidity. Dire "compri una quota di royalty" basta a spostare la

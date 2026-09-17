@@ -1,6 +1,6 @@
 # Bozza di clausole: Accordo Artista, Accordo Investitore, accettazione
 
-*Bozza del 2026-09-15, commit `82a7a1b`; A-5 aggiornata il 2026-09-17 (ordine delle milestone). **Da far rivedere a un avvocato.** Non
+*Bozza del 2026-09-15, commit `82a7a1b`; A-5 aggiornata il 2026-09-17 (ordine delle milestone); A-8 e C-12 nuove il 2026-09-17 (versamento delle royalty, §2.98). **Da far rivedere a un avvocato.** Non
 è consulenza legale.*
 
 Traduce in testo contrattuale la decisione del 15 settembre 2026 (note legali
@@ -182,6 +182,33 @@ Per tutta la durata della cessione dei proventi, e non solo della Campagna,
 l'Artista si impegna a non cedere, dare in garanzia o affidare in esclusiva a
 terzi gli stessi proventi.
 
+### A-8 · Versamento delle royalty
+*Nuova (decisione del 2026-09-17; 02 C-12).*
+
+1. L'Artista versa sul contratto del Token, in USDC, i proventi royalty oggetto
+   della cessione, in uno dei due modi seguenti, a sua scelta per ogni
+   versamento:
+   (a) li incassa, li converte in USDC e li versa direttamente;
+   (b) li trasferisce alla Piattaforma, che li converte e li versa entro [__]
+   giorni lavorativi dalla ricezione **[dipende dalla domanda 07 A12]**. Costi e
+   cambio della conversione: [a carico dell'Artista / dei proventi], al cambio del
+   giorno della conversione **[verificare]**.
+2. **Frequenza.** I versamenti avvengono con cadenza non inferiore a [__] e non
+   superiore a [__] mesi, fissata per questo Token nella scheda della Campagna.
+   In ogni caso l'Artista versa entro [__] giorni da quando riceve un rendiconto
+   con proventi superiori a [__] USDC.
+3. **Rendiconto.** Ogni versamento corrisponde a un rendiconto del distributore o
+   dell'ente di gestione, integrale per il periodo e per il Brano. L'Artista lo
+   carica nel sito al momento del versamento: la sua impronta SHA-256 è scritta
+   sulla blockchain e il file è pubblicato. Prima del caricamento l'Artista
+   oscura i propri dati bancari e i dati personali di terzi, senza modificare
+   periodi, quantità e importi **[verificare con 07 I4]**.
+4. Un versamento inferiore ai proventi del rendiconto, un rendiconto alterato o il
+   mancato versamento nei termini del punto 2 sono inadempimento grave ai sensi
+   della clausola A-3 **[verificare il rinvio]**.
+5. L'Artista prende atto che il contratto divide ogni versamento su tutti i token
+   esistenti, compresi quelli invenduti, la cui quota spetta a lui (04 §5.7).
+
 ---
 
 ## B. Accordo Investitore
@@ -248,4 +275,5 @@ aver scorso tutto il testo.
 | C-8 | Controllo lato server: niente acquisto, contributo o creazione di campagna senza accettazione valida registrata | Come già fa `validateContractAcceptance`. Resta il limite on-chain (02, C-6) |
 | C-9 | **L'Artista firma l'Accordo con firma elettronica qualificata** (FEQ: Regolamento (UE) 910/2014 "eIDAS", art. 25, equivalente alla firma autografa in tutta l'UE; in Italia art. 21 CAD), tramite un prestatore di servizi fiduciari qualificato presente nella lista di fiducia UE. La firma avviene su un PDF del testo accettato, il cui hash è registrato come in C-4. La campagna non si crea senza firma valida. L'Investitore accetta con scorrimento, spunte e firma del wallet (C-1…C-5). *Decisione del 2026-09-15* | Motivazione dell'utente: l'Artista sta di fatto costituendo, tramite la Piattaforma, un soggetto che emette titoli. **La firma qualificata resta utile anche con i comparti del veicolo lussemburghese**, dove l'Artista non emette nulla ma cede i proventi al comparto: serve a provare una cessione con data certa, opponibile ai creditori dell'Artista, e valida in tutta l'UE, oltre agli obblighi di restituzione e risarcimento (A-3). Non risulta però obbligatoria per legge in nessuno dei due schemi **[verificare, domanda A9]** |
 | C-11 | **Raccogliere e verificare un'email** di artisti e investitori alla registrazione, anche per chi usa MetaMask | Serve per l'avviso motivato all'artista e per informare gli investitori (A-1 §2-3). Oggi la piattaforma conosce solo il wallet **Implementato il 2026-09-16 (tecnico §2.93)**: codice di 6 cifre via Brevo a tutti, anche a chi entra con Google, Apple o email, più firma del wallet su indirizzo e id della verifica; richiesta prima di lanciare una campagna e prima della verifica investitore. Acquisto e contributo sono bloccati solo dall'app, non dal contratto (02, C-6). Non attiva finché Brevo non è configurato sul server |
+| C-12 | **Intervallo dei versamenti per Token** (A-8, punto 2): raccolto nel wizard alla creazione della Campagna, salvato con l'accettazione e mostrato nella pagina dell'asset | L'investitore deve sapere quando aspettarsi le royalty; oggi il contratto e il sito non lo conoscono (02 C-12) |
 | C-10 | Traduzioni: il testo autorevole è indicato e le altre lingue lo dicono (già presente) | Già in `legalBasisNote` |

@@ -1,6 +1,6 @@
 # Domande per l'avvocato
 
-*Revisione del 2026-09-17, commit `94ae18f` (A4: storico prezzi), prima `27d8d5f`.*
+*Revisione del 2026-09-17, commit `fd7f822` (A12, I4: versamento delle royalty), prima `94ae18f` (A4: storico prezzi) e `27d8d5f`.*
 
 Le domande vengono dai file 01-03 e dalle decisioni già prese (note legali §7,
 §7.10; technical-architecture §2.86). Sostituiscono e ampliano l'elenco del §6
@@ -96,6 +96,15 @@ Lussemburgo (CSSF) e Italia (CONSOB).*
   fuori con tagli da almeno 100.000 €, soli clienti professionali o collocamenti
   privati — e cosa comporta ciascuna scelta per il pubblico che vogliamo
   raggiungere? *(09 §8, note §7.7)*
+- **A12** 🔴 *Nuova, 2026-09-17.* Le royalty le versa l'artista, oppure la
+  **Piattaforma dopo aver ricevuto il denaro dall'artista**, convertito in USDC
+  e versato sul contratto per i possessori (02 C-12). Nel secondo caso la
+  Piattaforma riceve fondi di un cliente e li trasferisce a terzi, cambiandoli in
+  una e-money token: è un **servizio di pagamento** (rimessa di denaro, PSD2), un
+  **servizio per le cripto-attività** (MiCA: scambio di fondi con cripto-attività
+  per conto di clienti, trasferimento) o un'attività che richiede adempimenti
+  **antiriciclaggio** (gruppo D)? Cambia qualcosa se a versare è il Veicolo, o un
+  amministratore di royalty autorizzato? **[verificare]** *(02 C-12, 04 §5.7.1)*
 
 ## Gruppo B · Campagne di pre-produzione e crowdfunding
 *Stesso avvocato del gruppo A.*
@@ -250,6 +259,11 @@ l'azione di recupero. Decisione del 15 settembre 2026, note legali §7.10.*
   dall'artista la impediscono? *(03 T-6, note §7.4)*
 - **I2** 🟠 **Garanzie e manleva** dell'artista: bastano quelle del file 08, A-4?
   Come si gestiscono i campioni non autorizzati? *(03 T-8)*
+- **I4** 🟠 *Nuova, 2026-09-17.* Ogni versamento pubblica su IPFS il **file del
+  rendiconto** del distributore o della CMO, in modo di fatto permanente (02
+  C-12). I contratti di distribuzione (DistroKid, SIAE, altri) vietano di rendere
+  pubblici i rendiconti? Basta oscurare nome e dati bancari, o serve un estratto
+  firmato dall'artista al posto del documento originale? *(04 §5.7.2, 05 §3)*
 - **I3** 🟢 Obblighi dell'**AI Act** (art. 50) per chi pubblica brani generati con
   AI, e responsabilità se la dichiarazione dell'artista è falsa. *(01 §13)*
 

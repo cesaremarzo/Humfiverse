@@ -3,6 +3,29 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-09-17 · versamento delle royalty: chi versa, quando, su quale rendiconto (§2.98)
+
+Decisione di Cesare: versa l'**artista** (incassa e converte in USDC) oppure la
+**Piattaforma** dopo aver ricevuto il denaro dall'artista; frequenza variabile
+**entro un intervallo fissato per token** nell'accordo artista; `statementRef` =
+**hash del rendiconto**. Nel codice (commit `fd7f822`) `statementRef` era l'hash
+di una frase: ora è lo SHA-256 del file (PDF, CSV, XLSX), pubblicato su IPFS e
+collegato nello storico solo se l'impronta coincide. Il modulo è mostrato
+all'artista e al wallet Founder.
+- **02 §1 e C-12:** decisione e codice; restano aperti verifica del rendiconto,
+  obbligo solo contrattuale, intervallo non ancora nel wizard.
+- **04 §5.7.1-5.7.2:** chi versa, intervallo, rendiconto pubblicato.
+- **05 §3:** la riga `royalty_deposits` descrive il file su IPFS, pubblico e di
+  fatto permanente; oscurare dati bancari e di terzi.
+- **06 §3, 01, 03 W-19:** testi allineati.
+- **07:** nuove **A12** 🔴 (la Piattaforma che riceve e converte il denaro
+  dell'artista: servizio di pagamento, MiCA, antiriciclaggio?) e **I4** 🟠
+  (riservatezza dei rendiconti dei distributori).
+- **08:** nuova clausola **A-8** (versamento delle royalty) e requisito **C-12**
+  (intervallo per token nel wizard e sulla pagina).
+`server/data/schema.js` cambia solo per le colonne del file del rendiconto:
+impronte aggiornate.
+
 ## 2026-09-17 · milestone pagate solo in ordine (§2.96)
 
 Il contratto escrow live paga una milestone quando ha le conferme e i fondi

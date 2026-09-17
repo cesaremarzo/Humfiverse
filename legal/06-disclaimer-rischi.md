@@ -1,6 +1,6 @@
 # Avvertenze e scheda rischi: bozza
 
-*Bozza del 2026-09-17, commit `94ae18f` (§2.4 storico prezzi), prima `82a7a1b`. **Da far rivedere a un avvocato.** Non
+*Bozza del 2026-09-17, commit `fd7f822` (§3 versamenti di royalty), prima `94ae18f` (§2.4 storico prezzi) e `82a7a1b`. **Da far rivedere a un avvocato.** Non
 è consulenza legale.*
 
 Testi pronti da inserire nel sito, in italiano e in inglese. Sono pensati per il
@@ -151,8 +151,11 @@ Testo in inglese, come il whitepaper.
 - **A campaign without a studio is released by the artist alone.**
 - **Refunds follow tokens and burn them.** The refund per token is the same for
   everyone, whatever they paid; tokens handed back stop earning royalties.
-- **Royalty deposits are not verified.** Anyone can deposit, no one is obliged
-  to, and nothing links a deposit to the track's real income.
+- **Royalty deposits are not verified.** The artist, or the platform on the
+  artist's behalf, deposits them; nothing on chain obliges anyone to deposit or
+  to keep to the agreed schedule. Each deposit points to a published statement
+  file, but no one checks that the statement is genuine or matches the track's
+  real income.
 
 **Data**
 - **What is written on-chain or to IPFS is permanent** — including artist
