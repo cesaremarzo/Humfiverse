@@ -2150,3 +2150,49 @@ live site (§2.93, first time tested for real).
 Not tested live yet: a real royalty deposit with a statement file on Pinata
 (§2.98). Still open: the per-token deposit interval (legal 08 C-12), counsel
 question 07 A12.
+
+---
+
+## 2026-09-17 (sera, 4) — guida/chat bot sul sito (§2.100)
+
+Request: *"integriamo un chat bot sulla piataforma (un pulsante bello
+graficamente nello stile del sito in basso a destra) per guidare gli utenti
+nell'utilizzo"*. Asked which engine; Cesare chose the **hybrid**: one widget,
+written answers by default, Claude where a key is configured.
+
+**On `dev/cesare`, PR open, not merged** — a feature, needs Cesare's go-ahead.
+
+- Button bottom-right: the inverted nine-bar mark on the brand gradient, bars
+  lifting like a meter on hover, `inset-inline-end` so Arabic flips it. Panel in
+  the site's glass, light and dark, full width under 560px. Toasts moved up to
+  `bottom: 92px` so they never land on it.
+- **Twelve written topics** in all nine locales (60 new keys each, parity 737):
+  what it is, wallet, buying, campaigns, milestones, royalties, resale, fees,
+  verification, artists, studios, risks. Free text is matched against the
+  locale's own keywords; no match means it says so instead of guessing.
+- **AI mode** only if `ANTHROPIC_API_KEY` is set on the backend
+  (`server/assistant-knowledge.js` is the brief, `claude-opus-5` by default).
+  The header chip says which mode is live, and every bubble says whether the
+  text was written by us or generated. Failure — no key, rate limit, refusal,
+  server down — falls back to the closest written topic with a one-line reason.
+- Caps: 15/hour and 50/day per IP, `ASSISTANT_DAILY_CAP` 300 platform-wide,
+  counted in `assistant_requests` (IP, timestamp, token counts; no question, no
+  answer, no wallet; pruned after 30 days). Admin `GET /api/assistant/usage`.
+- `legal/`: 05 §3 and §5, 04 §12.2-12.3, 01 §7 and §13 (AI Act art. 50), new
+  questions **A14, F4, H4**. `check.sh` now watches `assistant-knowledge.js`,
+  and the legal-review skill's fee row now lists the guide's fee strings.
+- Verified under CDP (guided answers, matching, no-match, AI reply and its
+  links, typing, rate-limited fallback) and with a stubbed-`fetch` test of the
+  service. **Not yet run against a real API key** — needs one from Cesare.
+
+**Watch out:** another session was editing this same checkout all evening
+(§2.101, the 6%/1% fee change: contracts, `asset-detail`, `legal/01/02/04/07`,
+the i18n fee strings). Every commit here was staged hunk by hunk to keep that
+work out, and `docs/` was rebuilt from a clean worktree at `783221a` for the
+same reason. **When §2.101 lands, the guide's fee answers must change with it**
+— `server/assistant-knowledge.js` and `assistant.kb.fees.*` / `assistant.kb.buy.*`
+in nine locales still say 2%.
+
+**Next:** set `ANTHROPIC_API_KEY` (and optionally `ANTHROPIC_MODEL`,
+`ASSISTANT_DAILY_CAP`) on Render if the AI mode is wanted in production, then
+merge the PR and check the live bundle and `/api/assistant/status`.
