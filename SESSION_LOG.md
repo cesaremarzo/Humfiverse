@@ -1869,3 +1869,60 @@ order, funding still gating each tranche.
   source on `dev/cesare`; 112 tests passing. Ships with the phase 2 redeploy —
   until then a direct contract call can still go out of order.
 - `legal/` 02, 04, 08 updated; phase 2 contracts still not fully reviewed.
+
+---
+
+## 2026-09-17 — token price history chart live (§2.94); Render RPC switched to Alchemy
+
+**Asked:** *"inseriamo nella pagina dei cataloghi un grafico che mostri lo storico
+del prezzo dei token, usa new song per questo, utilizzando l'ultimo prezzo minimo
+a cui sono stati scambiati i token"*.
+
+**Built (PR #66, merged on the user's go-ahead):**
+- `GET /api/price-history/:assetId` (`services/trades.service.js`,
+  `data/trades.repo.js`, `routes/price-history.routes.js`). Finds the token's
+  transactions with `alchemy_getAssetTransfers`, reads each receipt once, keeps
+  only paid trades: `escrow` (Contributed + fee over TokensReleased), `primary`
+  (TokensPurchased), `resale` (Purchased matched to TransferSingle). Cached in
+  new tables `token_trades` / `token_trade_scans`, scoped by token contract.
+  Refresh ≤ once a minute per token.
+- One point per UTC day: the lowest traded price that day, carried forward on
+  days without trades (`traded: false`).
+- Asset page, overview tab: "Storico prezzo token" card (`app-line-chart`, now
+  with a unique gradient id, a `format` input, tooltips clamped at the edges),
+  last lowest price, trade count, "past prices don't indicate future ones";
+  9 locales.
+- `legal/`: 05 §3 row for the new tables, 06 §2.4 disclaimer (new), 07 A4
+  follow-up (does showing traded prices strengthen the MTF reading?).
+
+**PR #67 (fix, merged):** the API now returns `refreshError`; the card says
+"price history unavailable" instead of "never traded" when the read failed.
+
+**Why it was empty in production at first:** Render's `CHAIN_RPC_URL` was
+`https://ethereum-sepolia-rpc.publicnode.com`, which has no
+`alchemy_getAssetTransfers` (`unsupported operation`). Same cause as the
+"holder discovery reports `indexed-only`" note of 14 Sep. **Cesare changed it on
+Render to the Alchemy URL from `server/.env`** and redeployed.
+
+**Verified live:** New Song → 16 Sep $1.00 (escrow, 10 + 30 tokens), 17 Sep $2.00
+(resale, 20 tokens), `complete: true`; Honest Man two escrow buys at $10.00;
+chart renders on cesaremarzo.github.io; `onchain/list`, `listings`, `data`,
+`indexer/status`, `holders` all 200 (holder counts New Song 2, Honest Man 1).
+
+**Alchemy cost (asked, no decision):** stay on Free (30M CU/month, 25 req/s).
+Pay as you go is $0.525 per 1M CU (pricing page, 17 Sep). Estimated baseline if
+Render stayed awake all month: ~5M CU (indexer ~3M, reconcile ~1.7M). First limit
+to hit: reconcile reads `balanceOf` for every holder of every token every 10 min,
+~112k CU/month per token-holder pair → ~250 pairs exhaust Free. Fix that in code
+(reconcile only tokens with new transfers, or less often) before paying. Other
+triggers: 429s with concurrent visitors (25 req/s), real traffic after launch,
+mainnet. Suggested: set a usage alert in the Alchemy dashboard.
+
+**Open / next:**
+1. Production traffic now uses the Alchemy key: rotating it means updating
+   Render too.
+2. Now that Render is on Alchemy, check whether holder reconcile reports
+   `asset-transfers` instead of `indexed-only` (admin endpoint).
+3. When there are more than ~10 tracks: make reconcile incremental.
+4. The 2% primary `buy()` fee is still untested live (from the fees check), so
+   no `primary` trade has been seen by the price history yet.
