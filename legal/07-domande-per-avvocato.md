@@ -1,6 +1,6 @@
 # Domande per l'avvocato
 
-*Revisione del 2026-09-17, commit `fd7f822` (A12, I4: versamento delle royalty), prima `94ae18f` (A4: storico prezzi) e `27d8d5f`.*
+*Revisione del 2026-09-17, commit `fd7f822` (A12, I4: versamento delle royalty), prima `94ae18f` (A4: storico prezzi) e `27d8d5f` + §2.100 (A14, F4, H4: guida automatica).*
 
 Le domande vengono dai file 01-03 e dalle decisioni già prese (note legali §7,
 §7.10; technical-architecture §2.86). Sostituiscono e ampliano l'elenco del §6
@@ -110,6 +110,18 @@ Lussemburgo (CSSF) e Italia (CONSOB).*
   (prestatore di servizi di pagamento o CASP), far versare solo il Veicolo o un
   amministratore di royalty autorizzato, oppure ammettere solo versamenti
   diretti dell'artista. **[verificare]** *(02 C-12, 04 §5.7.1)*
+
+- **A14** 🟠 *Nuova, 2026-09-17.* Dal §2.100 il sito ha una **guida
+  automatica**: risposte scritte da noi e, dove è configurata una chiave API,
+  risposte generate da Claude a partire da un'istruzione di sistema
+  (`server/assistant-knowledge.js`) che le vieta di consigliare acquisti, di
+  stimare o promettere rendimenti e di uscire dai fatti che le diamo. Una
+  risposta generata che comunque *suoni* come un consiglio personalizzato è
+  **consulenza in materia di investimenti** (art. 1, c. 5, lett. f TUF) o
+  pubblicità di un prodotto finanziario? Basta l'istruzione di sistema più
+  l'avvertenza nel pannello e nei Termini (§12.2), o la modalità generata va
+  tenuta spenta finché non c'è l'autorizzazione (G2)? *(01 §13, 04 §12,
+  05 §3 e §5)*
 
 ## Gruppo B · Campagne di pre-produzione e crowdfunding
 *Stesso avvocato del gruppo A.*
@@ -226,6 +238,13 @@ l'azione di recupero. Decisione del 15 settembre 2026, note legali §7.10.*
   annullamento è una clausola abusiva? *(02 C-11, Termini §6)*
 - **F3** 🟢 Obblighi dell'**European Accessibility Act** per il sito?
 
+- **F4** 🟠 *Nuova, 2026-09-17.* Se la **guida automatica** dà un'informazione
+  sbagliata su commissioni, rimborsi o annullamento e l'utente agisce di
+  conseguenza, la limitazione di responsabilità dei Termini (§11, §12.2) regge
+  verso un consumatore, o è una clausola abusiva? Le informazioni
+  precontrattuali devono comunque stare nella pagina dell'asset, non nella
+  chat? *(04 §12.2)*
+
 ## Gruppo G · Società, responsabilità, prototipo
 *Avvocato societario / commercialista.*
 
@@ -254,6 +273,14 @@ l'azione di recupero. Decisione del 15 settembre 2026, note legali §7.10.*
   consenso, o va cambiato il contratto? *(02 C-13)*
 - **H3** 🟠 **DPIA** obbligatoria? **Trasferimenti** verso thirdweb, Render,
   Turso, Alchemy, Pinata e Google Fonts: base giuridica e DPA? *(05 §5)*
+
+- **H4** 🟠 *Nuova, 2026-09-17.* La modalità generata della guida invia ad
+  **Anthropic PBC** (USA) il testo che l'utente scrive: dati imprevedibili,
+  forniti liberamente. Serve il DPA art. 28 e quale base per il trasferimento
+  (DPF o clausole standard)? Va confermato che i dati dell'API **non vengano
+  usati per l'addestramento** e per quanto tempo Anthropic li conserva? Basta
+  l'avvertenza «non scrivere dati personali» (04 §12.3) o serve altro? *(05 §3
+  e §5, 01 §7)*
 
 ## Gruppo I · Diritto d'autore e musica
 *Avvocato IP o diritto dello spettacolo e della musica.*

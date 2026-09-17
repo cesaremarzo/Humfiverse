@@ -581,7 +581,9 @@
   .campaign-cover{ width:56px; height:56px; border-radius:12px; flex:none; overflow:hidden; }
 
   /* ============================= TOAST ============================= */
-  .toast-wrap{ position:fixed; bottom:22px; right:22px; z-index:100; display:flex; flex-direction:column; gap:10px; }
+  /* bottom:92px clears the guide assistant's launcher (§2.100), which sits
+     in the same corner; z-index keeps a toast readable over its panel. */
+  .toast-wrap{ position:fixed; bottom:92px; right:22px; z-index:100; display:flex; flex-direction:column; gap:10px; }
   .toast{
     background: var(--text); color: var(--bg); padding:12px 16px; border-radius:12px; font-size:13.5px;
     box-shadow: var(--shadow-lg); display:flex; align-items:center; gap:10px; max-width:340px;
@@ -752,3 +754,367 @@
   .media-drop.has-file{ border-style:solid; padding:0; }
   .media-drop img, .media-drop video{ position:absolute; inset:0; width:100%; height:100%; max-width:none; object-fit:cover; }
   .media-drop svg{ width:22px; height:22px; color: var(--accent-ink); }
+
+  /* ====================== GUIDE ASSISTANT (§2.100) ====================== */
+  /* The guide widget (§2.100). Everything here is built from the global
+     tokens in styles.css, so it follows the site's light/dark themes and the
+     glass treatment without redefining a single colour of its own.
+     Positioned with inset-inline-end, not right: in Arabic the app flips to
+     RTL and the button belongs on the other side with it. */
+
+  app-assistant {
+    position: fixed;
+    inset-block-end: 22px;
+    inset-inline-end: 22px;
+    /* Under the modal scrim (80) and the toasts (100), above the page. */
+    z-index: 70;
+    display: block;
+  }
+
+  /* ------------------------------- launcher ------------------------------- */
+
+  .assist-launcher {
+    position: relative;
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    border: 1px solid color-mix(in srgb, var(--accent) 80%, black 20%);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 86%, white 14%), var(--accent) 55%, color-mix(in srgb, var(--accent) 65%, var(--accent-2) 35%));
+    color: var(--accent-on);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 10px 30px -10px color-mix(in srgb, var(--accent) 85%, transparent);
+    transition: transform .18s var(--ease), box-shadow .25s var(--ease);
+  }
+
+  .assist-launcher:hover {
+    transform: translateY(-2px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.26), 0 0 0 5px color-mix(in srgb, var(--accent) 16%, transparent), 0 16px 38px -12px color-mix(in srgb, var(--accent) 90%, transparent);
+  }
+
+  .assist-launcher:active { transform: translateY(0); }
+
+  .assist-launcher:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 3px;
+  }
+
+  .assist-launcher-face {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+  }
+
+  .assist-launcher-face svg { width: 20px; height: 20px; }
+
+  .assist-mark { width: 26px; height: 26px; }
+
+  /* The five bars lift like a meter on hover — the same inverted mark as the
+     logo, doing the one thing a chat button should suggest: it is listening. */
+  .assist-mark line {
+    transform-origin: center;
+    transition: transform .3s var(--ease);
+  }
+  .assist-launcher:hover .assist-mark line:nth-child(1),
+  .assist-launcher:hover .assist-mark line:nth-child(5) { transform: scaleY(1.12); }
+  .assist-launcher:hover .assist-mark line:nth-child(2),
+  .assist-launcher:hover .assist-mark line:nth-child(4) { transform: scaleY(1.35); }
+  .assist-launcher:hover .assist-mark line:nth-child(3) { transform: scaleY(2.1); }
+
+  /* The label that slides out of the button on hover, on pointer devices. */
+  .assist-launcher-pill {
+    position: absolute;
+    inset-inline-end: calc(100% + 10px);
+    top: 50%;
+    transform: translateY(-50%) translateX(6px);
+    white-space: nowrap;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text);
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 999px;
+    padding: 6px 12px;
+    box-shadow: var(--shadow-md);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s var(--ease), transform .2s var(--ease);
+  }
+
+  .assist-launcher:hover .assist-launcher-pill,
+  .assist-launcher:focus-visible .assist-launcher-pill {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+
+  .assist-launcher.is-open .assist-launcher-pill { display: none; }
+
+  /* -------------------------------- panel --------------------------------- */
+
+  .assist-panel {
+    position: absolute;
+    inset-block-end: calc(100% + 12px);
+    inset-inline-end: 0;
+    width: 380px;
+    max-width: calc(100vw - 32px);
+    height: min(560px, calc(100vh - 140px));
+    display: flex;
+    flex-direction: column;
+    background: var(--glass);
+    backdrop-filter: blur(18px) saturate(1.2);
+    -webkit-backdrop-filter: blur(18px) saturate(1.2);
+    border: 1px solid var(--glass-border);
+    border-radius: 18px;
+    box-shadow: var(--shadow-lg), var(--glow);
+    overflow: hidden;
+    animation: assist-in .28s var(--ease);
+  }
+
+  @keyframes assist-in {
+    from { opacity: 0; transform: translateY(10px) scale(.985); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .assist-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 10px 12px 16px;
+    border-bottom: 1px solid var(--hairline);
+    background: color-mix(in srgb, var(--surface) 88%, transparent);
+  }
+
+  .assist-head-text { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+  .assist-head h2 {
+    font-family: "Fraunces", serif;
+    font-weight: 500;
+    font-size: 16px;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  .assist-mode {
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+  }
+
+  .assist-mode.is-ai {
+    background: var(--accent-soft);
+    color: var(--accent-ink);
+    border-color: var(--accent-soft-border);
+  }
+
+  .assist-icon-btn {
+    flex: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .2s var(--ease), color .2s var(--ease);
+  }
+
+  .assist-icon-btn:hover { background: var(--surface-2); color: var(--text); }
+  .assist-icon-btn:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 1px; }
+  .assist-icon-btn svg { width: 15px; height: 15px; }
+
+  .assist-log {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    scrollbar-width: thin;
+  }
+
+  .assist-row { display: flex; flex-direction: column; align-items: flex-start; }
+  .assist-row.from-visitor { align-items: flex-end; }
+
+  .assist-bubble {
+    max-width: 90%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    border-start-start-radius: 4px;
+    padding: 10px 13px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .assist-bubble.is-visitor {
+    background: var(--accent-soft);
+    border-color: var(--accent-soft-border);
+    border-radius: 14px;
+    border-end-end-radius: 4px;
+  }
+
+  .assist-bubble.is-warning {
+    background: var(--warning-soft);
+    border-color: color-mix(in srgb, var(--warning) 35%, var(--border));
+  }
+
+  .assist-text {
+    margin: 0;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+
+  .assist-text a { color: var(--accent-ink); font-weight: 600; text-decoration: none; }
+  .assist-text a:hover { text-decoration: underline; }
+
+  .assist-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 9px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--accent-ink);
+    text-decoration: none;
+  }
+
+  .assist-action:hover { text-decoration: underline; }
+  .assist-action svg { width: 13px; height: 13px; }
+
+  .assist-note {
+    margin: 5px 2px 0;
+    font-size: 11px;
+    line-height: 1.45;
+    color: var(--text-muted);
+    max-width: 90%;
+  }
+
+  .assist-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+
+  .assist-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 5px 11px;
+    cursor: pointer;
+    text-align: start;
+    transition: border-color .2s var(--ease), color .2s var(--ease), background .2s var(--ease);
+  }
+
+  .assist-chip:hover {
+    border-color: var(--accent-soft-border);
+    background: color-mix(in srgb, var(--accent-soft) 45%, var(--surface));
+    color: var(--text);
+  }
+
+  .assist-chip:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 1px; }
+  .assist-chip svg { width: 13px; height: 13px; color: var(--accent-ink); flex: none; }
+
+  .assist-typing { display: flex; gap: 5px; align-items: center; padding: 13px; }
+  .assist-typing span {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--text-muted);
+    animation: assist-dot 1.1s var(--ease) infinite;
+  }
+  .assist-typing span:nth-child(2) { animation-delay: .15s; }
+  .assist-typing span:nth-child(3) { animation-delay: .3s; }
+
+  @keyframes assist-dot {
+    0%, 60%, 100% { opacity: .3; transform: translateY(0); }
+    30% { opacity: 1; transform: translateY(-3px); }
+  }
+
+  .assist-form {
+    display: flex;
+    gap: 8px;
+    padding: 10px 12px 8px;
+    border-top: 1px solid var(--hairline);
+    background: color-mix(in srgb, var(--surface) 94%, transparent);
+  }
+
+  .assist-input {
+    flex: 1;
+    min-width: 0;
+    font-size: 13.5px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 12px;
+  }
+
+  .assist-input:focus { outline: 2px solid var(--focus-ring); outline-offset: -1px; border-color: var(--accent-soft-border); }
+
+  .assist-send {
+    flex: none;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    border: 1px solid color-mix(in srgb, var(--accent) 80%, black 20%);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 86%, white 14%), var(--accent));
+    color: var(--accent-on);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity .2s var(--ease), transform .12s var(--ease);
+  }
+
+  .assist-send:hover:not([disabled]) { transform: translateY(-1px); }
+  .assist-send[disabled] { opacity: .45; cursor: not-allowed; }
+  .assist-send:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+  .assist-send svg { width: 16px; height: 16px; }
+
+  .assist-foot {
+    margin: 0;
+    padding: 0 14px 11px;
+    font-size: 10.5px;
+    line-height: 1.5;
+    color: var(--text-muted);
+    background: color-mix(in srgb, var(--surface) 94%, transparent);
+  }
+
+  /* -------------------------------- small screens ------------------------- */
+
+  @media (max-width: 560px) {
+    app-assistant { inset-block-end: 16px; inset-inline-end: 16px; }
+    .assist-launcher { width: 52px; height: 52px; }
+    .assist-launcher-pill { display: none; }
+    .assist-panel {
+      position: fixed;
+      inset-block-end: 82px;
+      inset-inline: 12px;
+      width: auto;
+      max-width: none;
+      height: min(560px, calc(100vh - 110px));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .assist-launcher, .assist-panel, .assist-mark line, .assist-launcher-pill, .assist-send { transition: none; animation: none; }
+    .assist-typing span { animation: none; opacity: .6; }
+  }
+

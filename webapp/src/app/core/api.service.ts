@@ -24,7 +24,8 @@ import {
   RealHoldingDto,
   RedeemResult,
   RoyaltyMonth,
-  SecondaryListing, FeeSummary, RegistrationStatus, MediaKind } from './models';
+  SecondaryListing, FeeSummary, RegistrationStatus, MediaKind,
+  AssistantStatus, AssistantAnswer } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -273,5 +274,16 @@ export class ApiService {
   /** Platform fee totals for the escrow and the marketplace (§2.71). */
   getFees(): Promise<FeeSummary> {
     return firstValueFrom(this.http.get<FeeSummary>(`${this.base}/api/fees`));
+  }
+
+  /** §2.100 — whether the guide widget can take typed questions here. Asked
+   * once, when the widget is first opened, so a visitor who never opens it
+   * never wakes the backend for it. */
+  getAssistantStatus(): Promise<AssistantStatus> {
+    return firstValueFrom(this.http.get<AssistantStatus>(`${this.base}/api/assistant/status`));
+  }
+
+  askAssistant(payload: { messages: { role: 'user' | 'assistant'; content: string }[]; locale: string }): Promise<AssistantAnswer> {
+    return firstValueFrom(this.http.post<AssistantAnswer>(`${this.base}/api/assistant/ask`, payload));
   }
 }

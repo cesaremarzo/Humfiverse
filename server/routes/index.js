@@ -25,6 +25,7 @@ const registerLaunchRoutes = require("./launch.routes");
 const registerSignedActionRoutes = require("./signed-action.routes");
 const registerRegistrationRoutes = require("./registration.routes");
 const registerMediaRoutes = require("./media.routes");
+const registerAssistantRoutes = require("./assistant.routes");
 
 module.exports = function registerRoutes(router) {
   registerSystemRoutes(router);
@@ -45,4 +46,5 @@ module.exports = function registerRoutes(router) {
   registerRoyaltyRoutes(router);
   registerFeeRoutes(router);
   registerAdminRoutes(router);
+  registerAssistantRoutes(router);
 };

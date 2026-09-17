@@ -32,7 +32,7 @@ already taken:
 | If the change touches… | Update |
 |---|---|
 | An `onlyOwner` function, a new privileged role, `transferOwnership` | `02` §1 table and C-1/C-2/C-9; `04` §5.2; `CLAUDE.md` "Wallet names" (only if the address or role list changed) |
-| A fee (rate, base, refundability) | `02` §1 and C-11; `04` §6; `06` §2; `08` A-6 (recompute the example); `03` W-6/W-12 |
+| A fee (rate, base, refundability) | `02` §1 and C-11; `04` §6; `06` §2; `08` A-6 (recompute the example); `03` W-6/W-12; **`server/assistant-knowledge.js` and the `assistant.kb.fees.*` / `assistant.kb.buy.*` strings in all nine locales** — the guide states the rates to users (§2.100) |
 | Refunds, cancellation, milestones, deadlines | `02` C-2/C-3/C-4/C-5; `04` §5.3–5.6; `06` §2.2; `08` A-1/A-2/A-5/B-1; `07` group B/C |
 | Transfer restrictions, whitelist, KYC on chain | `02` C-6; `03` W-8; `01` §6; `07` A3 |
 | Marketplace | `02` C-7; `01` §5; `06` §2.3; `07` A4 |

@@ -39,6 +39,16 @@ const EMAIL_FROM = process.env.EMAIL_FROM || "";
 const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || "Humfiverse";
 const EMAIL_DEV_LOG = process.env.EMAIL_DEV_LOG === "1";
 
+/* §2.100 — the guide assistant's free-text mode. Unset leaves the widget in
+   its guided mode: it answers from the topics it ships with, says so, and
+   nothing is ever sent to Anthropic. ANTHROPIC_MODEL lets a deployment pick
+   a cheaper model than the default without a code change; ASSISTANT_DAILY_CAP
+   is the platform-wide ceiling on answered questions per rolling 24 hours,
+   the last line of defence for the bill (per-IP caps are in the service). */
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || "";
+const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || "claude-opus-5";
+const ASSISTANT_DAILY_CAP = Number(process.env.ASSISTANT_DAILY_CAP || 300);
+
 module.exports = {
   PORT,
   ADMIN_API_KEY,
@@ -49,5 +59,8 @@ module.exports = {
   BREVO_API_KEY,
   EMAIL_FROM,
   EMAIL_FROM_NAME,
-  EMAIL_DEV_LOG
+  EMAIL_DEV_LOG,
+  ANTHROPIC_API_KEY,
+  ANTHROPIC_MODEL,
+  ASSISTANT_DAILY_CAP
 };

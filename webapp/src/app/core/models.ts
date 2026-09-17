@@ -493,3 +493,19 @@ export interface SignedAction {
   issuedAt: string;
   signature: string;
 }
+
+/** §2.100 — whether this deployment can answer typed questions with AI, or
+ * only from the written topics the widget ships with. */
+export interface AssistantStatus {
+  available: boolean;
+  model: string | null;
+  maxChars: number;
+}
+
+export interface AssistantAnswer {
+  reply: string | null;
+  truncated?: boolean;
+  model?: string;
+  /** "refused" comes back with a 200 and no reply. */
+  code?: string;
+}

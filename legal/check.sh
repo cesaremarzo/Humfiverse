@@ -13,6 +13,7 @@ RECORD=legal/reviewed-files.sha256
 WATCHED=(
   contracts/contracts/*.sol
   server/contract-template.js
+  server/assistant-knowledge.js
   server/data/schema.js
   server/services/compliance.service.js
   server/routes/compliance.routes.js
