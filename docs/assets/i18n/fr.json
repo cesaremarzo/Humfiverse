@@ -74,6 +74,7 @@
   "detail.priceHistoryLast": "Dernier prix le plus bas : {{price}} · {{n}} échanges on-chain.",
   "detail.priceHistoryNote": "Chaque jour indique le prix le plus bas auquel le token a changé de mains contre paiement (campagne, achat direct ou revente) ; les jours sans échange conservent le dernier. Les prix passés ne préjugent pas des prix futurs.",
   "detail.priceHistoryEmpty": "Ce token n'a pas encore été échangé contre paiement.",
+  "detail.priceHistoryUnavailable": "Historique des prix indisponible pour le moment : les échanges on-chain n'ont pas pu être lus.",
   "detail.priceHistoryIncomplete": "Historique en cours de mise à jour : certaines transactions n'ont pas encore été lues.",
   "detail.priceHistoryLoading": "Lecture des échanges on-chain…",
   "detail.royaltyReportTitle": "Déclarer un revenu réel de redevances",

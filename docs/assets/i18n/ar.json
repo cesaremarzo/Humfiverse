@@ -74,6 +74,7 @@
   "detail.priceHistoryLast": "آخر أدنى سعر: {{price}} · {{n}} صفقات على السلسلة.",
   "detail.priceHistoryNote": "يعرض كل يوم أدنى سعر انتقل به الرمز مقابل دفع (حملة أو شراء مباشر أو إعادة بيع)؛ وفي الأيام التي لا صفقات فيها يبقى آخر سعر. الأسعار السابقة لا تدل على الأسعار المستقبلية.",
   "detail.priceHistoryEmpty": "لم يتم تداول هذا الرمز مقابل دفع بعد.",
+  "detail.priceHistoryUnavailable": "سجل الأسعار غير متاح حاليًا: تعذّرت قراءة الصفقات على السلسلة.",
   "detail.priceHistoryIncomplete": "السجل قيد التحديث: لم تتم قراءة بعض المعاملات بعد.",
   "detail.priceHistoryLoading": "جارٍ قراءة الصفقات على السلسلة…",
   "detail.royaltyReportTitle": "الإبلاغ عن دخل إتاوات حقيقي",

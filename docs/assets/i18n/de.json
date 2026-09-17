@@ -74,6 +74,7 @@
   "detail.priceHistoryLast": "Letzter Tiefstpreis: {{price}} · {{n}} On-Chain-Trades.",
   "detail.priceHistoryNote": "Jeder Tag zeigt den niedrigsten Preis, zu dem der Token gegen Bezahlung den Besitzer gewechselt hat (Kampagne, Direktkauf oder Weiterverkauf); Tage ohne Handel behalten den letzten Wert. Vergangene Preise sind kein Hinweis auf künftige.",
   "detail.priceHistoryEmpty": "Dieser Token wurde noch nicht gegen Bezahlung gehandelt.",
+  "detail.priceHistoryUnavailable": "Preisverlauf derzeit nicht verfügbar: On-Chain-Trades konnten nicht gelesen werden.",
   "detail.priceHistoryIncomplete": "Verlauf wird aktualisiert: Einige Transaktionen wurden noch nicht gelesen.",
   "detail.priceHistoryLoading": "On-Chain-Trades werden gelesen…",
   "detail.royaltyReportTitle": "Echte Tantiemeneinnahmen melden",

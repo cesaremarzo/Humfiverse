@@ -220,6 +220,7 @@ export interface PriceHistory {
   tokenId: number;
   /** False when the server could not read every transaction yet. */
   complete: boolean;
+  refreshError?: string | null;
   lastLowestPriceUsdc: string | null;
   daily: { date: string; priceUsdc: string; traded: boolean }[];
   trades: { txHash: string; source: 'escrow' | 'primary' | 'resale'; qty: number; priceUsdc: string; block: number; tradedAt: string }[];
