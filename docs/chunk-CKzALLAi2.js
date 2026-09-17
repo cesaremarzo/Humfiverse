@@ -1,0 +1,1 @@
+import{x as F}from"./chunk-MVlfEGhH.js";async function d(e,t){return e({method:`eth_getCode`,params:[t.address,t.blockTag||`latest`]})}var s=new WeakMap;function p(e){if(s.has(e))return s.get(e);let t=(async()=>{let o=await d(F(e),{address:e.address,blockTag:`latest`});return o===`0x`&&s.delete(e),o})();return s.set(e,t),t}export{p as n,d as t};
