@@ -53,7 +53,6 @@ export class App implements OnInit {
 
   ngOnInit(): void {
     document.documentElement.lang = this.store.locale();
-    this.wallet.wireProviderEvents();
     this.wallet.silentSync();
     this.store.hydrateFromBackend();
   }

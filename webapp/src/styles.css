@@ -601,6 +601,7 @@
   .connect-modal{ position:relative; max-height: calc(100dvh - 40px); overflow-y:auto; text-align:left; gap:18px; }
   .connect-close{ position:absolute; top:12px; right:12px; }
   .connect-options{ display:flex; flex-direction:column; gap:10px; }
+  .connect-current{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 14px; border:1px solid var(--border); border-radius:12px; background:var(--surface-2); }
   .connect-option{ justify-content:center; gap:10px; padding:12px 18px; }
   .connect-option:disabled{ opacity:.6; }
   .connect-soon{ margin-left:4px; background: var(--surface-2); color: var(--text-secondary); border:1px solid var(--border); }
