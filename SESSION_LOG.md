@@ -2091,3 +2091,46 @@ not funds raised and not sign-ups.
   calendar. Nothing was written to `planning/`.
 - Earlier handoff items (phase 2 verification, whitepaper W-16…W-19, Safe signer
   mapping, cancellation procedure) are unchanged by this session.
+
+---
+
+## 2026-09-17 (sera, 3) — grafica renderizzata e logo invertito, in `main` (§2.99)
+
+Two requests from Cesare, as graphic designer: make the §2.91 background elements
+more realistic and add more images; then invert the logo (from a sketch) and
+replace Angular's purple "A" favicon with the mark in white.
+
+**Both are on `main`.** The art went in with PR #69 (Cesare merged it himself at
+19:44, so phase 2 went live in the same merge); the logo and icons followed as
+**PR #70**, cherry-picked onto `main` in a `git worktree` because #69 had already
+carried the rest. Verified live: bundle `main-BXEYQLPM.js` on Pages, new
+`favicon.ico` (5383 B), `icon-512.png`/`apple-touch-icon.png` 200, and the
+production API reads the phase 2 token `0xa619…82EF` with both campaigns
+`legacy: true`.
+
+- Eight WebP images rendered procedurally in `webapp/art-src/` (numpy + Pillow,
+  fixed seed): vinyl + spinning label, coins (face/tilted/stack), studio
+  microphone, VU meter, film grain; `favicon.py` for the icons and
+  `og-cover.html` for the social card. No stock images, no extra fonts.
+- Backdrop: real record (only the label turns, the highlight stays with the
+  light), coin note heads, coins at three depths of field, glass candles, grain.
+  Landing: mic and coin stack break out of the two panels, VU meter beside
+  "project status".
+- Logo: nine bars **tall at the edges, short in the middle**, opacity following
+  height — topbar, landing logo and hero equaliser, vinyl label, both icon
+  sources. Change all five together.
+- `legal/`: only `index.html` changed (two self-hosted icon links), so Google
+  Fonts stays the single external resource and no legal conclusion moved;
+  recorded in `legal/CHANGELOG.md`, `./legal/check.sh` clean.
+
+### Next session
+
+- Re-render rather than hand-edit anything in `webapp/public/assets/art/`; the
+  README in `webapp/art-src/` has the exact commands.
+- Still open from earlier handoffs, untouched here: whitepaper W-16…W-19, Safe
+  signer mapping in `CLAUDE.md`, cancellation procedure/takedown (§2.87), the
+  `NONE` cancel ground (02 C-2), custody doc for the Safe keys, and the counsel
+  line for marketing.
+- Another session was mid-work on an "assistant" feature (uncommitted files in
+  `server/` and `webapp/src/app/layout/assistant.*`) in this shared checkout.
+
