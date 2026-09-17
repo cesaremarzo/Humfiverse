@@ -198,11 +198,14 @@ async function priceHistory(assetId) {
   const tokenId = Number(token.token_id);
 
   let complete = true;
+  let refreshError = null;
   try {
     complete = await refresh(tokenId);
-  } catch {
-    // The cache is still true as far as it goes; say it may be behind.
+  } catch (e) {
+    // The cache is still true as far as it goes; say it may be behind, and
+    // why: a bare `complete: false` gave nothing to diagnose with.
     complete = false;
+    refreshError = String((e && (e.shortMessage || e.message)) || e).slice(0, 300);
   }
 
   const trades = (await tradesRepo.tradesOf(TOKEN_ADDRESS, tokenId)).map((r) => ({
@@ -218,6 +221,7 @@ async function priceHistory(assetId) {
     assetId,
     tokenId,
     complete,
+    refreshError,
     lastLowestPriceUsdc: daily.length ? daily[daily.length - 1].priceUsdc : null,
     daily,
     trades

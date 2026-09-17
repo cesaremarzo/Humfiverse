@@ -74,6 +74,7 @@
   "detail.priceHistoryLast": "Ultimo prezzo minimo: {{price}} · {{n}} scambi on-chain.",
   "detail.priceHistoryNote": "Ogni giorno mostra il prezzo più basso a cui il token è passato di mano a pagamento (raccolta, acquisto diretto o rivendita); nei giorni senza scambi resta l'ultimo. I prezzi passati non indicano quelli futuri.",
   "detail.priceHistoryEmpty": "Questo token non è ancora stato scambiato a pagamento.",
+  "detail.priceHistoryUnavailable": "Storico prezzi non disponibile al momento: non è stato possibile leggere gli scambi on-chain.",
   "detail.priceHistoryIncomplete": "Storico in aggiornamento: alcune transazioni non sono ancora state lette.",
   "detail.priceHistoryLoading": "Lettura degli scambi on-chain…",
   "detail.royaltyReportTitle": "Dichiara un introito reale da royalty",

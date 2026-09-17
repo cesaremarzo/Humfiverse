@@ -74,6 +74,7 @@
   "detail.priceHistoryLast": "最近最低价：{{price}} · {{n}} 笔链上交易。",
   "detail.priceHistoryNote": "每天显示代币有偿易手的最低价格（众筹、直接购买或转售）；无交易的日子沿用上一个价格。过去的价格不代表未来的价格。",
   "detail.priceHistoryEmpty": "该代币尚未发生有偿交易。",
+  "detail.priceHistoryUnavailable": "价格历史暂不可用：无法读取链上交易。",
   "detail.priceHistoryIncomplete": "历史更新中：部分交易尚未读取。",
   "detail.priceHistoryLoading": "正在读取链上交易…",
   "detail.royaltyReportTitle": "报告真实版税收入",

@@ -74,6 +74,7 @@
   "detail.priceHistoryLast": "直近の最安値：{{price}} · オンチェーン取引 {{n}} 件。",
   "detail.priceHistoryNote": "各日は、トークンが有償で取引された最も低い価格（キャンペーン、直接購入、再販）を示します。取引のない日は直前の値を表示します。過去の価格は将来の価格を示すものではありません。",
   "detail.priceHistoryEmpty": "このトークンはまだ有償で取引されていません。",
+  "detail.priceHistoryUnavailable": "現在、価格履歴を表示できません：オンチェーン取引を読み込めませんでした。",
   "detail.priceHistoryIncomplete": "履歴を更新中：一部のトランザクションはまだ読み込まれていません。",
   "detail.priceHistoryLoading": "オンチェーン取引を読み込み中…",
   "detail.royaltyReportTitle": "実際のロイヤリティ収入を報告",
