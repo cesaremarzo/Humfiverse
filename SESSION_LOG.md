@@ -1704,3 +1704,53 @@ still unreviewed in `legal/` on purpose.
 Without them the site works as before and registration is simply not asked.
 Then test on the live site: a real code by email, a MetaMask and a Google
 wallet signing, an image and a video upload.
+
+---
+
+## 2026-09-17 — live testing: wallet choice (EIP-6963), sign-in from the top bar (PR #65)
+
+Cesare tested the live site under supervision. **Merged to `main` (PR #65) and
+live**, then `main` merged into `dev/cesare` (`52dfb2b`). No § number taken.
+
+**Bug found:** with Phantom and MetaMask both installed, Phantom owned
+`window.ethereum`, reported `isMetaMask: true` and never answered
+`eth_requestAccounts` / `eth_chainId`. `connectInjected()` awaited forever, so
+every sign-in button (Google, Apple, email included) stayed on "Connessione…"
+until reload. The portfolio's "Cannot convert undefined to a BigInt" and the
+missing Sell button on the campaign page also went away once Phantom was
+removed; the exact failing line was never read (no console trace captured).
+Server data was verified correct (`/api/portfolio`, `/api/onchain/batch`,
+`/api/listings` empty).
+
+**Fix (`wallet.service.ts`, `connect-modal.*`, `topbar.component.html`):**
+- browser wallets discovered via EIP-6963 (`injectedWallets` signal); the
+  dialog lists each by name and icon; `window.ethereum` only as a `legacy`
+  entry for wallets that don't announce;
+- transactions and signatures go through the connected wallet's provider;
+  the choice is remembered in `localStorage` (`humfiverse.injectedWallet`,
+  rdns) and reconnected on page load;
+- 60 s timeout on `eth_requestAccounts` (5 s on reads) with the message
+  `connect.walletTimeout`; a pending browser wallet no longer disables the
+  other options; closing the dialog cancels the wait (`cancelPendingConnect`);
+- the connected address in the top bar opens the dialog ("Il tuo wallet":
+  address, how it signed in, Disconnetti/Esci, options to switch) instead of
+  linking to the portfolio;
+- new strings in all 9 languages (non-it/en not reviewed by a native speaker).
+
+Tested locally with fake EIP-6963 wallets (one hanging, one connecting), then
+by Cesare on the live site with real MetaMask and Phantom: **all OK**.
+
+**Test data:** `0x4ee9e963b9f674cbd14ca6ccccfe29cbbfb26cd4` holds every
+production token (5 × `honest-man-595`, 40 × `new-song-464`), which are the
+only two tokens in the production table.
+
+### Next session
+
+Unchanged from "State at the end of 2026-09-16" and the §2.93 entry above:
+1. Render env for Brevo, then merge `dev/cesare` (§2.92 contracts are not
+   deployed and not reviewed in `legal/` — decide whether they ride along or
+   the merge is split), then live-test registration + media.
+2. Signed terms acceptance (`legal/08` C), artist QES, cancellation with
+   grounds and takedown, phase 2 redeploy.
+3. Still unverified: signatures from a Google in-app wallet on the
+   §2.88/§2.89 endpoints.
