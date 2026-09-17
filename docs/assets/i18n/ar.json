@@ -664,14 +664,16 @@
   "royaltyPayouts.statementLabel": "ملف كشف الحساب (PDF أو CSV أو XLSX، بحد أقصى 10 ميغابايت)",
   "royaltyPayouts.depositBtn": "إيداع",
   "royaltyPayouts.depositing": "جارٍ الإيداع…",
-  "royaltyPayouts.depositNote": "توقيعان: الموافقة على USDC ثم الإيداع. لا يمكن استرداد الإيداع. تُكتب بصمة SHA-256 للملف على السلسلة ويُنشر الملف على IPFS حيث يمكن لأي شخص تنزيله والتحقق منها: لا تُدرج بيانات شخصية لأطراف أخرى.",
+  "royaltyPayouts.depositNote": "توقيعان: الموافقة على USDC ثم الإيداع. لا يمكن استرداد الإيداع. تُكتب بصمة SHA-256 لملف كشف الحساب على السلسلة؛ ويبقى الملف على جهازك ما لم تختر نشره.",
   "royaltyPayouts.colDate": "التاريخ",
   "royaltyPayouts.colStatement": "الكشف",
   "royaltyPayouts.colAmount": "المبلغ",
-  "royaltyPayouts.noStatement": "الملف غير منشور",
+  "royaltyPayouts.noStatement": "غير منشور",
   "royaltyPayouts.statementLink": "كشف الحساب ({{type}}، {{size}})",
   "royaltyPayouts.attachBtn": "نشر الملف",
   "royaltyPayouts.attaching": "جارٍ النشر…",
   "royaltyPayouts.statementHash": "{{name}} · SHA-256 {{hash}}",
+  "royaltyPayouts.publishLabel": "نشر كشف الحساب على IPFS",
+  "royaltyPayouts.publishHint": "اختياري. تُكتب البصمة على السلسلة في كل الأحوال. إذا نشرت الملف يصبح علنيًا ودائمًا عمليًا: تحقّق أولًا من أن عقدك مع الموزّع يسمح بذلك، وأخفِ البيانات المصرفية وبيانات الآخرين.",
   "royaltyPayouts.noDeposits": "لم تُودَع أي إتاوات بعد."
 }

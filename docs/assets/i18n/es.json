@@ -664,14 +664,16 @@
   "royaltyPayouts.statementLabel": "Archivo de la liquidación (PDF, CSV o XLSX, máx. 10 MB)",
   "royaltyPayouts.depositBtn": "Depositar",
   "royaltyPayouts.depositing": "Depositando…",
-  "royaltyPayouts.depositNote": "Dos firmas: la autorización de USDC y luego el depósito. Un depósito no se puede retirar. La huella SHA-256 del archivo se escribe on chain y el archivo se publica en IPFS, donde cualquiera puede descargarlo y comprobarla: no incluyas datos personales de terceros.",
+  "royaltyPayouts.depositNote": "Dos firmas: la autorización de USDC y luego el depósito. Un depósito no se puede retirar. La huella SHA-256 del archivo de la liquidación se escribe on chain; el archivo se queda en tu dispositivo salvo que decidas publicarlo.",
   "royaltyPayouts.colDate": "Fecha",
   "royaltyPayouts.colStatement": "Extracto",
   "royaltyPayouts.colAmount": "Importe",
-  "royaltyPayouts.noStatement": "Archivo no publicado",
+  "royaltyPayouts.noStatement": "No publicada",
   "royaltyPayouts.statementLink": "Liquidación ({{type}}, {{size}})",
   "royaltyPayouts.attachBtn": "Publicar el archivo",
   "royaltyPayouts.attaching": "Publicando…",
   "royaltyPayouts.statementHash": "{{name}} · SHA-256 {{hash}}",
+  "royaltyPayouts.publishLabel": "Publicar la liquidación en IPFS",
+  "royaltyPayouts.publishHint": "Opcional. La huella se escribe on chain en cualquier caso. Si publicas, el archivo es público y prácticamente permanente: comprueba antes que tu contrato con el distribuidor lo permite y oculta datos bancarios y de terceros.",
   "royaltyPayouts.noDeposits": "Aún no se han depositado regalías."
 }

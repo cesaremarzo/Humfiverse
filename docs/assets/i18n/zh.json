@@ -664,14 +664,16 @@
   "royaltyPayouts.statementLabel": "结算单文件（PDF、CSV 或 XLSX，最大 10 MB）",
   "royaltyPayouts.depositBtn": "存入",
   "royaltyPayouts.depositing": "存入中…",
-  "royaltyPayouts.depositNote": "需要两次签名：先授权 USDC，再存入。存入后无法撤回。文件的 SHA-256 指纹会写入链上，文件会发布到 IPFS，任何人都可以下载并核对：请勿包含他人的个人数据。",
+  "royaltyPayouts.depositNote": "需要两次签名：先授权 USDC，再存入。存入后无法撤回。结算单文件的 SHA-256 指纹会写入链上；除非您选择发布，文件只保存在您的设备上。",
   "royaltyPayouts.colDate": "日期",
   "royaltyPayouts.colStatement": "结算单",
   "royaltyPayouts.colAmount": "金额",
-  "royaltyPayouts.noStatement": "文件未发布",
+  "royaltyPayouts.noStatement": "未发布",
   "royaltyPayouts.statementLink": "结算单（{{type}}，{{size}}）",
   "royaltyPayouts.attachBtn": "发布文件",
   "royaltyPayouts.attaching": "发布中…",
   "royaltyPayouts.statementHash": "{{name}} · SHA-256 {{hash}}",
+  "royaltyPayouts.publishLabel": "将结算单发布到 IPFS",
+  "royaltyPayouts.publishHint": "可选。无论是否发布，指纹都会写入链上。发布后文件公开且基本无法删除：请先确认您与发行商的合同允许公开，并遮盖银行信息和他人数据。",
   "royaltyPayouts.noDeposits": "尚未存入任何版税。"
 }

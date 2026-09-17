@@ -664,14 +664,16 @@
   "royaltyPayouts.statementLabel": "Файл отчёта (PDF, CSV или XLSX, до 10 МБ)",
   "royaltyPayouts.depositBtn": "Внести",
   "royaltyPayouts.depositing": "Внесение…",
-  "royaltyPayouts.depositNote": "Две подписи: разрешение на USDC, затем взнос. Взнос нельзя отозвать. Отпечаток SHA-256 файла записывается в блокчейн, а сам файл публикуется в IPFS, где любой может скачать его и проверить: не включайте персональные данные третьих лиц.",
+  "royaltyPayouts.depositNote": "Две подписи: разрешение на USDC, затем взнос. Взнос нельзя отозвать. Отпечаток SHA-256 файла отчёта записывается в блокчейн; файл остаётся на вашем устройстве, если вы не решите его опубликовать.",
   "royaltyPayouts.colDate": "Дата",
   "royaltyPayouts.colStatement": "Отчёт",
   "royaltyPayouts.colAmount": "Сумма",
-  "royaltyPayouts.noStatement": "Файл не опубликован",
+  "royaltyPayouts.noStatement": "Не опубликован",
   "royaltyPayouts.statementLink": "Отчёт ({{type}}, {{size}})",
   "royaltyPayouts.attachBtn": "Опубликовать файл",
   "royaltyPayouts.attaching": "Публикация…",
   "royaltyPayouts.statementHash": "{{name}} · SHA-256 {{hash}}",
+  "royaltyPayouts.publishLabel": "Опубликовать отчёт в IPFS",
+  "royaltyPayouts.publishHint": "Необязательно. Отпечаток в любом случае записывается в блокчейн. При публикации файл становится публичным и фактически постоянным: сначала убедитесь, что договор с дистрибьютором это разрешает, и скройте банковские реквизиты и данные третьих лиц.",
   "royaltyPayouts.noDeposits": "Роялти пока не вносились."
 }

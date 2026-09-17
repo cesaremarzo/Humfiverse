@@ -664,14 +664,16 @@
   "royaltyPayouts.statementLabel": "Abrechnungsdatei (PDF, CSV oder XLSX, max. 10 MB)",
   "royaltyPayouts.depositBtn": "Einzahlen",
   "royaltyPayouts.depositing": "Wird eingezahlt…",
-  "royaltyPayouts.depositNote": "Zwei Signaturen: die USDC-Freigabe, dann die Einzahlung. Eine Einzahlung kann nicht zurückgenommen werden. Der SHA-256-Fingerabdruck der Datei wird on chain geschrieben und die Datei auf IPFS veröffentlicht, wo jeder sie herunterladen und nachprüfen kann: keine personenbezogenen Daten Dritter aufnehmen.",
+  "royaltyPayouts.depositNote": "Zwei Signaturen: die USDC-Freigabe, dann die Einzahlung. Eine Einzahlung kann nicht zurückgenommen werden. Der SHA-256-Fingerabdruck der Abrechnungsdatei wird on chain geschrieben; die Datei bleibt auf deinem Gerät, außer du veröffentlichst sie.",
   "royaltyPayouts.colDate": "Datum",
   "royaltyPayouts.colStatement": "Abrechnung",
   "royaltyPayouts.colAmount": "Betrag",
-  "royaltyPayouts.noStatement": "Datei nicht veröffentlicht",
+  "royaltyPayouts.noStatement": "Nicht veröffentlicht",
   "royaltyPayouts.statementLink": "Abrechnung ({{type}}, {{size}})",
   "royaltyPayouts.attachBtn": "Datei veröffentlichen",
   "royaltyPayouts.attaching": "Wird veröffentlicht…",
   "royaltyPayouts.statementHash": "{{name}} · SHA-256 {{hash}}",
+  "royaltyPayouts.publishLabel": "Abrechnung auf IPFS veröffentlichen",
+  "royaltyPayouts.publishHint": "Optional. Der Fingerabdruck wird in jedem Fall on chain geschrieben. Wenn du veröffentlichst, ist die Datei öffentlich und praktisch dauerhaft: Prüfe vorher, ob dein Vertriebsvertrag das erlaubt, und schwärze Bankdaten und Daten Dritter.",
   "royaltyPayouts.noDeposits": "Noch keine Tantiemen eingezahlt."
 }

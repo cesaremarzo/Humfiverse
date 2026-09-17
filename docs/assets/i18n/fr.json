@@ -664,14 +664,16 @@
   "royaltyPayouts.statementLabel": "Fichier du relevé (PDF, CSV ou XLSX, 10 Mo max.)",
   "royaltyPayouts.depositBtn": "Déposer",
   "royaltyPayouts.depositing": "Dépôt en cours…",
-  "royaltyPayouts.depositNote": "Deux signatures : l'autorisation USDC, puis le versement. Un versement ne peut pas être repris. L'empreinte SHA-256 du fichier est écrite on chain et le fichier est publié sur IPFS, où chacun peut le télécharger et la vérifier : n'y mettez pas de données personnelles de tiers.",
+  "royaltyPayouts.depositNote": "Deux signatures : l'autorisation USDC, puis le versement. Un versement ne peut pas être repris. L'empreinte SHA-256 du fichier du relevé est écrite on chain ; le fichier reste sur votre appareil, sauf si vous choisissez de le publier.",
   "royaltyPayouts.colDate": "Date",
   "royaltyPayouts.colStatement": "Relevé",
   "royaltyPayouts.colAmount": "Montant",
-  "royaltyPayouts.noStatement": "Fichier non publié",
+  "royaltyPayouts.noStatement": "Non publié",
   "royaltyPayouts.statementLink": "Relevé ({{type}}, {{size}})",
   "royaltyPayouts.attachBtn": "Publier le fichier",
   "royaltyPayouts.attaching": "Publication…",
   "royaltyPayouts.statementHash": "{{name}} · SHA-256 {{hash}}",
+  "royaltyPayouts.publishLabel": "Publier le relevé sur IPFS",
+  "royaltyPayouts.publishHint": "Facultatif. L'empreinte est écrite on chain dans tous les cas. Si vous publiez, le fichier est public et pratiquement permanent : vérifiez d'abord que votre contrat de distribution le permet et masquez les coordonnées bancaires et les données de tiers.",
   "royaltyPayouts.noDeposits": "Aucune royalty déposée pour l'instant."
 }

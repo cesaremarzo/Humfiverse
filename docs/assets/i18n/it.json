@@ -664,14 +664,16 @@
   "royaltyPayouts.statementLabel": "File del rendiconto (PDF, CSV o XLSX, max 10 MB)",
   "royaltyPayouts.depositBtn": "Versa",
   "royaltyPayouts.depositing": "Versamento in corso…",
-  "royaltyPayouts.depositNote": "Due firme: l'autorizzazione USDC, poi il versamento. Un versamento non si può ritirare. L'impronta SHA-256 del file viene scritta on chain e il file viene pubblicato su IPFS, dove chiunque può scaricarlo e ricontrollarla: non inserire dati personali di terzi.",
+  "royaltyPayouts.depositNote": "Due firme: l'autorizzazione USDC, poi il versamento. Un versamento non si può ritirare. L'impronta SHA-256 del file del rendiconto viene scritta on chain; il file resta sul tuo dispositivo, a meno che tu non scelga di pubblicarlo.",
   "royaltyPayouts.colDate": "Data",
   "royaltyPayouts.colStatement": "Rendiconto",
   "royaltyPayouts.colAmount": "Importo",
-  "royaltyPayouts.noStatement": "File non pubblicato",
+  "royaltyPayouts.noStatement": "Non pubblicato",
   "royaltyPayouts.statementLink": "Rendiconto ({{type}}, {{size}})",
   "royaltyPayouts.attachBtn": "Pubblica il file",
   "royaltyPayouts.attaching": "Pubblicazione…",
   "royaltyPayouts.statementHash": "{{name}} · SHA-256 {{hash}}",
+  "royaltyPayouts.publishLabel": "Pubblica il rendiconto su IPFS",
+  "royaltyPayouts.publishHint": "Facoltativo. L'impronta va on chain comunque. Se pubblichi, il file è pubblico e di fatto permanente: controlla prima che il tuo contratto con il distributore lo permetta e oscura dati bancari e di terzi.",
   "royaltyPayouts.noDeposits": "Nessuna royalty versata finora."
 }
