@@ -1,0 +1,1 @@
+import"./chunk-CoEj01tB.js";import{f as Y,p as b}from"./chunk--P641VnV.js";import"./chunk-BjMZjMDk.js";import"./chunk-ClhUyKtI.js";export{b as getDefaultGasOverrides,Y as getGasOverridesForTransaction};
