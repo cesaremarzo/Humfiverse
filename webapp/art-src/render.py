@@ -261,8 +261,8 @@ def run_vinyl(D=1100):
         m = np.abs(t - rr) < w
         lab = np.where(m[..., None], np.array(c_), lab)
     # nine-bar brand mark, cream
-    heights = [10, 30.6, 48.2, 59.9, 64, 59.9, 48.2, 30.6, 10]
-    ops = [0.4, 0.6, 0.8, 0.95, 1, 0.95, 0.8, 0.6, 0.4]
+    heights = [64, 59.9, 48.2, 30.6, 10, 30.6, 48.2, 59.9, 64]
+    ops = [1, 0.95, 0.8, 0.6, 0.4, 0.6, 0.8, 0.95, 1]
     lu, lv = u / lab_r, v / lab_r
     for i, (hh, o) in enumerate(zip(heights, ops)):
         bx = -0.36 + i * 0.09
