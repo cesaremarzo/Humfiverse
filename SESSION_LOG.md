@@ -2134,3 +2134,19 @@ production API reads the phase 2 token `0xa619…82EF` with both campaigns
 - Another session was mid-work on an "assistant" feature (uncommitted files in
   `server/` and `webapp/src/app/layout/assistant.*`) in this shared checkout.
 
+## 2026-09-17 (sera, 3) — phase 2 live; email registration on
+
+PR #69 merged after Cesare set the five `CHAIN_*` variables on Render. Verified
+live: new bundle on GitHub Pages, `honest-man-595` on the new token, royalties
+`supported: true` on both tokens, both finished campaigns read from the legacy
+escrow, wallet `0x4ee9…6cd4` holding 5 + 20 tokens.
+
+Then Brevo: the key first pasted was an SMTP key (`xsmtpsib-`, rejected by the
+v3 API) and the variable had been named `BREVO_API_KEYS`. With
+`BREVO_API_KEY`/`EMAIL_FROM`/`EMAIL_FROM_NAME` set, `/api/registration/status`
+reports `required: true` and Cesare completed a real email verification on the
+live site (§2.93, first time tested for real).
+
+Not tested live yet: a real royalty deposit with a statement file on Pinata
+(§2.98). Still open: the per-token deposit interval (legal 08 C-12), counsel
+question 07 A12.
