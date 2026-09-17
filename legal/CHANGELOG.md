@@ -3,6 +3,21 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-09-17 · rendiconto: pubblicazione facoltativa; A12 e I4 (§2.98)
+
+Decisione di Cesare: pubblicare il rendiconto è una **possibilità** data
+all'artista, non un obbligo, e non incide sul funzionamento. Nel codice l'impronta
+va sempre on-chain e il file va su IPFS solo se la casella "Pubblica il
+rendiconto" è spuntata (attiva di default) o più tardi dallo storico.
+- **08 A-8:** punto 3 senza pubblicazione (l'artista conserva ed esibisce il
+  file); nuovo punto 3-bis, pubblicazione facoltativa, non pubblicare non è
+  inadempimento.
+- **04 §5.7.2, 05 §3, 02 C-12, 01, 03 W-19, 06 §3:** allineati.
+- **07 A12:** registrata la valutazione dell'utente (autorizzazione quasi certa);
+  la domanda diventa quale autorizzazione e quali alternative.
+- **07 I4:** da 🟠 a 🟢; nessun divieto noto (lettura rapida dei Termini
+  DistroKid), resta un'avvertenza all'artista.
+
 ## 2026-09-17 · versamento delle royalty: chi versa, quando, su quale rendiconto (§2.98)
 
 Decisione di Cesare: versa l'**artista** (incassa e converte in USDC) oppure la

@@ -2028,3 +2028,8 @@ a rendere l'interfaccia più accattivante"*.
   two panels, VU meter beside "project status".
 - Checked by screenshot: 1440 dark/light, 400px, landing and marketplace.
 
+Follow-up, same evening: the user made publishing the statement **optional**
+(an option for artists; not publishing breaks nothing). Checkbox "Publish the
+statement", on by default; the hash always goes on chain. `legal/`: 08 A-8
+point 3-bis, I4 lowered to 🟢 (no known prohibition), A12 records the user's
+view that an authorization is almost certainly needed.

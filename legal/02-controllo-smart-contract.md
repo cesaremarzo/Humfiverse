@@ -422,13 +422,18 @@ priorità sale ad Alta.**
     mostrato sul sito (08 C-12).
   - *Su quale rendiconto:* `statementRef` = SHA-256 del file (PDF, CSV o XLSX,
     max 10 MB), calcolato nel browser prima del versamento
-    (`server/lib/statement-file.js`). Dopo il versamento il file è fissato su
-    IPFS con nome anonimo e collegato nello storico; il server rifiuta un file
-    con impronta diversa (`royalties.service.js`, `attachStatement`).
+    (`server/lib/statement-file.js`). L'impronta va sempre on-chain; **pubblicare
+    il file è una scelta di chi versa** (casella attiva di default, oppure più
+    tardi dallo storico). Se pubblicato, il file è fissato su IPFS con nome
+    anonimo e collegato nello storico; il server rifiuta un file con impronta
+    diversa (`royalties.service.js`, `attachStatement`). Se non pubblicato,
+    l'impronta permette comunque di verificare il file quando viene mostrato
+    (all'avvocato, in una contestazione). Il funzionamento del token non dipende
+    dalla pubblicazione.
   - *Resta aperto:* nessuno verifica il rendiconto; la Piattaforma che riceve e
-    converte il denaro dell'artista può essere un servizio regolato (07 A12);
-    un rendiconto pubblico può violare riservatezza del distributore o dati
-    personali (07 I4, 05 §3).
+    converte il denaro dell'artista quasi certamente è un servizio regolato
+    (valutazione dell'utente; 07 A12); chi pubblica il rendiconto controlla
+    prima il proprio contratto di distribuzione e i dati personali (07 I4, 05 §3).
 
 ### C-13 · Bassa · Dati personali scritti per sempre
 

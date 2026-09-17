@@ -1,6 +1,6 @@
 # Termini di Servizio: bozza
 
-*Bozza del 2026-09-15, commit `82a7a1b`; §5.3 aggiornato il 2026-09-17 (ordine delle milestone); §5.7 il 2026-09-17 (chi versa le royalty e rendiconto pubblicato, §2.98). **Da far rivedere a un avvocato prima
+*Bozza del 2026-09-15, commit `82a7a1b`; §5.3 aggiornato il 2026-09-17 (ordine delle milestone); §5.7 il 2026-09-17 (chi versa le royalty e rendiconto, pubblicazione facoltativa, §2.98). **Da far rivedere a un avvocato prima
 della pubblicazione.** Non è consulenza legale.*
 
 ## Note per chi usa questa bozza (da togliere prima di pubblicare)
@@ -198,14 +198,15 @@ obbliga nessuno a versare né a rispettare l'intervallo**: se l'artista non vers
 resta solo un'azione contrattuale verso di lui.
 
 5.7.2. **Rendiconto.** Ogni versamento indica l'impronta SHA-256 del file del
-rendiconto da cui proviene; il file è pubblicato su IPFS e collegato nello storico
-dei versamenti, e chiunque può verificare che l'impronta coincida. **Né il
+rendiconto da cui proviene. Chi versa **può** pubblicare il file su IPFS, collegato
+nello storico dei versamenti; in quel caso chiunque può verificare che l'impronta
+coincida. Se il file non è pubblicato, l'impronta resta e permette di verificarlo
+quando viene mostrato. La pubblicazione non incide sul pagamento delle royalty. **Né il
 contratto né la Piattaforma verificano che il rendiconto sia vero o che i
 versamenti corrispondano agli incassi reali del brano.**
 
 > Nota per l'avvocato: servono l'intervallo per token nel wizard (08 C-12), il
-> ruolo della Piattaforma quando riceve e converte il denaro (07 A12) e la
-> riservatezza dei rendiconti dei distributori (07 I4).
+> ruolo della Piattaforma quando riceve e converte il denaro (07 A12).
 
 ## 6. Commissioni
 

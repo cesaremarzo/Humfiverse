@@ -153,9 +153,9 @@ Testo in inglese, come il whitepaper.
   everyone, whatever they paid; tokens handed back stop earning royalties.
 - **Royalty deposits are not verified.** The artist, or the platform on the
   artist's behalf, deposits them; nothing on chain obliges anyone to deposit or
-  to keep to the agreed schedule. Each deposit points to a published statement
-  file, but no one checks that the statement is genuine or matches the track's
-  real income.
+  to keep to the agreed schedule. Each deposit carries the fingerprint of a
+  statement file, which the artist may choose to publish, but no one checks that
+  the statement is genuine or matches the track's real income.
 
 **Data**
 - **What is written on-chain or to IPFS is permanent** — including artist

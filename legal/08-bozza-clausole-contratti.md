@@ -198,11 +198,15 @@ terzi gli stessi proventi.
    In ogni caso l'Artista versa entro [__] giorni da quando riceve un rendiconto
    con proventi superiori a [__] USDC.
 3. **Rendiconto.** Ogni versamento corrisponde a un rendiconto del distributore o
-   dell'ente di gestione, integrale per il periodo e per il Brano. L'Artista lo
-   carica nel sito al momento del versamento: la sua impronta SHA-256 è scritta
-   sulla blockchain e il file è pubblicato. Prima del caricamento l'Artista
+   dell'ente di gestione, integrale per il periodo e per il Brano. Al momento del
+   versamento l'Artista lo seleziona nel sito e la sua impronta SHA-256 è scritta
+   sulla blockchain. L'Artista conserva il file e lo esibisce su richiesta della
+   Piattaforma o del Veicolo.
+3-bis. **Pubblicazione facoltativa.** L'Artista **può** pubblicare il rendiconto
+   nel sito, al versamento o in seguito. Prima di farlo verifica che i propri
+   contratti con distributori, etichette o enti di gestione lo consentano, e
    oscura i propri dati bancari e i dati personali di terzi, senza modificare
-   periodi, quantità e importi **[verificare con 07 I4]**.
+   periodi, quantità e importi. La mancata pubblicazione non è inadempimento.
 4. Un versamento inferiore ai proventi del rendiconto, un rendiconto alterato o il
    mancato versamento nei termini del punto 2 sono inadempimento grave ai sensi
    della clausola A-3 **[verificare il rinvio]**.
