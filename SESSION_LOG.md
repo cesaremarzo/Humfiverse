@@ -1870,6 +1870,15 @@ order, funding still gating each tranche.
   until then a direct contract call can still go out of order.
 - `legal/` 02, 04, 08 updated; phase 2 contracts still not fully reviewed.
 
+*Update, end of 17 Sep:* the phase 2 redeploy (§2.97, another session) shipped
+this check — escrow `0xc0043d41693D7E4DF0785bd3c28e619a543FD368` refuses
+out-of-order confirmations. It only governs production once PR #69 is merged and
+Render points at the new escrow; the two existing campaigns stay on the legacy
+escrow, fully released, so nothing live can go out of order either way. The
+`legal/` wording was brought in line by §2.97's full review. Also checked the
+fees: nothing left to do there, but the 2% primary fee on `buy()` has never run
+live — worth one real purchase after #69.
+
 ---
 
 ## 2026-09-17 — token price history chart live (§2.94); Render RPC switched to Alchemy
