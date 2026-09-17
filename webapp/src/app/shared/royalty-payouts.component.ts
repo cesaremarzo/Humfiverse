@@ -28,7 +28,9 @@ async function sha256Ref(file: Blob): Promise<string> {
  * Everything shown is read from the token contract, through the backend:
  * totals, the unsold tokens' share and what the connected wallet can claim.
  * The deposit history lists only deposits whose receipts were checked,
- * each with its statement file once published (§2.98).
+ * each with its statement file once published (§2.98). The hash always goes
+ * on chain; publishing the file is the depositor's choice, since a
+ * distribution contract may keep statements confidential.
  *
  * Deposits are offered to the artist and to the platform (Founder), the two
  * who may deposit under the artist agreement. The contract itself accepts a
@@ -95,6 +97,10 @@ async function sha256Ref(file: Blob): Promise<string> {
             @if (statementFile(); as f) {
               <p class="mono" style="font-size:11.5px; color:var(--text-secondary); margin:10px 0 0; word-break:break-all;">{{ 'royaltyPayouts.statementHash' | translate: { name: f.file.name, hash: f.ref } }}</p>
             }
+            <label style="display:flex; gap:8px; align-items:flex-start; font-size:12.5px; margin:10px 0 0; cursor:pointer;">
+              <input type="checkbox" [checked]="publishStatement()" (change)="publishStatement.set($any($event.target).checked)" style="margin-top:2px;" />
+              <span>{{ 'royaltyPayouts.publishLabel' | translate }}<br /><span style="font-size:11.5px; color:var(--text-secondary);">{{ 'royaltyPayouts.publishHint' | translate }}</span></span>
+            </label>
             <p style="font-size:11.5px; color:var(--text-secondary); margin:10px 0 0;">{{ 'royaltyPayouts.depositNote' | translate }}</p>
           </div>
         }
@@ -150,6 +156,8 @@ export class RoyaltyPayoutsComponent implements OnChanges {
   busy = signal<'claim' | 'pool' | 'deposit' | 'attach' | null>(null);
   amountInput = signal('');
   statementFile = signal<{ file: File; ref: string } | null>(null);
+  /** Publish the statement on IPFS after the deposit; the hash goes on chain either way. */
+  publishStatement = signal(true);
   private assetIdSignal = signal<string | null>(null);
 
   constructor(
@@ -270,10 +278,10 @@ export class RoyaltyPayoutsComponent implements OnChanges {
     await this.run('deposit', async () => {
       const { txHash } = await this.wallet.depositRoyaltiesOnchain({ contractAddress: s.contractAddress, tokenId: s.tokenId, amountUsdc, statementRef: statement.ref });
       // The deposit is on chain whatever happens next; a failed report only
-      // leaves it out of the history until it is reported again, and a
-      // failed upload leaves the "attach" button on its row.
+      // leaves it out of the history until it is reported again, and an
+      // unpublished statement keeps the "publish the file" button on its row.
       await this.api.recordRoyaltyDeposit(txHash).catch((err) => console.warn('Deposit made but not recorded in the history.', err));
-      const published = await this.api.uploadRoyaltyStatement(txHash, statement.file).then(() => true, (err) => {
+      const published = !this.publishStatement() || await this.api.uploadRoyaltyStatement(txHash, statement.file).then(() => true, (err) => {
         console.warn('Deposit made but the statement was not published.', err);
         return false;
       });

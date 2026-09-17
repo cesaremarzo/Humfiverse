@@ -664,14 +664,16 @@
   "royaltyPayouts.statementLabel": "Statement file (PDF, CSV or XLSX, max 10 MB)",
   "royaltyPayouts.depositBtn": "Deposit",
   "royaltyPayouts.depositing": "Depositing…",
-  "royaltyPayouts.depositNote": "Two signatures: a USDC approval, then the deposit. A deposit cannot be taken back. The file's SHA-256 fingerprint is written on chain and the file is published on IPFS, where anyone can download it and check it again: leave out other people's personal data.",
+  "royaltyPayouts.depositNote": "Two signatures: a USDC approval, then the deposit. A deposit cannot be taken back. The statement file's SHA-256 fingerprint is written on chain; the file stays on your device unless you choose to publish it.",
   "royaltyPayouts.colDate": "Date",
   "royaltyPayouts.colStatement": "Statement",
   "royaltyPayouts.colAmount": "Amount",
-  "royaltyPayouts.noStatement": "File not published",
+  "royaltyPayouts.noStatement": "Not published",
   "royaltyPayouts.statementLink": "Statement ({{type}}, {{size}})",
   "royaltyPayouts.attachBtn": "Publish the file",
   "royaltyPayouts.attaching": "Publishing…",
   "royaltyPayouts.statementHash": "{{name}} · SHA-256 {{hash}}",
+  "royaltyPayouts.publishLabel": "Publish the statement on IPFS",
+  "royaltyPayouts.publishHint": "Optional. The fingerprint goes on chain either way. If you publish, the file is public and effectively permanent: first check that your distribution contract allows it, and hide bank details and other people's data.",
   "royaltyPayouts.noDeposits": "No royalties deposited yet."
 }

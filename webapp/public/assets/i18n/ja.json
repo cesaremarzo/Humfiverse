@@ -664,14 +664,16 @@
   "royaltyPayouts.statementLabel": "明細書ファイル（PDF・CSV・XLSX、最大 10 MB）",
   "royaltyPayouts.depositBtn": "入金",
   "royaltyPayouts.depositing": "入金中…",
-  "royaltyPayouts.depositNote": "署名は2回：USDC の承認、次に入金です。入金は取り消せません。ファイルの SHA-256 フィンガープリントがオンチェーンに記録され、ファイルは IPFS に公開されるため、誰でもダウンロードして確認できます。第三者の個人データは含めないでください。",
+  "royaltyPayouts.depositNote": "署名は2回：USDC の承認、次に入金です。入金は取り消せません。明細書ファイルの SHA-256 フィンガープリントがオンチェーンに記録されます。公開を選ばない限り、ファイルはお使いの端末に残ります。",
   "royaltyPayouts.colDate": "日付",
   "royaltyPayouts.colStatement": "明細書",
   "royaltyPayouts.colAmount": "金額",
-  "royaltyPayouts.noStatement": "ファイル未公開",
+  "royaltyPayouts.noStatement": "未公開",
   "royaltyPayouts.statementLink": "明細書（{{type}}、{{size}}）",
   "royaltyPayouts.attachBtn": "ファイルを公開",
   "royaltyPayouts.attaching": "公開中…",
   "royaltyPayouts.statementHash": "{{name}} · SHA-256 {{hash}}",
+  "royaltyPayouts.publishLabel": "明細書を IPFS に公開する",
+  "royaltyPayouts.publishHint": "任意です。フィンガープリントはどちらの場合もオンチェーンに記録されます。公開するとファイルは公開され、事実上削除できません。事前にディストリビューターとの契約で許可されているか確認し、口座情報や第三者のデータを隠してください。",
   "royaltyPayouts.noDeposits": "まだロイヤリティは入金されていません。"
 }
