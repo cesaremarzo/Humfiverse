@@ -1,7 +1,8 @@
-import { Component, signal } from '@angular/core';
-import { TranslatePipe } from '@ngx-translate/core';
+import { Component, computed, signal } from '@angular/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { IconComponent } from '../shared/icon.component';
 import { ConnectResult, WalletService } from '../core/wallet.service';
+import { ToastService } from '../core/toast.service';
 
 /** The sign-in dialog behind every "Connect wallet" button (§2.83).
  * WalletService.connect() opens it and waits; whichever option the user
@@ -23,7 +24,27 @@ export class ConnectModalComponent {
   pendingWallet = signal<string | null>(null);
   errorKey = signal<string | null>(null);
 
-  constructor(public wallet: WalletService) {}
+  /** The browser wallet currently connected, when that is the source. */
+  activeWallet = computed(() => {
+    const id = this.wallet.activeInjectedId();
+    return this.wallet.state().kind === 'injected' && id ? (this.wallet.injectedWallets().find((w) => w.id === id) ?? null) : null;
+  });
+
+  constructor(
+    public wallet: WalletService,
+    private toast: ToastService,
+    private translate: TranslateService
+  ) {}
+
+  /** Opened from the connected address in the top bar: signs out without
+   * leaving the dialog's other options, which switch to another account. */
+  disconnect(): void {
+    if (this.busy()) return;
+    const embedded = this.wallet.state().kind === 'embedded';
+    this.close();
+    this.wallet.disconnect();
+    this.toast.show(this.translate.instant(embedded ? 'toast.signedOut' : 'toast.walletDisconnected'), 'info');
+  }
 
   /* No await before connectWithSocial: it opens the popup, and the browser
      only allows that while still inside the click. */

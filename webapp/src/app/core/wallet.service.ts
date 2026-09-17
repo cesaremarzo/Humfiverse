@@ -166,6 +166,8 @@ export class WalletService {
   readonly embeddedEnabled = embeddedWalletEnabled();
   /** Every browser wallet installed, in the order they announced themselves. */
   readonly injectedWallets = signal<InjectedWallet[]>([]);
+  /** Which of them is connected, for the sign-in dialog to name it. */
+  readonly activeInjectedId = signal<string | null>(null);
 
   private embedded: EmbeddedSession | null = null;
   private injected: InjectedWallet | null = null;
@@ -277,6 +279,7 @@ export class WalletService {
 
   private adoptInjected(wallet: InjectedWallet, address: string, chainId: string): void {
     this.injected = wallet;
+    this.activeInjectedId.set(wallet.id);
     rememberWallet(wallet.id);
     this.wireProviderEvents(wallet);
     this.state.set({ address, chainId, connecting: false, kind: 'injected' });
@@ -320,6 +323,7 @@ export class WalletService {
   private adoptEmbedded(session: EmbeddedSession): void {
     this.embedded = session;
     this.injected = null;
+    this.activeInjectedId.set(null);
     rememberWallet(null);
     session.onDisconnect(() => {
       if (this.embedded !== session) return;
@@ -340,6 +344,7 @@ export class WalletService {
   disconnect(): void {
     void this.dropEmbeddedSession();
     this.injected = null;
+    this.activeInjectedId.set(null);
     rememberWallet(null);
     this.state.update((s) => ({ ...s, address: null, chainId: null, kind: null }));
   }
@@ -383,6 +388,7 @@ export class WalletService {
       const address = (accounts && accounts[0]) || null;
       if (!address) {
         this.injected = null;
+        this.activeInjectedId.set(null);
         rememberWallet(null);
       }
       this.state.update((s) => ({ ...s, address, chainId: address ? s.chainId : null, kind: address ? 'injected' : null }));
