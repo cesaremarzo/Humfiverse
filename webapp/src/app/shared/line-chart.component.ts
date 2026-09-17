@@ -2,6 +2,8 @@ import { Component, Input } from '@angular/core';
 import { RoyaltyMonth } from '../core/models';
 import { fmtUSD } from '../core/format.util';
 
+let nextId = 0;
+
 interface Point {
   x: number;
   y: number;
@@ -26,6 +28,11 @@ export class LineChartComponent {
   gridLines: number[] = [];
   labels: { i: number; month: string }[] = [];
   data: RoyaltyMonth[] = [];
+
+  /** Unique per instance: two charts on one page must not share a gradient id. */
+  fillId = `lc-fill-${nextId++}`;
+  /** How a value reads in the tooltip; dollars by default. */
+  @Input() format: (n: number) => string = fmtUSD;
 
   hoverIndex: number | null = null;
   hoverX = 0;
@@ -72,6 +79,6 @@ export class LineChartComponent {
   }
 
   fmt(n: number): string {
-    return fmtUSD(n);
+    return this.format(n);
   }
 }

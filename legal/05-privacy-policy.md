@@ -1,6 +1,6 @@
 # Informativa Privacy: bozza
 
-*Bozza del 2026-09-16, commit `cc06a70` con le modifiche dei §2.88 e §2.89; email di registrazione, immagini e video dal §2.93. **Da far rivedere a un avvocato o a un
+*Bozza del 2026-09-17: storico prezzi dal §2.94 (commit `94ae18f`); prima commit `cc06a70` con le modifiche dei §2.88 e §2.89; email di registrazione, immagini e video dal §2.93. **Da far rivedere a un avvocato o a un
 esperto privacy prima della pubblicazione.** Non è consulenza legale.*
 
 ## Note per chi usa questa bozza (da togliere prima di pubblicare)
@@ -54,6 +54,7 @@ resti pubblico in modo permanente.
 | Dati | Da dove vengono | Finalità | Base giuridica | Conservazione |
 |---|---|---|---|---|
 | Indirizzo wallet, saldi e transazioni | Blockchain pubblica, tuo wallet | Mostrare portafoglio, asset, rimborsi; indicizzare i possessori di token | Esecuzione del servizio (art. 6.1.b) | Nel nostro database: finché usi il servizio + [12 mesi]. Sulla blockchain: per sempre, fuori dal nostro controllo |
+| Storico degli scambi a pagamento di ogni token (`token_trades`, `token_trade_scans`): hash della transazione, id del token, tipo (raccolta, acquisto diretto, rivendita), quantità, prezzo, blocco, data e ora. **Nessun indirizzo wallet**, ma l'hash porta alla transazione pubblica e quindi ai wallet coinvolti (§2.94) | Blockchain pubblica | Grafico dello storico prezzi nella pagina dell'asset | Esecuzione del servizio | [Finché l'asset è pubblicato]; è una copia di dati pubblici on-chain, ricostruibile in ogni momento |
 | Istantanee del valore del portafoglio per wallet (`portfolio_snapshots`) | Calcolate da noi | Grafico dell'andamento del portafoglio | Esecuzione del servizio | [12 mesi] |
 | **Modulo di verifica (dimostrativo):** nome completo, data di nascita, nazionalità, classificazione dell'investitore, risposte al questionario e punteggio, origine dei fondi, dichiarazione PEP, wallet | Tu | Dimostrare il flusso di verifica del prototipo | [Consenso (art. 6.1.a)? Da decidere con l'avvocato: vedi nota] | [30 giorni], poi cancellazione |
 | **Firma dell'invio della verifica:** il tuo wallet firma un'impronta SHA-256 delle risposte, non le risposte (§2.89) | Tu | Garantire che solo il titolare del wallet possa registrare la propria verifica | Legittimo interesse alla sicurezza (art. 6.1.f) | Non salvata: serve solo a controllare l'invio (`server/routes/compliance.routes.js`) |

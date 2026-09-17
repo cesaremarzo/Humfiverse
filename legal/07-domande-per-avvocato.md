@@ -1,6 +1,6 @@
 # Domande per l'avvocato
 
-*Revisione del 2026-09-16, commit `27d8d5f`.*
+*Revisione del 2026-09-17, commit `94ae18f` (A4: storico prezzi), prima `27d8d5f`.*
 
 Le domande vengono dai file 01-03 e dalle decisioni già prese (note legali §7,
 §7.10; technical-architecture §2.86). Sostituiscono e ampliano l'elenco del §6
@@ -41,7 +41,12 @@ Lussemburgo (CSSF) e Italia (CONSOB).*
   trattiene l'1%. È un **sistema multilaterale** (MTF/OTF)? Regge l'argomento "è
   un annuncio, non una borsa"? Cosa cambia se togliamo la commissione, se
   accettiamo solo token Humfiverse, o se usiamo il DLT Pilot Regime? *(01 §5, 02
-  C-7)*
+  C-7)* Dal 17 set la pagina dell'asset mostra anche lo **storico dei prezzi**
+  di scambio (prezzo minimo del giorno, da raccolta, acquisto diretto e
+  rivendita; tecnico §2.94): pubblicare i prezzi fatti rafforza la lettura come
+  sede di negoziazione, o come comunicazione che suggerisce un rendimento?
+  Serve un'avvertenza diversa da quella di 06 §2.4, o conviene non mostrarlo
+  finché A4 non è risolta?
 - **A5** 🔴 Nel codice il ricavato va **direttamente al wallet dell'artista**,
   senza veicolo. In questo schema chi è l'**emittente**? Humfiverse sta
   prestando un servizio di collocamento o di ricezione e trasmissione ordini?

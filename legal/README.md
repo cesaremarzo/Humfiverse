@@ -28,8 +28,8 @@ il whitepaper. 04, 05, 06, 08 e 09 vanno portati all’avvocato insieme al 07.
 
 | | |
 |---|---|
-| Ultima revisione | 2026-09-16 |
-| Commit rivisto | `cc06a70` (`dev/cesare`), con i §2.88 e §2.89 (firma di lancio; artista ≠ studio; royalty e verifica firmate) |
+| Ultima revisione | 2026-09-17 |
+| Commit rivisto | `94ae18f` (`feat/price-history`, da `main`): storico prezzi dei token, §2.94. Prima `cc06a70` (`dev/cesare`), con i §2.88 e §2.89 (firma di lancio; artista ≠ studio; royalty e verifica firmate) |
 | Contratti (Sepolia) | Token `0xb45601440308c92D9BC8fd4a95DEE6a4A86aFB41` · Escrow `0x16C8bfE861Ef1B102CD6D6a4FD4e881FdD38721c` · Marketplace `0x755500dEB66169fC605Be8Aa25ACBdAd791F1585` |
 | Test contratti | 94 passati (`cd contracts && npm test`) |
 | Revisione di un avvocato | **Nessuna** |

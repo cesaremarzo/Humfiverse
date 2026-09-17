@@ -214,6 +214,19 @@ export interface BackendData {
  * server/chain.js. `onchain: false` means this asset has no on-chain token
  * yet (shouldn't normally happen post-§2.14: every asset gets one at
  * creation, catalogue and preproduction alike). */
+/** A token's paid trades and its lowest traded price per UTC day, from
+ * GET /api/price-history/:assetId. Amounts are USDC base units. On a day
+ * with no trade, `priceUsdc` is the last day's and `traded` is false. */
+export interface PriceHistory {
+  assetId: string;
+  tokenId: number;
+  /** False when the server could not read every transaction yet. */
+  complete: boolean;
+  lastLowestPriceUsdc: string | null;
+  daily: { date: string; priceUsdc: string; traded: boolean }[];
+  trades: { txHash: string; source: 'escrow' | 'primary' | 'resale'; qty: number; priceUsdc: string; block: number; tradedAt: string }[];
+}
+
 export type OnchainInfo =
   | { onchain: false }
   | {
