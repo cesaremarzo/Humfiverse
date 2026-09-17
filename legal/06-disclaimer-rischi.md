@@ -1,6 +1,6 @@
 # Avvertenze e scheda rischi: bozza
 
-*Bozza del 2026-09-15, commit `82a7a1b`. **Da far rivedere a un avvocato.** Non
+*Bozza del 2026-09-17, commit `94ae18f` (§2.4 storico prezzi), prima `82a7a1b`. **Da far rivedere a un avvocato.** Non
 è consulenza legale.*
 
 Testi pronti da inserire nel sito, in italiano e in inglese. Sono pensati per il
@@ -102,6 +102,24 @@ pagine non esistono.*
 > - If you buy tokens of a campaign that is later cancelled, **you currently
 >   have no refund right**: it belongs to the original contributor.
 > - There is no guarantee you can resell.
+
+### 2.4 Storico prezzi del token (pagina asset)
+
+Accanto al grafico (§2.94). Il testo nel sito è già questo.
+
+**IT**
+> Ogni giorno mostra il prezzo più basso a cui il token è passato di mano a
+> pagamento (raccolta, acquisto diretto o rivendita); nei giorni senza scambi
+> resta l'ultimo. I prezzi passati non indicano quelli futuri.
+
+**EN**
+> Each day shows the lowest price the token changed hands at for payment
+> (campaign, direct purchase or resale); days without trades keep the last one.
+> Past prices do not indicate future ones.
+
+Da valutare con l'avvocato (07 A4): con pochi scambi un solo acquisto a prezzo
+alto sposta tutto il grafico, e il grafico può sembrare una quotazione. Il
+prezzo della rivendita lo sceglie il venditore (§2.3), non la piattaforma.
 
 ## 3. Rischi da aggiungere al whitepaper, cap. 8
 
