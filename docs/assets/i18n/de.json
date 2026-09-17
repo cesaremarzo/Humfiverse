@@ -507,6 +507,7 @@
   "artistMilestones.confirmError": "Der Meilenstein konnte nicht bestätigt werden.",
   "escrowStatus.released": "Freigegeben",
   "escrowStatus.notEnoughRaised": "Noch nicht genug eingesammelt",
+  "escrowStatus.waitingOnPrevious": "Wartet auf die Freigabe von Meilenstein {{n}}",
   "escrowStatus.studio.waitingOnYou": "Wartet auf Sie — der Künstler hat bereits bestätigt",
   "escrowStatus.studio.waitingOnArtist": "Sie haben bestätigt — wartet auf den Künstler",
   "escrowStatus.studio.waitingOnBoth": "Wartet auf Sie und den Künstler",

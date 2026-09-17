@@ -507,6 +507,7 @@
   "artistMilestones.confirmError": "Could not confirm the milestone.",
   "escrowStatus.released": "Released",
   "escrowStatus.notEnoughRaised": "Not enough raised yet",
+  "escrowStatus.waitingOnPrevious": "Waiting for milestone {{n}} to be released",
   "escrowStatus.studio.waitingOnYou": "Waiting on you — the artist already confirmed",
   "escrowStatus.studio.waitingOnArtist": "You confirmed — waiting on the artist",
   "escrowStatus.studio.waitingOnBoth": "Waiting on you and the artist",
