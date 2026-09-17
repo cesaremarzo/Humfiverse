@@ -1926,3 +1926,37 @@ mainnet. Suggested: set a usage alert in the Alchemy dashboard.
 3. When there are more than ~10 tracks: make reconcile incremental.
 4. The 2% primary `buy()` fee is still untested live (from the fees check), so
    no `primary` trade has been seen by the price history yet.
+
+---
+
+## 2026-09-17 (sera) — phase 2 redeploy done; owner is a 2-of-3 Safe (§2.97)
+
+Safe created by Cesare: `0xBA2ad0Ca063092E350f1427dd86F7E9C8730245d`, 2 of 3
+(Cesare's new signer account, Co-founder = Vincenzo, offline backup). Founder is
+not a signer. Then the migration ran from this session (the user ran the deploy):
+
+- Token `0xa619aCD77D2540a38a2B95FFb051357a921082EF`, escrow
+  `0xc0043d41693D7E4DF0785bd3c28e619a543FD368`, verified on Etherscan.
+- Owner = Safe on token, escrow, marketplace. Founder = operator only.
+- Honest Man and New Song tokens and all three balances restored. Their finished
+  campaigns stay on the old escrow via `CHAIN_ESCROW_LEGACY_ADDRESS`.
+- `legal/` fully reviewed for both contracts. Whitepaper now has four false
+  statements (03 W-16…W-19): **apply only when the user says so.**
+
+**Before merging to `main`** (feature, needs the go-ahead), set on Render
+(`humfiverse-api` → Environment):
+```
+CHAIN_CONTRACT_ADDRESS=0xa619aCD77D2540a38a2B95FFb051357a921082EF
+CHAIN_ESCROW_ADDRESS=0xc0043d41693D7E4DF0785bd3c28e619a543FD368
+CHAIN_CONTRACT_DEPLOY_BLOCK=11724392
+CHAIN_ESCROW_DEPLOY_BLOCK=11724393
+CHAIN_ESCROW_LEGACY_ADDRESS=0x16C8bfE861Ef1B102CD6D6a4FD4e881FdD38721c
+```
+Then merge, then verify live (bundle filename, `/api/onchain/honest-man-595`
+contractAddress = new token, `/api/royalties/new-song-464` supported true,
+`/api/escrow/campaigns` both legacy). Production DB `onchain_tokens` keeps the
+same token ids, so no DB change is needed.
+
+Note: commit `65fcdcd` (my "Session log: multisig…") accidentally concluded
+another session's in-progress merge of PR #68 because it used `git commit -a`
+while `MERGE_HEAD` existed. Content is intact; only the message is misleading.

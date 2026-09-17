@@ -1,6 +1,6 @@
 # Controllo degli smart contract e del backend, dal punto di vista legale
 
-*Revisione del 2026-09-16, commit `cc06a70` con le modifiche del §2.89; ordine delle milestone aggiornato il 2026-09-17 (§2.96). Non è un audit di sicurezza e non
+*Revisione del 2026-09-17, dopo il redeploy di fase 2 (technical §2.92, §2.95-§2.97). Non è un audit di sicurezza e non
 è consulenza legale.*
 
 ## Cosa è e cosa non è questo controllo
@@ -18,16 +18,24 @@
 
 | Contratto | File | SHA-256 (primi 16) | Indirizzo Sepolia |
 |---|---|---|---|
-| HumfiverseCatalogueToken | `contracts/contracts/HumfiverseCatalogueToken.sol` | `450362a70d73e9cf` | `0xb45601440308c92D9BC8fd4a95DEE6a4A86aFB41` |
+| HumfiverseCatalogueToken | `contracts/contracts/HumfiverseCatalogueToken.sol` | `e6bf460971bae796` | `0xa619aCD77D2540a38a2B95FFb051357a921082EF` |
 | HumfiverseMarketplace | `contracts/contracts/HumfiverseMarketplace.sol` | `2e6e2985317c70a8` | `0x755500dEB66169fC605Be8Aa25ACBdAd791F1585` |
-| HumfiverseMilestoneEscrow | `contracts/contracts/HumfiverseMilestoneEscrow.sol` | `689367efc1f8c53b` | `0x16C8bfE861Ef1B102CD6D6a4FD4e881FdD38721c` |
+| HumfiverseMilestoneEscrow | `contracts/contracts/HumfiverseMilestoneEscrow.sol` | `89368accb75bcefa` | `0xc0043d41693D7E4DF0785bd3c28e619a543FD368` |
 
 Solidity 0.8.24, OpenZeppelin v5, non aggiornabili (niente proxy).
-Pagamenti in USDC di test (`0x1c7D…7238`). Test: **94 passati**.
+Pagamenti in USDC di test (`0x1c7D…7238`). Test: **112 passati**. Token ed
+escrow sono stati ridistribuiti il 2026-09-17 (fase 2). Le due campagne
+concluse prima (`honest-man-595`, `new-song-464`) restano leggibili sul
+**vecchio escrow** `0x16C8…721c`, che segue ancora le regole descritte nelle
+revisioni precedenti; i loro token, con gli stessi saldi, sono sul nuovo token.
 
 **Wallet della piattaforma** (nomi da `CLAUDE.md`):
-- **Founder** `0x142F…BfC6`: `owner()` dei tre contratti **e** chiave operativa
-  del backend su Render.
+- **Owner** `0xBA2a…245d`: Safe 2 su 3 (firmatari: Cesare, Co-founder, una
+  chiave di riserva offline). `owner()` dei tre contratti. Il Founder non è tra
+  i firmatari.
+- **Founder** `0x142F…BfC6`: `operator` di token ed escrow e chiave del backend
+  su Render. Può solo creare token, collegare l'audio, gestire gli studi e creare
+  campagne. Resta `owner()` del vecchio token e del vecchio escrow.
 - **Fees** `0xd156…7524`: `feeRecipient()` dei tre contratti.
 
 > Gli indirizzi cambiano a ogni redeploy. Prima di citare questo documento,
@@ -39,19 +47,24 @@ Pagamenti in USDC di test (`0x1c7D…7238`). Test: **94 passati**.
 
 | Funzione | Chi può chiamarla | Effetto |
 |---|---|---|
-| `mintCatalogue` | Founder | Crea un token id con offerta fissa. Prezzo = `funding / supply`, non modificabile. Imposta il wallet che incassa (`payoutOf`) e se il token è in vendita diretta |
+| `mintCatalogue` | Owner o operator (Founder) | Crea un token id con offerta fissa. Prezzo = `funding / supply`, non modificabile. Imposta il wallet che incassa (`payoutOf`) e se il token è in vendita diretta |
 | `buy` | chiunque | Compra dal pool al prezzo fisso. 98% al wallet dell'artista, 2% trattenuto come commissione |
-| `releaseFromPool` | Founder o contratto escrow | Consegna token del pool **senza pagamento** |
-| `setURI`, `setTrackAudioUri` | Founder | Cambia i metadati (nome, immagine, descrizione) e il link all'audio dopo la vendita |
-| `createCampaign` | Founder | Apre una campagna escrow su un token non in vendita diretta e mai venduto |
+| `releaseFromPool` | Owner (Safe 2 su 3) o contratto escrow | Consegna token del pool **senza pagamento** |
+| `setURI` | Owner | Cambia l'indirizzo dei metadati (nome, immagine, descrizione) |
+| `setTrackAudioUri` | Owner o operator | Cambia il link all'audio, anche dopo la vendita |
+| `depositRoyalties` | chiunque | Versa USDC come royalty di un token, divise subito in parti uguali su tutti i token esistenti (pool compreso). Registra un riferimento al rendiconto (`statementRef`) |
+| `claimRoyalties` | chiunque, per qualsiasi possessore | Paga al possessore quanto hanno maturato i suoi token; chi chiama sceglie solo quando |
+| `claimPoolRoyalties` | chiunque | Paga la quota dei token invenduti al wallet che incassa del token (l'artista) |
+| `createCampaign` | Owner o operator | Apre una campagna escrow su un token non in vendita diretta e mai venduto. **Rifiuta** uno studio con lo stesso wallet dell'artista |
 | `contribute` | chiunque | Paga in USDC. 2% trattenuto, 98% accreditato alla campagna, token consegnati subito |
-| `confirmMilestoneAsArtist` / `…AsStudio` | wallet artista / wallet studio | Quando entrambi hanno confermato e i fondi coprono la tranche, la paga meno il 3%. **L'ordine delle milestone non è verificato** dal contratto live: una milestone successiva può essere pagata prima di una precedente. Dal 17 set il sito non lo permette più; il contratto di fase 2 rifiuta la conferma finché la milestone precedente non è pagata (technical §2.96) |
-| `cancelCampaign` | Founder | Blocca la campagna e apre i rimborsi |
-| `refund` | chi ha contribuito | Restituisce la sua quota di `raccolto − rilasciato`. Il 2% resta trattenuto |
-| `registerStudio`, `setStudioActive`, `renameStudio` | Founder | Gestisce l'elenco degli studi ammessi |
+| `confirmMilestoneAsArtist` / `…AsStudio` | wallet artista / wallet studio | Quando entrambi hanno confermato e i fondi coprono la tranche, la paga meno il 3%. Il contratto rifiuta la conferma finché la milestone precedente non è pagata (§2.96) |
+| `cancelCampaign` | Owner | Blocca la campagna e apre i rimborsi. Registra un **motivo** (nessuno, contenuto illecito, diritti di terzi, garanzie false) e, per i motivi di legge, l'hash della decisione scritta. **Senza motivo** è rifiutato se tutte le tranche sono già pagate |
+| `refund` | chi possiede i token | Restituisce i token, che vengono **bruciati**, in cambio della loro quota di `raccolto − rilasciato` al momento dell'annullamento. Il 2% resta trattenuto |
+| `burnForRefund` | solo il contratto escrow | Brucia i token restituiti con `refund`. Le royalty già maturate restano riscuotibili |
+| `registerStudio`, `setStudioActive`, `renameStudio` | Owner o operator | Gestisce l'elenco degli studi ammessi |
 | `list` / `buyListing` / `cancelListing` | chiunque | Rivendita tra utenti. 99% al venditore, 1% trattenuto |
 | `withdrawFees` | chiunque | Invia le commissioni accumulate al wallet Fees |
-| `setFeeRecipient`, `setPayoutRecipient`, `setEscrowContract`, `transferOwnership`, `renounceOwnership` | Founder | Configurazione |
+| `setOperator`, `setFeeRecipient`, `setPayoutRecipient`, `setEscrowContract`, `transferOwnership`, `renounceOwnership` | Owner | Configurazione |
 
 Le aliquote delle commissioni sono `constant` e non si possono cambiare. Il
 wallet che le riceve invece sì (`setFeeRecipient`).
@@ -92,6 +105,13 @@ vendita diretta, oppure eliminarlo del tutto per i token legati a una campagna e
 lasciare solo l'escrow. In alternativa, dichiararlo nel whitepaper e nei Termini
 con lo scopo preciso, per esempio il regolamento di acquisti pagati fuori catena,
 e renderlo tracciabile.
+
+**Aggiornamento (2026-09-17, §2.97).** Il potere esiste ancora nel contratto di
+fase 2, ma ora serve la firma di **2 dei 3 firmatari** del Safe Owner, non più
+una sola chiave. Il rischio è ridotto, non eliminato: la frase del whitepaper
+resta falsa. Nella fase 2 c'è un effetto in più: token consegnati dopo un
+annullamento non sono contati nel rimborso, quindi i rimborsi diventerebbero
+"chi primo arriva".
 
 ### C-2 · Alta · Il Founder può cancellare una campagna in qualunque momento
 
@@ -139,6 +159,16 @@ nessuna parte**.
    contenuti illeciti l'atto che conta è la rimozione. Clausola nel file 08,
    A-1-bis; procedura tecnica nel §2.87, non ancora implementata.
 
+**Risolto in parte (2026-09-17, §2.92 e §2.97).** Il contratto di fase 2 registra
+il motivo on-chain: `cancelCampaign(id, motivo, hashDecisione)`, con motivi
+`UNLAWFUL_CONTENT`, `THIRD_PARTY_RIGHTS`, `FALSE_WARRANTIES` e l'hash della
+decisione scritta obbligatorio per ciascuno (punto 3). Il potere è in mano al
+Safe Owner 2 su 3 (punto 5). **Resta aperto:** il motivo `NONE` è ancora
+accettato finché una tranche non è pagata, quindi il contratto non limita
+l'annullamento ai soli motivi di legge. Il limite resta contrattuale
+(Termini §5.6), la procedura (punto 2) non è nel codice e la rimozione dei
+contenuti (punto 6) non è implementata.
+
 ### C-3 · Alta · Conferma "doppia" che non sempre è doppia
 
 **Codice.**
@@ -173,6 +203,12 @@ chi chiama `createCampaign` direttamente con la chiave del Founder può
 aggirarlo. Il `require` va aggiunto al redeploy della "phase 2". Resta aperto
 anche il caso delle campagne senza studio, e `honest-man-595` resta com'è.
 
+**Risolto nel contratto (2026-09-17, §2.97).** Il nuovo escrow ha il
+`require`: `createCampaign` rifiuta uno studio con lo stesso wallet dell'artista.
+`honest-man-595` (artista = studio) è rimasta sul vecchio escrow, conclusa, e non
+è stata ricreata. Aperto: le campagne senza studio, rilasciate dalla sola
+conferma dell'artista.
+
 ### C-4 · Alta · Nessuna regola "tutto o niente" e nessuna scadenza
 
 **Codice.** `contribute` accetta fondi finché la campagna è `ACTIVE`. `_tryRelease`
@@ -206,6 +242,9 @@ campo `deadline` può sparire al prossimo redeploy.
   una **soglia minima di raccolta** prima della prima tranche. È una regola
   sull'importo, non sul tempo.
 
+**Aggiornamento (2026-09-17, §2.97).** Il campo `deadline` non esiste più nel
+contratto di fase 2. Le conseguenze legali sopra restano da gestire nei testi.
+
 ### C-5 · Alta · I rimborsi vanno a chi ha contribuito, non a chi possiede i token
 
 **Codice.** `refund` usa `contributions[campaignId][msg.sender]`, cioè chi ha
@@ -228,6 +267,16 @@ token al momento dell'annullamento**. Il contratto in uso fa il contrario, quind
 la decisione richiede il redeploy "phase 2" (rimborso per token posseduto, con
 burn). Fino ad allora Termini e avvertenze devono descrivere il comportamento
 attuale.
+
+**Risolto (2026-09-17, §2.92 e §2.97).** Nel nuovo escrow `refund(campagna,
+token)` paga chi **possiede** i token e li brucia: all'annullamento il contratto
+fissa il fondo da rimborsare (`raccolto − rilasciato`) e il numero di token che
+possono chiederlo, e ogni rimborso riduce entrambi, così la quota per token è
+uguale per tutti. Chi ha comprato sul marketplace è rimborsato, chi ha venduto
+non incassa due volte, nessuno tiene sia i soldi sia il token. Il 2% resta
+trattenuto (C-11). Limite: token consegnati con `releaseFromPool` dopo
+l'annullamento (C-1). Le due campagne concluse sul vecchio escrow seguono ancora
+la vecchia regola, ma sono rilasciate al 100% e non hanno nulla da rimborsare.
 
 ### C-6 · Alta · Il KYC non è applicato dai contratti
 
@@ -298,6 +347,16 @@ per le entità finanziarie **[verificare l'applicabilità]**).
 offline; chiave operativa del backend con permessi minimi (solo mint e creazione
 campagne) tramite `AccessControl`. Documentare chi custodisce cosa.
 
+**Risolto in parte (2026-09-17, §2.97).** `owner()` dei tre contratti è il Safe
+Owner `0xBA2a…245d`, 2 firme su 3 (Cesare, Co-founder, chiave di riserva offline;
+il Founder non firma). La chiave del backend è solo `operator`: crea token e
+campagne, gestisce gli studi e collega l'audio, ma non può annullare, consegnare
+token gratis né cambiare commissioni o destinatari. **Restano:** (a) l'operator è
+sempre online e può ancora creare token e campagne e **cambiare l'audio** di un
+token già venduto (C-10); (b) il vecchio token e il vecchio escrow restano di
+proprietà del Founder; (c) chi custodisce cosa va ancora scritto (organizzazione,
+recupero della chiave di riserva).
+
 ### C-10 · Media · Metadati e audio modificabili dopo la vendita
 
 **Codice.** `setURI` cambia l'indirizzo base dei metadati. Oggi i metadati sono
@@ -331,12 +390,36 @@ La distribuzione non esiste on-chain (README, "Simulated"). Il token oggi dà
 solo un saldo. Qualunque testo che parli di "rendimento" (`yield.util.ts`) si
 basa su dati inseriti fuori catena. Dal §2.89 li può inserire solo il titolare dell'asset, con una firma del suo wallet, ma nessuno ne verifica la corrispondenza con incassi reali.
 
+**Superato (2026-09-17, §2.92 e §2.95-§2.97): il token ora paga royalty, e la
+priorità sale ad Alta.**
+- **Codice.** `depositRoyalties` accetta USDC da **chiunque** e li divide subito
+  in parti uguali su tutti i token esistenti; ogni possessore li riscuote con
+  `claimRoyalties`. A ogni trasferimento il contratto chiude i conti di
+  venditore e compratore: quanto maturato prima della vendita resta al
+  venditore. La quota dei token invenduti va al wallet che incassa del token,
+  cioè all'artista (decisione del 2026-09-17). Nessuna commissione sulle royalty.
+- **Perché conta.** Il token on-chain ora **dà un diritto economico**: una quota
+  dei versamenti futuri. È l'elemento che mancava per leggerlo come strumento
+  finanziario (01 §1; 07 A1, A2), anche se oggi circolano solo USDC di test.
+- **Punto di fiducia.** Il contratto non può sapere se un versamento corrisponde a
+  quanto il brano ha davvero incassato: dipende da chi versa. Il riferimento al
+  rendiconto è solo un hash, e il sito accetta il testo solo se l'hash
+  coincide. Nessuno verifica il rendiconto stesso, e nessuno obbliga a versare.
+- **Proposta.** Scrivere nei Termini chi versa, quando e sulla base di quale
+  rendiconto (trasparenza, §2.3 del documento tecnico); decidere con l'avvocato se
+  i versamenti debbano passare da un veicolo o da un amministratore di royalty
+  (C-8, 07 A5) prima di qualsiasi valore reale.
+
 ### C-13 · Bassa · Dati personali scritti per sempre
 
 `trackTitle` e `artistName` sono scritti on-chain al mint e nell'evento
 `CatalogueMinted`. Se il nome dell'artista è il suo nome anagrafico, è un dato
 personale non cancellabile (01, §7). Consigliato: on-chain solo un
 identificativo, e il nome solo nel database, cancellabile.
+
+**Decisione (2026-09-17).** Titolo e artista **restano scritti on-chain** anche
+nel contratto di fase 2. Il rischio va quindi gestito nei testi: avvisare
+l'artista prima del lancio (informativa, 05 §2) e suggerire un nome d'arte.
 
 ### C-14 · Bassa · Commenti interni superati
 
@@ -370,7 +453,10 @@ lancio con valore reale (domande G3 e H1 del file 07).
   fondi stanno nello stesso contratto.
 - **Commissioni accumulate e prelevate a parte**: il wallet Fees non può
   bloccare una tranche.
-- **Codice verificato su Etherscan** e 94 test automatici.
+- **Codice verificato su Etherscan** e 112 test automatici.
+- **Proprietà in multisig** (Safe 2 su 3) e chiave del backend con permessi
+  minimi, dal 2026-09-17.
+- **Rimborsi legati ai token**, con burn: nessuno tiene soldi e token insieme.
 - **README e whitepaper molto franchi** su testnet, assenza di audit e assenza
   di un'offerta.
 

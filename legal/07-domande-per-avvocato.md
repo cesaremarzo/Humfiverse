@@ -30,10 +30,13 @@ Lussemburgo (CSSF) e Italia (CONSOB).*
   trasferibile e rivendibile, è uno **strumento finanziario** (valore mobiliare)
   ai sensi di MiFID II, e quindi fuori da MiCA? Esiste una struttura credibile
   che cambi la risposta, e a quale prezzo commerciale? *(01 §1)*
-- **A2** 🔴 Oggi il token on-chain non paga nulla: le royalty sono solo
-  promesse da sito, whitepaper e contratto. Ai fini della qualificazione conta il
-  contratto Solidity o l'offerta nel suo insieme? Il whitepaper pubblico può già
-  essere letto come comunicazione promozionale di un'offerta? *(01 §1, 02 C-12)*
+- **A2** 🔴 *Aggiornata il 2026-09-17:* dalla fase 2 il token on-chain **paga
+  royalty**: chiunque versa USDC, il contratto li divide per token e ogni
+  possessore li riscuote. Oggi solo USDC di test. Questo basta a qualificare il
+  token come strumento finanziario già sulla rete di test, o conta che non ci
+  sia valore reale? Chi versa (artista, veicolo, amministratore) cambia chi è
+  l'emittente? Il whitepaper pubblico può già essere letto come comunicazione
+  promozionale di un'offerta? *(01 §1, 02 C-12)*
 - **A3** 🟠 Serve che il token sia trasferibile solo tra wallet verificati
   (ERC-3643 o simili), o bastano restrizioni contrattuali? *(02 C-6)*
 - **A4** 🔴 `HumfiverseMarketplace` fa incontrare venditori e compratori terzi
@@ -165,8 +168,9 @@ l'azione di recupero. Decisione del 15 settembre 2026, note legali §7.10.*
 - **C6** 🟠 *Deciso il 2026-09-15:* rimborso e rivalsa spettano **a chi possiede i
   token al momento dell'annullamento**. **Da confermare:** il diritto verso
   l'artista si trasferisce con il token a ogni rivendita (serve che il token
-  incorpori il credito)? Come si gestisce il periodo fino al redeploy "phase 2",
-  in cui il contratto rimborsa ancora chi ha contribuito? *(02 C-5, file 08 A-2
+  incorpori il credito)? *Dal 2026-09-17 il contratto rimborsa chi possiede i
+  token e li brucia; il diritto verso l'artista per la parte già rilasciata non è
+  però nel codice.* *(02 C-5, file 08 A-2
   §3)*
 - **C7** 🟠 Se Humfiverse è un **servizio di hosting** ai sensi del DSA, la
   procedura di segnalazione e motivazione (artt. 16-17) è già sufficiente come

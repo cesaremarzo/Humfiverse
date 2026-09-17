@@ -77,11 +77,12 @@ UI (`webapp/src/app/core/known-wallets.ts`):
 
 | Name | Address | What it is |
 |---|---|---|
-| **Founder** | `0x142F945e13f59FdE3583bea8F78528a44317BfC6` | `owner()` of all three contracts, and the backend's `CHAIN_OPERATOR_PRIVATE_KEY` (Render env, local `.env`s). Token: mint, `releaseFromPool` (hands out pool tokens with no payment), `setEscrowContract`, `setFeeRecipient`, `setPayoutRecipient`, `setURI`, `setTrackAudioUri`. Escrow: `createCampaign`, `cancelCampaign`, studio registry, `setFeeRecipient`. Marketplace: `setFeeRecipient`. Plus Ownable's `transferOwnership`/`renounceOwnership` on each. |
+| **Owner** | `0xBA2ad0Ca063092E350f1427dd86F7E9C8730245d` | 2-of-3 Safe "Humfiverse Owner (Sepolia)", `owner()` of all three contracts since the phase 2 redeploy (§2.96). Signers: Cesare, Co-founder, an offline backup key; Founder is not one. Token: `releaseFromPool` (hands out pool tokens with no payment), `setEscrowContract`, `setOperator`, `setFeeRecipient`, `setPayoutRecipient`, `setURI`. Escrow: `cancelCampaign` (with a legal ground and decision hash), `setOperator`, `setFeeRecipient`. Marketplace: `setFeeRecipient`. Plus Ownable's `transferOwnership`/`renounceOwnership` on each. Owner calls go through the Safe app, not the admin dashboard. |
+| **Founder** | `0x142F945e13f59FdE3583bea8F78528a44317BfC6` | `operator` of the token and the escrow, and the backend's `CHAIN_OPERATOR_PRIVATE_KEY` (Render env, local `.env`s). Can only mint a catalogue and set its audio link (token), and register/edit studios and create campaigns (escrow). Still `owner()` of the pre-phase-2 token `0xb456…FB41` and legacy escrow `0x16C8…721c`. |
 | **Fees** | `0xd156BDD971c9034A2C78496889E258c4601b7524` | `feeRecipient()` of all three contracts: where `withdrawFees()` sends platform fees. Receives only; holds no role. |
 
-If a redeploy or a `setFeeRecipient`/`transferOwnership` changes either
-address, update this table and `known-wallets.ts` in the same commit.
+If a redeploy or a `setFeeRecipient`/`setOperator`/`transferOwnership` changes
+any of these addresses, update this table and `known-wallets.ts` in the same commit.
 
 ## Legal docs
 

@@ -39,10 +39,11 @@ numero REA, PEC, email di contatto] ("**noi**").
 Piattaforma.
 
 2.2. **Nessun token presente sulla Piattaforma è un'offerta di strumenti
-finanziari, di cripto-attività o di prodotti di investimento**, e nessun token
-dà oggi diritto a royalty, pagamenti o altri benefici economici. Le cifre di
-rendimento, i dati di royalty e le distribuzioni mostrate sono **simulati** o
-inseriti dagli utenti a scopo dimostrativo, e non sono verificati.
+finanziari, di cripto-attività o di prodotti di investimento**. Il contratto dei
+token permette di versare e riscuotere royalty (§5.7), ma su questa rete di test
+si usano solo USDC di test **senza valore**: nessun token dà diritto a pagamenti
+con valore economico. Le cifre di rendimento e i dati di royalty mostrati sono
+inseriti dagli utenti a scopo dimostrativo e non sono verificati.
 
 2.3. Non esiste oggi alcuna entità che detenga diritti su royalty per conto dei
 possessori di token. Le strutture descritte nel whitepaper sono **progetti**,
@@ -100,21 +101,26 @@ verificato**, pubblicato su Etherscan agli indirizzi indicati nell'app.
 unità fisso, deciso alla creazione, e un prezzo fisso. Nessuno può creare nuove
 unità dello stesso token.
 
-5.2. **Poteri del gestore.** Il wallet del gestore della Piattaforma
-("**Founder**", [indirizzo]) può, tra l'altro:
-(a) creare token e campagne;
-(b) **consegnare token del pool a un indirizzo senza pagamento**;
-(c) **annullare una campagna** per i motivi e con la procedura del §5.6,
+5.2. **Poteri del gestore.** I contratti hanno due ruoli della Piattaforma.
+Il **proprietario** ("**Owner**", [indirizzo]) è un wallet multifirma che agisce
+solo con 2 firme su 3 e può, tra l'altro:
+(a) **consegnare token del pool a un indirizzo senza pagamento**;
+(b) **annullare una campagna** per i motivi e con la procedura del §5.6,
 bloccando i rilasci futuri e aprendo i rimborsi;
-(d) registrare, disattivare e rinominare gli studi;
-(e) cambiare i metadati dei token, il file audio collegato e l'indirizzo che
-riceve le commissioni.
+(c) cambiare l'indirizzo dei metadati dei token e gli indirizzi che ricevono le
+commissioni e i ricavi.
+L'**operatore** ("**Founder**", [indirizzo]), usato dai nostri sistemi, può
+soltanto:
+(d) creare token e campagne;
+(e) registrare, disattivare e rinominare gli studi;
+(f) collegare o cambiare il file audio di un token.
 
-> Nota per l'avvocato: 5.2(b) descrive un potere che il team intende limitare
-> (file 02, C-1). Dichiararlo qui è la scelta onesta finché esiste. 5.2(c) è un
+> Nota per l'avvocato: 5.2(a) descrive un potere che il team intende limitare
+> (file 02, C-1). Dichiararlo qui è la scelta onesta finché esiste. 5.2(b) è un
 > potere mantenuto per decisione (note legali §7.10), limitato ai motivi del
-> §5.6. Il contratto on-chain oggi non verifica il motivo: il limite è solo
-> contrattuale.
+> §5.6. Il contratto registra motivo e hash della decisione, ma accetta ancora un
+> annullamento senza motivo finché resta una tranche da pagare: il limite ai soli
+> motivi di legge è contrattuale (file 02, C-2).
 
 5.3. **Campagne di pre-produzione (escrow).** I contributi restano nel contratto
 escrow e vengono rilasciati a tranche quando sia l'artista sia lo studio
@@ -123,22 +129,26 @@ dell'artista. Le milestone si confermano **nell'ordine fissato dall'artista alla
 creazione della campagna**: una milestone non può essere pagata prima di quella
 precedente. Una tranche si rilascia appena i fondi raccolti coprono lei e quelle
 già pagate, **anche se l'obiettivo complessivo non è stato raggiunto**.
-> *Nota per il team:* oggi l'ordine lo impone il sito; il contratto escrow live
-> non lo verifica. Lo verificherà quello di fase 2 (technical §2.96). **Le campagne non hanno
+> *Nota per il team:* dal 2026-09-17 l'ordine lo verifica anche il contratto
+> escrow (technical §2.96-§2.97).
+
+**Le campagne non hanno
 scadenza**: una campagna si chiude solo quando tutti i token sono venduti, quando
 tutte le tranche sono rilasciate o quando viene annullata. Non esiste un rimborso
 automatico se l'obiettivo non viene raggiunto. Se artista e studio non
 confermano, i fondi restano nel contratto finché la campagna non viene annullata.
 
-5.4. **Rimborsi.** Se una campagna viene annullata, **chi ha contribuito**
-(l'indirizzo che ha pagato) può chiedere la propria quota di quanto non è ancora
-stato rilasciato, al netto della commissione di contribuzione. Il rimborso
-**non spetta a chi ha acquistato i token da un altro utente** e non comporta la
-restituzione dei token.
+5.4. **Rimborsi.** Se una campagna viene annullata, **chi possiede i token**
+della campagna può restituirli e ricevere la loro quota di quanto non era ancora
+stato rilasciato al momento dell'annullamento. La quota è uguale per ogni token,
+anche per chi li ha comprati da un altro utente. **I token restituiti vengono
+distrutti** e non danno più diritto a royalty future; le royalty maturate prima
+della restituzione restano riscuotibili. La commissione di contribuzione non è
+rimborsata.
 
-> Nota: il comportamento del §5.4 cambierà con la "phase 2" del contratto
-> (rimborso a chi possiede i token, con burn). Aggiornare questo testo insieme al
-> redeploy.
+> Nota: le due campagne concluse prima del 2026-09-17 restano sul vecchio
+> contratto, dove il rimborso spetta a chi ha contribuito. Sono rilasciate per
+> intero e non hanno nulla da rimborsare.
 
 5.6. **Annullamento di una campagna.**
 (a) Possiamo annullare una campagna solo se: (i) contiene contenuti illeciti;
@@ -164,15 +174,27 @@ mostrare i token e l'eventuale rimborso.
 annullamento; quando l'annullamento dipende dall'artista, è compresa nel danno
 che l'artista deve risarcire.
 
-> **[AL LANCIO]** Con il redeploy "phase 2" il §5.4 cambia: il rimborso spetterà
-> a chi possiede i token al momento dell'annullamento (decisione del 2026-09-15).
-> Ancora da decidere con l'avvocato (file 07, C2, C5): chi esercita l'azione
+> **[AL LANCIO]** Dal redeploy "phase 2" (2026-09-17) il rimborso spetta a chi
+> possiede i token (decisione del 2026-09-15). Ancora da decidere con l'avvocato (file 07, C2, C5): chi esercita l'azione
 > contro l'artista (ogni investitore o un soggetto per tutti, con mandato o
 > cessione del credito); se lo studio che ha ricevuto tranche in buona fede è
 > esposto.
 
 5.5. **Rivendita.** Puoi mettere in vendita i tuoi token a un prezzo che scegli.
 Noi non garantiamo che esista un compratore né un prezzo.
+
+5.7. **Royalty.** Chiunque può versare USDC come royalty di un token tramite il
+contratto. Ogni versamento è diviso subito in parti uguali su tutti i token
+esistenti in quel momento, compresi quelli non ancora venduti, la cui quota
+spetta all'artista. Ogni possessore riscuote la propria quota quando vuole;
+quanto maturato prima di una vendita resta a chi ha venduto. **Né il contratto
+né la Piattaforma verificano che i versamenti corrispondano agli incassi reali
+del brano**, né obbligano qualcuno a versare. Un versamento non si può ritirare.
+La Piattaforma non trattiene commissioni sulle royalty.
+
+> Nota per l'avvocato: chi versa, quando e sulla base di quale rendiconto va
+> deciso e scritto qui e nell'Accordo Artista prima di qualsiasi valore reale
+> (file 02, C-12; file 07, A2, A5).
 
 ## 6. Commissioni
 

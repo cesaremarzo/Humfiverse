@@ -18,6 +18,28 @@ il contratto di fase 2 rifiuta la conferma fuori ordine.
 I contratti della fase 2 restano **non** rivisti nel loro insieme: le impronte
 in `reviewed-files.sha256` non sono aggiornate, come nella voce sotto.
 
+## 2026-09-17 (sera) · redeploy di fase 2: royalty, rimborsi per token, multisig (§2.97)
+
+Revisione completa dei due contratti ridistribuiti (token `0xa619…82EF`, escrow
+`0xc004…D368`), rimasti non rivisti dal §2.92. Proprietà dei tre contratti
+passata al Safe `0xBA2a…245d` (2 su 3); il Founder è solo `operator`.
+- **02:** intestazione, indirizzi, impronte, 112 test, ruoli; tabella §1 rifatta.
+  C-1 aggiornato (serve il multisig). C-2 risolto in parte (motivo e hash on-chain,
+  ma `NONE` ancora accettato). C-3 risolto nel contratto. C-4 `deadline` rimossa.
+  **C-5 risolto** (rimborso per token con burn). C-9 risolto in parte. **C-12
+  superato e alzato ad Alta**: il token ora paga royalty, non verificate. C-13:
+  decisione di tenere titolo e artista on-chain.
+- **01 §1 e §4:** il token dà un diritto economico on-chain; poteri del
+  proprietario con 2 firme.
+- **03:** nuove righe W-16…W-19 sul whitepaper, ora falso su rimborsi, motivo di
+  annullamento, royalty e multisig. **Da applicare solo su richiesta** (GitBook).
+- **04:** §2.2 (royalty su USDC di test), §5.2 (Owner e operatore), §5.3 (ordine
+  verificato dal contratto), §5.4 riscritto (rimborso a chi possiede i token, con
+  burn), nuovo §5.7 (royalty).
+- **06 §2.1–§2.3 e scheda rischi:** rimborsi per token, versamenti non verificati.
+- **07 A2** riformulata; **C6** aggiornata.
+- **08 A-2 §3 e B-1(f):** nota di implementazione ora allineata al codice.
+
 ## 2026-09-17 · royalties e rimborsi di fase 2 nel backend e nel sito (§2.95)
 
 Nuova tabella `royalty_deposits` in `schema.js`: copia dei versamenti di royalty

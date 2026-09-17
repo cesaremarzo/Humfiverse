@@ -87,12 +87,10 @@ Sostituisce le clausole `manager-discretion`, `milestones` e `refund` e integra
    Chi ha venduto i propri token prima dell'annullamento non ha diritto al
    rimborso per quei token. *(Decisione del 2026-09-15.)*
 
-   > **Nota di implementazione.** Il contratto escrow in uso
-   > (`0x16C8…721c`) rimborsa invece i wallet che hanno contribuito e non tocca i
-   > token (file 02, C-5). Questa clausola può entrare in vigore solo con il
-   > redeploy "phase 2" (rimborso per token posseduto, con burn). Fino ad allora
-   > i Termini (§5.4) e le avvertenze (06, §2) descrivono il comportamento
-   > attuale.
+   > **Nota di implementazione.** Dal 2026-09-17 l'escrow di fase 2
+   > (`0xc004…D368`) rimborsa chi possiede i token e li brucia (file 02, C-5): il
+   > codice è allineato a questa clausola. Il vecchio escrow (`0x16C8…721c`)
+   > rimborsava i contributori, ma le sue due campagne sono concluse.
 4. **Campagna già interamente rilasciata.** Se la Campagna viene annullata dopo
    il rilascio di tutte le tranche, non c'è nulla da rimborsare tramite il
    contratto escrow. Restano comunque applicabili la rimozione dei contenuti
@@ -204,8 +202,7 @@ dell'Accordo Artista, riportata integralmente qui: [testo];
 (e) con l'annullamento riceve solo la quota della parte non rilasciata, e il
 recupero del resto dall'artista non è garantito;
 (f) il rimborso spetta a chi possiede i token al momento dell'annullamento, in
-proporzione ai token posseduti [in vigore dal redeploy "phase 2": fino ad
-allora spetta ai wallet che hanno contribuito].
+proporzione ai token posseduti, che vengono distrutti con il rimborso.
 
 ### B-2 · Diritti verso l'artista `[V]`
 

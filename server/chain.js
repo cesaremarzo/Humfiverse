@@ -20,13 +20,14 @@ const { paymentTokenOf, toUsdcFor } = require("./chainUnits");
 // Switched from Base Sepolia to real Ethereum Sepolia (§2.35) — easier to
 // get testnet ETH (for gas) from faucets there.
 const RPC_URL = process.env.CHAIN_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com";
+// §2.96 phase 2 redeploy (royalties, burn, operator; owned by the Safe).
 // §2.43 redeploy — added trackAudioUri + setTrackAudioUri, linking a
 // minted token to its uploaded track's real IPFS audio (see pinata.js).
-const CONTRACT_ADDRESS = process.env.CHAIN_CONTRACT_ADDRESS || "0xb45601440308c92D9BC8fd4a95DEE6a4A86aFB41";
+const CONTRACT_ADDRESS = process.env.CHAIN_CONTRACT_ADDRESS || "0xa619aCD77D2540a38a2B95FFb051357a921082EF";
 // Block this contract was deployed at — starting event queries here instead
 // of block 0 keeps each eth_getLogs call well under public RPCs' ~10,000-
 // block range limit even as the chain grows. Update after any redeploy.
-const CONTRACT_DEPLOY_BLOCK = Number(process.env.CHAIN_CONTRACT_DEPLOY_BLOCK || 11703772);
+const CONTRACT_DEPLOY_BLOCK = Number(process.env.CHAIN_CONTRACT_DEPLOY_BLOCK || 11724392);
 // Alchemy's free tier caps eth_getLogs at a 10-block range per call (found
 // the hard way — the public-RPC default this project used before §2.39
 // silently returned *incomplete* results instead of erroring, which is
