@@ -30,11 +30,11 @@ export class LandingComponent {
     { key: 'step4', icon: 'pulse' }
   ];
 
-  /** The brand mark's nine bars (same geometry as the topbar logo). */
+  /** The brand mark's nine bars (same geometry as the topbar logo): tall at the edges. */
   markBars = [
-    { x: 16, y1: 55, y2: 65, o: 0.4 }, { x: 27, y1: 44.7, y2: 75.3, o: 0.6 }, { x: 38, y1: 35.9, y2: 84.1, o: 0.8 },
-    { x: 49, y1: 30.1, y2: 90, o: 0.95 }, { x: 60, y1: 28, y2: 92, o: 1 }, { x: 71, y1: 30.1, y2: 90, o: 0.95 },
-    { x: 82, y1: 35.9, y2: 84.1, o: 0.8 }, { x: 93, y1: 44.7, y2: 75.3, o: 0.6 }, { x: 104, y1: 55, y2: 65, o: 0.4 }
+    { x: 16, y1: 28, y2: 92, o: 1 }, { x: 27, y1: 30.1, y2: 89.9, o: 0.95 }, { x: 38, y1: 35.9, y2: 84.1, o: 0.8 },
+    { x: 49, y1: 44.7, y2: 75.3, o: 0.6 }, { x: 60, y1: 55, y2: 65, o: 0.4 }, { x: 71, y1: 44.7, y2: 75.3, o: 0.6 },
+    { x: 82, y1: 35.9, y2: 84.1, o: 0.8 }, { x: 93, y1: 30.1, y2: 89.9, o: 0.95 }, { x: 104, y1: 28, y2: 92, o: 1 }
   ];
 
   constructor(

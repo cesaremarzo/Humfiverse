@@ -3,6 +3,16 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-09-17 · icone dell'app: nessuna risorsa esterna nuova (§2.99)
+
+`webapp/src/index.html` cambia (due `<link>` di icone: `icon-512.png` e
+`apple-touch-icon.png`) ma le icone sono servite dal sito stesso, come il
+`favicon.ico` che c'era già. L'unica risorsa esterna resta Google Fonts, quindi
+**05 §3-6 non cambia** e nessuna conclusione legale è toccata: registrata solo
+la nuova impronta del file in `reviewed-files.sha256`. Lo stesso vale per le
+immagini decorative aggiunte nella stessa PR (§2.99): generate in locale
+(`webapp/art-src/`), servite dal sito, nessun font o immagine di terzi.
+
 ## 2026-09-17 · rendiconto: pubblicazione facoltativa; A12 e I4 (§2.98)
 
 Decisione di Cesare: pubblicare il rendiconto è una **possibilità** data

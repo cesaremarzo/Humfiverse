@@ -1,0 +1,1 @@
+import{R as S,U as l}from"./chunk-tBgelQpR.js";async function u(n,o){return l(await n({method:`eth_getTransactionCount`,params:[o.address,o.blockNumber?S(o.blockNumber):o.blockTag||`pending`]}))}export{u as t};

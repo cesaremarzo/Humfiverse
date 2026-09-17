@@ -1,0 +1,1 @@
+import{p as F}from"./chunk-tBgelQpR.js";import"./chunk-CoEj01tB.js";export{F as getRpcClient};
