@@ -250,6 +250,55 @@
   opacity: 0.8;
 }
 
+/* Rendered props (assets/art) breaking out of the top corner of each panel */
+.landing-panel:has(.landing-panel-art) {
+  overflow: visible;
+}
+
+.landing-panel-art {
+  position: absolute;
+  z-index: 1;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 22px 24px rgba(0, 0, 0, 0.5));
+  transition: transform 0.6s var(--ease);
+}
+
+.landing-panel-art--mic {
+  width: 104px;
+  top: -84px;
+  right: 34px;
+  rotate: -14deg;
+}
+
+.landing-panel-art--coins {
+  width: 190px;
+  top: -74px;
+  right: -22px;
+}
+
+.landing-panel:hover .landing-panel-art {
+  transform: translateY(-8px) rotate(-2deg);
+}
+
+.landing-panel-art ~ .landing-panel-head .landing-panel-index {
+  visibility: hidden;
+}
+
+@media (max-width: 700px) {
+  .landing-panel-art--mic {
+    width: 76px;
+    top: -58px;
+  }
+
+  .landing-panel-art--coins {
+    width: 130px;
+    top: -48px;
+    right: -8px;
+  }
+}
+
 .landing-panel-head {
   display: flex;
   align-items: baseline;
@@ -378,6 +427,31 @@
 
 .landing-section-head {
   margin-bottom: 32px;
+}
+
+.landing-section-head--art {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+/* A rendered VU meter (assets/art): the "live" section's needle in the green */
+.landing-status-art {
+  flex: none;
+  width: 250px;
+  height: auto;
+  margin: -40px 12px -18px 0;
+  rotate: 4deg;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 26px 30px rgba(0, 0, 0, 0.5));
+}
+
+@media (max-width: 700px) {
+  .landing-status-art {
+    display: none;
+  }
 }
 
 .landing-section-head h2 {

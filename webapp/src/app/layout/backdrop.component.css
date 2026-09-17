@@ -90,22 +90,14 @@
   animation: bd-bob 6s ease-in-out infinite alternate;
 }
 
-.bd-note circle {
-  fill: color-mix(in srgb, var(--gold) 26%, transparent);
-  stroke: var(--gold);
-  stroke-width: 1.2;
-  opacity: 0.55;
-}
-
-.bd-note .bd-note-inner {
-  fill: none;
-  opacity: 0.45;
+.bd-note image {
+  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.35));
 }
 
 .bd-note line {
   stroke: var(--gold);
-  stroke-width: 1.2;
-  opacity: 0.45;
+  stroke-width: 1.4;
+  opacity: 0.5;
 }
 
 @keyframes bd-bob {
@@ -123,30 +115,6 @@
 @keyframes bd-spin {
   from { rotate: 0deg; }
   to { rotate: 360deg; }
-}
-
-.bd-groove {
-  stroke: var(--text);
-  stroke-width: 1;
-  opacity: 0.08;
-}
-
-.bd-shine {
-  stroke: var(--accent-ink);
-  stroke-width: 22;
-  stroke-linecap: round;
-  opacity: 0.1;
-}
-
-.bd-label {
-  fill: color-mix(in srgb, var(--accent) 30%, transparent);
-  stroke: var(--accent-ink);
-  stroke-width: 1;
-  stroke-opacity: 0.4;
-}
-
-.bd-hole {
-  fill: var(--bg);
 }
 
 .bd-tick {
@@ -196,18 +164,23 @@
 }
 
 .bd-candles rect {
-  fill: color-mix(in srgb, var(--accent) 45%, transparent);
   stroke: var(--accent-ink);
-  stroke-width: 1;
-  opacity: 0.2;
-}
-
-.bd-candles .up line {
-  stroke: var(--accent-2);
+  stroke-width: 0.8;
+  stroke-opacity: 0.35;
+  opacity: 0.5;
 }
 
 .bd-candles .up rect {
-  fill: color-mix(in srgb, var(--accent-2) 40%, transparent);
+  stroke: var(--accent-2);
+}
+
+.bd-candles .bd-candle-shine {
+  fill: #fff;
+  stroke: none;
+  opacity: 0.22;
+}
+
+.bd-candles .up line {
   stroke: var(--accent-2);
 }
 
@@ -251,11 +224,55 @@
   opacity: 0.55;
 }
 
+/* ---------- Rendered coins at three depths ---------- */
+.bd-coin {
+  position: absolute;
+  height: auto;
+  max-width: none;
+  rotate: var(--rot, 0deg);
+  filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.45));
+  animation: bd-float 14s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.bd-coin--far {
+  opacity: 0.55;
+  filter: blur(1.5px) drop-shadow(0 8px 10px rgba(0, 0, 0, 0.3));
+  animation-duration: 19s;
+}
+
+.bd-coin--mid {
+  opacity: 0.85;
+}
+
+/* Closest to the camera, so out of focus */
+.bd-coin--near {
+  z-index: 1;
+  opacity: 0.8;
+  filter: blur(7px);
+  animation-duration: 11s;
+}
+
+@keyframes bd-float {
+  from { transform: translate3d(0, 0, 0) rotate(0deg); }
+  to { transform: translate3d(0, -22px, 0) rotate(6deg); }
+}
+
 /* Keeps the lower part of long pages calm */
 .bd-fade {
   position: absolute;
   inset: 0;
   background: radial-gradient(120% 90% at 50% 40%, transparent 55%, var(--bg) 100%);
+}
+
+/* Film grain: takes the digital flatness off gradients and renders */
+.bd-grain {
+  position: absolute;
+  inset: 0;
+  background-repeat: repeat;
+  background-size: 180px;
+  mix-blend-mode: overlay;
+  opacity: 0.07;
 }
 
 /* ---------- Inner pages: same world, turned down ---------- */
@@ -278,6 +295,14 @@
   opacity: 0.6;
 }
 
+:host(.quiet) .bd-coin {
+  opacity: 0.3;
+}
+
+:host(.quiet) .bd-coin--near {
+  display: none;
+}
+
 :host(.quiet) .bd-grid {
   opacity: 0.6;
 }
@@ -290,5 +315,10 @@
 
   .bd-vinyl {
     opacity: 0.7;
+  }
+
+  .bd-coin--far,
+  .bd-coin--mid {
+    display: none;
   }
 }

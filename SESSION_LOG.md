@@ -2009,3 +2009,22 @@ same PR: new 07 A12 🔴, I4 🟠, 08 A-8 and C-12.
 Still open: the per-token range is not collected in the wizard nor shown (08
 C-12). Before merging #69, `docs/` must include this change (rebuilt from a
 clean tree: another session had uncommitted backdrop edits at the time).
+
+---
+
+## 2026-09-17 (sera, 2) — photo-like art in the backdrop and landing (§2.99)
+
+Request: *"sei il graphic designer di humfiverse, migliora ancora di più gli
+elementi sul background rendendoli più realistici, aggiungi anche altre immagini
+a rendere l'interfaccia più accattivante"*.
+
+**On `dev/cesare`, not merged** — a feature, needs Cesare's go-ahead.
+
+- Eight WebP images rendered procedurally (`webapp/art-src/`, numpy + Pillow):
+  vinyl + spinning label, gold coins (face, tilted, stack), studio microphone,
+  analogue VU meter, film grain. Self-hosted, no licences, legal/check.sh clean.
+- Backdrop: realistic record, coin note heads, coins floating at three depths of
+  field, glass candles, film grain. Landing: mic and coin stack break out of the
+  two panels, VU meter beside "project status".
+- Checked by screenshot: 1440 dark/light, 400px, landing and marketplace.
+

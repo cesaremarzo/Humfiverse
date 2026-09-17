@@ -3,6 +3,12 @@
 <div class="bd-orb bd-orb--c"></div>
 <div class="bd-grid"></div>
 
+<!-- Coins at different depths: the far ones soft, the nearest out of focus -->
+@for (c of floatingCoins; track $index) {
+  <img [class]="'bd-coin bd-coin--' + c.depth" [src]="c.tilt ? 'assets/art/coin-tilt.webp' : 'assets/art/coin.webp'" alt=""
+    [style.left.%]="c.x" [style.top.%]="c.y" [style.width.px]="c.size" [style.--rot]="c.rot + 'deg'" [style.animation-delay.ms]="$index * -2300" />
+}
+
 <svg class="bd-svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" fill="none">
   <defs>
     <linearGradient id="bd-wave" x1="0" y1="0" x2="1" y2="0">
@@ -11,6 +17,22 @@
       <stop offset="0.75" stop-color="var(--accent-2)" />
       <stop offset="1" stop-color="var(--accent-2)" stop-opacity="0" />
     </linearGradient>
+    <!-- Candles in glass: lit edge on the left, a dark core, a thin rim on the right -->
+    <linearGradient id="bd-candle-up" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="var(--accent-2)" stop-opacity="0.75" />
+      <stop offset="0.22" stop-color="var(--accent-2)" stop-opacity="0.28" />
+      <stop offset="0.7" stop-color="var(--accent-2)" stop-opacity="0.12" />
+      <stop offset="1" stop-color="var(--accent-2)" stop-opacity="0.45" />
+    </linearGradient>
+    <linearGradient id="bd-candle-down" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="var(--accent-ink)" stop-opacity="0.7" />
+      <stop offset="0.22" stop-color="var(--accent-ink)" stop-opacity="0.26" />
+      <stop offset="0.7" stop-color="var(--accent-ink)" stop-opacity="0.1" />
+      <stop offset="1" stop-color="var(--accent-ink)" stop-opacity="0.4" />
+    </linearGradient>
+    <filter id="bd-shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000" flood-opacity="0.55" />
+    </filter>
     <linearGradient id="bd-area" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="var(--accent-2)" stop-opacity="0.14" />
       <stop offset="0.6" stop-color="var(--accent-2)" stop-opacity="0" />
@@ -24,23 +46,17 @@
     }
     @for (n of notes; track $index) {
       <g class="bd-note" [attr.transform]="'translate(' + n.x + ' ' + n.y + ')'" [style.animation-delay.ms]="$index * -700">
-        <circle r="9" />
-        <circle r="4.5" class="bd-note-inner" />
-        <line x1="8.5" y1="0" x2="8.5" [attr.y2]="-n.stem" />
+        <line x1="10" y1="-2" x2="10" [attr.y2]="-n.stem" />
+        <image href="assets/art/coin-tilt.webp" x="-13" y="-8" width="26" height="16" />
       </g>
     }
   </g>
 
   <!-- Record with a funding gauge for a rim -->
   <g class="bd-vinyl" transform="translate(1210 230)">
-    <g class="bd-vinyl-spin">
-      @for (r of grooves; track r) {
-        <circle [attr.r]="r" class="bd-groove" />
-      }
-      <path d="M -120 -40 A 126 126 0 0 1 -40 -120" class="bd-shine" />
-      <circle r="44" class="bd-label" />
-      <circle r="5" class="bd-hole" />
-    </g>
+    <!-- The grooves are round, so only the label visibly turns; the highlight stays with the light -->
+    <image href="assets/art/vinyl.webp" x="-158" y="-158" width="316" height="316" filter="url(#bd-shadow)" />
+    <image href="assets/art/vinyl-label.webp" x="-158" y="-158" width="316" height="316" class="bd-vinyl-spin" />
     @for (t of ticks; track t) {
       <line x1="0" y1="-182" x2="0" [attr.y2]="$index % 4 === 0 ? -192 : -187" [attr.transform]="'rotate(' + t + ')'" class="bd-tick" />
     }
@@ -61,7 +77,8 @@
     @for (c of candles; track $index) {
       <g [class.up]="c.up" [style.animation-delay.ms]="c.delay">
         <line [attr.x1]="c.x" [attr.x2]="c.x" [attr.y1]="c.wickTop" [attr.y2]="c.wickBottom" />
-        <rect [attr.x]="c.x - 7" [attr.y]="c.body" width="14" [attr.height]="c.h" rx="3" />
+        <rect [attr.x]="c.x - 7" [attr.y]="c.body" width="14" [attr.height]="c.h" rx="3" [attr.fill]="c.up ? 'url(#bd-candle-up)' : 'url(#bd-candle-down)'" />
+        <rect [attr.x]="c.x - 4.5" [attr.y]="c.body + 2" width="2" [attr.height]="c.h > 10 ? c.h - 4 : 0" rx="1" class="bd-candle-shine" />
       </g>
     }
   </g>
@@ -78,3 +95,5 @@
 </svg>
 
 <div class="bd-fade"></div>
+<!-- Inline so the URL resolves against the base href (/Humfiverse/ on Pages) -->
+<div class="bd-grain" style="background-image: url(assets/art/grain.webp)"></div>

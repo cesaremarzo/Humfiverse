@@ -2,6 +2,7 @@ import { Component, Input } from '@angular/core';
 
 interface Candle { x: number; body: number; h: number; wickTop: number; wickBottom: number; up: boolean; delay: number; }
 interface Note { x: number; y: number; stem: number; }
+interface FloatingCoin { x: number; y: number; size: number; rot: number; depth: 'far' | 'mid' | 'near'; tilt: boolean; }
 interface Bar { x: number; h: number; delay: number; }
 
 /**
@@ -31,7 +32,15 @@ export class BackdropComponent {
     { x: 150, y: 150, stem: 44 }, { x: 250, y: 165, stem: 44 }, { x: 350, y: 142, stem: 44 },
     { x: 470, y: 170, stem: 44 }, { x: 590, y: 182, stem: 44 }, { x: 720, y: 170, stem: 44 }
   ];
-  readonly grooves = Array.from({ length: 10 }, (_, i) => 62 + i * 9);
+  /** Rendered coins (assets/art, sources in webapp/art-src, §2.99) at three depths of field. */
+  readonly floatingCoins: FloatingCoin[] = [
+    { x: 6, y: 58, size: 92, rot: -18, depth: 'mid', tilt: true },
+    { x: 24, y: 78, size: 46, rot: 24, depth: 'far', tilt: false },
+    { x: 64, y: 70, size: 58, rot: 12, depth: 'far', tilt: true },
+    { x: 91, y: 50, size: 64, rot: -8, depth: 'mid', tilt: false },
+    { x: 84, y: 76, size: 230, rot: -22, depth: 'near', tilt: true },
+    { x: -4, y: 86, size: 170, rot: 16, depth: 'near', tilt: false }
+  ];
   readonly ticks = Array.from({ length: 48 }, (_, i) => (i * 360) / 48);
   readonly spectrum: Bar[];
   readonly labels = [
