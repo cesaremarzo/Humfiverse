@@ -18,7 +18,7 @@ import { fundingPctFor, remainingFor, tokensSoldFor } from '../../core/onchain-p
 import { ipfsGatewayUrl } from '../../core/ipfs.util';
 import { computeYieldBreakdown } from '../../core/yield.util';
 import { platformFeeUsd, platformFeeUsdc } from '../../core/marketplace-fee.util';
-import { primaryFeeUsd } from '../../core/primary-fee.util';
+import { primaryFeeUsd, contributionFeeUsd, PRIMARY_FEE_BPS, CONTRIBUTION_FEE_BPS } from '../../core/primary-fee.util';
 import { usdcToUsd, usdToUsdc } from '../../core/usdc.util';
 import { isValidRoyaltyMonth, royaltyAvg, royaltyTotal } from '../../core/royalty.util';
 import { onchainErrorTranslation } from '../../core/onchain-error.util';
@@ -549,6 +549,25 @@ export class AssetDetailComponent {
 
   usdcToUsd = usdcToUsd;
   primaryFeeUsd = primaryFeeUsd;
+
+  /** Whether the buy panel is about to make a campaign contribution rather
+   * than a direct catalogue purchase. The two go to different contracts and
+   * are charged at different rates (§2.101), so the panel has to know which
+   * one it is showing before it can name a fee. */
+  isCampaignPurchase(a: Asset): boolean {
+    return a.kind === 'preproduction' || this.catalogueEscrowStillOpen(this.escrowInfo());
+  }
+
+  /** The fee included in `totalUsd`: the escrow's 2% on a contribution, the
+   * token contract's 6% on a direct sale. */
+  buyFeeUsd(a: Asset, totalUsd: number): number {
+    return this.isCampaignPurchase(a) ? contributionFeeUsd(totalUsd) : primaryFeeUsd(totalUsd);
+  }
+
+  /** The same rate as a whole-number percentage, for the panel's label. */
+  buyFeePct(a: Asset): number {
+    return (this.isCampaignPurchase(a) ? CONTRIBUTION_FEE_BPS : PRIMARY_FEE_BPS) / 100;
+  }
 
   /** The component still owns the translating; which message applies is
    * decided in core/onchain-error.util.ts, where it can be reasoned about

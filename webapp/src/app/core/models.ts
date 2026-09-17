@@ -245,7 +245,7 @@ export type AssetRoyalties =
       supported: true;
       tokenId: number;
       contractAddress: string;
-      totalDepositedUsdc: string;
+      totalDistributedUsdc: string;
       totalClaimedUsdc: string;
       outstandingSupply: string;
       poolBalance: string;

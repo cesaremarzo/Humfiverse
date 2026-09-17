@@ -1,6 +1,6 @@
 # Domande per l'avvocato
 
-*Revisione del 2026-09-17, commit `fd7f822` (A12, I4: versamento delle royalty), prima `94ae18f` (A4: storico prezzi) e `27d8d5f` + §2.100 (A14, F4, H4: guida automatica).*
+*Revisione del 2026-09-17, commit `fd7f822` + §2.101 (A13: commissione sulla distribuzione delle royalty; A12, I4: versamento delle royalty), prima `94ae18f` (A4: storico prezzi) e `27d8d5f` + §2.100 (A14, F4, H4: guida automatica).*
 
 Le domande vengono dai file 01-03 e dalle decisioni già prese (note legali §7,
 §7.10; technical-architecture §2.86). Sostituiscono e ampliano l'elenco del §6
@@ -110,6 +110,17 @@ Lussemburgo (CSSF) e Italia (CONSOB).*
   (prestatore di servizi di pagamento o CASP), far versare solo il Veicolo o un
   amministratore di royalty autorizzato, oppure ammettere solo versamenti
   diretti dell'artista. **[verificare]** *(02 C-12, 04 §5.7.1)*
+- **A13** 🟠 *Nuova, 2026-09-17.* Dal §2.101 la Piattaforma **trattiene l'1% di
+  ogni versamento di royalty** prima di distribuirlo ai possessori: è un
+  compenso per l'attività di distribuzione, non un incasso sulla vendita.
+  Trattenere una percentuale di denaro altrui che si sta trasferendo a terzi
+  rafforza l'argomento che l'attività sia un servizio prestato dietro
+  corrispettivo, e quindi rileva per A12 (PSD2/MiCA) e per il gruppo L (IVA sul
+  compenso, ritenute). Domande: il compenso va qualificato come corrispettivo di
+  un servizio di amministrazione di diritti, di pagamento o di gestione? Cambia
+  qualcosa se è trattenuto dal contratto invece che fatturato all'artista? E se
+  la quota trattenuta comprende anche la parte che torna all'artista stesso
+  (token invenduti nel pool)? **[verificare]** *(02 C-12, 02 C-15, 04 §6, 08 A-6)*
 
 - **A14** 🟠 *Nuova, 2026-09-17.* Dal §2.100 il sito ha una **guida
   automatica**: risposte scritte da noi e, dove è configurata una chiave API,

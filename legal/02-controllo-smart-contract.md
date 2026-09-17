@@ -48,11 +48,11 @@ revisioni precedenti; i loro token, con gli stessi saldi, sono sul nuovo token.
 | Funzione | Chi può chiamarla | Effetto |
 |---|---|---|
 | `mintCatalogue` | Owner o operator (Founder) | Crea un token id con offerta fissa. Prezzo = `funding / supply`, non modificabile. Imposta il wallet che incassa (`payoutOf`) e se il token è in vendita diretta |
-| `buy` | chiunque | Compra dal pool al prezzo fisso. 98% al wallet dell'artista, 2% trattenuto come commissione |
+| `buy` | chiunque | Compra dal pool al prezzo fisso. 94% al wallet dell'artista, 6% trattenuto come commissione (§2.101) |
 | `releaseFromPool` | Owner (Safe 2 su 3) o contratto escrow | Consegna token del pool **senza pagamento** |
 | `setURI` | Owner | Cambia l'indirizzo dei metadati (nome, immagine, descrizione) |
 | `setTrackAudioUri` | Owner o operator | Cambia il link all'audio, anche dopo la vendita |
-| `depositRoyalties` | chiunque | Versa USDC come royalty di un token, divise subito in parti uguali su tutti i token esistenti (pool compreso). Registra un riferimento al rendiconto (`statementRef`): dal §2.98 il sito vi scrive l'impronta SHA-256 del file del rendiconto |
+| `depositRoyalties` | chiunque | Versa USDC come royalty di un token. L'1% è trattenuto come commissione di distribuzione (§2.101), il resto è diviso subito in parti uguali su tutti i token esistenti (pool compreso). Registra un riferimento al rendiconto (`statementRef`): dal §2.98 il sito vi scrive l'impronta SHA-256 del file del rendiconto |
 | `claimRoyalties` | chiunque, per qualsiasi possessore | Paga al possessore quanto hanno maturato i suoi token; chi chiama sceglie solo quando |
 | `claimPoolRoyalties` | chiunque | Paga la quota dei token invenduti al wallet che incassa del token (l'artista) |
 | `createCampaign` | Owner o operator | Apre una campagna escrow su un token non in vendita diretta e mai venduto. **Rifiuta** uno studio con lo stesso wallet dell'artista |
@@ -314,8 +314,8 @@ domanda A4 (file 07) all'avvocato **prima** di pubblicizzare la rivendita.
 
 ### C-8 · Media · Il ricavato va direttamente all'artista, non a un veicolo
 
-**Codice.** `buy` trasferisce il 98% a `payoutOf[tokenId]`, il wallet
-dell'artista (§2.79).
+**Codice.** `buy` trasferisce il 94% a `payoutOf[tokenId]`, il wallet
+dell'artista (§2.79, §2.101).
 
 **Cosa dicono i documenti.** Whitepaper, README e cap. 2: *"a legal entity holds
 the real royalty right, and your token is a claim against that entity"*. Il
@@ -397,7 +397,8 @@ priorità sale ad Alta.**
   `claimRoyalties`. A ogni trasferimento il contratto chiude i conti di
   venditore e compratore: quanto maturato prima della vendita resta al
   venditore. La quota dei token invenduti va al wallet che incassa del token,
-  cioè all'artista (decisione del 2026-09-17). Nessuna commissione sulle royalty.
+  cioè all'artista (decisione del 2026-09-17). Dal §2.101 la Piattaforma
+  trattiene l'**1%** di ogni versamento prima di dividerlo (C-15, 07 A13).
 - **Perché conta.** Il token on-chain ora **dà un diritto economico**: una quota
   dei versamenti futuri. È l'elemento che mancava per leggerlo come strumento
   finanziario (01 §1; 07 A1, A2), anche se oggi circolano solo USDC di test.
@@ -435,6 +436,35 @@ priorità sale ad Alta.**
     (valutazione dell'utente; 07 A12); chi pubblica il rendiconto controlla
     prima il proprio contratto di distribuzione e i dati personali (07 I4, 05 §3).
 
+### C-15 · Media · La Piattaforma trattiene una quota delle royalty che distribuisce
+
+*Nuovo, 2026-09-17 (§2.101), su decisione dell'utente.*
+
+**Codice.** `depositRoyalties` trattiene `ROYALTY_FEE_BPS` (1%, costante) di ogni
+versamento e divide il resto fra i token
+(`HumfiverseCatalogueToken.sol`). La quota trattenuta finisce nello stesso
+`accruedFees` delle commissioni di vendita ed esce solo con `withdrawFees()`
+verso il wallet Fees. È calcolata sull'**intero** versamento, compresa la parte
+che spetta ai token invenduti e che torna quindi all'artista.
+
+**Perché conta.** È la prima commissione che la Piattaforma applica a denaro che
+non è il corrispettivo di una vendita, ma reddito di terzi che sta
+trasferendo. Due conseguenze:
+1. Rafforza la lettura dell'attività come **servizio prestato dietro
+   corrispettivo** — rilevante per l'autorizzazione già in discussione (07 A12) e
+   per il trattamento fiscale del compenso (gruppo L). Nuova domanda 07 A13.
+2. Va **dichiarata all'artista prima della firma**: riduce ciò che riceve a ogni
+   distribuzione, per tutta la vita del catalogo. Clausola in 08 A-6, tabella in
+   04 §6.
+
+**Cosa fa già il codice.** Il modulo di versamento mostra, prima della firma,
+quanto viene trattenuto e quanto viene diviso
+(`royalty-payouts.component.ts`); lo storico e il totale mostrano l'importo
+**distribuito**, non quello versato (`totalRoyaltiesDistributed`).
+
+**Proposta.** Nessuna modifica al codice. Portare 07 A13 all'avvocato insieme ad
+A12: sono la stessa attività vista da due lati.
+
 ### C-13 · Bassa · Dati personali scritti per sempre
 
 `trackTitle` e `artistName` sono scritti on-chain al mint e nell'evento
@@ -449,9 +479,9 @@ l'artista prima del lancio (informativa, 05 §2) e suggerire un nome d'arte.
 ### C-14 · Bassa · Commenti interni superati
 
 Il commento in testa a `HumfiverseMarketplace.sol` dice che il primo acquisto
-tramite `releaseFromPool` è "fee-free, owner-gated". Da §2.72 `buy` applica il
-2%. Non ha effetti legali, ma i commenti vengono citati come documentazione:
-meglio allinearli.
+tramite `releaseFromPool` è "fee-free, owner-gated". Da §2.72 `buy` applica una
+commissione, dal §2.101 del 6%. Non ha effetti legali, ma i commenti vengono
+citati come documentazione: meglio allinearli.
 
 ---
 

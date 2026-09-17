@@ -1,7 +1,7 @@
 import { Asset, Campaign, Milestone } from '../../core/models';
 import type { WizardData, WizardStepKey } from './onboarding.model';
 import { isValidWalletAddress } from './onboarding.model';
-import { PRIMARY_FEE_BPS } from '../../core/primary-fee.util';
+import { CONTRIBUTION_FEE_BPS } from '../../core/primary-fee.util';
 import { usdToUsdc, usdcToUsd } from '../../core/usdc.util';
 
 /**
@@ -92,7 +92,7 @@ export function marketingStageMilestones(stages: number, nameFor: (n: number) =>
  * is all a sold-out campaign holds. Before §2.74 this used the gross goal,
  * so the wizard showed $20 for a tranche the contract pays as $19.60. */
 export function trancheUsd(goalUsd: number, bps: number): number {
-  const targetCents = Math.round(goalUsd * 100) * (10_000 - PRIMARY_FEE_BPS) / 10_000;
+  const targetCents = Math.round(goalUsd * 100) * (10_000 - CONTRIBUTION_FEE_BPS) / 10_000;
   return Math.floor((targetCents * bps) / 10_000) / 100;
 }
 
@@ -119,7 +119,7 @@ export interface MilestoneBreakdown {
 export function milestoneBreakdown(goalUsd: number, bps: number): MilestoneBreakdown {
   const goal = usdToUsdc(goalUsd);
   const share = (goal * BigInt(bps)) / 10_000n;
-  const target = (goal * BigInt(10_000 - PRIMARY_FEE_BPS)) / 10_000n;
+  const target = (goal * BigInt(10_000 - CONTRIBUTION_FEE_BPS)) / 10_000n;
   const tranche = (target * BigInt(bps)) / 10_000n;
   const milestoneFee = (tranche * BigInt(MILESTONE_FEE_BPS)) / 10_000n;
   const payee = tranche - milestoneFee;

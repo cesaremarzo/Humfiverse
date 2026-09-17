@@ -1,6 +1,6 @@
 # Termini di Servizio: bozza
 
-*Bozza del 2026-09-15, commit `82a7a1b`; §5.3 aggiornato il 2026-09-17 (ordine delle milestone); §5.7 il 2026-09-17 (chi versa le royalty e rendiconto, pubblicazione facoltativa, §2.98); §12 il 2026-09-17 (guida automatica, §2.100). **Da far rivedere a un avvocato prima
+*Bozza del 2026-09-15, commit `82a7a1b`; §5.3 aggiornato il 2026-09-17 (ordine delle milestone); §5.7 il 2026-09-17 (chi versa le royalty e rendiconto, pubblicazione facoltativa, §2.98); §5.7 e §6 il 2026-09-17 (vendita diretta al 6%, 1% sulla distribuzione delle royalty, §2.101); §12 il 2026-09-17 (guida automatica, §2.100). **Da far rivedere a un avvocato prima
 della pubblicazione.** Non è consulenza legale.*
 
 ## Note per chi usa questa bozza (da togliere prima di pubblicare)
@@ -186,9 +186,10 @@ Noi non garantiamo che esista un compratore né un prezzo.
 5.7. **Royalty.** Chiunque può versare USDC come royalty di un token tramite il
 contratto. Ogni versamento è diviso subito in parti uguali su tutti i token
 esistenti in quel momento, compresi quelli non ancora venduti, la cui quota
-spetta all'artista. Ogni possessore riscuote la propria quota quando vuole;
+spetta all'artista, **al netto della commissione di distribuzione dell'1%**
+(§6). Ogni possessore riscuote la propria quota quando vuole;
 quanto maturato prima di una vendita resta a chi ha venduto. Un versamento non si
-può ritirare. La Piattaforma non trattiene commissioni sulle royalty.
+può ritirare.
 
 5.7.1. **Chi versa e quando.** Le royalty sono versate dall'artista, che le
 incassa e le converte in USDC, oppure dalla Piattaforma dopo averle ricevute
@@ -215,10 +216,17 @@ dall'importo pagato**, non aggiunte:
 
 | Operazione | Commissione | Rimborsabile? |
 |---|---|---|
-| Acquisto diretto di un token dal pool | 2% del prezzo | No |
+| Acquisto diretto di un token dal pool | 6% del prezzo | No |
 | Contributo a una campagna | 2% del contributo | **No, neanche se la campagna viene annullata** |
 | Rilascio di una tranche all'artista o allo studio | 3% della tranche | Non applicabile |
+| Versamento di royalty (§5.7) | 1% dell'importo versato | No |
 | Rivendita tra utenti | 1% del prezzo, a carico del venditore | No |
+
+6.1.1. Le due aliquote sulla raccolta sono diverse perché coprono percorsi
+diversi, non la stessa operazione: la vendita diretta di un catalogo è
+addebitata una sola volta (6%), mentre una campagna paga il 2% all'ingresso e il
+3% su ogni tranche rilasciata, cioè il 4,94% dell'obiettivo se raccoglie tutto e
+rilascia tutte le tranche.
 
 6.2. Le commissioni sono inviate all'indirizzo "**Fees**" ([indirizzo]), che il
 gestore può cambiare.

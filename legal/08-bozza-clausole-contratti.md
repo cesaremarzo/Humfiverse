@@ -1,6 +1,6 @@
 # Bozza di clausole: Accordo Artista, Accordo Investitore, accettazione
 
-*Bozza del 2026-09-15, commit `82a7a1b`; A-5 aggiornata il 2026-09-17 (ordine delle milestone); A-8 e C-12 nuove il 2026-09-17 (versamento delle royalty, §2.98). **Da far rivedere a un avvocato.** Non
+*Bozza del 2026-09-15, commit `82a7a1b`; A-5 aggiornata il 2026-09-17 (ordine delle milestone); A-8 e C-12 nuove il 2026-09-17 (versamento delle royalty, §2.98); A-6 aggiornata il 2026-09-17 (vendita diretta al 6%, 1% sulle royalty, §2.101). **Da far rivedere a un avvocato.** Non
 è consulenza legale.*
 
 Traduce in testo contrattuale la decisione del 15 settembre 2026 (note legali
@@ -169,11 +169,26 @@ Sostituisce le clausole `manager-discretion`, `milestones` e `refund` e integra
 ### A-6 · Commissioni
 *Nuova (T-4).*
 
-La Piattaforma trattiene, tramite i contratti: il 2% di ogni acquisto diretto; il
-2% di ogni contributo; il 3% di ogni tranche rilasciata; l'1% di ogni rivendita,
-a carico del venditore. Esempio: una Campagna da 10.000 USDC interamente venduta
-e rilasciata genera 494 USDC di commissioni (4,94%). All'Artista e allo Studio
-arrivano complessivamente 9.506 USDC.
+La Piattaforma trattiene, tramite i contratti: il **6%** di ogni acquisto
+diretto di un catalogo; il 2% di ogni contributo a una Campagna; il 3% di ogni
+tranche rilasciata; l'**1%** di ogni versamento di royalty, prima della
+distribuzione; l'1% di ogni rivendita, a carico del venditore. Le commissioni
+sono trattenute dall'importo, mai aggiunte, e le aliquote sono costanti nei
+contratti: nessuno può cambiarle.
+
+Le due aliquote sulla raccolta coprono percorsi diversi, non la stessa
+operazione. Su 10.000 USDC raccolti:
+
+| | Vendita diretta del catalogo | Campagna con milestone |
+|---|---|---|
+| Alla raccolta | 600 USDC (6%) | 200 USDC (2%) |
+| Sul rilascio delle tranche | non applicabile | 294 USDC (3% di 9.800) |
+| **Totale alla Piattaforma** | **600 USDC (6,00%)** | **494 USDC (4,94%)** |
+| **All'Artista (e allo Studio)** | **9.400 USDC** | **9.506 USDC** |
+
+Sulle royalty: di ogni 1.000 USDC versati, 10 restano alla Piattaforma e 990
+sono divisi fra tutti i token esistenti. L'1% si applica all'intero versamento,
+**compresa la quota dei token invenduti**, che torna all'Artista.
 
 ### A-7 · Esclusiva `[V]`
 *Modifica `exclusivity` (T-7).*

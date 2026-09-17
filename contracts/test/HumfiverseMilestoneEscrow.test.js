@@ -684,11 +684,11 @@ describe("HumfiverseMilestoneEscrow", function () {
       const { escrow, token, campaignId, contributor1, other } = await campaignFixture();
       await escrow.connect(contributor1).contribute(campaignId, GOAL); // every token
       await usdc.connect(other).approve(await token.getAddress(), ethers.MaxUint256);
-      await token.connect(other).depositRoyalties(TOKEN_ID, 1_000n, ethers.ZeroHash);
+      await token.connect(other).depositRoyalties(TOKEN_ID, 1_000n, ethers.ZeroHash); // 1% kept: 990 shared
       await escrow.cancelCampaign(campaignId, NO_GROUND, ethers.ZeroHash);
       await escrow.connect(contributor1).refund(campaignId, GOAL / TOKEN_PRICE);
 
-      expect(await token.claimableRoyalties(TOKEN_ID, contributor1.address)).to.equal(1_000n);
+      expect(await token.claimableRoyalties(TOKEN_ID, contributor1.address)).to.equal(990n);
       await token.claimRoyalties(contributor1.address, [TOKEN_ID]);
       await expect(token.connect(other).depositRoyalties(TOKEN_ID, 1n, ethers.ZeroHash)).to.be.revertedWith(
         "HumfiverseCatalogueToken: no outstanding tokens"

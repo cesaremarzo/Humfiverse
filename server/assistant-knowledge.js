@@ -120,15 +120,20 @@ RESALE
   for real is an open legal question counsel has not answered.
 
 FEES — FIXED IN THE CONTRACTS, DEDUCTED, NEVER ADDED ON TOP
-- 2% of every primary purchase (buying catalogue tokens, or contributing to
-  a campaign). Included in the price: the buyer receives every token paid
-  for, and 98% goes to the rights holder or into the escrow.
+- 6% of a direct catalogue purchase. Included in the price: the buyer
+  receives every token paid for, and 94% goes to the rights holder.
+- 2% of a contribution to a pre-production campaign: the buyer receives
+  every token paid for, and 98% is credited to the campaign in escrow.
 - 3% of each pre-production tranche as it is released. A tranche never
   released is never charged.
+- 1% of every royalty deposit, kept for running the distribution; the other
+  99% is shared over the tokens.
 - 1% of every resale payment, taken from the payment: the buyer receives
   every token, the seller receives the price less 1%.
-- A sold-out campaign that releases every milestone pays 4.94% of its goal
-  in total. Fees accumulate inside each contract and can only go to the fee
+- The two rates on a raise differ because they cover different paths, not
+  the same one: a direct sale is charged once, while a campaign that sells
+  out and releases every milestone pays 2% + 3% = 4.94% of its goal in
+  total. Fees accumulate inside each contract and can only go to the fee
   address the owner designates; every change is a public on-chain event.
 
 FOR ARTISTS
