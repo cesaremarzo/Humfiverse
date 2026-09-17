@@ -1960,3 +1960,29 @@ same token ids, so no DB change is needed.
 Note: commit `65fcdcd` (my "Session log: multisig…") accidentally concluded
 another session's in-progress merge of PR #68 because it used `git commit -a`
 while `MERGE_HEAD` existed. Content is intact; only the message is misleading.
+
+### Handoff for the next session (written end of 17 Sep)
+
+State at hand-off: PR **#69** (`dev/cesare` → `main`) is **open, not merged**,
+last commit `f904ef1` (docs/ rebuilt). Phase 2 contracts are live on Sepolia but
+production still reads the old ones until the PR is merged and Render updated.
+
+Do next, in order:
+1. **Ask Cesare whether the five Render variables are set** (list in the entry
+   above and in the PR). Only then merge #69 (feature: needs his explicit yes).
+2. **Verify live after the merge:** bundle filename changed on
+   cesaremarzo.github.io/Humfiverse; `/api/onchain/honest-man-595` shows token
+   `0xa619…82EF`; `/api/royalties/new-song-464` → `supported: true`;
+   `/api/escrow/campaigns` → both `legacy: true`; Portfolio of `0x4ee9…6cd4`
+   shows 5 + 20 tokens. Holder index replays from block 11724392 (takes a while).
+3. **Whitepaper W-16…W-19** (`legal/03`): false since the redeploy (refunds,
+   cancel ground, royalties, multisig). Apply only if Cesare says yes (GitBook).
+4. Ask Cesare to confirm which Safe signer is whose (`0xF7ba…B3BD`,
+   `0xE57E…dB62`, `0x4878…0F76`); record the mapping in CLAUDE.md.
+5. Still open from phase 2: cancellation procedure/takedown (§2.87), the `NONE`
+   ground still accepted while tranches remain (02 C-2), who deposits royalties
+   and on which statement (02 C-12, 04 §5.7), custody doc for the Safe keys.
+
+Working notes: Vincenzo is called **Co-founder**. Several Claude sessions share
+this checkout: stage explicit paths, never `git commit -a`, check `MERGE_HEAD`.
+

@@ -9,6 +9,17 @@ Both `HumfiverseCatalogueToken` and `HumfiverseMilestoneEscrow` are immutable on
 
 A fresh deploy means fresh, empty contract state: every minted token, every escrow campaign, every real holder's balance resets to zero on the new address. The old contract still exists on-chain with the old state — nothing is destroyed — but the app switches to talking to the new address, so from the user's point of view their real holdings vanish unless you manually restore them. This has real financial-feeling consequences even on testnet ETH: it's the user's actual, tested activity being reconstructed, not a cosmetic detail.
 
+## Since phase 2 (§2.97): the owner is a Safe
+
+`owner()` of token, escrow and marketplace is the 2-of-3 Safe `0xBA2ad0Ca063092E350f1427dd86F7E9C8730245d`; Founder (the backend key, `DEPLOYER_PRIVATE_KEY`) is only `operator`. Consequences for the next redeploy:
+
+- **Deploy and restore with Founder, then hand ownership to the Safe last**, in one script: a freshly deployed contract is owned by the deployer, so `releaseFromPool`, `setEscrowContract`, `setFeeRecipient`, `setOperator` all work before `transferOwnership(Safe)`. After that, every owner call needs two signatures in the Safe app. §2.97's script did exactly this and made every step resumable (skip what is already done, accept the new addresses from a previous run).
+- **The marketplace is owned by the Safe now**: Founder can no longer change it.
+- **Campaign signatures changed:** `createCampaign(artist, studioId, assetId, tokenId, names, bps, payees)` (no deadline, no goal), and it refuses studio wallet = artist wallet. A fully released campaign is not recreated: point `CHAIN_ESCROW_LEGACY_ADDRESS` at the old escrow instead.
+- **Dry run on a Sepolia fork**, not a blank chain: `networks.hardhat.forking = { url: SEPOLIA_RPC_URL, blockNumber: <latest> }` with `chainId: 11155111`, and a `localhost` network using `DEPLOYER_PRIVATE_KEY`. Pin `blockNumber` to the current head: unpinned, Hardhat forks a few hundred blocks back and misses recent contracts (the Safe was "not found"). Run the backend on the fork with the new addresses before handing the user the real command.
+- **Price and royalty history are scoped by token contract** and start empty after a token redeploy.
+- **Commit only the files you changed** (`git add <paths>`, never `git commit -a`): other sessions share this checkout.
+
 ## Before touching anything
 
 1. **Get explicit user confirmation before deploying.** This is disruptive and not easily reversible in practice (old state is real but orphaned). If the contract change could instead avoid a redeploy (e.g., storing something off-chain in the metadata JSON instead of on-chain), lay out that tradeoff and let the user choose — don't assume they want the on-chain version. See `planning/technical-architecture.md` §2.43 for a worked example of presenting this choice.
