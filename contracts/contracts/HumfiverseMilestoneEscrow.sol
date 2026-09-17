@@ -51,8 +51,19 @@ import "./HumfiverseCatalogueToken.sol";
 ///         fee recipient that could not receive would otherwise block every
 ///         milestone, handing Humfiverse exactly the veto over releases that
 ///         §2.27 was written to remove.
+///
+///         Cancelling and refunds (phase 2, §2.92): only the owner cancels,
+///         and a campaign whose milestones are all released can be cancelled
+///         only on a legal ground (unlawful content, third-party rights,
+///         false artist warranties), recorded on chain with the hash of the
+///         written decision. What was unreleased at cancellation is shared
+///         over the tokens sold at that moment, and whoever holds them
+///         claims it by handing the tokens back to be burned — a resale
+///         buyer included, and nobody keeps both the money and the token.
+///         There are no deadlines: a campaign ends by selling out, by
+///         releasing every milestone, or by cancellation.
 /// @dev Campaigns and studios are created/registered by the platform
-///      (onlyOwner), mirroring how HumfiverseCatalogueToken.mintCatalogue
+///      (the owner or the operator, the backend's key), mirroring how HumfiverseCatalogueToken.mintCatalogue
 ///      is triggered by the backend after a user completes the onboarding
 ///      wizard, not called directly from an artist's own wallet.
 contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
@@ -65,6 +76,14 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     enum CampaignStatus {
         ACTIVE,
         CANCELLED
+    }
+    /// @notice Why a campaign was cancelled. NONE is allowed only while some
+    ///         milestone is unreleased; the others need a decision hash.
+    enum CancelGround {
+        NONE,
+        UNLAWFUL_CONTENT,
+        THIRD_PARTY_RIGHTS,
+        FALSE_WARRANTIES
     }
 
     struct Milestone {
@@ -79,7 +98,6 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         uint256 studioId; // 0 = no studio required for this campaign
         uint256 fundingGoal; // paymentToken base units (USDC: 1e6 = $1)
         uint256 raised; // credited to the campaign, net of the contribution fee
-        uint256 deadline; // unix timestamp; 0 = no deadline
         CampaignStatus status;
         uint256 releasedBps; // cumulative bps released so far
         string assetId; // the platform's asset id (e.g. "glass-horizon") this
@@ -130,6 +148,21 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     ///         tranches, fee included. What refunds are measured against.
     mapping(uint256 => uint256) public campaignReleased;
 
+    /// @notice The backend's key: may register and edit studios and create
+    ///         campaigns. It cannot cancel, change fees or move funds. Zero
+    ///         means only the owner can.
+    address public operator;
+
+    /// @notice campaignId => the ground it was cancelled on.
+    mapping(uint256 => CancelGround) public cancelGroundOf;
+    /// @notice campaignId => unreleased money still to be refunded. Set at
+    ///         cancellation to raised - released, reduced by each refund.
+    mapping(uint256 => uint256) public refundPoolOf;
+    /// @notice campaignId => tokens that can still claim refundPoolOf. Set at
+    ///         cancellation to the tokens sold and not burned, reduced by each
+    ///         refund, so the last token takes any rounding remainder.
+    mapping(uint256 => uint256) public refundTokensOf;
+
     uint256 private nextCampaignId = 1;
     uint256 private nextStudioId = 1;
 
@@ -139,7 +172,9 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     ///         createCampaign and never changed.
     mapping(uint256 => uint256) public campaignTokenId;
     mapping(uint256 => Milestone[]) private campaignMilestones;
-    mapping(uint256 => mapping(address => uint256)) public contributions; // campaignId => contributor => amount credited
+    /// @notice campaignId => contributor => amount credited. A record of who
+    ///         paid what; since phase 2 refunds follow tokens held, not this.
+    mapping(uint256 => mapping(address => uint256)) public contributions;
     mapping(uint256 => Studio) public studios;
     /// @notice Dual sign-off state (§2.27): campaignId => milestoneIndex =>
     ///         confirmed. A milestone releases only once both are true — see
@@ -155,13 +190,14 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     event StudioRegistered(uint256 indexed studioId, address indexed wallet, string name);
     event StudioActiveSet(uint256 indexed studioId, bool active);
     event StudioRenamed(uint256 indexed studioId, string previousName, string newName);
-    event CampaignCreated(uint256 indexed campaignId, address indexed artist, uint256 fundingGoal, uint256 studioId, uint256 deadline, string assetId);
+    event CampaignCreated(uint256 indexed campaignId, address indexed artist, uint256 fundingGoal, uint256 studioId, string assetId);
     event Contributed(uint256 indexed campaignId, address indexed contributor, uint256 amount, uint256 totalRaised);
     event MilestoneConfirmedByArtist(uint256 indexed campaignId, uint256 indexed milestoneIndex);
     event MilestoneConfirmedByStudio(uint256 indexed campaignId, uint256 indexed milestoneIndex);
     event MilestoneConfirmed(uint256 indexed campaignId, uint256 indexed milestoneIndex, address indexed payee, uint256 amount);
-    event CampaignCancelled(uint256 indexed campaignId);
-    event Refunded(uint256 indexed campaignId, address indexed contributor, uint256 amount);
+    event CampaignCancelled(uint256 indexed campaignId, CancelGround ground, bytes32 decisionHash, uint256 refundPool, uint256 refundTokens);
+    event Refunded(uint256 indexed campaignId, address indexed holder, uint256 tokensBurned, uint256 amount);
+    event OperatorUpdated(address indexed previous, address indexed next);
     event ContributionFeeRetained(uint256 indexed campaignId, address indexed contributor, uint256 fee);
     event PlatformFeeRetained(uint256 indexed campaignId, uint256 indexed milestoneIndex, uint256 fee);
     event FeesWithdrawn(address indexed recipient, uint256 amount);
@@ -174,16 +210,27 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         feeRecipient = _feeRecipient == address(0) ? msg.sender : _feeRecipient;
     }
 
+    /// @notice Owner-only: sets (or, with address(0), removes) the operator.
+    function setOperator(address next) external onlyOwner {
+        emit OperatorUpdated(operator, next);
+        operator = next;
+    }
+
+    modifier onlyOwnerOrOperator() {
+        require(msg.sender == owner() || (operator != address(0) && msg.sender == operator), "HumfiverseMilestoneEscrow: not authorized");
+        _;
+    }
+
     // --- studio registry (platform-curated for this pilot) ---
 
-    function registerStudio(address wallet, string calldata name) external onlyOwner returns (uint256 studioId) {
+    function registerStudio(address wallet, string calldata name) external onlyOwnerOrOperator returns (uint256 studioId) {
         require(wallet != address(0), "HumfiverseMilestoneEscrow: zero address");
         studioId = nextStudioId++;
         studios[studioId] = Studio({name: name, wallet: wallet, active: true});
         emit StudioRegistered(studioId, wallet, name);
     }
 
-    function setStudioActive(uint256 studioId, bool active) external onlyOwner {
+    function setStudioActive(uint256 studioId, bool active) external onlyOwnerOrOperator {
         require(studios[studioId].wallet != address(0), "HumfiverseMilestoneEscrow: unknown studio");
         studios[studioId].active = active;
         emit StudioActiveSet(studioId, active);
@@ -196,7 +243,7 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     ///         Every campaign already pointing at this studioId picks up
     ///         the new name immediately, since campaigns store a studioId,
     ///         not a name.
-    function renameStudio(uint256 studioId, string calldata name) external onlyOwner {
+    function renameStudio(uint256 studioId, string calldata name) external onlyOwnerOrOperator {
         require(studios[studioId].wallet != address(0), "HumfiverseMilestoneEscrow: unknown studio");
         emit StudioRenamed(studioId, studios[studioId].name, name);
         studios[studioId].name = name;
@@ -211,13 +258,12 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     function createCampaign(
         address artist,
         uint256 studioId,
-        uint256 deadline,
         string calldata assetId,
         uint256 tokenId,
         string[] calldata milestoneNames,
         uint16[] calldata milestoneBps,
         Payee[] calldata milestonePayees
-    ) external onlyOwner returns (uint256 campaignId) {
+    ) external onlyOwnerOrOperator returns (uint256 campaignId) {
         require(artist != address(0), "HumfiverseMilestoneEscrow: zero artist");
         require(bytes(assetId).length > 0, "HumfiverseMilestoneEscrow: assetId required");
         require(campaignIdByAssetId[assetId] == 0, "HumfiverseMilestoneEscrow: asset already has a campaign");
@@ -238,6 +284,9 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         require(milestoneNames.length > 0, "HumfiverseMilestoneEscrow: no milestones");
         if (studioId != 0) {
             require(studios[studioId].active, "HumfiverseMilestoneEscrow: studio not active");
+            // §2.89: a milestone releases on two independent confirmations,
+            // which one wallet in both roles would give alone.
+            require(studios[studioId].wallet != artist, "HumfiverseMilestoneEscrow: studio wallet is the artist");
         }
 
         uint256 totalBps;
@@ -255,7 +304,6 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
             studioId: studioId,
             fundingGoal: fundingGoal,
             raised: 0,
-            deadline: deadline,
             status: CampaignStatus.ACTIVE,
             releasedBps: 0,
             assetId: assetId
@@ -267,7 +315,7 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
                 Milestone({name: milestoneNames[i], bps: milestoneBps[i], payee: milestonePayees[i], released: false})
             );
         }
-        emit CampaignCreated(campaignId, artist, fundingGoal, studioId, deadline, assetId);
+        emit CampaignCreated(campaignId, artist, fundingGoal, studioId, assetId);
     }
 
     /// @notice Contributes USDC to a campaign and, in the same transaction,
@@ -280,12 +328,6 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     ///         the token's price (§2.79); it used to be floored, so a payment
     ///         that did not divide exactly was kept without buying anything.
     ///
-    ///         Known limitation, carried over unchanged from the prior
-    ///         design (accepted, not fixed here): if a campaign is later
-    ///         cancelled and refunded, this doesn't claw back tokens
-    ///         already released for that contribution — the contributor
-    ///         could end up with both a partial refund and the tokens.
-    ///
     ///         Paid in paymentToken: the contributor approves this contract for
     ///         `amount` first.
     function contribute(uint256 campaignId, uint256 amount) external nonReentrant {
@@ -293,7 +335,6 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         require(c.artist != address(0), "HumfiverseMilestoneEscrow: unknown campaign");
         require(c.status == CampaignStatus.ACTIVE, "HumfiverseMilestoneEscrow: not active");
         require(amount > 0, "HumfiverseMilestoneEscrow: zero contribution");
-        require(c.deadline == 0 || block.timestamp <= c.deadline, "HumfiverseMilestoneEscrow: campaign ended");
         uint256 tokenId = campaignTokenId[campaignId];
         uint256 price = catalogueToken.pricePerToken(tokenId);
         // §2.79: a contribution buys whole tokens at the one price every token
@@ -331,6 +372,7 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         require(c.status == CampaignStatus.ACTIVE, "HumfiverseMilestoneEscrow: not active");
         require(milestoneIndex < campaignMilestones[campaignId].length, "HumfiverseMilestoneEscrow: bad index");
         require(!campaignMilestones[campaignId][milestoneIndex].released, "HumfiverseMilestoneEscrow: already released");
+        _requirePreviousReleased(campaignId, milestoneIndex);
         artistConfirmed[campaignId][milestoneIndex] = true;
         emit MilestoneConfirmedByArtist(campaignId, milestoneIndex);
         _tryRelease(campaignId, milestoneIndex);
@@ -348,9 +390,22 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         require(c.status == CampaignStatus.ACTIVE, "HumfiverseMilestoneEscrow: not active");
         require(milestoneIndex < campaignMilestones[campaignId].length, "HumfiverseMilestoneEscrow: bad index");
         require(!campaignMilestones[campaignId][milestoneIndex].released, "HumfiverseMilestoneEscrow: already released");
+        _requirePreviousReleased(campaignId, milestoneIndex);
         studioConfirmed[campaignId][milestoneIndex] = true;
         emit MilestoneConfirmedByStudio(campaignId, milestoneIndex);
         _tryRelease(campaignId, milestoneIndex);
+    }
+
+    /// @notice Tranches release in the order the artist set them at campaign
+    ///         creation (§2.96): a milestone cannot be confirmed until the one
+    ///         before it is released, however much has been raised. Without
+    ///         this, the cumulative funding gate in _tryRelease let a later
+    ///         milestone jump ahead of an earlier one that was not delivered.
+    function _requirePreviousReleased(uint256 campaignId, uint256 milestoneIndex) private view {
+        require(
+            milestoneIndex == 0 || campaignMilestones[campaignId][milestoneIndex - 1].released,
+            "HumfiverseMilestoneEscrow: previous milestone not released"
+        );
     }
 
     /// @notice Releases a milestone's tranche once both required
@@ -420,40 +475,66 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         feeRecipient = next;
     }
 
-    /// @notice Owner-only: stop taking new contributions and open the
-    ///         refund path for whatever wasn't already released.
-    function cancelCampaign(uint256 campaignId) external onlyOwner {
+    /// @notice Owner-only: stops contributions and releases, and opens
+    ///         refunds of whatever was not released. Without a legal ground a
+    ///         fully released campaign cannot be cancelled: there is nothing
+    ///         left to refund, and cancelling would only mark a delivered
+    ///         project as failed (§2.86). With a ground it can, for the
+    ///         takedown that goes with it; `decisionHash` is the hash of the
+    ///         written, reasoned decision kept off chain.
+    function cancelCampaign(uint256 campaignId, CancelGround ground, bytes32 decisionHash) external onlyOwner {
         Campaign storage c = campaigns[campaignId];
+        require(c.artist != address(0), "HumfiverseMilestoneEscrow: unknown campaign");
         require(c.status == CampaignStatus.ACTIVE, "HumfiverseMilestoneEscrow: not active");
+        if (ground == CancelGround.NONE) {
+            require(c.releasedBps < 10_000, "HumfiverseMilestoneEscrow: fully released, needs a legal ground");
+        } else {
+            require(decisionHash != bytes32(0), "HumfiverseMilestoneEscrow: legal ground needs a decision hash");
+        }
+
+        uint256 tokenId = campaignTokenId[campaignId];
         c.status = CampaignStatus.CANCELLED;
-        emit CampaignCancelled(campaignId);
+        cancelGroundOf[campaignId] = ground;
+        refundPoolOf[campaignId] = c.raised - campaignReleased[campaignId];
+        // Sold tokens: everything that left the pool, less anything burned.
+        refundTokensOf[campaignId] = catalogueToken.releasedOf(tokenId) - catalogueToken.burnedOf(tokenId);
+        emit CampaignCancelled(campaignId, ground, decisionHash, refundPoolOf[campaignId], refundTokensOf[campaignId]);
     }
 
-    /// @notice Pro-rata refund of what the campaign still holds — per
-    ///         technical-architecture.md §2.7, contributors are made whole
-    ///         only for money never released to a confirmed milestone, not a
-    ///         clawback of tranches spent on milestones genuinely delivered.
-    ///         The contribution fee is not refunded: `contributions` records
-    ///         only what was credited to the campaign.
-    ///
-    ///         Each contributor receives their share of `raised - released`.
-    ///         It used to be `contributed × unreleasedBps`, which is only
-    ///         correct when the campaign raised exactly its target: a campaign
-    ///         that raised half of a $10,000 goal and released 20% ($2,000)
-    ///         promised refunds of $4,000 against $3,000 remaining, and paid
-    ///         the difference from other campaigns (§2.72).
-    function refund(uint256 campaignId) external nonReentrant {
+    /// @notice Hands back `tokens` of a cancelled campaign's token, which are
+    ///         burned, for their share of what was unreleased at cancellation
+    ///         (§2.92). Per technical-architecture.md §2.7 holders are made
+    ///         whole only for money never released to a confirmed milestone;
+    ///         the contribution fee is never refunded. Each refund pays
+    ///         refundPool × tokens / refundTokens and takes both down, so the
+    ///         rate stays the same for everyone and the last token takes any
+    ///         rounding remainder. Royalties the tokens earned before the burn
+    ///         stay claimable on the token contract.
+    function refund(uint256 campaignId, uint256 tokens) external nonReentrant {
         Campaign storage c = campaigns[campaignId];
         require(c.status == CampaignStatus.CANCELLED, "HumfiverseMilestoneEscrow: not cancelled");
-        uint256 contributed = contributions[campaignId][msg.sender];
-        require(contributed > 0, "HumfiverseMilestoneEscrow: nothing to refund");
+        require(tokens > 0, "HumfiverseMilestoneEscrow: zero tokens");
+        uint256 remainingTokens = refundTokensOf[campaignId];
+        require(tokens <= remainingTokens, "HumfiverseMilestoneEscrow: more tokens than refundable");
 
-        contributions[campaignId][msg.sender] = 0;
-        uint256 amount = (contributed * (c.raised - campaignReleased[campaignId])) / c.raised;
+        uint256 amount = (refundPoolOf[campaignId] * tokens) / remainingTokens;
+        require(amount > 0, "HumfiverseMilestoneEscrow: nothing to refund");
+        refundPoolOf[campaignId] -= amount;
+        refundTokensOf[campaignId] = remainingTokens - tokens;
 
+        // Reverts unless the caller holds the tokens.
+        catalogueToken.burnForRefund(msg.sender, campaignTokenId[campaignId], tokens);
         paymentToken.safeTransfer(msg.sender, amount);
 
-        emit Refunded(campaignId, msg.sender, amount);
+        emit Refunded(campaignId, msg.sender, tokens, amount);
+    }
+
+    /// @notice What `tokens` would refund right now; 0 if not cancelled.
+    function refundQuote(uint256 campaignId, uint256 tokens) external view returns (uint256) {
+        if (campaigns[campaignId].status != CampaignStatus.CANCELLED) return 0;
+        uint256 remainingTokens = refundTokensOf[campaignId];
+        if (tokens == 0 || tokens > remainingTokens) return 0;
+        return (refundPoolOf[campaignId] * tokens) / remainingTokens;
     }
 
     /// @notice What a campaign can actually hold once sold out — its goal

@@ -15,6 +15,17 @@ const { sendJson, sendRaw } = require("../lib/http");
 const chain = require("../chain");
 const { TOKEN_METADATA_BASE } = require("../config");
 const { tokenImageSvg } = require("../lib/token-image");
+const onchainRepo = require("../data/onchain.repo");
+const catalogueRepo = require("../data/catalogue.repo");
+
+/** §2.93: the artist's uploaded image, through a public gateway (wallets
+ * differ on ipfs:// support), or null to fall back to the generated SVG. */
+async function uploadedImageUrl(tokenId) {
+  const token = await onchainRepo.findTokenByTokenId(tokenId).catch(() => null);
+  const asset = token ? await catalogueRepo.findAssetById(token.asset_id).catch(() => null) : null;
+  const uri = asset?.media?.image?.uri;
+  return typeof uri === "string" && uri.startsWith("ipfs://") ? `https://gateway.pinata.cloud/ipfs/${uri.slice(7)}` : null;
+}
 
 module.exports = function registerTokenMetadataRoutes(router) {
   router.get(/^\/api\/token-metadata\/(?<hexTokenId>[0-9a-f]{64})\.json$/, async (req, res, { params }) => {
@@ -25,7 +36,7 @@ module.exports = function registerTokenMetadataRoutes(router) {
       sendJson(res, 200, {
         name: info.onchainTitle,
         description: `"${info.onchainTitle}" by ${info.onchainArtist} — a Humfiverse catalogue token on Sepolia. Testnet prototype, not a real financial instrument.`,
-        image: `${TOKEN_METADATA_BASE}/api/token-metadata/${tokenId}/image.svg`,
+        image: (await uploadedImageUrl(tokenId)) || `${TOKEN_METADATA_BASE}/api/token-metadata/${tokenId}/image.svg`,
         // §2.43 — the standard field wallets/marketplaces read to play an
         // NFT's audio/video; only present once a track's been uploaded and
         // linked on-chain (see trackAudioUri on the contract, the actual

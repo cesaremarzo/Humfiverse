@@ -1,5 +1,5 @@
 "use strict";
-/* Uploads a track's audio file to IPFS via Pinata's pinning API (§2.43) —
+/* Uploads a track's audio file, image or video to IPFS via Pinata's pinning API (§2.43) —
    the off-chain half of the audio-upload feature; chain.js's
    setTrackAudioUriOnchain writes the resulting CID on-chain.
 
@@ -16,11 +16,11 @@ function uploadsEnabled() {
   return Boolean(PINATA_JWT);
 }
 
-/** Pins `buffer` (the raw audio file bytes) to IPFS, named `filename`.
- * Returns the ipfs:// URI. Throws on any non-2xx response — the caller
- * (server.js) is responsible for turning that into a client-facing error. */
-async function uploadAudio(buffer, filename) {
-  if (!PINATA_JWT) throw new Error("audio upload is disabled (no PINATA_JWT configured)");
+/** Pins `buffer` to IPFS, named `filename`. Returns the ipfs:// URI.
+ * Throws on any non-2xx response — the caller turns that into a
+ * client-facing error. Used for audio (§2.43) and track media (§2.93). */
+async function uploadFile(buffer, filename) {
+  if (!PINATA_JWT) throw new Error("uploads are disabled (no PINATA_JWT configured)");
 
   const form = new FormData();
   form.append("file", new Blob([buffer]), filename);
@@ -41,4 +41,20 @@ async function uploadAudio(buffer, filename) {
   return `ipfs://${data.IpfsHash}`;
 }
 
-module.exports = { uploadsEnabled, uploadAudio };
+const uploadAudio = uploadFile;
+
+/** Unpins a file we pinned earlier, when it has been replaced (§2.93). Best
+ * effort: the free plan's 1 GB fills up with replaced videos otherwise, but
+ * a failure here must never undo the replacement. The same call is what the
+ * takedown procedure (§2.87) will use. */
+async function unpin(uri) {
+  if (!PINATA_JWT || typeof uri !== "string" || !uri.startsWith("ipfs://")) return false;
+  const cid = uri.slice("ipfs://".length);
+  const res = await fetch(`https://api.pinata.cloud/pinning/unpin/${encodeURIComponent(cid)}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${PINATA_JWT}` }
+  }).catch(() => null);
+  return Boolean(res?.ok);
+}
+
+module.exports = { uploadsEnabled, uploadFile, uploadAudio, unpin };

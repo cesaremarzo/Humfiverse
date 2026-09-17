@@ -1645,3 +1645,391 @@ user's go-ahead. `docs/` is rebuilt and committed with it.
 Still open from this pass: human review of the es/fr/de/ru/zh/ja/ar strings;
 submitting `https://cesaremarzo.github.io/Humfiverse/sitemap.xml` in Google Search
 Console (needs the user's Google account).
+
+---
+
+## 2026-09-16 (notte, 2) — phase 2 contracts with royalty distribution (§2.92)
+
+Asked by the user: *"dobbiamo mettere in piedi il processo di distribuzione
+(airdrop) delle revenues on chain… non è governato dagli smart contract
+attuali?"* — it was not: no contract paid royalties to holders. The user chose
+an accumulator inside the token (no off-chain snapshot) and asked to complete
+phase 2 with it.
+
+**Contracts only, on `dev/cesare`, not deployed.** Details in §2.92.
+
+- Token: `depositRoyalties` (anyone), `claimRoyalties(holder, ids)` (anyone,
+  pays the holder), `claimPoolRoyalties` (unsold share → payout wallet),
+  settlement on every transfer, `burnForRefund` (escrow only), `operator`.
+- Escrow: refund per token held with burn, `cancelCampaign(id, ground,
+  decisionHash)` refusing fully released campaigns without a ground, artist ≠
+  studio `require`, deadline removed, `operator`.
+- 109 tests passing.
+
+Left for phase 2, in order:
+1. decide the multisig (signers, threshold) and the opaque on-chain reference
+   instead of title/artist (§2.87 point 7) — both change what gets deployed;
+2. backend + frontend on the new ABI (`createCampaign`, `cancelCampaign`,
+   `refund`, `campaigns`), royalty deposit and claim screens — **wait for the
+   uncommitted registration work in `server/` and `webapp/` to land first**;
+3. redeploy with the `contract-redeploy` skill, restore state, move ownership
+   to the multisig, `setOperator(Founder)`;
+4. `legal/` review in the same PR (`check.sh` flags both contracts).
+
+*Update 17 Sep:* the registration work landed (`69558ff`), so step 2 is no
+longer blocked. Open for the user before the redeploy, besides step 1:
+**confirm that the unsold pool's royalty share goes to the artist's payout
+wallet** (the alternative: only sold tokens share, holders take 100%) — the
+code does the former, §2.92 "The pool's share". Merging these sources to
+`main` changes nothing live (nothing reads the new ABI yet), but `main` would
+then hold contract sources that differ from the deployed ones.
+
+
+---
+
+## 2026-09-16 (notte, 3) — registration with a verified email; image and video per track (§2.93)
+
+Request: *"ora passiamo alla registrazione con email verificata, voglio poter
+avere la capacità di caricare una immagine o un breve video insieme al brano
+caricato"*. User's choices: **Brevo**, **email only** in this step (signed terms
+acceptance next), **image 5 MB, video 30 s / 25 MB, editable after launch**.
+
+**On `dev/cesare`, not merged.** Ran alongside the phase 2 contracts session
+(`0f819ec`, which took §2.92): no file overlap; that session's contracts are
+still unreviewed in `legal/` on purpose.
+
+- Backend: `registration.*`, `lib/mailer.js` (Brevo), `media.routes.js`,
+  `lib/media-sniff.js`, signed kinds `email-verify` and `asset-media`, gates on
+  launch/mint/asset save/KYC. Pinata generalized, with unpin.
+- Frontend: registration dialog (auto-opens once after connecting), gates on
+  buy panel / KYC / launch, image+video pickers in the wizard, "Media" on the
+  owner's campaign cards, covers use the uploaded image, video on the asset page.
+- Fixed: modal scrims cancelled form submits and checkbox toggles inside dialogs.
+- `legal/` 01, 04, 05, 08, CHANGELOG updated for email, Brevo and media.
+
+**Before merging to `main`, on Render (`humfiverse-api` → Environment):**
+`BREVO_API_KEY`, `EMAIL_FROM` (a sender verified in Brevo), `EMAIL_FROM_NAME=Humfiverse`.
+Without them the site works as before and registration is simply not asked.
+Then test on the live site: a real code by email, a MetaMask and a Google
+wallet signing, an image and a video upload.
+
+---
+
+## 2026-09-17 — live testing: wallet choice (EIP-6963), sign-in from the top bar (PR #65)
+
+Cesare tested the live site under supervision. **Merged to `main` (PR #65) and
+live**, then `main` merged into `dev/cesare` (`52dfb2b`). No § number taken.
+
+**Bug found:** with Phantom and MetaMask both installed, Phantom owned
+`window.ethereum`, reported `isMetaMask: true` and never answered
+`eth_requestAccounts` / `eth_chainId`. `connectInjected()` awaited forever, so
+every sign-in button (Google, Apple, email included) stayed on "Connessione…"
+until reload. The portfolio's "Cannot convert undefined to a BigInt" and the
+missing Sell button on the campaign page also went away once Phantom was
+removed; the exact failing line was never read (no console trace captured).
+Server data was verified correct (`/api/portfolio`, `/api/onchain/batch`,
+`/api/listings` empty).
+
+**Fix (`wallet.service.ts`, `connect-modal.*`, `topbar.component.html`):**
+- browser wallets discovered via EIP-6963 (`injectedWallets` signal); the
+  dialog lists each by name and icon; `window.ethereum` only as a `legacy`
+  entry for wallets that don't announce;
+- transactions and signatures go through the connected wallet's provider;
+  the choice is remembered in `localStorage` (`humfiverse.injectedWallet`,
+  rdns) and reconnected on page load;
+- 60 s timeout on `eth_requestAccounts` (5 s on reads) with the message
+  `connect.walletTimeout`; a pending browser wallet no longer disables the
+  other options; closing the dialog cancels the wait (`cancelPendingConnect`);
+- the connected address in the top bar opens the dialog ("Il tuo wallet":
+  address, how it signed in, Disconnetti/Esci, options to switch) instead of
+  linking to the portfolio;
+- new strings in all 9 languages (non-it/en not reviewed by a native speaker).
+
+Tested locally with fake EIP-6963 wallets (one hanging, one connecting), then
+by Cesare on the live site with real MetaMask and Phantom: **all OK**.
+
+**Test data:** `0x4ee9e963b9f674cbd14ca6ccccfe29cbbfb26cd4` holds every
+production token (5 × `honest-man-595`, 40 × `new-song-464`), which are the
+only two tokens in the production table.
+
+### Next session
+
+Unchanged from "State at the end of 2026-09-16" and the §2.93 entry above:
+1. Render env for Brevo, then merge `dev/cesare` (§2.92 contracts are not
+   deployed and not reviewed in `legal/` — decide whether they ride along or
+   the merge is split), then live-test registration + media.
+2. Signed terms acceptance (`legal/08` C), artist QES, cancellation with
+   grounds and takedown, phase 2 redeploy.
+3. Still unverified: signatures from a Google in-app wallet on the
+   §2.88/§2.89 endpoints.
+
+---
+
+## 2026-09-17 — legal side: launch plan, pre-production, €5M cap (B8), which company
+
+"Avvocato Humfiverse" session, Q&A in Italian. Only file change: **`legal/07`
+B8** 🔴 (`6d11873`, already on `main` via PR #64). Not legal advice; no counsel
+has reviewed anything yet.
+
+**What was explained to Cesare (no decisions taken):**
+- **Launching without legal trouble** = the phases of `legal/09` §7: phase 0
+  now (testnet only and said so, no return-promising wording, geo-block the US,
+  close 07 H1/G1), pilot with published catalogues through an authorised party,
+  pre-production only with an ECSP licence.
+- **Why pre-production is the exposed part:** it raises public money for a
+  project that doesn't exist yet → crowdfunding/offer of financial products,
+  needing authorisation; no history to fill a KIIS; the investor also bears the
+  risk the track is never made (07 C1, C2, C9, B5); funds sit in an escrow the
+  Founder owns (B2, B7); the code lacks the 4-day reflection period, entry test
+  and a minimum raise (B3, B4); Founder powers feed the AIFMD question (01 §4).
+- **The ECSPR €5M / 12 months cap** is per project owner. Harmless if that is
+  the artist or the compartment; fatal to scale if it is the Luxembourg
+  vehicle. Now question **B8**, tied to A7, B1, B6.
+- **Which company, where:** advice given, to confirm with a commercialista:
+  - no jurisdiction "worldwide" lowers compliance for an EU investor base:
+    EU rules apply wherever the company sits, and ECSPR needs an EU entity;
+  - a foreign company run from Italy is Italian tax resident (art. 73 TUIR,
+    *esterovestizione*), and a low-tax one falls under CFC rules (art. 167);
+    only a real move of the founders changes that;
+  - recommended: **Italian SRL now** (operator: platform, IP, data controller,
+    fees; ideally registered as *startup innovativa*, requirements changed by
+    L. 193/2024 [verificare]); **Luxembourg vehicle only at the first pilot**
+    (decision of 28 Aug unchanged); the ECSP licence later in the SRL's name at
+    CONSOB. Advised against: Dubai/Singapore/Cayman, Estonia OÜ, Delaware,
+    Luxembourg Sàrl as operator, Malta.
+
+**Waiting on Cesare** (asked, not answered):
+1. where he and Vincenzo are resident, and whether either plans to move;
+2. whether they plan to raise equity for the company itself;
+3. plan figures: campaign size (min/avg/max), campaigns per year for 3 years,
+   campaigns per artist per 12 months — needed for B8 and for the plan-figures
+   page still missing from the counsel material.
+
+**Offered, not done:** update 07 G1 and add commercialista questions to group L
+(esterovestizione, startup innovativa, SRL ↔ vehicle transfer pricing); write
+the plan-figures page; draft the first email to a law firm.
+
+**Next legal session, first thing:** `./legal/check.sh` flags both contracts —
+§2.92 (phase 2: refunds per token held with burn, cancel grounds, royalty
+distribution, no deadline) is still unreviewed in `legal/` on purpose. Run the
+`legal-review` skill on it (02 C-2…C-5, C-8; 04 §5; 06 §2; 08 A-2; 07 C6, C9)
+in the PR that deploys phase 2. Earlier legal-side items (H1 KYC data, GitBook
+Git Sync on `dev/cesare`, history in `025e92e`, private B-4) are unchanged.
+
+---
+
+## 2026-09-17 — phase 2 backend and frontend: royalties, refunds per token, cancel grounds (§2.95)
+
+Request: *"creiamo l'infrastruttura per la distribuzione delle royalties"*. The
+first pass built a Merkle-snapshot distributor, which §2.92 had already rejected
+(the log was read from a branch without that entry); it was deleted unmerged.
+Then the user answered the open items: **delete it; the artist signs the
+multisig; title and artist stay on chain; the unsold pool's royalty share goes
+to the artist; "infrastructure" means step 2** (backend + frontend on the new ABI).
+
+**On `dev/cesare`, not merged** — a feature, waits for the go-ahead. Safe to merge
+before the redeploy: the code detects which contract generation is live and the
+current site is unchanged (checked against the live Sepolia contracts).
+
+- Backend: `/api/royalties/*`, `royalty_deposits` table, dual-ABI escrow module.
+- Frontend: royalty panel on the asset page, royalties + token refunds in
+  Portfolio, cancel-with-ground in `/admin/escrow`, 31 keys × 9 locales.
+- Verified end to end on a local chain (API scenario + headless Chrome clicks). §2.95.
+- `legal/05` gained the new table; contracts still unreviewed on purpose.
+
+Open before the redeploy:
+1. **Multisig — decided 17 Sep:** after the explanation of what `owner()`
+   controls, the user accepted a **2-of-3 Safe** held by Cesare, Vincenzo and a
+   third key kept offline as backup; **no artists among the signers** (they
+   confirm only their own milestones). **Created 17 Sep:** Safe
+   `0xBA2ad0Ca063092E350f1427dd86F7E9C8730245d` on Sepolia ("Humfiverse Owner
+   (Sepolia)"), v1.4.1, threshold 2, signers `0xF7bad515…B3BD`,
+   `0xE57ECed0…dB62`, `0x4878dC27…0F76` (Cesare's new signer account,
+   Co-founder, offline backup — mapping to confirm). Founder is not a signer.
+2. Redeploy (`contract-redeploy` skill), restore state, `setOperator`.
+3. `legal/` review of both contracts in that PR.
+
+---
+
+## 2026-09-17 — fees checked; milestones only in order (§2.96)
+
+**Fees check** (asked: *"controlla che le fees abbiano funzionato"*): all correct
+to the unit on chain. Escrow 4.465999 USDC (2% on 10+40+40+0.99999 contributed,
+3% on every tranche), marketplace 0.4 (1% of one 40 USDC trade), catalogue token
+0 (no `buy()` ever called, so the 2% primary fee is still untested live). All
+withdrawn to Fees; the wallet's other 20 USDC came from an external address on
+14 Sep, not fees.
+
+**Milestone order.** The live escrow let a later milestone release before an
+earlier one whenever the cumulative funding covered it. The user wants strict
+order, funding still gating each tranche.
+- Site: PR #68 merged (bug fix), live bundle `main-6LJS5MMQ.js` — confirm button
+  hidden until the previous milestone is released.
+- Contract: `_requirePreviousReleased` in both confirm functions, in the phase 2
+  source on `dev/cesare`; 112 tests passing. Ships with the phase 2 redeploy —
+  until then a direct contract call can still go out of order.
+- `legal/` 02, 04, 08 updated; phase 2 contracts still not fully reviewed.
+
+*Update, end of 17 Sep:* the phase 2 redeploy (§2.97, another session) shipped
+this check — escrow `0xc0043d41693D7E4DF0785bd3c28e619a543FD368` refuses
+out-of-order confirmations. It only governs production once PR #69 is merged and
+Render points at the new escrow; the two existing campaigns stay on the legacy
+escrow, fully released, so nothing live can go out of order either way. The
+`legal/` wording was brought in line by §2.97's full review. Also checked the
+fees: nothing left to do there, but the 2% primary fee on `buy()` has never run
+live — worth one real purchase after #69.
+
+---
+
+## 2026-09-17 — token price history chart live (§2.94); Render RPC switched to Alchemy
+
+**Asked:** *"inseriamo nella pagina dei cataloghi un grafico che mostri lo storico
+del prezzo dei token, usa new song per questo, utilizzando l'ultimo prezzo minimo
+a cui sono stati scambiati i token"*.
+
+**Built (PR #66, merged on the user's go-ahead):**
+- `GET /api/price-history/:assetId` (`services/trades.service.js`,
+  `data/trades.repo.js`, `routes/price-history.routes.js`). Finds the token's
+  transactions with `alchemy_getAssetTransfers`, reads each receipt once, keeps
+  only paid trades: `escrow` (Contributed + fee over TokensReleased), `primary`
+  (TokensPurchased), `resale` (Purchased matched to TransferSingle). Cached in
+  new tables `token_trades` / `token_trade_scans`, scoped by token contract.
+  Refresh ≤ once a minute per token.
+- One point per UTC day: the lowest traded price that day, carried forward on
+  days without trades (`traded: false`).
+- Asset page, overview tab: "Storico prezzo token" card (`app-line-chart`, now
+  with a unique gradient id, a `format` input, tooltips clamped at the edges),
+  last lowest price, trade count, "past prices don't indicate future ones";
+  9 locales.
+- `legal/`: 05 §3 row for the new tables, 06 §2.4 disclaimer (new), 07 A4
+  follow-up (does showing traded prices strengthen the MTF reading?).
+
+**PR #67 (fix, merged):** the API now returns `refreshError`; the card says
+"price history unavailable" instead of "never traded" when the read failed.
+
+**Why it was empty in production at first:** Render's `CHAIN_RPC_URL` was
+`https://ethereum-sepolia-rpc.publicnode.com`, which has no
+`alchemy_getAssetTransfers` (`unsupported operation`). Same cause as the
+"holder discovery reports `indexed-only`" note of 14 Sep. **Cesare changed it on
+Render to the Alchemy URL from `server/.env`** and redeployed.
+
+**Verified live:** New Song → 16 Sep $1.00 (escrow, 10 + 30 tokens), 17 Sep $2.00
+(resale, 20 tokens), `complete: true`; Honest Man two escrow buys at $10.00;
+chart renders on cesaremarzo.github.io; `onchain/list`, `listings`, `data`,
+`indexer/status`, `holders` all 200 (holder counts New Song 2, Honest Man 1).
+
+**Alchemy cost (asked, no decision):** stay on Free (30M CU/month, 25 req/s).
+Pay as you go is $0.525 per 1M CU (pricing page, 17 Sep). Estimated baseline if
+Render stayed awake all month: ~5M CU (indexer ~3M, reconcile ~1.7M). First limit
+to hit: reconcile reads `balanceOf` for every holder of every token every 10 min,
+~112k CU/month per token-holder pair → ~250 pairs exhaust Free. Fix that in code
+(reconcile only tokens with new transfers, or less often) before paying. Other
+triggers: 429s with concurrent visitors (25 req/s), real traffic after launch,
+mainnet. Suggested: set a usage alert in the Alchemy dashboard.
+
+**Open / next:**
+1. Production traffic now uses the Alchemy key: rotating it means updating
+   Render too.
+2. Now that Render is on Alchemy, check whether holder reconcile reports
+   `asset-transfers` instead of `indexed-only` (admin endpoint).
+3. When there are more than ~10 tracks: make reconcile incremental.
+4. The 2% primary `buy()` fee is still untested live (from the fees check), so
+   no `primary` trade has been seen by the price history yet.
+
+---
+
+## 2026-09-17 (sera) — phase 2 redeploy done; owner is a 2-of-3 Safe (§2.97)
+
+Safe created by Cesare: `0xBA2ad0Ca063092E350f1427dd86F7E9C8730245d`, 2 of 3
+(Cesare's new signer account, Co-founder = Vincenzo, offline backup). Founder is
+not a signer. Then the migration ran from this session (the user ran the deploy):
+
+- Token `0xa619aCD77D2540a38a2B95FFb051357a921082EF`, escrow
+  `0xc0043d41693D7E4DF0785bd3c28e619a543FD368`, verified on Etherscan.
+- Owner = Safe on token, escrow, marketplace. Founder = operator only.
+- Honest Man and New Song tokens and all three balances restored. Their finished
+  campaigns stay on the old escrow via `CHAIN_ESCROW_LEGACY_ADDRESS`.
+- `legal/` fully reviewed for both contracts. Whitepaper now has four false
+  statements (03 W-16…W-19): **apply only when the user says so.**
+
+**Before merging to `main`** (feature, needs the go-ahead), set on Render
+(`humfiverse-api` → Environment):
+```
+CHAIN_CONTRACT_ADDRESS=0xa619aCD77D2540a38a2B95FFb051357a921082EF
+CHAIN_ESCROW_ADDRESS=0xc0043d41693D7E4DF0785bd3c28e619a543FD368
+CHAIN_CONTRACT_DEPLOY_BLOCK=11724392
+CHAIN_ESCROW_DEPLOY_BLOCK=11724393
+CHAIN_ESCROW_LEGACY_ADDRESS=0x16C8bfE861Ef1B102CD6D6a4FD4e881FdD38721c
+```
+Then merge, then verify live (bundle filename, `/api/onchain/honest-man-595`
+contractAddress = new token, `/api/royalties/new-song-464` supported true,
+`/api/escrow/campaigns` both legacy). Production DB `onchain_tokens` keeps the
+same token ids, so no DB change is needed.
+
+Note: commit `65fcdcd` (my "Session log: multisig…") accidentally concluded
+another session's in-progress merge of PR #68 because it used `git commit -a`
+while `MERGE_HEAD` existed. Content is intact; only the message is misleading.
+
+### Handoff for the next session (written end of 17 Sep)
+
+State at hand-off: PR **#69** (`dev/cesare` → `main`) is **open, not merged**,
+last commit `f904ef1` (docs/ rebuilt). Phase 2 contracts are live on Sepolia but
+production still reads the old ones until the PR is merged and Render updated.
+
+Do next, in order:
+1. **Ask Cesare whether the five Render variables are set** (list in the entry
+   above and in the PR). Only then merge #69 (feature: needs his explicit yes).
+2. **Verify live after the merge:** bundle filename changed on
+   cesaremarzo.github.io/Humfiverse; `/api/onchain/honest-man-595` shows token
+   `0xa619…82EF`; `/api/royalties/new-song-464` → `supported: true`;
+   `/api/escrow/campaigns` → both `legacy: true`; Portfolio of `0x4ee9…6cd4`
+   shows 5 + 20 tokens. Holder index replays from block 11724392 (takes a while).
+3. **Whitepaper W-16…W-19** (`legal/03`): false since the redeploy (refunds,
+   cancel ground, royalties, multisig). Apply only if Cesare says yes (GitBook).
+4. Ask Cesare to confirm which Safe signer is whose (`0xF7ba…B3BD`,
+   `0xE57E…dB62`, `0x4878…0F76`); record the mapping in CLAUDE.md.
+5. Still open from phase 2: cancellation procedure/takedown (§2.87), the `NONE`
+   ground still accepted while tranches remain (02 C-2), who deposits royalties
+   and on which statement (02 C-12, 04 §5.7), custody doc for the Safe keys.
+
+Working notes: Vincenzo is called **Co-founder**. Several Claude sessions share
+this checkout: stage explicit paths, never `git commit -a`, check `MERGE_HEAD`.
+
+## 2026-09-17 (sera, 2) — royalty deposits: who, when, which statement (§2.98)
+
+The user decided 02 C-12: the artist deposits (collects and converts to USDC),
+or the platform after receiving the money from the artist; frequency varies
+within a range fixed per token in the artist agreement; the statement's hash
+goes on chain. Code (commit `fd7f822`, on `dev/cesare`, part of PR #69):
+`statementRef` is now the SHA-256 of the statement **file**, published on IPFS
+and linked from the history; the deposit form shows for the artist and Founder.
+Verified on a local chain plus headless Chrome (§2.98). `legal/` updated in the
+same PR: new 07 A12 🔴, I4 🟠, 08 A-8 and C-12.
+
+Still open: the per-token range is not collected in the wizard nor shown (08
+C-12). Before merging #69, `docs/` must include this change (rebuilt from a
+clean tree: another session had uncommitted backdrop edits at the time).
+
+---
+
+## 2026-09-17 (sera, 2) — photo-like art in the backdrop and landing (§2.99)
+
+Request: *"sei il graphic designer di humfiverse, migliora ancora di più gli
+elementi sul background rendendoli più realistici, aggiungi anche altre immagini
+a rendere l'interfaccia più accattivante"*.
+
+**On `dev/cesare`, not merged** — a feature, needs Cesare's go-ahead.
+
+- Eight WebP images rendered procedurally (`webapp/art-src/`, numpy + Pillow):
+  vinyl + spinning label, gold coins (face, tilted, stack), studio microphone,
+  analogue VU meter, film grain. Self-hosted, no licences, legal/check.sh clean.
+- Backdrop: realistic record, coin note heads, coins floating at three depths of
+  field, glass candles, film grain. Landing: mic and coin stack break out of the
+  two panels, VU meter beside "project status".
+- Checked by screenshot: 1440 dark/light, 400px, landing and marketplace.
+
+Follow-up, same evening: the user made publishing the statement **optional**
+(an option for artists; not publishing breaks nothing). Checkbox "Publish the
+statement", on by default; the hash always goes on chain. `legal/`: 08 A-8
+point 3-bis, I4 lowered to 🟢 (no known prohibition), A12 records the user's
+view that an authorization is almost certainly needed.

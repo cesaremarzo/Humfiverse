@@ -1,0 +1,1 @@
+var n={"0xba2ad0ca063092e350f1427dd86f7e9c8730245d":`Owner`,"0x142f945e13f59fde3583bea8f78528a44317bfc6":`Founder`,"0xd156bdd971c9034a2c78496889e258c4601b7524":`Fees`};function d(e){return e?n[e.toLowerCase()]??null:null}export{d as t};

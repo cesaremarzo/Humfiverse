@@ -8,6 +8,7 @@ import {
   connectEmail,
   connectJwt,
   connectSocial,
+  embeddedUserEmail,
   embeddedWalletEnabled,
   hasStoredEmbeddedSession,
   openSocialPopup,
@@ -144,6 +145,25 @@ const ESCROW_REFUND_ABI = [
   'function cancelCampaign(uint256 campaignId) external',
   'function refund(uint256 campaignId) external'
 ];
+/* Phase 2 escrow (§2.92): cancellation carries a ground and the hash of the
+   written decision; a refund hands back tokens, which are burned, for their
+   share of what was unreleased. */
+const ESCROW_V2_ABI = [
+  'function cancelCampaign(uint256 campaignId, uint8 ground, bytes32 decisionHash) external',
+  'function refund(uint256 campaignId, uint256 tokens) external',
+  'function refundQuote(uint256 campaignId, uint256 tokens) view returns (uint256)',
+  'function campaignTokenId(uint256) view returns (uint256)',
+  'function catalogueToken() view returns (address)'
+];
+/* Royalties on the token (§2.92). Deposit and both claims are open to any
+   wallet; a claim only ever pays the holder, or the artist for the pool. */
+const ROYALTY_ABI = [
+  'function depositRoyalties(uint256 tokenId, uint256 amount, bytes32 statementRef) external',
+  'function claimRoyalties(address holder, uint256[] tokenIds) external',
+  'function claimPoolRoyalties(uint256 tokenId) external',
+  'function balanceOf(address account, uint256 id) view returns (uint256)'
+];
+const CANCEL_GROUND_INDEX = { none: 0, unlawful_content: 1, third_party_rights: 2, false_warranties: 3 } as const;
 const CONFIRM_MILESTONE_ABI = [
   'function confirmMilestoneAsArtist(uint256 campaignId, uint256 milestoneIndex) external',
   'function confirmMilestoneAsStudio(uint256 campaignId, uint256 milestoneIndex) external'
@@ -444,6 +464,11 @@ export class WalletService {
 
   /** EIP-191 signature of `message` by the connected wallet — no network
    * switch, no transaction. Used for the launch authorization (§2.88). */
+  /** The in-app wallet's login email, for prefilling registration (§2.93). */
+  async loginEmail(): Promise<string | null> {
+    return this.state().kind === 'embedded' ? embeddedUserEmail() : null;
+  }
+
   async signMessage(message: string): Promise<string> {
     const eip1193 = this.eip1193();
     if (!eip1193) throw new Error('no-wallet');
@@ -465,6 +490,71 @@ export class WalletService {
   async refundOnchain(params: { contractAddress: string; campaignId: number }): Promise<{ txHash: string; explorerUrl: string }> {
     const contract = await this.signerFor(params.contractAddress, ESCROW_REFUND_ABI);
     const tx = await contract['refund'](params.campaignId);
+    const receipt = await tx.wait();
+    if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
+    return { txHash: tx.hash, explorerUrl: `${EXPLORER_BASE}/tx/${tx.hash}` };
+  }
+
+  /** Phase 2 cancellation (§2.92), owner-only. Without a ground it is
+   * refused on a fully released campaign; with one, `decisionHash` must be
+   * the non-zero hash of the written decision. */
+  async cancelCampaignWithGround(params: { contractAddress: string; campaignId: number; ground: keyof typeof CANCEL_GROUND_INDEX; decisionHash: string }):
+    Promise<{ txHash: string; explorerUrl: string }> {
+    const contract = await this.signerFor(params.contractAddress, ESCROW_V2_ABI);
+    const tx = await contract['cancelCampaign'](params.campaignId, CANCEL_GROUND_INDEX[params.ground], params.decisionHash);
+    const receipt = await tx.wait();
+    if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
+    return { txHash: tx.hash, explorerUrl: `${EXPLORER_BASE}/tx/${tx.hash}` };
+  }
+
+  /** What handing back every token `holder` has of a cancelled phase 2
+   * campaign would refund now, with that token count. */
+  async readTokenRefund(contractAddress: string, campaignId: number, holder: string): Promise<{ tokens: bigint; refundable: bigint }> {
+    const escrow = new ethers.Contract(contractAddress, ESCROW_V2_ABI, this.reader());
+    const [tokenId, tokenAddress] = await Promise.all([escrow['campaignTokenId'](campaignId), escrow['catalogueToken']()]);
+    const tokens = (await new ethers.Contract(tokenAddress, ROYALTY_ABI, this.reader())['balanceOf'](holder, tokenId)) as bigint;
+    const refundable = tokens > 0n ? ((await escrow['refundQuote'](campaignId, tokens)) as bigint) : 0n;
+    return { tokens, refundable };
+  }
+
+  /** Phase 2 refund: burns `tokens` of the caller's own and pays their share. */
+  async refundTokensOnchain(params: { contractAddress: string; campaignId: number; tokens: bigint }): Promise<{ txHash: string; explorerUrl: string }> {
+    const contract = await this.signerFor(params.contractAddress, ESCROW_V2_ABI);
+    const tx = await contract['refund'](params.campaignId, params.tokens);
+    const receipt = await tx.wait();
+    if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
+    return { txHash: tx.hash, explorerUrl: `${EXPLORER_BASE}/tx/${tx.hash}` };
+  }
+
+  /** Deposits `amountUsdc` of royalty income for `tokenId`, after approving
+   * exactly that amount. `statementRef` is the SHA-256 of the statement
+   * file (§2.98), which ties the deposit to the income it pays out. */
+  async depositRoyaltiesOnchain(params: { contractAddress: string; tokenId: number; amountUsdc: bigint; statementRef: string }):
+    Promise<{ txHash: string; explorerUrl: string }> {
+    await this.ensureUsdc(params.contractAddress, params.amountUsdc);
+    const contract = await this.signerFor(params.contractAddress, ROYALTY_ABI);
+    const tx = await contract['depositRoyalties'](params.tokenId, params.amountUsdc, params.statementRef);
+    const receipt = await tx.wait();
+    if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
+    return { txHash: tx.hash, explorerUrl: `${EXPLORER_BASE}/tx/${tx.hash}` };
+  }
+
+  /** Pays the connected wallet everything it has earned on `tokenIds`. */
+  async claimRoyaltiesOnchain(params: { contractAddress: string; tokenIds: number[] }): Promise<{ txHash: string; explorerUrl: string }> {
+    const holder = this.state().address;
+    if (!holder) throw new Error('no-wallet');
+    const contract = await this.signerFor(params.contractAddress, ROYALTY_ABI);
+    const tx = await contract['claimRoyalties'](holder, params.tokenIds);
+    const receipt = await tx.wait();
+    if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
+    return { txHash: tx.hash, explorerUrl: `${EXPLORER_BASE}/tx/${tx.hash}` };
+  }
+
+  /** Pays the unsold tokens' share to the token's payout wallet. Any wallet
+   * may send it; the money goes to the artist either way. */
+  async claimPoolRoyaltiesOnchain(params: { contractAddress: string; tokenId: number }): Promise<{ txHash: string; explorerUrl: string }> {
+    const contract = await this.signerFor(params.contractAddress, ROYALTY_ABI);
+    const tx = await contract['claimPoolRoyalties'](params.tokenId);
     const receipt = await tx.wait();
     if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
     return { txHash: tx.hash, explorerUrl: `${EXPLORER_BASE}/tx/${tx.hash}` };

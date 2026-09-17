@@ -221,6 +221,38 @@
         </label>
         <span class="hint">{{ 'wizSource.audioHint' | translate }}</span>
       </div>
+
+      <!-- §2.93: optional cover image and short video -->
+      <div class="media-pickers">
+        @for (kind of ['image', 'video']; track kind) {
+          @let file = kind === 'image' ? imageFile() : videoFile();
+          @let preview = kind === 'image' ? imagePreview() : videoPreview();
+          <div class="field media-picker">
+            <label>{{ 'media.label.' + kind | translate }}</label>
+            <label class="media-drop" [class.has-file]="!!file">
+              @if (preview) {
+                @if (kind === 'image') {
+                  <img [src]="preview" alt="">
+                } @else {
+                  <video [src]="preview" muted loop autoplay playsinline></video>
+                }
+              } @else {
+                <app-icon [name]="kind === 'image' ? 'upload' : 'play'"></app-icon>
+                <span>{{ 'media.choose.' + kind | translate }}</span>
+              }
+              <input type="file" [attr.accept]="kind === 'image' ? mediaLimits.image.accept : mediaLimits.video.accept" class="visually-hidden" (change)="onMediaFileSelected($any(kind), $event)">
+            </label>
+            <span class="hint">
+              @if (file) {
+                {{ file.name }} ·
+                <button type="button" class="link-btn" (click)="clearMedia($any(kind))">{{ 'media.remove' | translate }}</button>
+              } @else {
+                {{ 'media.hint.' + kind | translate }}
+              }
+            </span>
+          </div>
+        }
+      </div>
     }
 
     @if (stepKey() === 'disclosure') {
@@ -325,6 +357,9 @@
           <app-icon name="checkCircle"></app-icon>
           <div>{{ 'wizReview.walletOwner' | translate: { address: wallet.truncateAddr(wallet.state().address) } }}</div>
         </div>
+        @if (store.registration().checked && !store.registrationSatisfied()) {
+          <app-registration-gate messageKey="register.gateLaunch" [spaced]="true"></app-registration-gate>
+        }
       } @else {
         <div class="risk-item" style="margin-bottom:16px;">
           <app-icon name="wallet"></app-icon>

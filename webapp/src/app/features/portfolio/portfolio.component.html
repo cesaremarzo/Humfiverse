@@ -53,10 +53,37 @@
     <div class="card stat-tile"><div class="label">{{ 'portfolio.value' | translate }}</div><div class="value">{{ loaded() ? fmt(totalValue()) : '—' }}</div></div>
   </div>
 
+  @if (royalties()?.rows?.length) {
+    <div class="card" style="margin-bottom:24px; padding:20px;">
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
+        <div>
+          <h3 class="panel-title panel-title-lg" style="margin-bottom:6px;">{{ 'portfolio.royaltiesTitle' | translate }}</h3>
+          <p style="font-size:12.5px; color:var(--text-secondary); margin:0; max-width:60ch;">{{ 'portfolio.royaltiesIntro' | translate }}</p>
+        </div>
+        <button class="btn btn-primary btn-sm" [disabled]="claimingRoyalties()" (click)="claimRoyalties()">
+          <app-icon name="coins"></app-icon> {{ (claimingRoyalties() ? 'portfolio.royaltiesClaiming' : 'portfolio.royaltiesClaimAll') | translate: { amount: fmtUsdcExact(royaltiesTotal()) } }}
+        </button>
+      </div>
+      <div class="table-wrap">
+        <table class="table-stack">
+          <thead><tr><th>{{ 'portfolio.tableAsset' | translate }}</th><th class="cell-num">{{ 'portfolio.royaltyAmount' | translate }}</th></tr></thead>
+          <tbody>
+            @for (r of royalties()!.rows; track r.tokenId) {
+              <tr>
+                <td><a [routerLink]="['/asset', r.assetId]" style="color:inherit;">{{ r.title }}</a></td>
+                <td class="cell-num mono">{{ fmtUsdcExact(r.claimable) }} USDC</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
   @if (refunds().length) {
     <div class="card" style="margin-bottom:24px; padding:20px;">
       <h3 class="panel-title panel-title-lg" style="margin-bottom:6px;">{{ 'portfolio.refundsTitle' | translate }}</h3>
-      <p style="font-size:12.5px; color:var(--text-secondary); margin:0 0 12px;">{{ 'portfolio.refundsIntro' | translate }}</p>
+      <p style="font-size:12.5px; color:var(--text-secondary); margin:0 0 12px;">{{ (refundsPhase2() ? 'portfolio.refundsIntroTokens' : 'portfolio.refundsIntro') | translate }}</p>
       <div class="table-wrap">
         <table class="table-stack">
           <thead><tr><th>{{ 'portfolio.tableAsset' | translate }}</th><th class="cell-num">{{ 'portfolio.refundAmount' | translate }}</th><th></th></tr></thead>
@@ -64,7 +91,9 @@
             @for (r of refunds(); track r.campaignId) {
               <tr>
                 <td><a [routerLink]="['/asset', r.assetId]" style="color:inherit;">{{ r.title }}</a></td>
-                <td class="cell-num mono">{{ fmtUsdcExact(r.refundable) }} USDC</td>
+                <td class="cell-num mono">{{ fmtUsdcExact(r.refundable) }} USDC
+                  @if (r.tokens !== null) {<div style="font-size:11px; color:var(--text-secondary);">{{ 'portfolio.refundBurnsTokens' | translate: { tokens: r.tokens.toString() } }}</div>}
+                </td>
                 <td style="text-align:right;">
                   <button class="btn btn-primary btn-sm" [disabled]="refunding() !== null" (click)="claimRefund(r)">
                     <app-icon name="coins"></app-icon> {{ (refunding() === r.campaignId ? 'portfolio.refunding' : 'portfolio.refundBtn') | translate }}
@@ -177,7 +206,7 @@
 }
 
 @if (sellDraft(); as d) {
-  <div class="modal-scrim" (click)="$event.target === $event.currentTarget && closeSellDraft()">
+  <div class="modal-scrim" (click)="$event.target === $event.currentTarget ? closeSellDraft() : null">
     <div class="modal">
       <h3 class="panel-title panel-title-lg">{{ 'portfolio.sellModalTitle' | translate }}</h3>
       <p style="font-size:13px; color:var(--text-secondary);">{{ d.assetId }}</p>
@@ -215,7 +244,7 @@
 }
 
 @if (sellResult(); as r) {
-  <div class="modal-scrim" (click)="$event.target === $event.currentTarget && closeSellResult()">
+  <div class="modal-scrim" (click)="$event.target === $event.currentTarget ? closeSellResult() : null">
     <div class="modal">
       <div class="success-icon"><app-icon name="check"></app-icon></div>
       <h3 class="panel-title panel-title-lg">{{ 'portfolio.sellSuccessTitle' | translate }}</h3>

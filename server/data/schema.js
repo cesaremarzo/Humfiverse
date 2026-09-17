@@ -110,6 +110,33 @@ async function initSchema() {
       block INTEGER,
       checked_at TEXT NOT NULL
     );
+    -- §2.93 registration. One row per code sent: the history is the proof
+    -- of when an address was verified for a wallet, so rows are never
+    -- deleted; a used or expired code is only marked. The code itself is
+    -- never stored, only a hash of it.
+    CREATE TABLE IF NOT EXISTS email_verifications (
+      id TEXT PRIMARY KEY,
+      wallet TEXT NOT NULL,
+      email TEXT NOT NULL,
+      code_hash TEXT NOT NULL,
+      attempts INTEGER NOT NULL DEFAULT 0,
+      ip TEXT,
+      created_at TEXT NOT NULL,
+      expires_at TEXT NOT NULL,
+      verified_at TEXT
+    );
+    CREATE INDEX IF NOT EXISTS email_verifications_wallet ON email_verifications (wallet, created_at);
+    CREATE INDEX IF NOT EXISTS email_verifications_email ON email_verifications (email, created_at);
+    -- The current verified address of each wallet. Changing it is a new
+    -- verification, which overwrites this row and adds to the history above.
+    CREATE TABLE IF NOT EXISTS registrations (
+      wallet TEXT PRIMARY KEY,
+      email TEXT NOT NULL,
+      verification_id TEXT NOT NULL,
+      signature TEXT NOT NULL,
+      verified_at TEXT NOT NULL,
+      ip TEXT
+    );
     -- Paid trades of a token, for its price history. A cache of what the
     -- transaction receipts say, keyed by the log that proves each one, so
     -- re-reading a receipt can never count a trade twice. Scoped by token
@@ -135,6 +162,27 @@ async function initSchema() {
       scanned_at TEXT NOT NULL,
       PRIMARY KEY (token_contract, tx_hash)
     );
+    -- Royalty deposits on the token (§2.92), for the history on the asset
+    -- page. A cache of RoyaltiesDeposited logs, keyed by the log that proves
+    -- each one and scoped by token contract, like token_trades. The
+    -- statement file (§2.98) is linked only once its SHA-256 matched the
+    -- statementRef the depositor wrote on chain.
+    CREATE TABLE IF NOT EXISTS royalty_deposits (
+      token_contract TEXT NOT NULL,
+      tx_hash TEXT NOT NULL,
+      log_index INTEGER NOT NULL,
+      token_id INTEGER NOT NULL,
+      depositor TEXT NOT NULL,
+      amount_usdc TEXT NOT NULL,
+      statement_ref TEXT NOT NULL,
+      statement_uri TEXT,
+      statement_mime TEXT,
+      statement_bytes INTEGER,
+      block INTEGER NOT NULL,
+      deposited_at TEXT NOT NULL,
+      PRIMARY KEY (token_contract, tx_hash, log_index)
+    );
+    CREATE INDEX IF NOT EXISTS royalty_deposits_token ON royalty_deposits (token_contract, token_id, block);
     CREATE TABLE IF NOT EXISTS portfolio_snapshots (
       wallet TEXT NOT NULL,
       snapshot_date TEXT NOT NULL,
@@ -156,6 +204,15 @@ async function initSchema() {
     await db.exec("ALTER TABLE indexer_state ADD COLUMN locked_until INTEGER NOT NULL DEFAULT 0;");
   } catch {
     /* column already exists — fine */
+  }
+  // royalty_deposits kept a statement text before statement files (§2.98);
+  // the old column stays, unused.
+  for (const column of ["statement_uri TEXT", "statement_mime TEXT", "statement_bytes INTEGER"]) {
+    try {
+      await db.exec(`ALTER TABLE royalty_deposits ADD COLUMN ${column};`);
+    } catch {
+      /* column already exists — fine */
+    }
   }
 }
 

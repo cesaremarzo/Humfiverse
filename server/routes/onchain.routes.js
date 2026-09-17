@@ -25,6 +25,7 @@ const chain = require("../chain");
 const pinata = require("../pinata");
 const onchainService = require("../services/onchain.service");
 const { verifyLaunch, requireMatch } = require("../lib/launch-auth");
+const registration = require("../services/registration.service");
 
 module.exports = function registerOnchainRoutes(router) {
   /* Exact path, so it can never be shadowed by /api/onchain/:assetId
@@ -82,6 +83,7 @@ module.exports = function registerOnchainRoutes(router) {
       requireMatch("directSale", body.directSale, launch.directSale);
       requireMatch("title", body.title, launch.title);
       requireMatch("artist", body.artist, launch.artistName);
+      await registration.requireRegistered(launch.artistWallet);
       if (!chain.mintingEnabled()) {
         sendJson(res, 503, { error: "on-chain minting is disabled on this server (no operator key configured)" });
         return;
@@ -93,6 +95,8 @@ module.exports = function registerOnchainRoutes(router) {
         sendJson(res, 400, { error: e.message });
       } else if (e.code === "unauthorized") {
         sendJson(res, 401, { error: e.message });
+      } else if (e.code === "not-registered") {
+        sendJson(res, 403, { error: e.message, code: e.code });
       } else if (e.code === "already_minted") {
         sendJson(res, 409, { error: "asset already has an on-chain token", record: e.record });
       } else {

@@ -1,7 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { ApiService } from './api.service';
-import { Asset, Campaign, ContractTemplate, EscrowCampaignInfo, InvestorState, Locale, OnchainInfo, Portfolio, SecondaryListing } from './models';
+import { Asset, Campaign, ContractTemplate, EscrowCampaignInfo, InvestorState, Locale, OnchainInfo, Portfolio, RegistrationStatus, SecondaryListing } from './models';
 import { SUPPORTED_LOCALES, RTL_LOCALES } from './locales';
 import { retrying } from './retry.util';
 import { usdcToUsd } from './usdc.util';
@@ -133,6 +133,33 @@ export class StoreService {
       }
     } catch {
       /* backend unreachable — leave whatever local state already exists */
+    }
+  }
+
+  /** §2.93: the connected wallet's registration. `required` false means this
+   * deployment cannot send codes, so nothing is gated on it. */
+  readonly registration = signal<RegistrationStatus & { checked: boolean }>({ registered: false, required: false, checked: false });
+  /** Opens the registration dialog (layout/registration-modal). */
+  readonly registrationOpen = signal(false);
+
+  /** True when the connected wallet may go ahead with a gated action. */
+  registrationSatisfied(): boolean {
+    const r = this.registration();
+    return !r.required || r.registered;
+  }
+
+  async syncRegistrationForWallet(walletAddress: string | null): Promise<RegistrationStatus | null> {
+    if (!walletAddress) {
+      this.registration.set({ registered: false, required: false, checked: false });
+      return null;
+    }
+    try {
+      const status = await this.api.getRegistrationStatus(walletAddress);
+      this.registration.set({ ...status, checked: true });
+      return status;
+    } catch {
+      /* backend unreachable: leave the gates open, the server checks again */
+      return null;
     }
   }
 

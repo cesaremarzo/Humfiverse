@@ -1,6 +1,6 @@
 # Avvertenze e scheda rischi: bozza
 
-*Bozza del 2026-09-17, commit `94ae18f` (§2.4 storico prezzi), prima `82a7a1b`. **Da far rivedere a un avvocato.** Non
+*Bozza del 2026-09-17, commit `fd7f822` (§3 versamenti di royalty), prima `94ae18f` (§2.4 storico prezzi) e `82a7a1b`. **Da far rivedere a un avvocato.** Non
 è consulenza legale.*
 
 Testi pronti da inserire nel sito, in italiano e in inglese. Sono pensati per il
@@ -35,16 +35,18 @@ pagine non esistono.*
 > - Stai usando USDC di test su Sepolia, **senza valore**.
 > - Il 98% del prezzo va direttamente al wallet dell'artista; il 2% è la
 >   commissione della piattaforma e **non è rimborsabile**.
-> - Il token **non paga royalty**: dati di royalty e rendimenti sono dimostrativi
->   e non verificati.
+> - Le royalty si pagano solo se qualcuno le versa sul contratto, e **nessuno
+>   verifica** che corrispondano agli incassi reali. Dati di royalty e rendimenti
+>   sono dimostrativi e non verificati.
 > - La transazione è **irreversibile**.
 
 **EN**
 > - You are using Sepolia test USDC, **which has no value**.
 > - 98% of the price goes straight to the artist's wallet; 2% is the platform
 >   fee and is **non-refundable**.
-> - The token **pays no royalties**: royalty figures and yields are
->   illustrative and unverified.
+> - Royalties are paid only if someone deposits them on the contract, and **no
+>   one checks** that they match the track's real income. Royalty figures and
+>   yields are illustrative and unverified.
 > - The transaction is **irreversible**.
 
 ### 2.2 Contributo a una campagna di pre-produzione
@@ -63,8 +65,9 @@ pagine non esistono.*
 >   non ancora pagata. Per il resto conservi i tuoi diritti verso l'artista, ma
 >   recuperarlo può richiedere tempo, costi e un'azione legale e **non è
 >   garantito**.
-> - Il rimborso spetta al wallet che ha contribuito, **non a chi compra i token
->   da te** in seguito.
+> - Il rimborso spetta a **chi possiede i token** al momento della richiesta, e i
+>   token restituiti vengono **distrutti**. Se vendi i tuoi token, il rimborso
+>   passa a chi li compra.
 > - Il brano potrebbe non essere mai completato né guadagnare nulla. **Puoi
 >   perdere tutto.**
 
@@ -81,8 +84,9 @@ pagine non esistono.*
 >   been paid out. For the rest you keep your claims against the artist, but
 >   recovering it may take time, cost money and require legal action, and **is
 >   not guaranteed**.
-> - The refund goes to the wallet that contributed, **not to anyone who later
->   buys the tokens from you**.
+> - The refund goes to **whoever holds the tokens** when claiming it, and the
+>   returned tokens are **destroyed**. If you sell your tokens, the refund right
+>   goes with them.
 > - The track may never be finished or earn anything. **You can lose
 >   everything.**
 
@@ -92,15 +96,17 @@ pagine non esistono.*
 > - Il prezzo lo sceglie il venditore: **non è una valutazione** della
 >   piattaforma.
 > - Il venditore riceve il 99%; l'1% è la commissione della piattaforma.
-> - Se compri token di una campagna che viene poi annullata, **oggi non hai
->   diritto al rimborso**: spetta a chi aveva contribuito.
+> - Se compri token di una campagna che viene poi annullata, hai diritto alla
+>   stessa quota di rimborso per token di chi aveva contribuito, restituendo i
+>   token. **Il prezzo che hai pagato non conta**: potresti ricevere meno.
 > - Non c'è garanzia di poter rivendere.
 
 **EN**
 > - The seller sets the price: **it is not a valuation** by the platform.
 > - The seller receives 99%; 1% is the platform fee.
-> - If you buy tokens of a campaign that is later cancelled, **you currently
->   have no refund right**: it belongs to the original contributor.
+> - If you buy tokens of a campaign that is later cancelled, you get the same
+>   refund per token as the original contributor, by handing the tokens back.
+>   **The price you paid does not matter**: you may receive less.
 > - There is no guarantee you can resell.
 
 ### 2.4 Storico prezzi del token (pagina asset)
@@ -143,8 +149,13 @@ Testo in inglese, come il whitepaper.
 - **Campaigns have no deadline and no all-or-nothing rule.** A partly funded
   campaign can pay out its first tranches and stay open indefinitely.
 - **A campaign without a studio is released by the artist alone.**
-- **Refunds follow contributions, not tokens.** Resale buyers of a cancelled
-  campaign's tokens receive nothing.
+- **Refunds follow tokens and burn them.** The refund per token is the same for
+  everyone, whatever they paid; tokens handed back stop earning royalties.
+- **Royalty deposits are not verified.** The artist, or the platform on the
+  artist's behalf, deposits them; nothing on chain obliges anyone to deposit or
+  to keep to the agreed schedule. Each deposit carries the fingerprint of a
+  statement file, which the artist may choose to publish, but no one checks that
+  the statement is genuine or matches the track's real income.
 
 **Data**
 - **What is written on-chain or to IPFS is permanent** — including artist

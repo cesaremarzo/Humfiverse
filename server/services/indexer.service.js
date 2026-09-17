@@ -41,7 +41,7 @@ const onchainRepo = require("../data/onchain.repo");
 
 const RPC_URL = process.env.CHAIN_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com";
 const TOKEN_ADDRESS = chain.CONTRACT_ADDRESS;
-const DEPLOY_BLOCK = Number(process.env.CHAIN_CONTRACT_DEPLOY_BLOCK || 11703772);
+const DEPLOY_BLOCK = Number(process.env.CHAIN_CONTRACT_DEPLOY_BLOCK || 11724392);
 /** The free tier's cap is 10 blocks inclusive, so a window is `from`..`from+9`. */
 const WINDOW = 10;
 /** Calls per step. Keeps one tick well inside a request timeout; the

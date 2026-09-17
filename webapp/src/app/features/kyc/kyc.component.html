@@ -17,6 +17,9 @@
   <div class="page-head"><div><span class="page-kicker">{{ 'kyc.kicker' | translate }}</span><h1>{{ 'kyc.title' | translate }}</h1><p class="page-sub">{{ 'kyc.subtitle' | translate }}</p></div></div>
   <div class="container narrow" style="padding:0;">
     <div class="card panel" style="padding:28px; display:flex; flex-direction:column; gap:22px;">
+      @if (store.registration().checked && !store.registrationSatisfied()) {
+        <app-registration-gate messageKey="register.gateKyc"></app-registration-gate>
+      }
 
       <div>
         <h3 style="font-family:'Fraunces',serif; font-size:17px; margin-bottom:12px;">{{ 'kyc.identityTitle' | translate }}</h3>

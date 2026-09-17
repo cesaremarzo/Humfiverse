@@ -1,6 +1,6 @@
 # Informativa Privacy: bozza
 
-*Bozza del 2026-09-17, commit `94ae18f` (storico prezzi, §2.94), prima `cc06a70` con le modifiche dei §2.88 e §2.89. **Da far rivedere a un avvocato o a un
+*Bozza del 2026-09-17: storico prezzi dal §2.94 (commit `94ae18f`); prima commit `cc06a70` con le modifiche dei §2.88 e §2.89; email di registrazione, immagini e video dal §2.93; file del rendiconto royalty dal §2.98. **Da far rivedere a un avvocato o a un
 esperto privacy prima della pubblicazione.** Non è consulenza legale.*
 
 ## Note per chi usa questa bozza (da togliere prima di pubblicare)
@@ -43,8 +43,10 @@ pubblicamente. Se colleghi il wallet alla tua identità sulla Piattaforma, per
 esempio con il modulo di verifica, quelle operazioni diventano riferibili a te.
 
 **Per gli artisti:** titolo del brano e **nome artista** sono scritti sulla
-blockchain al momento della creazione del token, e il **file audio** è
-pubblicato su IPFS. Usa un nome d'arte se non vuoi che il tuo nome anagrafico
+blockchain al momento della creazione del token, e il **file audio**,
+l'**immagine di copertina** e il **video** sono pubblicati su IPFS (§2.93). Un
+volto o una voce riconoscibili in un video sono dati personali, anche di chi
+compare senza essere l'artista. Usa un nome d'arte se non vuoi che il tuo nome anagrafico
 resti pubblico in modo permanente.
 
 ## 3. Quali dati trattiamo, perché e per quanto tempo
@@ -53,12 +55,15 @@ resti pubblico in modo permanente.
 |---|---|---|---|---|
 | Indirizzo wallet, saldi e transazioni | Blockchain pubblica, tuo wallet | Mostrare portafoglio, asset, rimborsi; indicizzare i possessori di token | Esecuzione del servizio (art. 6.1.b) | Nel nostro database: finché usi il servizio + [12 mesi]. Sulla blockchain: per sempre, fuori dal nostro controllo |
 | Storico degli scambi a pagamento di ogni token (`token_trades`, `token_trade_scans`): hash della transazione, id del token, tipo (raccolta, acquisto diretto, rivendita), quantità, prezzo, blocco, data e ora. **Nessun indirizzo wallet**, ma l'hash porta alla transazione pubblica e quindi ai wallet coinvolti (§2.94) | Blockchain pubblica | Grafico dello storico prezzi nella pagina dell'asset | Esecuzione del servizio | [Finché l'asset è pubblicato]; è una copia di dati pubblici on-chain, ricostruibile in ogni momento |
+| Storico dei versamenti di royalty on-chain (`royalty_deposits`): hash della transazione, id del token, **indirizzo wallet di chi versa**, importo, impronta SHA-256 del rendiconto, blocco, data e ora (§2.95); collegamento IPFS, tipo e dimensione del **file del rendiconto**, solo se chi versa sceglie di pubblicarlo (§2.98). Il file stesso è su IPFS, non nel database, con un nome anonimo; se non è pubblicato non riceviamo il file, ma solo la sua impronta | Blockchain pubblica; il file da chi versa, se lo pubblica, accettato solo se la sua impronta coincide con quella scritta on-chain | Storico dei versamenti e rendiconto scaricabile nella pagina dell'asset | Esecuzione del servizio | [Finché l'asset è pubblicato]; tutto tranne il file è copia di dati pubblici on-chain. **Il file su IPFS è pubblico e di fatto permanente**: possiamo toglierlo da Pinata, ma altre copie possono restare. I rendiconti dei distributori contengono spesso nome, indirizzo e dati bancari dell'artista: chi versa li deve oscurare prima, senza toccare gli importi, e non deve inserire dati di terzi **[verificare con l'esperto privacy, 07 H]** |
 | Istantanee del valore del portafoglio per wallet (`portfolio_snapshots`) | Calcolate da noi | Grafico dell'andamento del portafoglio | Esecuzione del servizio | [12 mesi] |
 | **Modulo di verifica (dimostrativo):** nome completo, data di nascita, nazionalità, classificazione dell'investitore, risposte al questionario e punteggio, origine dei fondi, dichiarazione PEP, wallet | Tu | Dimostrare il flusso di verifica del prototipo | [Consenso (art. 6.1.a)? Da decidere con l'avvocato: vedi nota] | [30 giorni], poi cancellazione |
 | **Firma dell'invio della verifica:** il tuo wallet firma un'impronta SHA-256 delle risposte, non le risposte (§2.89) | Tu | Garantire che solo il titolare del wallet possa registrare la propria verifica | Legittimo interesse alla sicurezza (art. 6.1.f) | Non salvata: serve solo a controllare l'invio (`server/routes/compliance.routes.js`) |
 | Accettazione del contratto artista: nome artista, titolo, clausole accettate, versione, data e ora | Tu | Prova dell'accettazione | Esecuzione del contratto; legittimo interesse alla prova (art. 6.1.f) | [10 anni dalla fine del rapporto, termine di prescrizione ordinario] **[verificare]** |
 | Dati del brano: titolo, nome artista, audio, dichiarazione sull'uso di AI, storico royalty inserito | Tu | Pubblicare l'asset | Esecuzione del servizio | Database: finché l'asset è pubblicato + [12 mesi]. Blockchain e IPFS: per sempre |
 | **Autorizzazione di lancio della campagna:** testo firmato con il tuo wallet che contiene id e titolo dell'asset, nome artista, wallet che incassa, numero di token, importo della raccolta, nome e wallet dello studio, milestone, data e ora | Tu | Verificare che la campagna sia lanciata da chi incassa, prima che la piattaforma crei token e campagna | Esecuzione del servizio; legittimo interesse alla sicurezza (art. 6.1.f) | Non salvata nel nostro database (verificato in `server/lib/launch-auth.js` e nelle route che la usano): usata solo per il controllo della richiesta. Nome e wallet dello studio sono dati di un terzo: vanno previsti nell'informativa allo studio **[verificare]** |
+| **Email di registrazione** (§2.93): indirizzo, wallet a cui è collegato, data e ora della verifica, firma del wallet, IP della richiesta. Per ogni codice inviato: indirizzo, wallet, impronta SHA-256 del codice (non il codice), tentativi, IP, scadenza | Tu | Registrazione (`legal/08` C-11): contattarti sulle campagne che crei o sostieni, provare quando e da quale wallet l'indirizzo è stato verificato, limitare gli abusi dell'invio | Esecuzione del servizio (art. 6.1.b); legittimo interesse alla prova e alla sicurezza (art. 6.1.f) | Tabelle `registrations` e `email_verifications` (`server/data/schema.js`). Oggi **nessuna cancellazione automatica**: [durata del rapporto + 10 anni per la prova, 12 mesi per i codici non usati] **[verificare]**. L'indirizzo non è mostrato pubblicamente: `GET /api/registration/status/:wallet` dice solo sì/no |
+| **Immagine e video del brano** (§2.93) e firma del wallet sull'impronta SHA-256 del file | Tu | Pubblicare l'asset | Esecuzione del servizio | Sul nostro database solo il riferimento IPFS, tipo, dimensione, durata, data e wallet che ha caricato. I file su IPFS: finché restano fissati da Pinata; un file sostituito viene tolto da Pinata, ma copie già distribuite possono restare |
 | Login con Google, Apple o email (wallet integrato) | Tu, tramite thirdweb | Creare e ripristinare il tuo wallet integrato | Esecuzione del servizio | Trattati da thirdweb: vedi §5 |
 | Indirizzo IP, dati tecnici della richiesta | Il tuo browser | Sicurezza, funzionamento, prevenzione degli abusi | Legittimo interesse | Log dei fornitori: [secondo le loro politiche, di norma pochi giorni o settimane] |
 
@@ -98,7 +103,8 @@ titolari autonomi:
 | thirdweb (Non-Fungible Labs, Inc.) | Login e wallet integrato, sponsorizzazione del gas, firma dei messaggi | Email o account Google/Apple, wallet, IP; **testo dei messaggi firmati con il wallet integrato**, compresa l'autorizzazione di lancio (per la verifica dell'investitore solo l'impronta delle risposte, non le risposte) (la firma avviene sui server di thirdweb: `/api/v1/enclave-wallet/sign-message` nell'SDK) | USA | [DPF / SCC] |
 | Google (Google Fonts) | Caratteri tipografici del sito | IP, user agent | USA | [DPF]. **In alternativa, ospitare i font sul nostro dominio ed eliminare questo trasferimento** |
 | Alchemy Insights, Inc. | Accesso alla blockchain (RPC) | Wallet, IP del server | USA | [DPF / SCC] |
-| Pinata Cloud, Inc. | Pubblicazione dei file audio su IPFS | Audio, metadati | USA | [DPF / SCC] |
+| Pinata Cloud, Inc. | Pubblicazione su IPFS di audio, immagini e video dei brani | Audio, immagini, video, metadati | USA | [DPF / SCC] |
+| Brevo (Sendinblue SAS) | Invio delle email con il codice di verifica (§2.93) | Indirizzo email, testo del messaggio (codice) | Francia (UE) **[verificare la sede dei server]** | Responsabile del trattamento: serve l'accordo art. 28 (DPA di Brevo) |
 | GitHub (Pages) e Netlify | Hosting del sito | IP, user agent | USA | [DPF / SCC] |
 | Etherscan | Link di verifica delle transazioni (solo se li apri) | IP | [verificare] | Titolare autonomo |
 

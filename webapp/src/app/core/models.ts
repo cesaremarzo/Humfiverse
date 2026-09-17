@@ -64,6 +64,8 @@ export interface Asset {
   documents: AssetDocument[];
   milestones?: Milestone[];
   status: 'funding' | 'sold-out';
+  /** §2.93: the artist's own cover image and short video, if uploaded. */
+  media?: Partial<Record<MediaKind, MediaRef>>;
 }
 
 export interface Campaign {
@@ -215,6 +217,53 @@ export interface BackendData {
 /** A token's paid trades and its lowest traded price per UTC day, from
  * GET /api/price-history/:assetId. Amounts are USDC base units. On a day
  * with no trade, `priceUsdc` is the last day's and `traded` is false. */
+/** Why a campaign was cancelled — HumfiverseMilestoneEscrow.CancelGround. */
+export type CancelGround = 'none' | 'unlawful_content' | 'third_party_rights' | 'false_warranties';
+
+/** One RoyaltiesDeposited on the token, as recorded from its receipt. */
+export interface RoyaltyDeposit {
+  txHash: string;
+  explorerUrl: string;
+  depositor: string;
+  amountUsdc: string;
+  /** SHA-256 of the statement file (§2.98). */
+  statementRef: string;
+  /** ipfs:// link to the file whose SHA-256 is `statementRef`, once published. */
+  statementUri: string | null;
+  statementMime: string | null;
+  statementBytes: number | null;
+  block: number;
+  depositedAt: string;
+}
+
+/** GET /api/royalties/:assetId (§2.92). Amounts are USDC base units. */
+export type AssetRoyalties =
+  | { assetId: string; onchain: boolean; supported: false }
+  | {
+      assetId: string;
+      onchain: true;
+      supported: true;
+      tokenId: number;
+      contractAddress: string;
+      totalDepositedUsdc: string;
+      totalClaimedUsdc: string;
+      outstandingSupply: string;
+      poolBalance: string;
+      /** The unsold tokens' share, paid to `payoutWallet` (the artist). */
+      poolClaimableUsdc: string;
+      payoutWallet: string;
+      /** What the wallet passed as ?wallet= can claim; null without one. */
+      claimableUsdc: string | null;
+      deposits: RoyaltyDeposit[];
+    };
+
+/** GET /api/royalties/wallet/:wallet — every token with something to claim. */
+export interface WalletRoyalties {
+  supported: boolean;
+  contractAddress: string;
+  claimable: { assetId: string; tokenId: number; claimableUsdc: string }[];
+}
+
 export interface PriceHistory {
   assetId: string;
   tokenId: number;
@@ -307,8 +356,18 @@ export type EscrowCampaignInfo =
       studio: { name: string; wallet: string; active: boolean } | null;
       fundingGoal: string;
       raised: string;
-      deadline: number;
+      /** null on a phase 2 escrow, which has no deadlines (§2.92). */
+      deadline: number | null;
       status: 'active' | 'cancelled';
+      /** §2.92: refunds per token held (burning them) and cancellation
+       * grounds. Absent or false on the escrow deployed before phase 2. */
+      phase2?: boolean;
+      /** Set once a phase 2 campaign is cancelled; null otherwise. */
+      cancelGround?: CancelGround | null;
+      /** Unreleased USDC still to be refunded, and the tokens that can claim
+       * it. Both fall with each refund, so the rate per token stays equal. */
+      refundPoolUsdc?: string | null;
+      refundTokens?: string | null;
       /** Campaign on a superseded escrow (CHAIN_ESCROW_LEGACY_ADDRESS). */
       legacy?: boolean;
       releasedBps: number;
@@ -406,7 +465,26 @@ export interface LaunchAuthorization {
 }
 
 /** §2.89: a single write signed by the wallet it concerns. */
-export type SignedActionKind = 'royalty-report' | 'royalty-remove' | 'kyc-submit';
+export type SignedActionKind = 'royalty-report' | 'royalty-remove' | 'kyc-submit' | 'email-verify' | 'asset-media';
+
+/** §2.93: whether a wallet has a verified email, and whether this deployment
+ * asks for one (it can't without email sending configured). */
+export interface RegistrationStatus {
+  registered: boolean;
+  required: boolean;
+}
+
+export type MediaKind = 'image' | 'video';
+
+/** §2.93: a file pinned to IPFS for a track, recorded on its asset. */
+export interface MediaRef {
+  uri: string;
+  mime: string;
+  bytes: number;
+  durationSeconds?: number;
+  uploadedAt: string;
+  uploadedBy?: string;
+}
 
 export interface SignedAction {
   kind: SignedActionKind;

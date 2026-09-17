@@ -70,15 +70,19 @@ comunque impegnative.
 
 **Come si applica al codice:**
 
-- `HumfiverseCatalogueToken` non paga royalty. La distribuzione è simulata (vedi
-  README, "Simulated"). Oggi quindi il token *on-chain* non dà nessun diritto
-  economico. Il diritto sta solo nelle promesse di whitepaper e contratto
-  artista.
+- Dal 2026-09-17 (fase 2) `HumfiverseCatalogueToken` **paga royalty**: chiunque
+  può versare USDC per un token, il contratto li divide in parti uguali su tutti
+  i token esistenti e ogni possessore riscuote la sua quota (02, C-12). Il token
+  *on-chain* quindi **dà già un diritto economico**, anche se oggi solo con USDC
+  di test senza valore. Quanto viene versato dipende da chi versa (l'artista, o
+  la Piattaforma per suo conto): ogni versamento indica l'impronta del file del
+  rendiconto, che l'artista può anche pubblicare, ma il contratto non lo collega
+  agli incassi reali del brano.
 - È proprio questo il rischio: un regolatore valuta la sostanza dell'offerta
   nel suo insieme (sito, whitepaper, testi della pagina campagna), non solo il
   contratto Solidity. Dire "compri una quota di royalty" basta a spostare la
-  qualificazione verso lo strumento finanziario, anche se la funzione di
-  distribuzione non è ancora stata scritta.
+  qualificazione verso lo strumento finanziario, e ora anche il contratto
+  Solidity la distribuzione la fa davvero.
 - La **negoziabilità** conta: ERC-1155 è liberamente trasferibile e il
   marketplace lo rende negoziabile in pratica. È uno degli elementi della
   definizione di valore mobiliare.
@@ -159,20 +163,24 @@ compliance.
 
 **Come si applica al codice.** Le note interne (§4.1.1) e il whitepaper (cap. 5)
 sostengono che Humfiverse non gestisce, perché non conferma le milestone. È vero
-per la *conferma*. Ma il Founder, come `owner()`, ha anche altri poteri che un
-avvocato potrebbe considerare discrezionali:
+per la *conferma*. Ma il proprietario dei contratti (`owner()`) ha anche altri poteri che un
+avvocato potrebbe considerare discrezionali. Dal 2026-09-17 questi poteri sono di
+un Safe con 2 firme su 3 (Cesare, Co-founder, una chiave di riserva), e la
+chiave del backend ha solo quelli di routine (02, C-9):
 
 - `cancelCampaign`: ferma una campagna in qualsiasi momento, anche a metà, e
   apre i rimborsi. Per decisione (note legali §7.10) questo potere resta, ma va
   limitato per contratto a motivi di legge: contenuti illeciti o violazione di
   diritti di terzi. Così diventa un atto di conformità, non una scelta di
-  investimento;
+  investimento. Il contratto di fase 2 registra motivo e hash della decisione, ma
+  accetta ancora l'annullamento senza motivo finché resta una tranche da pagare;
 - `registerStudio` / `setStudioActive` / `renameStudio`: sceglie quali studi sono
   ammessi;
 - `releaseFromPool`: consegna token del pool senza pagamento;
 - `createCampaign`: decide quali campagne esistono.
 
-Nessuno di questi poteri è limitato da regole scritte nel contratto. L'argomento
+A parte le due firme richieste e la registrazione del motivo, nessuno di questi
+poteri è limitato da regole scritte nel contratto. L'argomento
 "nessuna discrezionalità" regge solo se questi poteri sono vincolati da
 documenti costitutivi o da regole codificate. Vedi il file 02, C-1 e C-2.
 
@@ -248,6 +256,11 @@ e raccoglie dati adesso:**
   privacy e senza termine di conservazione.
 - L'**origine dei fondi** e lo **stato PEP** sono dati delicati: non sono
   "categorie particolari" dell'art. 9, ma hanno un rischio elevato.
+- Dal §2.93 il backend conserva anche l'**email verificata** di ogni wallet
+  registrato (`registrations`) e lo storico dei codici inviati
+  (`email_verifications`, con IP), inviati tramite **Brevo**. Stesso problema dei
+  dati di verifica: nessun titolare, nessuna informativa definitiva, nessun
+  termine di conservazione. La finestra di registrazione lo dice all'utente.
 - **Blockchain e IPFS non si cancellano.** Nome artista e titolo sono scritti
   on-chain (`artistName`, `trackTitle`) e l'audio è fissato su IPFS tramite
   Pinata. Il diritto alla cancellazione (art. 17) non si può esercitare su quei

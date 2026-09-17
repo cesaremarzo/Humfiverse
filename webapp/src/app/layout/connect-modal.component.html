@@ -1,5 +1,5 @@
 @if (wallet.pickerOpen()) {
-  <div class="modal-scrim" (click)="$event.target === $event.currentTarget && close()">
+  <div class="modal-scrim" (click)="$event.target === $event.currentTarget ? close() : null">
     <div class="modal connect-modal" role="dialog" aria-modal="true" aria-labelledby="connect-title">
       <button type="button" class="icon-btn connect-close" [attr.aria-label]="'connect.close' | translate" [disabled]="!!busy()" (click)="close()">
         <app-icon name="close"></app-icon>

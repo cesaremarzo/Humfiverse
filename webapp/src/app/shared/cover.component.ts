@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { IconComponent } from './icon.component';
 import { Asset } from '../core/models';
 import { coverBackground, coverMonogram, genreMotif } from '../core/cover.util';
+import { ipfsGatewayUrl } from '../core/ipfs.util';
 
 /** Procedural "album art": gradient tied to the asset id + a large initial +
  * a genre-motif watermark + an optional play affordance. Deterministic from
@@ -17,10 +18,16 @@ import { coverBackground, coverMonogram, genreMotif } from '../core/cover.util';
         <circle cx="78" cy="24" r="34" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="10"/>
         <circle cx="78" cy="24" r="20" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="6"/>
       </svg>
-      <span class="cover-monogram" aria-hidden="true">{{ monogram }}</span>
-      <span class="cover-motif" aria-hidden="true" [style.width.px]="motifSize" [style.height.px]="motifSize">
-        <app-icon [name]="motif"></app-icon>
-      </span>
+      @if (imageUrl) {
+        <!-- §2.93: the artist's own cover, over the generated one, which stays
+             underneath as the colour shown while the image loads. -->
+        <img class="cover-img" [src]="imageUrl" alt="" loading="lazy" decoding="async">
+      } @else {
+        <span class="cover-monogram" aria-hidden="true">{{ monogram }}</span>
+        <span class="cover-motif" aria-hidden="true" [style.width.px]="motifSize" [style.height.px]="motifSize">
+          <app-icon [name]="motif"></app-icon>
+        </span>
+      }
       @if (play) {
         <!-- §2.44: functional only when a real track is linked
              (previewable=true) — click plays/pauses it via the caller's
@@ -55,6 +62,10 @@ export class CoverComponent {
 
   get background(): string {
     return coverBackground(this.asset.id, this.asset.kind);
+  }
+  get imageUrl(): string | null {
+    const uri = this.asset.media?.image?.uri;
+    return uri ? ipfsGatewayUrl(uri) : null;
   }
   get monogram(): string {
     return coverMonogram(this.asset);

@@ -2,7 +2,11 @@
   <div class="card campaign-card">
     <div class="campaign-head">
       <div style="display:flex; gap:12px;">
-        <div class="campaign-cover" [style.background]="bg()"></div>
+        <div class="campaign-cover" [style.background]="bg()">
+          @if (a.media?.image; as img) {
+            <img class="cover-img" [src]="gateway(img.uri)" alt="" loading="lazy">
+          }
+        </div>
         <div>
           <div class="asset-title" style="font-size:16px;">{{ a.title }}</div>
           <div class="asset-artist">{{ a.artistName }}</div>
@@ -27,7 +31,15 @@
     }
     <div style="display:flex; justify-content:space-between; align-items:center; padding-top:4px;">
       <span style="font-size:12.5px; color:var(--text-secondary); display:flex; align-items:center; gap:6px;"><app-icon name="users"></app-icon> @if (holderCount() !== null) { {{ 'campaignCard.tokenHolders' | translate: { n: holderCount() } }} } @else { {{ 'campaignCard.holdersUnknown' | translate }} }</span>
-      <a class="btn btn-secondary btn-sm" [routerLink]="['/asset', a.id]">{{ 'campaignCard.viewListing' | translate }} <app-icon name="arrowRight"></app-icon></a>
+      <div style="display:flex; gap:8px;">
+        @if (isOwner()) {
+          <button type="button" class="btn btn-ghost btn-sm" (click)="mediaOpen.set(true)"><app-icon name="upload"></app-icon> {{ 'media.manageBtn' | translate }}</button>
+        }
+        <a class="btn btn-secondary btn-sm" [routerLink]="['/asset', a.id]">{{ 'campaignCard.viewListing' | translate }} <app-icon name="arrowRight"></app-icon></a>
+      </div>
     </div>
   </div>
+  @if (mediaOpen()) {
+    <app-media-manager [asset]="a" (closed)="mediaOpen.set(false)"></app-media-manager>
+  }
 }

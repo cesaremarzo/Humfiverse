@@ -3,6 +3,93 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-09-17 · rendiconto: pubblicazione facoltativa; A12 e I4 (§2.98)
+
+Decisione di Cesare: pubblicare il rendiconto è una **possibilità** data
+all'artista, non un obbligo, e non incide sul funzionamento. Nel codice l'impronta
+va sempre on-chain e il file va su IPFS solo se la casella "Pubblica il
+rendiconto" è spuntata (attiva di default) o più tardi dallo storico.
+- **08 A-8:** punto 3 senza pubblicazione (l'artista conserva ed esibisce il
+  file); nuovo punto 3-bis, pubblicazione facoltativa, non pubblicare non è
+  inadempimento.
+- **04 §5.7.2, 05 §3, 02 C-12, 01, 03 W-19, 06 §3:** allineati.
+- **07 A12:** registrata la valutazione dell'utente (autorizzazione quasi certa);
+  la domanda diventa quale autorizzazione e quali alternative.
+- **07 I4:** da 🟠 a 🟢; nessun divieto noto (lettura rapida dei Termini
+  DistroKid), resta un'avvertenza all'artista.
+
+## 2026-09-17 · versamento delle royalty: chi versa, quando, su quale rendiconto (§2.98)
+
+Decisione di Cesare: versa l'**artista** (incassa e converte in USDC) oppure la
+**Piattaforma** dopo aver ricevuto il denaro dall'artista; frequenza variabile
+**entro un intervallo fissato per token** nell'accordo artista; `statementRef` =
+**hash del rendiconto**. Nel codice (commit `fd7f822`) `statementRef` era l'hash
+di una frase: ora è lo SHA-256 del file (PDF, CSV, XLSX), pubblicato su IPFS e
+collegato nello storico solo se l'impronta coincide. Il modulo è mostrato
+all'artista e al wallet Founder.
+- **02 §1 e C-12:** decisione e codice; restano aperti verifica del rendiconto,
+  obbligo solo contrattuale, intervallo non ancora nel wizard.
+- **04 §5.7.1-5.7.2:** chi versa, intervallo, rendiconto pubblicato.
+- **05 §3:** la riga `royalty_deposits` descrive il file su IPFS, pubblico e di
+  fatto permanente; oscurare dati bancari e di terzi.
+- **06 §3, 01, 03 W-19:** testi allineati.
+- **07:** nuove **A12** 🔴 (la Piattaforma che riceve e converte il denaro
+  dell'artista: servizio di pagamento, MiCA, antiriciclaggio?) e **I4** 🟠
+  (riservatezza dei rendiconti dei distributori).
+- **08:** nuova clausola **A-8** (versamento delle royalty) e requisito **C-12**
+  (intervallo per token nel wizard e sulla pagina).
+`server/data/schema.js` cambia solo per le colonne del file del rendiconto:
+impronte aggiornate.
+
+## 2026-09-17 · milestone pagate solo in ordine (§2.96)
+
+Il contratto escrow live paga una milestone quando ha le conferme e i fondi
+coprono lei più quelle già pagate, **senza guardare l'ordine**: una milestone
+successiva poteva essere pagata prima di una precedente non consegnata. Dal
+17 set il sito nasconde la conferma finché la precedente non è pagata (PR #68);
+il contratto di fase 2 rifiuta la conferma fuori ordine.
+- **02 §1:** la riga `confirmMilestoneAs…` dice cosa verifica il contratto live e
+  cosa verificherà quello di fase 2.
+- **04 §5.3** e **08 A-5 (punto 2-bis):** l'ordine fissato dall'artista entra nei
+  Termini e nell'accordo.
+- **06 §2.2** non cambia: non descrive l'ordine e resta vera.
+I contratti della fase 2 restano **non** rivisti nel loro insieme: le impronte
+in `reviewed-files.sha256` non sono aggiornate, come nella voce sotto.
+
+## 2026-09-17 (sera) · redeploy di fase 2: royalty, rimborsi per token, multisig (§2.97)
+
+Revisione completa dei due contratti ridistribuiti (token `0xa619…82EF`, escrow
+`0xc004…D368`), rimasti non rivisti dal §2.92. Proprietà dei tre contratti
+passata al Safe `0xBA2a…245d` (2 su 3); il Founder è solo `operator`.
+- **02:** intestazione, indirizzi, impronte, 112 test, ruoli; tabella §1 rifatta.
+  C-1 aggiornato (serve il multisig). C-2 risolto in parte (motivo e hash on-chain,
+  ma `NONE` ancora accettato). C-3 risolto nel contratto. C-4 `deadline` rimossa.
+  **C-5 risolto** (rimborso per token con burn). C-9 risolto in parte. **C-12
+  superato e alzato ad Alta**: il token ora paga royalty, non verificate. C-13:
+  decisione di tenere titolo e artista on-chain.
+- **01 §1 e §4:** il token dà un diritto economico on-chain; poteri del
+  proprietario con 2 firme.
+- **03:** nuove righe W-16…W-19 sul whitepaper, ora falso su rimborsi, motivo di
+  annullamento, royalty e multisig. **Da applicare solo su richiesta** (GitBook).
+- **04:** §2.2 (royalty su USDC di test), §5.2 (Owner e operatore), §5.3 (ordine
+  verificato dal contratto), §5.4 riscritto (rimborso a chi possiede i token, con
+  burn), nuovo §5.7 (royalty).
+- **06 §2.1–§2.3 e scheda rischi:** rimborsi per token, versamenti non verificati.
+- **07 A2** riformulata; **C6** aggiornata.
+- **08 A-2 §3 e B-1(f):** nota di implementazione ora allineata al codice.
+
+## 2026-09-17 · royalties e rimborsi di fase 2 nel backend e nel sito (§2.95)
+
+Nuova tabella `royalty_deposits` in `schema.js`: copia dei versamenti di royalty
+letti dalle ricevute on-chain, per lo storico nella pagina dell'asset.
+- **05 §3:** nuova riga. Qui sì c'è l'indirizzo wallet di chi versa (già
+  pubblico on-chain) e, facoltativo, il testo del rendiconto.
+I contratti della fase 2 restano **non** rivisti: le loro impronte in
+`reviewed-files.sha256` sono ancora le vecchie e `check.sh` continua a
+segnalarli. La revisione completa va fatta nella PR del redeploy. Il codice di
+backend e frontend riconosce da solo i contratti attuali e non cambia nulla
+finché il redeploy non c'è.
+
 ## 2026-09-17 · storico prezzi dei token (§2.94)
 
 Commit `94ae18f`. Nuove tabelle `token_trades` e `token_trade_scans` in
@@ -14,6 +101,27 @@ il grafico nella pagina dell'asset.
 - **07 A4:** aggiunta la domanda se mostrare i prezzi fatti rafforzi la lettura
   del marketplace come sede di negoziazione. Nessuna nuova domanda 🔴: A4 lo era
   già.
+
+## 2026-09-16 (notte) · email verificata alla registrazione, immagini e video (§2.93)
+
+Revisione limitata ai file del §2.93 (`server/data/schema.js`,
+`server/routes/compliance.routes.js`, `webapp/src/app/core/embedded-wallet.ts`).
+I contratti della fase 2 (commit `0f819ec`) **non** sono rivisti qui: le loro
+impronte in `reviewed-files.sha256` restano quelle vecchie, così `check.sh` li
+segnala ancora.
+
+- **05 §2, §3, §5:** nuove righe per l'email di registrazione (`registrations`,
+  `email_verifications`, IP, firma) e per immagini e video su IPFS; Brevo tra i
+  fornitori, con DPA art. 28 da firmare.
+- **01 §7:** l'email verificata e Brevo si aggiungono ai dati raccolti senza
+  titolare né termine di conservazione (07 H1 resta aperta e più urgente).
+- **04 §8.4, 08 A-1-bis comma 1 (b):** audio, immagini e video, non solo audio.
+- **08 C-11:** implementato, con i suoi limiti: blocco solo lato app per acquisto
+  e contributo; non attivo finché Brevo non è configurato.
+- Da notare per l'avvocato: le immagini e i video caricati dagli artisti sono
+  pubblici e difficili da togliere da IPFS; la procedura di rimozione (§2.87)
+  deve coprirli insieme all'audio. Il caricamento avverte di usare solo contenuti
+  di cui si hanno i diritti.
 
 ## 2026-09-16 (notte) · banner del 06 §1 applicato; `index.html` solo meta SEO
 

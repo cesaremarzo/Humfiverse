@@ -35,6 +35,18 @@ async function main() {
   const authTx = await token.setEscrowContract(address);
   await authTx.wait();
   console.log("Done — HumfiverseCatalogueToken.escrowContract is now", address);
+
+  // Phase 2 (§2.92): the backend's key gets the operator role on both
+  // contracts — mint, audio link, studios, campaigns — while ownership is
+  // meant to move to a multisig once real state is restored.
+  const operator = process.env.OPERATOR_ADDRESS;
+  if (operator) {
+    await (await token.setOperator(operator)).wait();
+    await (await escrow.setOperator(operator)).wait();
+    console.log("Operator set on token and escrow:", operator);
+  } else {
+    console.log("OPERATOR_ADDRESS not set — only the owner can mint or create campaigns.");
+  }
 }
 
 main().catch((err) => {

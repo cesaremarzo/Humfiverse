@@ -1,6 +1,6 @@
 # Domande per l'avvocato
 
-*Revisione del 2026-09-17, commit `94ae18f` (A4: storico prezzi), prima `27d8d5f`.*
+*Revisione del 2026-09-17, commit `fd7f822` (A12, I4: versamento delle royalty), prima `94ae18f` (A4: storico prezzi) e `27d8d5f`.*
 
 Le domande vengono dai file 01-03 e dalle decisioni già prese (note legali §7,
 §7.10; technical-architecture §2.86). Sostituiscono e ampliano l'elenco del §6
@@ -30,10 +30,13 @@ Lussemburgo (CSSF) e Italia (CONSOB).*
   trasferibile e rivendibile, è uno **strumento finanziario** (valore mobiliare)
   ai sensi di MiFID II, e quindi fuori da MiCA? Esiste una struttura credibile
   che cambi la risposta, e a quale prezzo commerciale? *(01 §1)*
-- **A2** 🔴 Oggi il token on-chain non paga nulla: le royalty sono solo
-  promesse da sito, whitepaper e contratto. Ai fini della qualificazione conta il
-  contratto Solidity o l'offerta nel suo insieme? Il whitepaper pubblico può già
-  essere letto come comunicazione promozionale di un'offerta? *(01 §1, 02 C-12)*
+- **A2** 🔴 *Aggiornata il 2026-09-17:* dalla fase 2 il token on-chain **paga
+  royalty**: chiunque versa USDC, il contratto li divide per token e ogni
+  possessore li riscuote. Oggi solo USDC di test. Questo basta a qualificare il
+  token come strumento finanziario già sulla rete di test, o conta che non ci
+  sia valore reale? Chi versa (artista, veicolo, amministratore) cambia chi è
+  l'emittente? Il whitepaper pubblico può già essere letto come comunicazione
+  promozionale di un'offerta? *(01 §1, 02 C-12)*
 - **A3** 🟠 Serve che il token sia trasferibile solo tra wallet verificati
   (ERC-3643 o simili), o bastano restrizioni contrattuali? *(02 C-6)*
 - **A4** 🔴 `HumfiverseMarketplace` fa incontrare venditori e compratori terzi
@@ -93,6 +96,20 @@ Lussemburgo (CSSF) e Italia (CONSOB).*
   fuori con tagli da almeno 100.000 €, soli clienti professionali o collocamenti
   privati — e cosa comporta ciascuna scelta per il pubblico che vogliamo
   raggiungere? *(09 §8, note §7.7)*
+- **A12** 🔴 *Nuova, 2026-09-17.* **Valutazione dell'utente: quasi certamente
+  serve un'autorizzazione.** La domanda quindi è quale, e con quali alternative.
+  Le royalty le versa l'artista, oppure la
+  **Piattaforma dopo aver ricevuto il denaro dall'artista**, convertito in USDC
+  e versato sul contratto per i possessori (02 C-12). Nel secondo caso la
+  Piattaforma riceve fondi di un cliente e li trasferisce a terzi, cambiandoli in
+  una e-money token: è un **servizio di pagamento** (rimessa di denaro, PSD2), un
+  **servizio per le cripto-attività** (MiCA: scambio di fondi con cripto-attività
+  per conto di clienti, trasferimento) o un'attività che richiede adempimenti
+  **antiriciclaggio** (gruppo D)? Quale autorizzazione, in quale Paese, con quali
+  tempi e costi? Alternative: appoggiarsi a un soggetto già autorizzato
+  (prestatore di servizi di pagamento o CASP), far versare solo il Veicolo o un
+  amministratore di royalty autorizzato, oppure ammettere solo versamenti
+  diretti dell'artista. **[verificare]** *(02 C-12, 04 §5.7.1)*
 
 ## Gruppo B · Campagne di pre-produzione e crowdfunding
 *Stesso avvocato del gruppo A.*
@@ -165,8 +182,9 @@ l'azione di recupero. Decisione del 15 settembre 2026, note legali §7.10.*
 - **C6** 🟠 *Deciso il 2026-09-15:* rimborso e rivalsa spettano **a chi possiede i
   token al momento dell'annullamento**. **Da confermare:** il diritto verso
   l'artista si trasferisce con il token a ogni rivendita (serve che il token
-  incorpori il credito)? Come si gestisce il periodo fino al redeploy "phase 2",
-  in cui il contratto rimborsa ancora chi ha contribuito? *(02 C-5, file 08 A-2
+  incorpori il credito)? *Dal 2026-09-17 il contratto rimborsa chi possiede i
+  token e li brucia; il diritto verso l'artista per la parte già rilasciata non è
+  però nel codice.* *(02 C-5, file 08 A-2
   §3)*
 - **C7** 🟠 Se Humfiverse è un **servizio di hosting** ai sensi del DSA, la
   procedura di segnalazione e motivazione (artt. 16-17) è già sufficiente come
@@ -246,6 +264,13 @@ l'azione di recupero. Decisione del 15 settembre 2026, note legali §7.10.*
   dall'artista la impediscono? *(03 T-6, note §7.4)*
 - **I2** 🟠 **Garanzie e manleva** dell'artista: bastano quelle del file 08, A-4?
   Come si gestiscono i campioni non autorizzati? *(03 T-8)*
+- **I4** 🟢 *Nuova, 2026-09-17; abbassata lo stesso giorno.* L'artista **può**
+  pubblicare su IPFS il **file del rendiconto** del distributore o della CMO, in
+  modo di fatto permanente; non è obbligato e il funzionamento non ne dipende
+  (02 C-12, 08 A-8 punto 3-bis). Nessun divieto noto: una lettura rapida dei
+  Termini di DistroKid non ne ha trovati; SIAE, etichette ed edizioni non
+  verificati. Basta l'avvertenza all'artista di controllare i propri contratti,
+  o la Piattaforma rischia qualcosa ospitando il link? *(04 §5.7.2, 05 §3)*
 - **I3** 🟢 Obblighi dell'**AI Act** (art. 50) per chi pubblica brani generati con
   AI, e responsabilità se la dichiarazione dell'artista è falsa. *(01 §13)*
 

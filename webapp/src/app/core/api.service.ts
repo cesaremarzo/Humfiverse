@@ -19,10 +19,12 @@ import {
   OnchainInfo,
   OnchainMintResult,
   PriceHistory,
+  AssetRoyalties,
+  WalletRoyalties,
   RealHoldingDto,
   RedeemResult,
   RoyaltyMonth,
-  SecondaryListing, FeeSummary } from './models';
+  SecondaryListing, FeeSummary, RegistrationStatus, MediaKind } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -76,6 +78,32 @@ export class ApiService {
   /** Whether this wallet has already completed KYC/appropriateness on a
    * past visit — a wallet that already has, shouldn't have to redo it
    * (§2.30). `{ verified: false }` if it never has. */
+  /* --- registration with a verified email (§2.93) --- */
+
+  getRegistrationStatus(wallet: string): Promise<RegistrationStatus> {
+    return firstValueFrom(this.http.get<RegistrationStatus>(`${this.base}/api/registration/status/${encodeURIComponent(wallet)}`));
+  }
+
+  startEmailVerification(req: { wallet: string; email: string; locale: string }): Promise<{ verificationId: string; expiresAt: string }> {
+    return firstValueFrom(this.http.post<{ verificationId: string; expiresAt: string }>(`${this.base}/api/registration/email/start`, req));
+  }
+
+  confirmEmailVerification(req: { verificationId: string; code: string; auth: SignedAction }): Promise<{ registered: boolean }> {
+    return firstValueFrom(this.http.post<{ registered: boolean }>(`${this.base}/api/registration/email/confirm`, req));
+  }
+
+  /** §2.93: the body is the file, so the authorization rides in a header —
+   * the launch authorization while the wizard creates the campaign, or an
+   * "asset-media" signed action from the owner afterwards. */
+  uploadAssetMedia(assetId: string, kind: MediaKind, file: File, auth: { launch: LaunchAuthorization } | { action: SignedAction }): Promise<{ media: Asset['media'] }> {
+    const encode = (value: unknown) => btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(value))));
+    const headers: Record<string, string> =
+      'launch' in auth ? { 'X-Humfiverse-Launch': encode(auth.launch) } : { 'X-Humfiverse-Action': encode(auth.action) };
+    return firstValueFrom(
+      this.http.post<{ media: Asset['media'] }>(`${this.base}/api/assets/${encodeURIComponent(assetId)}/media/${kind}`, file, { headers })
+    );
+  }
+
   getKycStatus(walletAddress: string): Promise<KycResult> {
     return firstValueFrom(this.http.get<KycResult>(`${this.base}/api/kyc/status/${encodeURIComponent(walletAddress)}`));
   }
@@ -91,6 +119,31 @@ export class ApiService {
   /** Prices the token has actually traded at, read from transaction receipts. */
   getPriceHistory(assetId: string): Promise<PriceHistory> {
     return firstValueFrom(this.http.get<PriceHistory>(`${this.base}/api/price-history/${encodeURIComponent(assetId)}`));
+  }
+
+  /** Royalty totals and deposit history of an asset's token (§2.92), plus
+   * what `wallet` can claim when given. */
+  getAssetRoyalties(assetId: string, wallet?: string | null): Promise<AssetRoyalties> {
+    const query = wallet ? `?wallet=${encodeURIComponent(wallet)}` : '';
+    return firstValueFrom(this.http.get<AssetRoyalties>(`${this.base}/api/royalties/${encodeURIComponent(assetId)}${query}`));
+  }
+
+  getWalletRoyalties(wallet: string): Promise<WalletRoyalties> {
+    return firstValueFrom(this.http.get<WalletRoyalties>(`${this.base}/api/royalties/wallet/${encodeURIComponent(wallet)}`));
+  }
+
+  /** Adds a deposit to the history. The server reads the receipt, so this
+   * only works for a deposit that really happened. */
+  recordRoyaltyDeposit(txHash: string): Promise<{ recorded: unknown[] }> {
+    return firstValueFrom(this.http.post<{ recorded: unknown[] }>(`${this.base}/api/royalties/deposits`, { txHash }));
+  }
+
+  /** Publishes a deposit's statement file (§2.98). The server accepts only
+   * the file whose SHA-256 the deposit wrote on chain. */
+  uploadRoyaltyStatement(txHash: string, file: Blob): Promise<{ statementRef: string; uri: string; mime: string; bytes: number }> {
+    return firstValueFrom(
+      this.http.post<{ statementRef: string; uri: string; mime: string; bytes: number }>(`${this.base}/api/royalties/deposits/${encodeURIComponent(txHash)}/statement`, file)
+    );
   }
 
   mintOnchainToken(payload: { assetId: string; slug: string; supply: number; fundingUsdc: string; payoutWallet?: string; directSale: boolean; title?: string; artist?: string; launch: LaunchAuthorization }): Promise<OnchainMintResult> {
