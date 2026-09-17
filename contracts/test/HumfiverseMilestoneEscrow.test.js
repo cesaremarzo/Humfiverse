@@ -288,6 +288,8 @@ describe("HumfiverseMilestoneEscrow", function () {
     it("releases the studio-commitment milestone straight to the studio's wallet, never the artist, only once both sides confirm", async function () {
       const { escrow, campaignId, contributor1, studioWallet, artist } = await campaignFixture();
       await escrow.connect(contributor1).contribute(campaignId, GOAL);
+      await escrow.connect(artist).confirmMilestoneAsArtist(campaignId, 0);
+      await escrow.connect(studioWallet).confirmMilestoneAsStudio(campaignId, 0);
 
       const studioBalBefore = await usdc.balanceOf(studioWallet.address);
       const artistBalBefore = await usdc.balanceOf(artist.address);
@@ -363,8 +365,10 @@ describe("HumfiverseMilestoneEscrow", function () {
 
     it("does not release a milestone before enough has been raised to cover it, even with both confirmations in", async function () {
       const { escrow, campaignId, contributor1, artist, studioWallet } = await campaignFixture();
-      // Only 10% raised, but milestone 1 (studio) needs 40%
-      await escrow.connect(contributor1).contribute(campaignId, GOAL / 10n);
+      // 30% raised: milestone 0 (20%) fits, milestone 1 (studio) needs 60% in total
+      await escrow.connect(contributor1).contribute(campaignId, (GOAL * 3n) / 10n);
+      await escrow.connect(artist).confirmMilestoneAsArtist(campaignId, 0);
+      await escrow.connect(studioWallet).confirmMilestoneAsStudio(campaignId, 0);
       await escrow.connect(artist).confirmMilestoneAsArtist(campaignId, 1);
       const studioBalBefore = await usdc.balanceOf(studioWallet.address);
       const tx = await escrow.connect(studioWallet).confirmMilestoneAsStudio(campaignId, 1);
@@ -377,9 +381,11 @@ describe("HumfiverseMilestoneEscrow", function () {
 
     it("releases automatically on the second confirmation once enough was already raised in the meantime", async function () {
       const { escrow, campaignId, contributor1, artist, studioWallet } = await campaignFixture();
-      await escrow.connect(contributor1).contribute(campaignId, GOAL / 10n); // not enough for milestone 1 (40%) yet
+      await escrow.connect(contributor1).contribute(campaignId, (GOAL * 3n) / 10n); // enough for milestone 0, not for 0 + 1 (60%)
+      await escrow.connect(artist).confirmMilestoneAsArtist(campaignId, 0);
+      await escrow.connect(studioWallet).confirmMilestoneAsStudio(campaignId, 0);
       await escrow.connect(artist).confirmMilestoneAsArtist(campaignId, 1);
-      await escrow.connect(contributor1).contribute(campaignId, GOAL - GOAL / 10n); // now the whole goal
+      await escrow.connect(contributor1).contribute(campaignId, GOAL - (GOAL * 3n) / 10n); // now the whole goal
       const studioBalBefore = await usdc.balanceOf(studioWallet.address);
       const tx = await escrow.connect(studioWallet).confirmMilestoneAsStudio(campaignId, 1);
       const receipt = await tx.wait();
@@ -387,6 +393,60 @@ describe("HumfiverseMilestoneEscrow", function () {
       expect(await usdc.balanceOf(studioWallet.address)).to.equal(
         studioBalBefore + net(STUDIO_BPS)
       );
+    });
+  });
+
+  describe("milestone order (§2.96)", function () {
+    it("refuses to confirm a milestone before the previous one is released, however much is raised", async function () {
+      const { escrow, campaignId, contributor1, artist, studioWallet } = await campaignFixture();
+      await escrow.connect(contributor1).contribute(campaignId, GOAL); // enough for every tranche
+
+      await expect(escrow.connect(artist).confirmMilestoneAsArtist(campaignId, 2)).to.be.revertedWith(
+        "HumfiverseMilestoneEscrow: previous milestone not released"
+      );
+      await expect(escrow.connect(studioWallet).confirmMilestoneAsStudio(campaignId, 1)).to.be.revertedWith(
+        "HumfiverseMilestoneEscrow: previous milestone not released"
+      );
+
+      // Confirmed but not yet released is not enough either.
+      await escrow.connect(artist).confirmMilestoneAsArtist(campaignId, 0);
+      await expect(escrow.connect(artist).confirmMilestoneAsArtist(campaignId, 1)).to.be.revertedWith(
+        "HumfiverseMilestoneEscrow: previous milestone not released"
+      );
+
+      await escrow.connect(studioWallet).confirmMilestoneAsStudio(campaignId, 0);
+      await escrow.connect(artist).confirmMilestoneAsArtist(campaignId, 1);
+      await escrow.connect(studioWallet).confirmMilestoneAsStudio(campaignId, 1);
+      const milestones = await escrow.getMilestones(campaignId);
+      expect(milestones.map((m) => m.released)).to.deep.equal([true, true, false, false]);
+    });
+
+    it("keeps an underfunded milestone at the head of the queue until a later confirmation releases it", async function () {
+      const { escrow, campaignId, contributor1, artist, studioWallet } = await campaignFixture();
+      await escrow.connect(contributor1).contribute(campaignId, GOAL / 10n); // 10%: milestone 0 needs 20%
+      await escrow.connect(artist).confirmMilestoneAsArtist(campaignId, 0);
+      await escrow.connect(studioWallet).confirmMilestoneAsStudio(campaignId, 0);
+      expect((await escrow.getMilestones(campaignId))[0].released).to.equal(false);
+      await expect(escrow.connect(artist).confirmMilestoneAsArtist(campaignId, 1)).to.be.revertedWith(
+        "HumfiverseMilestoneEscrow: previous milestone not released"
+      );
+
+      await escrow.connect(contributor1).contribute(campaignId, GOAL / 10n); // now 20%
+      await escrow.connect(artist).confirmMilestoneAsArtist(campaignId, 0); // either side repeating the call releases it
+      expect((await escrow.getMilestones(campaignId))[0].released).to.equal(true);
+    });
+
+    it("a campaign without a studio also releases strictly in order", async function () {
+      const { escrow, token, artist, contributor1 } = await deployFixture();
+      await token.mintCatalogue(3, ["solo-token", "Solo", "Artist"], GOAL / TOKEN_PRICE, GOAL, artist.address, false);
+      await escrow.createCampaign(artist.address, 0, "solo-campaign", 3, ["One", "Two"], [5_000, 5_000], [0, 0]);
+      await escrow.connect(contributor1).contribute(1, GOAL);
+      await expect(escrow.connect(artist).confirmMilestoneAsArtist(1, 1)).to.be.revertedWith(
+        "HumfiverseMilestoneEscrow: previous milestone not released"
+      );
+      await escrow.connect(artist).confirmMilestoneAsArtist(1, 0);
+      await escrow.connect(artist).confirmMilestoneAsArtist(1, 1);
+      expect((await escrow.campaigns(1)).releasedBps).to.equal(10_000);
     });
   });
 
@@ -449,13 +509,16 @@ describe("HumfiverseMilestoneEscrow", function () {
     it("retains 3% of each tranche and emits it", async function () {
       const { escrow, campaignId, contributor1, artist, studioWallet } = await campaignFixture();
       await escrow.connect(contributor1).contribute(campaignId, GOAL);
+      await escrow.connect(artist).confirmMilestoneAsArtist(campaignId, 0);
+      await escrow.connect(studioWallet).confirmMilestoneAsStudio(campaignId, 0);
       await escrow.connect(artist).confirmMilestoneAsArtist(campaignId, 1);
 
+      const firstFee = (gross(ARTIST_BPS) * 300n) / 10_000n;
       const fee = (gross(STUDIO_BPS) * 300n) / 10_000n;
       await expect(escrow.connect(studioWallet).confirmMilestoneAsStudio(campaignId, 1))
         .to.emit(escrow, "PlatformFeeRetained")
         .withArgs(campaignId, 1, fee);
-      expect(await escrow.accruedFees()).to.equal(GOAL / 50n + fee);
+      expect(await escrow.accruedFees()).to.equal(GOAL / 50n + firstFee + fee);
     });
 
     it("sends accrued fees to the fee recipient on withdrawal, whoever calls it", async function () {
@@ -536,15 +599,15 @@ describe("HumfiverseMilestoneEscrow", function () {
       // The first raises about half its target.
       await escrow.connect(contributor1).contribute(campaignId, GOAL / 2n);
 
-      // 40% of the target fits.
+      // 20% of the target fits.
+      await escrow.connect(artist).confirmMilestoneAsArtist(campaignId, 0);
+      await escrow.connect(studioWallet).confirmMilestoneAsStudio(campaignId, 0);
+      expect((await escrow.getMilestones(campaignId))[0].released).to.equal(true);
+
+      // A further 40% would be 60% of the target against ~50% raised — it must wait.
       await escrow.connect(artist).confirmMilestoneAsArtist(campaignId, 1);
       await escrow.connect(studioWallet).confirmMilestoneAsStudio(campaignId, 1);
-      expect((await escrow.getMilestones(campaignId))[1].released).to.equal(true);
-
-      // A further 30% would be 70% of the target against ~50% raised — it must wait.
-      await escrow.connect(artist).confirmMilestoneAsArtist(campaignId, 2);
-      await escrow.connect(studioWallet).confirmMilestoneAsStudio(campaignId, 2);
-      expect((await escrow.getMilestones(campaignId))[2].released).to.equal(false);
+      expect((await escrow.getMilestones(campaignId))[1].released).to.equal(false);
     });
   });
 

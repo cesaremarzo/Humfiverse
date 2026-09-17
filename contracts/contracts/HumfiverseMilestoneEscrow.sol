@@ -372,6 +372,7 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         require(c.status == CampaignStatus.ACTIVE, "HumfiverseMilestoneEscrow: not active");
         require(milestoneIndex < campaignMilestones[campaignId].length, "HumfiverseMilestoneEscrow: bad index");
         require(!campaignMilestones[campaignId][milestoneIndex].released, "HumfiverseMilestoneEscrow: already released");
+        _requirePreviousReleased(campaignId, milestoneIndex);
         artistConfirmed[campaignId][milestoneIndex] = true;
         emit MilestoneConfirmedByArtist(campaignId, milestoneIndex);
         _tryRelease(campaignId, milestoneIndex);
@@ -389,9 +390,22 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         require(c.status == CampaignStatus.ACTIVE, "HumfiverseMilestoneEscrow: not active");
         require(milestoneIndex < campaignMilestones[campaignId].length, "HumfiverseMilestoneEscrow: bad index");
         require(!campaignMilestones[campaignId][milestoneIndex].released, "HumfiverseMilestoneEscrow: already released");
+        _requirePreviousReleased(campaignId, milestoneIndex);
         studioConfirmed[campaignId][milestoneIndex] = true;
         emit MilestoneConfirmedByStudio(campaignId, milestoneIndex);
         _tryRelease(campaignId, milestoneIndex);
+    }
+
+    /// @notice Tranches release in the order the artist set them at campaign
+    ///         creation (§2.96): a milestone cannot be confirmed until the one
+    ///         before it is released, however much has been raised. Without
+    ///         this, the cumulative funding gate in _tryRelease let a later
+    ///         milestone jump ahead of an earlier one that was not delivered.
+    function _requirePreviousReleased(uint256 campaignId, uint256 milestoneIndex) private view {
+        require(
+            milestoneIndex == 0 || campaignMilestones[campaignId][milestoneIndex - 1].released,
+            "HumfiverseMilestoneEscrow: previous milestone not released"
+        );
     }
 
     /// @notice Releases a milestone's tranche once both required

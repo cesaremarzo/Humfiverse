@@ -61,14 +61,16 @@
                   <td>{{ m.payee === 'studio' ? (c.studio?.name || 'Studio') : 'Artist' }}</td>
                   <td class="cell-num mono">{{ fmt(usdcToUsd(m.payoutUsdc ?? m.amountUsdc)) }}@if (m.feeUsdc && m.feeUsdc !== '0') {<div style="font-size:11px; color:var(--text-secondary);">of {{ fmt(usdcToUsd(m.amountUsdc)) }} · {{ (c.milestoneFeeBps ?? 0) / 100 }}% fee {{ fmt(usdcToUsd(m.feeUsdc)) }}</div>}</td>
                   <td>
-                    @if (!canConfirm(c.raised, m) && !m.released) {
+                    @if (waitingOnPrevious(c, m)) {
+                      <span class="chip chip-neutral">{{ 'escrowStatus.waitingOnPrevious' | translate: { n: m.index } }}</span>
+                    } @else if (!canConfirm(c.raised, m) && !m.released) {
                       <span class="chip chip-neutral">{{ 'escrowStatus.notEnoughRaised' | translate }}</span>
                     } @else {
                       <span class="chip" [class.chip-good]="m.released" [class.chip-warning]="!m.released">{{ statusKey(m) | translate }}</span>
                     }
                   </td>
                   <td style="text-align:right;">
-                    @if (!m.released && canConfirm(c.raised, m) && !m.studioConfirmed) {
+                    @if (!m.released && !waitingOnPrevious(c, m) && canConfirm(c.raised, m) && !m.studioConfirmed) {
                       <button
                         class="btn btn-primary btn-sm"
                         [disabled]="confirming() === (c.campaignId + '-' + m.index)"

@@ -1838,10 +1838,10 @@ current site is unchanged (checked against the live Sepolia contracts).
 - `legal/05` gained the new table; contracts still unreviewed on purpose.
 
 Open before the redeploy:
-1. **Multisig signed by the artist — needs clarifying.** `owner()` is one wallet
-   for the whole platform: an artist among its signers would hold powers over
-   every other artist's campaigns and a veto on cancelling their own on legal
-   grounds. Options to put to the user: a per-campaign artist confirmation, or
-   the multisig with platform signers only.
+1. **Multisig — decided 17 Sep:** after the explanation of what `owner()`
+   controls, the user accepted a **2-of-3 Safe** held by Cesare, Vincenzo and a
+   third key kept offline as backup; **no artists among the signers** (they
+   confirm only their own milestones). Needed before deploying: the three
+   signer addresses and who creates the Safe.
 2. Redeploy (`contract-redeploy` skill), restore state, `setOperator`.
 3. `legal/` review of both contracts in that PR.
