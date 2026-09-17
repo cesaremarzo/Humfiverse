@@ -3,6 +3,18 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-09-17 · storico prezzi dei token (§2.94)
+
+Commit `94ae18f`. Nuove tabelle `token_trades` e `token_trade_scans` in
+`schema.js`: copia degli scambi a pagamento letti dalle ricevute on-chain, per
+il grafico nella pagina dell'asset.
+- **05 §3:** nuova riga. Nessun indirizzo wallet salvato, ma l'hash della
+  transazione porta ai wallet sulla blockchain pubblica.
+- **06 §2.4 (nuovo):** avvertenza accanto al grafico, IT/EN, uguale al sito.
+- **07 A4:** aggiunta la domanda se mostrare i prezzi fatti rafforzi la lettura
+  del marketplace come sede di negoziazione. Nessuna nuova domanda 🔴: A4 lo era
+  già.
+
 ## 2026-09-16 (notte) · banner del 06 §1 applicato; `index.html` solo meta SEO
 
 - **06 §1:** il testo del banner è ora quello del sito (tecnico §2.91), anche in

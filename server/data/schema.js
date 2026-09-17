@@ -110,6 +110,31 @@ async function initSchema() {
       block INTEGER,
       checked_at TEXT NOT NULL
     );
+    -- Paid trades of a token, for its price history. A cache of what the
+    -- transaction receipts say, keyed by the log that proves each one, so
+    -- re-reading a receipt can never count a trade twice. Scoped by token
+    -- contract: a redeploy reuses token ids (§2.81).
+    CREATE TABLE IF NOT EXISTS token_trades (
+      token_contract TEXT NOT NULL,
+      tx_hash TEXT NOT NULL,
+      log_index INTEGER NOT NULL,
+      token_id INTEGER NOT NULL,
+      source TEXT NOT NULL,
+      qty INTEGER NOT NULL,
+      price_usdc TEXT NOT NULL,
+      block INTEGER NOT NULL,
+      traded_at TEXT NOT NULL,
+      PRIMARY KEY (token_contract, tx_hash, log_index)
+    );
+    CREATE INDEX IF NOT EXISTS token_trades_token ON token_trades (token_contract, token_id, traded_at);
+    -- Every transaction already read for trades, including the ones that
+    -- held none (a mint, a plain transfer), so no receipt is fetched twice.
+    CREATE TABLE IF NOT EXISTS token_trade_scans (
+      token_contract TEXT NOT NULL,
+      tx_hash TEXT NOT NULL,
+      scanned_at TEXT NOT NULL,
+      PRIMARY KEY (token_contract, tx_hash)
+    );
     CREATE TABLE IF NOT EXISTS portfolio_snapshots (
       wallet TEXT NOT NULL,
       snapshot_date TEXT NOT NULL,
