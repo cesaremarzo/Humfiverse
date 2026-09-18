@@ -74,6 +74,9 @@ const ABI = [
   "function outstandingSupply(uint256) view returns (uint256)",
   "function claimableRoyalties(uint256 tokenId, address holder) view returns (uint256)",
   "function totalRoyaltiesDistributed(uint256) view returns (uint256)",
+  // The pre-§2.101 name for the same total, kept so this backend can read a
+  // token contract deployed before the royalty fee — see readDistributed().
+  "function totalRoyaltiesDeposited(uint256) view returns (uint256)",
   "function totalRoyaltiesClaimed(uint256) view returns (uint256)",
   "function payoutRecipient() view returns (address)",
   "event RoyaltiesDeposited(uint256 indexed tokenId, address indexed depositor, uint256 distributed, bytes32 statementRef)"
@@ -270,10 +273,29 @@ function royaltiesSupported() {
  * is the unsold tokens' share, which claimPoolRoyalties pays to the
  * token's payout wallet — the artist (§2.92). Null on a token contract
  * without royalties. */
+/** Royalties shared out for a token, under whichever name the deployed
+ * contract carries it: `totalRoyaltiesDistributed` since §2.101, the older
+ * `totalRoyaltiesDeposited` before it. On a pre-§2.101 contract no fee was
+ * deducted, so the two are the same number and the fallback reports no
+ * different figure than the contract itself does.
+ *
+ * This exists because the code reaches `main` before the contract is
+ * redeployed: the rename shipped in `c34a1bf`, but Sepolia still runs the
+ * token deployed at phase 2, where calling the new name returns no data and
+ * ethers throws. Without this the whole royalty endpoint 500s in production
+ * for every asset. Delete the fallback once the redeploy is done. */
+async function readRoyaltiesDistributed(tokenId) {
+  try {
+    return await readContract.totalRoyaltiesDistributed(tokenId);
+  } catch {
+    return await withRetry(() => readContract.totalRoyaltiesDeposited(tokenId));
+  }
+}
+
 async function getRoyaltyState(tokenId) {
   if (!(await royaltiesSupported())) return null;
   const [distributed, claimed, outstanding, pool, poolClaimable, payout] = await Promise.all([
-    withRetry(() => readContract.totalRoyaltiesDistributed(tokenId)),
+    withRetry(() => readRoyaltiesDistributed(tokenId)),
     withRetry(() => readContract.totalRoyaltiesClaimed(tokenId)),
     withRetry(() => readContract.outstandingSupply(tokenId)),
     withRetry(() => readContract.poolBalance(tokenId)),
@@ -285,6 +307,11 @@ async function getRoyaltyState(tokenId) {
     tokenId,
     contractAddress: CONTRACT_ADDRESS,
     totalDistributedUsdc: distributed.toString(),
+    // The name this field had before §2.101, still served because the bundle
+    // on GitHub Pages is only rebuilt at a merge: a browser that loaded the
+    // site before this deploy reads the old name and would otherwise show an
+    // empty tile. Remove it once docs/ is rebuilt with the new frontend.
+    totalDepositedUsdc: distributed.toString(),
     totalClaimedUsdc: claimed.toString(),
     outstandingSupply: outstanding.toString(),
     poolBalance: pool.toString(),
