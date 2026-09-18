@@ -2160,7 +2160,7 @@ graficamente nello stile del sito in basso a destra) per guidare gli utenti
 nell'utilizzo"*. Asked which engine; Cesare chose the **hybrid**: one widget,
 written answers by default, Claude where a key is configured.
 
-**On `dev/cesare`, PR open, not merged** — a feature, needs Cesare's go-ahead.
+**Merged to `main` the same evening** (PR #71, `70723c7`), after Cesare's go-ahead; the effort fix below went in as PR #72.
 
 - Button bottom-right: the inverted nine-bar mark on the brand gradient, bars
   lifting like a meter on hover, `inset-inline-end` so Arabic flips it. Panel in
@@ -2228,3 +2228,55 @@ change.
 **Never tested live:** a royalty deposit with a real statement file on Pinata.
 The flow is proven on a local chain and in headless Chrome only.
 
+---
+
+## 2026-09-18 (notte) — la guida è live; e un commit che ha rastrellato l'indice condiviso
+
+**Merged and verified live.** PR **#71** (`70723c7`) put the guide widget on
+`main`; the bundle moved to `main-GPE4SACA.js`, the button renders on the
+landing and the marketplace, a typed question ("come funzionano le milestone?")
+answered from the written topics with no console errors, and all nine locales
+serve 737 keys. `/api/assistant/status` answers `available: false` in
+production, which is correct: no `ANTHROPIC_API_KEY` is set on Render, so the
+widget stays in written-answers mode. `/api/assistant/ask` → 503,
+`/api/assistant/usage` without the admin key → 401.
+
+**Bug fix, PR #72** (`c34a1bf`): every request carried
+`output_config.effort`, which Haiku and the older models reject with a 400 —
+so following `.env.example`'s own suggestion (`claude-haiku-4-5`) would have
+broken the endpoint and looked like "no AI configured". Effort now goes only to
+the models that accept it.
+
+**Values Cesare asked about, recommended but not set:**
+`ANTHROPIC_MODEL=claude-haiku-4-5` (~$0.002 a question, against ~$0.013–0.028
+on `claude-opus-5` — the brief is ~2,400 cached tokens), `ASSISTANT_DAILY_CAP=200`
+(~$12/month worst case on Haiku), and the key created in its own Anthropic
+workspace under a spend limit. The per-IP caps (15/hour, 50/day) are in code.
+**The real Anthropic call has still never run against a live key.**
+
+### What went wrong, and what it cost
+
+PR #72 was meant to carry two files. It carried **33**: the other session had
+staged its whole §2.101 fee change into the *shared git index*, and a plain
+`git commit` (after a path-limited `git add`) commits the index, not what you
+just added. So the contracts, the legal folder and the frontend of a change
+that was still in progress reached `main` under a bug-fix message — and
+production then called `totalRoyaltiesDistributed` on a token that only has
+`totalRoyaltiesDeposited`: `/api/royalties/:id` answered 500 for every asset.
+The other session caught it and shipped the fallback (`9e36b50`, PR #73);
+production is healthy again, verified.
+
+**The rule that follows from it** (now also in my memory): in this checkout,
+commit **path-limited** — `git commit -- <paths>` — and read
+`git diff --cached --stat` before, `git show --stat HEAD` after. Earlier in the
+same session the §2.100 commits were kept clean exactly this way: every shared
+file was staged hunk by hunk (`HEAD` content + my block → `git diff --no-index`
+→ `git apply --cached`), `docs/` was rebuilt from a throwaway `git worktree` at
+my own commit, and `./legal/check.sh --update` was run there too, so neither
+recorded the other session's work. That discipline held; the one plain
+`git commit` is what broke it.
+
+**Still open on the guide:** the live key test; and whenever fees or roles
+change, `server/assistant-knowledge.js` (watched by `legal/check.sh`) **and**
+the `assistant.kb.*` strings in nine locales (not watched) have to move with
+them — the §2.101 pass was already done by the other session on `main`.
