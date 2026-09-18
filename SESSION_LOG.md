@@ -2280,3 +2280,52 @@ recorded the other session's work. That discipline held; the one plain
 change, `server/assistant-knowledge.js` (watched by `legal/check.sh`) **and**
 the `assistant.kb.*` strings in nine locales (not watched) have to move with
 them — the §2.101 pass was already done by the other session on `main`.
+
+## 2026-09-19 — §2.101 chiuso lato legale; i due appoggi che vivono in produzione
+
+Sessione delle fee, vista dall'altra parte della collisione descritta sopra.
+La decisione dell'utente, nata leggendo il giro del denaro: un catalogo già
+legato a un flusso di cassa, venduto senza milestone, pagava il 2% e nient'altro
+per sempre — nessuna commissione sulle tranche, e royalty distribuite gratis per
+tutta la vita del catalogo. Quindi **6% sulla vendita diretta** e **1% su ogni
+versamento di royalty**. Il ragionamento completo è in technical §2.101, qui solo
+ciò che non è scritto altrove.
+
+**Esito legale** (`./legal/check.sh` pulito, impronte registrate):
+- **02 C-15 · Media**, nuovo: è la prima commissione su denaro di terzi che la
+  piattaforma sta *trasferendo*, non sul corrispettivo di una vendita.
+- **07 A13 🟠**, nuova domanda: come si qualifica quel compenso, se cambia
+  qualcosa perché è trattenuto dal contratto invece che fatturato all'artista, e
+  se regge che l'1% colpisca anche la quota dei token invenduti, che torna
+  all'artista stesso. **Va all'avvocato insieme ad A12: sono la stessa attività
+  vista da due lati.**
+- **03 W-20**, proposta per il whitepaper: la correzione W-6 ("less the 2%
+  platform fee") è di nuovo falsa. **Non applicata** — il whitepaper si tocca
+  solo su ordine esplicito.
+- Aggiornati 04 §6 (tabella + perché le due aliquote differiscono), 06 §2.1 e
+  nuovo §2.3-bis, 08 A-6 con le due strade a confronto su 10.000 USDC, 01 §10.
+
+**I due appoggi in `server/chain.js`, e quando si tolgono.** Nessuno dei due è
+una scelta di design: esistono perché il codice arriva su `main` con un merge,
+il contratto solo quando un umano lancia il deploy.
+1. `readRoyaltiesDistributed()` prova il nome nuovo e ripiega sul vecchio →
+   **si toglie subito dopo il quinto redeploy**.
+2. La risposta porta `totalDepositedUsdc` accanto a `totalDistributedUsdc`,
+   perché `docs/` si ricostruisce solo al merge e il bundle vivo legge il nome
+   vecchio → **si toglie quando `docs/` porta il frontend nuovo**, cioè nello
+   stesso passaggio del redeploy.
+Su un contratto pre-commissione non veniva trattenuto nulla, quindi i due nomi
+sono lo stesso numero: la fallback non mostra una cifra diversa da quella che il
+contratto riporta.
+
+**Produzione verificata dopo il merge:** `/api/onchain/*`, `/api/royalties/*`
+(entrambi i campi presenti), `/api/escrow/campaigns`, `/api/listings`,
+`/api/fees`, `/api/price-history/*` tutti ok. `feeBps: 200` — la catena prende
+ancora il 2%, com'è giusto finché non si ridistribuisce. Bundle
+`main-GPE4SACA.js`, senza il copy nuovo: il sito non annuncia il 6%.
+(`/api/assets` risponde "not found" a una GET perché è POST-only: non è una
+regressione.)
+
+**Da fare per primo, la prossima volta:** il quinto redeploy. Finché non c'è,
+codice e catena dicono cose diverse in tre punti — le due aliquote e i due
+appoggi qui sopra.
