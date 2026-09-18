@@ -2196,3 +2196,35 @@ in nine locales still say 2%.
 **Next:** set `ANTHROPIC_API_KEY` (and optionally `ANTHROPIC_MODEL`,
 `ASSISTANT_DAILY_CAP`) on Render if the AI mode is wanted in production, then
 merge the PR and check the live bundle and `/api/assistant/status`.
+
+### Handoff for the next session (written 19 Sep, royalty/registration thread)
+
+**Live on `main` and verified:** phase 2 contracts (token `0xa619…82EF`, escrow
+`0xc004…D368`, owner = Safe `0xBA2a…245d`), royalty statements as a file hash
+with optional IPFS publication (§2.98), email registration through Brevo
+(§2.93) — Cesare completed a real verification on the site.
+
+**Fees are the one thing out of step.** §2.101 (another session) is merged as
+source: `PRIMARY_FEE_BPS = 600`, new `ROYALTY_FEE_BPS = 100`,
+`totalRoyaltiesDistributed`. The deployed token still charges 2% and has no
+royalty fee. The published `docs/` predates §2.101, so the site still says 2%.
+**Anyone rebuilding `docs/` onto `main` before the fifth redeploy will publish
+6% against a chain that takes 2%** — rebuild only together with the redeploy,
+and change the guide's fee answers (`server/assistant-knowledge.js`,
+`assistant.kb.fees.*` / `assistant.kb.buy.*` in nine locales) in the same
+change.
+
+**Do next, in order:**
+1. Fifth redeploy for §2.101 (`.claude/skills/contract-redeploy`), restoring
+   balances as on 17 Sep; price and royalty history clear again.
+2. Per-token royalty deposit interval (legal 08 C-12): wizard field, stored
+   with the acceptance, shown on the asset page. Decided but not in code.
+3. Signed terms acceptance at registration (08 C-1…C-8), then artist QES, then
+   cancellation with takedown (§2.87).
+4. Counsel question 07 A12: which authorization the platform needs to receive
+   the artist's money and convert it. Cesare thinks one is almost certainly
+   needed, so the question is which and what the alternatives are.
+
+**Never tested live:** a royalty deposit with a real statement file on Pinata.
+The flow is proven on a local chain and in headless Chrome only.
+
