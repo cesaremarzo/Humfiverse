@@ -504,7 +504,8 @@
   .choice-card{ text-align:left; padding:18px; border:1.5px solid var(--border); border-radius:14px; background:var(--surface); cursor:pointer; display:flex; flex-direction:column; gap:8px; transition: border-color .2s var(--ease), background .2s var(--ease); }
   .choice-card:hover{ border-color: var(--border-strong); }
   .choice-card.selected{ border-color: var(--accent); background: var(--accent-soft); }
-  .choice-card .icon{ width:36px; height:36px; border-radius:10px; background:var(--surface-2); display:flex; align-items:center; justify-content:center; color:var(--accent-ink); }
+  .choice-card .icon{ display:flex; align-items:center; justify-content:center; color:var(--accent-ink); }
+  .choice-card .icon svg{ width:20px; height:20px; }
   .choice-card h4{ font-family:"IBM Plex Sans",sans-serif; font-size:15.5px; }
   .choice-card p{ font-size:13px; color:var(--text-secondary); line-height:1.5; }
 
@@ -597,7 +598,9 @@
   .modal{ background: var(--surface); border:1px solid var(--border); border-radius:18px; max-width:420px; width:100%; padding:28px; box-shadow: var(--shadow-lg), var(--inset-highlight); display:flex; flex-direction:column; gap:16px; text-align:center; animation: modal-in .3s var(--ease); }
   @keyframes fade-in{ from{ opacity:0; } to{ opacity:1; } }
   @keyframes modal-in{ from{ opacity:0; transform: translateY(8px) scale(.985); } to{ opacity:1; transform:none; } }
-  .modal .success-icon{ width:52px; height:52px; border-radius:50%; background: var(--good-soft); color:var(--good); display:flex; align-items:center; justify-content:center; margin:0 auto; }
+  /* A hairline ring, not a filled pastel disc. */
+  .modal .success-icon{ width:52px; height:52px; border-radius:50%; border:1px solid var(--good); color:var(--good); display:flex; align-items:center; justify-content:center; margin:0 auto; }
+  .modal .success-icon svg{ width:22px; height:22px; }
 
   /* Sign-in dialog (§2.83) */
   .connect-modal{ position:relative; max-height: calc(100dvh - 40px); overflow-y:auto; text-align:left; gap:18px; }
@@ -651,9 +654,11 @@
   .feature-grid{ display:grid; grid-template-columns: repeat(3,1fr); gap:18px; margin-top:8px; }
   @media (max-width:760px){ .feature-grid{ grid-template-columns:minmax(0,1fr); } }
   .feature-card{ padding:24px; display:flex; flex-direction:column; gap:8px; }
-  .feature-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-  .feature-card .icon{ width:36px; height:36px; border-radius:10px; background:var(--accent-soft); color:var(--accent-ink); display:flex; align-items:center; justify-content:center; border:1px solid var(--accent-soft-border); }
-  .feature-index{ font-size:12px; color: var(--text-muted); letter-spacing:0.08em; }
+  .feature-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding-bottom:12px; margin-bottom:10px; border-bottom:1px solid var(--hairline); }
+  /* Bare icon, no tile — see .landing-step-icon for the same decision. */
+  .feature-card .icon{ display:flex; align-items:center; justify-content:center; color:var(--accent-ink); }
+  .feature-card .icon svg{ width:20px; height:20px; }
+  .feature-index{ font-family:"IBM Plex Mono",monospace; font-size:22px; font-weight:300; line-height:1; letter-spacing:-0.02em; color: var(--text-muted); font-variant-numeric: tabular-nums; }
   .feature-card h4{ font-size:20px; margin-bottom:2px; }
   .feature-card p{ font-size:13.5px; color:var(--text-secondary); line-height:1.6; }
   .feature-card .feature-note{ font-size:12.5px; padding-top:10px; margin-top:4px; border-top:1px solid var(--hairline); }
@@ -733,7 +738,7 @@
 
   .hero-visual{ box-shadow: var(--shadow-lg), var(--glow), inset 0 1px 0 rgba(255,255,255,0.08); }
   .hero-eq span{ background: linear-gradient(180deg, #F3E9FF, #B996E6 60%, #3FD2BE); }
-  /* Some icons in icons.json carry no width/height; give the landing step tiles a size. */
+  /* Some icons in icons.json carry no width/height; give the landing step icons a size. */
   .landing-step-icon svg{ width:20px; height:20px; }
 
   /* ============================= TRACK MEDIA (§2.93) ============================= */
