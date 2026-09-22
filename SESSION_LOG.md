@@ -2329,3 +2329,27 @@ regressione.)
 **Da fare per primo, la prossima volta:** il quinto redeploy. Finché non c'è,
 codice e catena dicono cose diverse in tre punti — le due aliquote e i due
 appoggi qui sopra.
+
+## 2026-09-22 — quanto costerebbe la guida con Claude acceso
+
+Solo domande, nessun codice toccato.
+
+**Stato in produzione:** `/api/assistant/status` → `{"available":false,"model":null}`.
+Su Render manca ancora `ANTHROPIC_API_KEY`, quindi il bottone in basso a destra
+risponde solo con i testi scritti. Con la chiave userebbe `claude-opus-5`
+(default in `server/config.js`), sovrascrivibile con `ANTHROPIC_MODEL`.
+
+**Stima dei costi con Opus 5** ($5 / $25 per milione di token), dai limiti nel codice:
+- una domanda ≈ $0,015–0,03 (brief di sistema ~2.500 token, cache di 5 minuti;
+  risposta con effort `low`, tetto 1.200 token);
+- ~$5–10/mese con 10 domande al giorno, ~$25–45 con 50;
+- al tetto di `ASSISTANT_DAILY_CAP=300` circa $200–270/mese, ~$450 nel caso peggiore.
+- Con `claude-haiku-4-5` circa un quinto (tetto ~$35/mese).
+
+**Imprecisione trovata, non corretta:** `server/.env.example` dice "brief cached"
+anche per Haiku. Non è così: Haiku 4.5 mette in cache solo prompt da 4.096 token
+in su, e il nostro brief ne ha ~2.500. Il costo cambia di pochissimo (~$0,0025 a
+domanda), ma il commento va sistemato quando si tocca quel file.
+
+**Aperto:** la scelta tra modello e tetto giornaliero spetta ancora a Cesare.
+Il primo giro con una chiave vera non è mai stato fatto: va verificato da capo a fondo.
