@@ -3,6 +3,41 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-09-22 (2) · correzione al §2 del file 10: il 5/7 non ci riguarda
+
+Obiezione dell'utente, corretta: *«questo non interessa più le royalties
+generate dagli artisti e trasferite ai token holders?»* — la prima stesura
+segnalava come 🔴 il rischio che l'1% sulle royalty finisse nel rimborso dei 5/7
+(≈10%) invece che in quello dei 6/7. Verificato nel contratto, il rischio non
+c'è, e la segnalazione confondeva due cose diverse.
+
+- **Il lordo non tocca mai i conti della società.** `HumfiverseCatalogueToken`
+  riga 366: sulla vendita primaria `cost - fee` va **direttamente** dal
+  compratore al wallet dell'artista. Righe 456-466: sul versamento di royalty
+  l'intero importo entra **nel contratto**, l'1% si accumula in `accruedFees` e
+  il 99% se lo ritirano i possessori. Le royalty degli artisti non sono mai un
+  ricavo della società: i ricavi sono **solo le commissioni**.
+- Quindi tutte e cinque le commissioni sono **trading income: 6/7, 5%**, l'1%
+  compreso, per due ragioni indipendenti — la società non concede in uso alcuna
+  IP, e il reddito deriva comunque da un'attività d'impresa.
+- Quel che restava valido dell'1% è **un'altra questione**: se serva
+  un'autorizzazione per trasferire denaro di terzi (02 C-15, 07 A13). È una
+  qualificazione dell'attività, non un'aliquota di rimborso. Le due si erano
+  sovrapposte.
+- **10 §2** riscritto: le royalty degli artisti fuori dal discorso, le
+  commissioni tutte al 6/7, e i due casi in cui il 5/7 comparirebbe davvero
+  (rendimento sulla liquidità propria; la società che comprasse lei i cataloghi
+  per darli in licenza) — nessuno dei due è il piano attuale.
+- **10 §3**: corretta di conseguenza la riga sull'esenzione dalla revisione. Il
+  fatturato della società è la somma delle commissioni, non il volume scambiato:
+  93.000 € di commissioni al 6% sono circa 1,5 milioni di cataloghi venduti,
+  quindi l'esenzione regge più a lungo di quanto scritto prima. Resta che la
+  sostanza spinge ad avere dipendenti a Malta, e due dipendenti fanno saltare
+  una delle tre soglie.
+- **07**: **L4** scende da 🔴 a 🟠 e cambia natura — non più «6/7 o 5/7?» ma
+  «confermate che è 6/7». Esce dall'elenco dei 🔴. Nuova **L4-bis 🟢** per i due
+  casi futuri. **01 §11**: rimando corretto.
+
 ## 2026-09-22 · società a Malta e rimborso dei 6/7 (file 10, nuovo)
 
 Decisione dell'utente: **costituire la società a Malta e operare da lì**, per

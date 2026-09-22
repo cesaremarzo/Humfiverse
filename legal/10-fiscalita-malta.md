@@ -77,20 +77,67 @@ se ne accorga.
 | Redditi per cui si è chiesto il credito per imposte estere | 2/3 | variabile |
 | **Participating holding** (dividendi e plusvalenze da partecipazioni qualificate) | 100% | 0% |
 
-**Perché riguarda Humfiverse in modo specifico.** I ricavi della piattaforma
-sono commissioni: 6% sulla vendita diretta, 2% sui contributi, 3% sulle tranche,
-1% sulle rivendite, 1% su ogni versamento di royalty (01 §10, §11). Le prime
-quattro sono chiaramente corrispettivi di un servizio, cioè *trading income*:
-6/7.
+### Le royalty degli artisti non c'entrano: non sono mai ricavi della società
 
-La quinta no, o almeno non è ovvia. L'1% trattenuto su ogni versamento di
-royalty è l'unica commissione che la piattaforma prende su **denaro di terzi che
-sta trasferendo**, non sul corrispettivo di una vendita — è la ragione per cui
-esistono già **02 C-15** e la domanda **07 A13**. La parola "royalty" nel
-contesto maltese indica il reddito *da* concessione di proprietà intellettuale,
-non il compenso per amministrare le royalty altrui, quindi a rigore resta
-trading income. Ma è esattamente il genere di qualificazione che va chiesta
-prima, non dopo. **[verificare]** → domanda **L4**.
+Va detto subito perché è la confusione naturale, e perché toglie di mezzo un
+falso problema. **Il flusso di royalty che parte dagli artisti e arriva ai
+possessori dei token non entra mai nei conti della società.** Verificato nel
+contratto, non dedotto:
+
+- **Vendita primaria** (`HumfiverseCatalogueToken.buy`, riga 366): il compratore
+  paga, e `cost - fee` va **direttamente** dal wallet del compratore a quello
+  dell'artista. Alla società arriva solo `fee`.
+- **Versamento di royalty** (`depositRoyalties`, righe 456-466): l'intero importo
+  entra **nel contratto**, non in società. L'1% si accumula in `accruedFees`, il
+  99% resta nel contratto e ogni possessore se lo ritira da solo con
+  `claimRoyalties`.
+
+Quindi il lordo non tocca mai il bilancio della società, in nessuno dei due
+flussi. Quello che la società incassa sono **soltanto le commissioni**.
+
+### Le commissioni sono tutte trading income
+
+Le cinque commissioni — 6% sulla vendita diretta, 2% sui contributi, 3% sulle
+tranche, 1% sulle rivendite, 1% su ogni versamento di royalty (01 §10, §11) —
+sono corrispettivi di un servizio, quindi **trading income: 6/7, 5%**. Compreso
+l'1% sulle royalty, per due ragioni indipendenti:
+
+1. Nel diritto maltese "royalties" indica il corrispettivo **per l'uso di
+   proprietà intellettuale**. La società non concede in uso nessuna IP: i
+   diritti restano dell'artista, la piattaforma amministra un meccanismo di
+   distribuzione e si fa pagare per quello.
+2. Anche ammesso che qualcuno volesse qualificarlo come royalty, il test del
+   reddito *passivo* richiede che il reddito **non derivi da un'attività
+   d'impresa**. Gestire la piattaforma è l'attività d'impresa. **[verificare]**
+
+Resta vero che quell'1% è l'unica commissione presa su denaro di terzi in
+transito, ed è la ragione per cui esistono **02 C-15** e la domanda **07 A13** —
+ma quella è una questione di *qualificazione dell'attività* (serve
+un'autorizzazione per trasferire quel denaro?), non di aliquota di rimborso. Le
+due cose si erano sovrapposte nella prima stesura di questo file.
+
+### Dove il 5/7 potrebbe comparire davvero
+
+Due casi, nessuno dei quali è quello attuale. Vanno tenuti d'occhio perché
+dipendono da decisioni che potreste prendere voi:
+
+1. **Rendimento sulla liquidità.** Se un domani la società tiene USDC o euro
+   propri e ci guadagna un interesse, *quello* è interesse passivo: 5/7, ≈10%.
+   Oggi non succede — i fondi stanno nel contratto, non in società.
+2. **Se il modello cambia e la società acquista lei i cataloghi.** Se invece di
+   intermediare la società comprasse i diritti e li concedesse in licenza,
+   quello sarebbe reddito da royalty vero e proprio, e lì il 5/7 si
+   applicherebbe. Non è il piano attuale; se lo diventa, questo paragrafo va
+   riletto.
+
+### Una conseguenza utile: il fatturato della società è piccolo
+
+Siccome il lordo non passa dai conti, il **fatturato** della società non è il
+volume scambiato sulla piattaforma ma solo la somma delle commissioni. Su un
+milione di euro di cataloghi venduti al 6%, il fatturato è 60.000 €, non un
+milione. Conta per la soglia di esenzione dalla revisione (§3) e per qualunque
+test basato sul fatturato: la società resta "piccola" molto più a lungo di
+quanto suggerisca il giro d'affari.
 
 ---
 
@@ -116,9 +163,12 @@ i numeri sono l'ordine di grandezza con cui ragionare.
 - **Revisione legale del bilancio obbligatoria.** Malta la impone a *tutte* le
   società, non solo alle grandi. Esiste un'esenzione per le micro-imprese che
   non superano due soglie su tre — attivo 46.600 €, fatturato 93.000 €, 2
-  dipendenti in media **[verificare]** — ma una piattaforma che genera utili
-  veri esce dal fatturato quasi subito. **Mettete a bilancio un revisore ogni
-  anno, per sempre.**
+  dipendenti in media **[verificare]**. Attenzione al fatturato: come spiega il
+  §2, è la somma delle **commissioni**, non il volume scambiato, quindi
+  l'esenzione può reggere più a lungo del previsto — 93.000 € di commissioni al
+  6% vogliono dire circa 1,5 milioni di cataloghi venduti. Ma la sostanza (§4.4)
+  spinge verso l'avere dipendenti a Malta, e due dipendenti fanno saltare una
+  delle tre soglie. **Nel piano di cassa mettete comunque il revisore.**
 - Bilancio e *annual return* all'MBR; dichiarazione dei redditi all'MTCA.
 - **Registrazione del socio presso l'MTCA per poter chiedere i rimborsi.** Senza
   questo passaggio il 6/7 non si chiede: la società paga il 35% e basta.

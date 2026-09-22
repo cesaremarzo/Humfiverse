@@ -333,12 +333,21 @@ l'azione di recupero. Decisione del 15 settembre 2026, note legali §7.10.*
 corporate service provider **maltese** e un tributarista **italiano**. Presi
 separatamente ciascuno vede metà del problema.*
 
-- **L4** 🔴 *Nuova, 2026-09-22.* **Le commissioni di Humfiverse danno diritto al
-  rimborso dei 6/7 (5%) o a quello dei 5/7 (≈10%)?** Il 6/7 vale sugli utili da
-  attività commerciale, il 5/7 su interessi e royalty passivi. Le commissioni su
-  vendita, contributi, tranche e rivendite sembrano corrispettivi di un servizio;
-  l'**1% trattenuto su ogni versamento di royalty** è l'unica presa su denaro di
-  terzi in transito (02 C-15, A13) ed è quella da qualificare. *(10 §2)*
+- **L4** 🟠 *Nuova, 2026-09-22; ridimensionata lo stesso giorno.* **Conferma che
+  tutte le commissioni sono trading income (6/7, 5%).** Le royalty che gli
+  artisti generano e che arrivano ai possessori dei token **non sono mai ricavi
+  della società**: il contratto manda `cost - fee` dritto al wallet dell'artista
+  e tiene il 99% dei versamenti di royalty per i possessori, quindi il lordo non
+  passa dai conti. Resta da far confermare che l'1% sulle royalty sia un
+  corrispettivo di servizio e non un "royalty income" maltese — a nostro avviso
+  sì, per due ragioni indipendenti (la società non concede in uso alcuna IP, e
+  comunque il reddito deriva da un'attività d'impresa). **Da far confermare, non
+  da risolvere.** *(10 §2)*
+- **L4-bis** 🟢 *Nuova, 2026-09-22.* Se un domani la società tiene liquidità
+  propria e ci guadagna un interesse, o se il modello cambia e la società
+  acquista lei i cataloghi per concederli in licenza, quel reddito diventa
+  **passivo: 5/7, ≈10%**. Non è il caso oggi. Da riaprire se una delle due cose
+  diventa il piano. *(10 §2)*
 - **L5** 🔴 *Nuova, 2026-09-22.* **Esterovestizione (art. 73 co. 3 TUIR, come
   riscritto dal D.Lgs. 209/2023).** Cosa serve in concreto perché la società
   maltese non sia considerata residente in Italia per *sede di direzione
@@ -373,12 +382,12 @@ separatamente ciascuno vede metà del problema.*
 
 ## Da chiarire per primo (🔴)
 
-A1 · A2 · A4 · A5 · A9 · A10 · B1 · B3 · B7 · B8 · C1 · C2 · G1 · H1 · L4 · L5 · L6
+A1 · A2 · A4 · A5 · A9 · A10 · B1 · B3 · B7 · B8 · C1 · C2 · G1 · H1 · L5 · L6
 
 **H1 e G1 si possono affrontare subito e costano poco.** Le altre richiedono
 l'incontro con l'avvocato dei mercati finanziari.
 
-**L4, L5 e L6 hanno un interlocutore diverso** (commercialista, non avvocato) e
+**L5 e L6 hanno un interlocutore diverso** (commercialista, non avvocato) e
 possono quindi correre in parallelo. Vanno però chiuse **prima di costituire
 qualsiasi società a Malta**, non dopo: L5 in particolare dipende da una scelta
 personale — chi si trasferisce — che una volta costituita la società è cara da
