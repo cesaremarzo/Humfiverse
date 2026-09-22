@@ -128,7 +128,11 @@ Lussemburgo (CSSF) e Italia (CONSOB).*
   passaportano in tutta l'UE con una notifica. Conviene rispetto al veicolo
   lussemburghese di A6 e A11 — o le due cose convivono (operativa a Malta,
   emissione in Lussemburgo)? Quanto costa e quanto dura ciascuna strada?
-  *(10 §5.1, §5.2)*
+  **Vincolo pratico da incrociare:** essendo a socio unico, l'atto costitutivo
+  maltese deve dichiarare **un'attività principale**, e la piattaforma ne fa
+  quattro (vendita primaria, escrow a milestone, distribuzione royalty, mercato
+  secondario). Quale si dichiara, e quella scelta condiziona l'autorizzazione?
+  *(10 §3, §5.1, §5.2)*
 - **A14** 🟠 *Nuova, 2026-09-17.* Dal §2.100 il sito ha una **guida
   automatica**: risposte scritte da noi e, dove è configurata una chiave API,
   risposte generate da Claude a partire da un'istruzione di sistema
@@ -348,13 +352,24 @@ separatamente ciascuno vede metà del problema.*
   acquista lei i cataloghi per concederli in licenza, quel reddito diventa
   **passivo: 5/7, ≈10%**. Non è il caso oggi. Da riaprire se una delle due cose
   diventa il piano. *(10 §2)*
-- **L5** 🔴 *Nuova, 2026-09-22.* **Esterovestizione (art. 73 co. 3 TUIR, come
-  riscritto dal D.Lgs. 209/2023).** Cosa serve in concreto perché la società
-  maltese non sia considerata residente in Italia per *sede di direzione
-  effettiva* o per *gestione ordinaria in via principale*? **E il caso che ci
-  riguarda davvero: se uno dei due soci si trasferisce e l'altro resta in Italia
-  continuando a lavorare al prodotto, la gestione ordinaria risulta italiana?**
-  Questa risposta va avuta **prima** di costituire. *(10 §4.1, §4.4)*
+- **L5** 🔴 *Nuova, 2026-09-22; riscritta lo stesso giorno, la società è a socio
+  unico.* **Esterovestizione (art. 73 co. 3 TUIR, come riscritto dal D.Lgs.
+  209/2023).** Cosa serve in concreto perché la società maltese non sia
+  considerata residente in Italia per *sede di direzione effettiva* o per
+  *gestione ordinaria in via principale*, dato che il socio unico e
+  amministratore unico è la stessa persona che si trasferisce? Quali prove
+  vanno costruite dal primo giorno (verbali, luogo delle decisioni, contratti,
+  conto)? *(10 §4.1, §4.4)*
+- **L5-bis** 🔴 *Nuova, 2026-09-22.* **Stabile organizzazione in Italia (art. 162
+  TUIR, art. 5 trattato Italia-Malta).** Il socio unico si trasferisce, ma
+  **Vincenzo resta in Italia e continua a lavorare al prodotto**. Questo crea
+  una stabile organizzazione italiana della società maltese, con tassazione in
+  Italia della quota di utile attribuibile? La risposta cambia a seconda che
+  Vincenzo sia **dipendente, collaboratore, fornitore con partita IVA o futuro
+  socio** — e cambia se ha poteri di decidere o solo di eseguire. **Qual è
+  l'assetto che regge?** È diverso dall'esterovestizione (che si prende tutto):
+  qui si rischia una tassazione parziale, ma è molto più facile da contestare.
+  *(10 §4.4)*
 - **L6** 🔴 *Nuova, 2026-09-22.* **Residenza personale (art. 2 TUIR riformato).**
   Cosa serve per cessare davvero la residenza fiscale italiana, oltre ai 183
   giorni e all'AIRE, ora che il *domicilio* è definito come il luogo delle
@@ -382,12 +397,12 @@ separatamente ciascuno vede metà del problema.*
 
 ## Da chiarire per primo (🔴)
 
-A1 · A2 · A4 · A5 · A9 · A10 · B1 · B3 · B7 · B8 · C1 · C2 · G1 · H1 · L5 · L6
+A1 · A2 · A4 · A5 · A9 · A10 · B1 · B3 · B7 · B8 · C1 · C2 · G1 · H1 · L5 · L5-bis · L6
 
 **H1 e G1 si possono affrontare subito e costano poco.** Le altre richiedono
 l'incontro con l'avvocato dei mercati finanziari.
 
-**L5 e L6 hanno un interlocutore diverso** (commercialista, non avvocato) e
+**L5, L5-bis e L6 hanno un interlocutore diverso** (commercialista, non avvocato) e
 possono quindi correre in parallelo. Vanno però chiuse **prima di costituire
 qualsiasi società a Malta**, non dopo: L5 in particolare dipende da una scelta
 personale — chi si trasferisce — che una volta costituita la società è cara da

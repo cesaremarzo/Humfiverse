@@ -48,6 +48,31 @@ Il 5% è corretto. Ma è il carico **a Malta**. Quei 95.000 € arrivano a una
 persona fisica o a una società, che ha una propria residenza fiscale, e lì la
 storia continua. È il §4, ed è la parte che decide se questo piano funziona.
 
+### Con il socio unico, il rimborso arriva a te
+
+Visto che la società è a socio unico (§3), «il socio» di quella tabella è
+**Cesare, persona fisica**. Sono quindi 65.000 € di dividendo e 30.000 € di
+rimborso che arrivano su un conto personale, non societario. Due conseguenze:
+
+- **Se sei residente a Malta**, il dividendo arriva con un **credito d'imposta
+  pieno** per il 35% già pagato dalla società (è il senso della *full
+  imputation*). Poiché l'aliquota massima personale maltese è anch'essa il 35%,
+  in linea di principio **non c'è altra imposta da pagare**, e il rimborso non è
+  a sua volta tassato. È così che il 5% resta 5%. **[verificare]**: è il
+  passaggio su cui tutto il piano si regge, e va confermato per iscritto dal
+  consulente maltese prima di muovere qualsiasi cosa.
+- **Se sei residente in Italia**, vedi §4.3: il 5% non regge e non è una
+  questione di dettagli.
+
+**Serve una holding in mezzo?** Non per l'aliquota. Serve se l'utile deve
+restare investito invece di arrivarti addosso ogni anno come reddito personale:
+una **Malta HoldCo** incasserebbe lei il rimborso, i dividendi tra le due
+società sarebbero esenti, e la tassazione personale scatterebbe solo quando i
+soldi salgono davvero a te. È anche la struttura che serve per la *fiscal unit*
+(il 5% diretto, niente attesa del rimborso). Costa una seconda società, una
+seconda revisione e un secondo set di adempimenti: va messa sul piatto solo se i
+numeri la giustificano — domanda **L8**.
+
 ### Il costo di cassa che nessuno menziona
 
 Tra il versamento del 35% e l'incasso del rimborso passano mesi: serve che
@@ -146,17 +171,36 @@ quanto suggerisca il giro d'affari.
 Tutto quanto segue è da confermare con un *corporate service provider* maltese;
 i numeri sono l'ordine di grandezza con cui ragionare.
 
-### Costituzione
-- Forma: **private limited liability company** (Ltd), iscritta al **Malta
-  Business Registry** (MBR).
+### Costituzione — socio unico
+
+*Decisione dell'utente del 2026-09-22: **la società la costituisce Cesare da
+solo**. Quindi non una Ltd ordinaria a due soci, ma una **single member
+company**, che a Malta è una sottospecie della **private exempt company** e ha
+regole sue. Cambiano tre cose in meglio e una in peggio.*
+
+- Forma: **private limited liability company** (Ltd) a **socio unico**, iscritta
+  al **Malta Business Registry** (MBR).
 - **Capitale sociale minimo: 1.164,69 €**, interamente sottoscritto, di cui
   almeno il **20% versato** (≈ 233 €).
-- Sottoscrittori: di norma **almeno 2**; la società a socio unico esiste ma
-  segue regole proprie **[verificare]** — riguarda voi direttamente, visto che
-  siete in due (Cesare e Vincenzo).
-- Almeno **1 amministratore** e **1 company secretary**. Il secretary deve
-  essere una persona fisica, e in genere non può coincidere con l'unico
-  amministratore **[verificare]**.
+- **Un solo socio basta.** La *single member company* è espressamente prevista
+  dal Companies Act maltese.
+- **L'amministratore unico può fare anche da company secretary.** È la regola
+  che salta solo per le *private exempt companies*: in una società ordinaria
+  l'amministratore unico **non** può essere anche secretary, in questa sì. Per
+  voi significa che **Cesare può essere socio unico, amministratore unico e
+  secretary insieme** — una persona in meno da pagare e da coinvolgere.
+  **[verificare]** se convenga comunque affiancare un secretary professionale
+  maltese: costa, ma è anche sostanza (§4.4).
+- **Niente amministratori persona giuridica.** Nelle private exempt companies il
+  consiglio è fatto solo di persone fisiche.
+- **Massimo 50 portatori di obbligazioni** (*debentures*).
+- ⚠️ **Il vincolo che pesa davvero: l'atto costitutivo deve indicare
+  un'*attività principale*.** Una single member company deve dichiarare nel
+  *Memorandum* qual è la sua attività principale. Humfiverse ne fa diverse —
+  vendita primaria, escrow a milestone, distribuzione di royalty, mercato
+  secondario — e sceglierne una come principale non è una formalità: quella
+  dichiarazione si incrocia con **quale autorizzazione chiedere alla MFSA**
+  (A15). Va scritta insieme al consulente, non copiata da un modello.
 - **Sede legale a Malta.**
 
 ### Obblighi ricorrenti
@@ -284,11 +328,37 @@ Non è una lista di cortesia: è la prova che vi verrà chiesta.
 - Coerenza tra quel che dite e quel che si vede: se il sito, i commit, i
   fornitori e i fusi orari raccontano l'Italia, la sostanza non regge.
 
-**Il problema dei due soci.** Siete in due (`CLAUDE.md`, «Team & branches»). Se
-uno si trasferisce e l'altro resta in Italia continuando a co-gestire, la
-*gestione ordinaria* rischia di risultare italiana lo stesso, e per chi resta
-scattano CFC e art. 47-bis. **Va deciso prima**, non dopo la costituzione: è la
-domanda **L5**.
+**Con il socio unico il problema si dimezza, ma non sparisce: cambia norma.**
+Dal momento che il socio è uno solo (Cesare), la parte *societaria* si
+semplifica molto: c'è una sola residenza personale che conta, e se quella si
+sposta davvero a Malta, **CFC e art. 47-bis smettono di applicarsi** — non
+perché siano stati aggirati, ma perché non c'è più un socio residente in Italia
+a cui imputare qualcosa. Resta tutta intera la §4.2: il trasferimento dev'essere
+vero.
+
+Quello che **non** si risolve col socio unico è il lavoro svolto dall'Italia.
+Vincenzo resta nel progetto (`CLAUDE.md`, «Team & branches») e, salvo che si
+trasferisca anche lui, continuerà a lavorare da qui. Due rischi distinti, che
+vanno tenuti separati perché hanno norme e conseguenze diverse:
+
+1. **Gestione ordinaria (art. 73 co. 3) — rischio minore ma da non ignorare.**
+   La norma parla di *atti di gestione corrente*, cioè di **amministrazione**,
+   non di lavoro operativo. Uno sviluppatore che scrive codice su indicazione
+   della società non è di per sé "gestione ordinaria"; un socio fondatore che
+   decide cosa si costruisce e come, sì. La differenza sta nei **poteri**, non
+   nelle ore. Va quindi definito per iscritto **che ruolo ha Vincenzo**:
+   collaboratore, dipendente, fornitore, futuro socio.
+2. **Stabile organizzazione in Italia (art. 162 TUIR e art. 5 del trattato
+   Italia-Malta) — questo è il rischio nuovo e più concreto.** Una persona che
+   lavora stabilmente dall'Italia per una società estera può costituire una
+   **stabile organizzazione**: l'Italia tasserebbe allora la quota di utile
+   attribuibile a quell'attività italiana. Non è l'esterovestizione (che si
+   prende *tutto*), è una tassazione parziale — ma è molto più facile da
+   contestare, e sull'assetto «uno a Malta, uno in Italia» è l'ipotesi naturale
+   dell'Agenzia. **[verificare]** se e come la *agent PE* e la *fixed place PE*
+   si applichino a un collaboratore che lavora da casa propria in Italia.
+
+**Va deciso prima**, non dopo la costituzione: sono le domande **L5** e **L5-bis**.
 
 ---
 

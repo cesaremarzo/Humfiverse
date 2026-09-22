@@ -3,6 +3,39 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-09-22 (3) · la società è a socio unico
+
+Decisione dell'utente: **la costituisce Cesare da solo.** Non è un dettaglio
+anagrafico, cambia forma societaria e sposta il rischio fiscale da una norma a
+un'altra.
+
+- **10 §3** riscritto: non una Ltd ordinaria ma una **single member company**,
+  che a Malta è una **private exempt company**. Tre semplificazioni — un solo
+  socio basta, **l'amministratore unico può fare anche da company secretary**
+  (regola che vale solo per le private exempt), niente amministratori persona
+  giuridica — e un vincolo nuovo: l'atto costitutivo **deve dichiarare
+  un'attività principale**, e Humfiverse ne fa quattro. Quella dichiarazione si
+  incrocia con l'autorizzazione MFSA (A15).
+- **10 §1**, blocco nuovo: con il socio unico «il socio» della tabella è Cesare
+  persona fisica, quindi dividendo e rimborso arrivano su un conto personale. Se
+  è residente a Malta il dividendo porta un **credito d'imposta pieno** per il
+  35% già pagato e l'aliquota personale massima è anch'essa il 35%, quindi in
+  principio nessuna imposta ulteriore: è il passaggio su cui si regge tutto il
+  piano, **[verificare]** per iscritto. Aggiunto quando servirebbe una **HoldCo**
+  (non per l'aliquota: per non prendersi l'utile addosso ogni anno, e per la
+  fiscal unit).
+- **10 §4.4** riscritto. Con un socio solo la parte societaria si semplifica: una
+  sola residenza da spostare, e spostata quella **CFC e art. 47-bis non si
+  applicano più**, non perché aggirati ma perché non c'è più un socio italiano.
+  Quello che resta, e che il socio unico **non** risolve, è il lavoro svolto
+  dall'Italia da Vincenzo — con due rischi separati: *gestione ordinaria*
+  (rischio minore: la norma parla di atti di amministrazione, non di lavoro
+  operativo; conta chi ha i **poteri**, non le ore) e soprattutto **stabile
+  organizzazione** in Italia, che è il rischio nuovo e più concreto.
+- **07**: **L5** riscritta per il socio unico; nuova **L5-bis 🔴** sulla stabile
+  organizzazione e su quale debba essere l'assetto contrattuale di Vincenzo;
+  **A15** estesa al vincolo dell'attività principale. L5-bis entra tra i 🔴.
+
 ## 2026-09-22 (2) · correzione al §2 del file 10: il 5/7 non ci riguarda
 
 Obiezione dell'utente, corretta: *«questo non interessa più le royalties
