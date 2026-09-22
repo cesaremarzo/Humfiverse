@@ -19,16 +19,20 @@
 | [07-domande-per-avvocato.md](07-domande-per-avvocato.md) | Le domande, in ordine di priorità, divise per tipo di avvocato, con il materiale da portare | Cesare, Vincenzo → avvocato |
 | [08-bozza-clausole-contratti.md](08-bozza-clausole-contratti.md) | Clausole per Accordo Artista e Accordo Investitore (annullamento, rimborso, rivalsa verso l'artista, garanzie, commissioni) e requisiti per l'accettazione alla registrazione | Avvocato (da rivedere), chi implementa il template |
 | [09-confronto-piattaforme.md](09-confronto-piattaforme.md) | Come si sono messe in regola ANote Music, SongVest e Royalty Exchange, e cosa può prendere Humfiverse da ognuna: strategia a fasi | Cesare, Vincenzo → avvocato |
+| [10-fiscalita-malta.md](10-fiscalita-malta.md) | La società a Malta e il rimborso dei 6/7: come si arriva al 5%, i requisiti, e le condizioni italiane (esterovestizione, residenza personale, CFC) da cui dipende che il 5% regga | Cesare, Vincenzo → commercialista |
 | [CHANGELOG.md](CHANGELOG.md) | Storico degli aggiornamenti di questa cartella | Tutti |
 
 Ordine di lettura consigliato: 01 → 02 → 07. Il 03 serve prima di modificare
 il whitepaper. 04, 05, 06, 08 e 09 vanno portati all’avvocato insieme al 07.
+Il **10** ha un interlocutore diverso dagli altri — un commercialista, non un
+avvocato — e si legge da solo; si incrocia col resto solo su A15 (quale
+autorizzazione e quale regolatore) e su G1 (oggi non esiste nessuna società).
 
 ## Stato della revisione
 
 | | |
 |---|---|
-| Ultima revisione | 2026-09-17 |
+| Ultima revisione | 2026-09-22 (file 10, struttura maltese) · prima 2026-09-17 |
 | Commit rivisto | §2.100 (guida automatica: nuova tabella `assistant_requests`, Anthropic come fornitore). §2.101 (vendita diretta al 6%, 1% sulla distribuzione delle royalty; **contratto non ancora ridistribuito**). Prima `fd7f822` (§2.98: rendiconto royalty come file, chi versa, intervallo per token). Prima il redeploy di fase 2 su `dev/cesare` (technical §2.92, §2.95-§2.97): royalty on-chain, rimborsi per token con burn, motivi di annullamento, operator, proprietà a un Safe 2 su 3. Prima `94ae18f` (§2.94) |
 | Contratti (Sepolia) | Token `0xa619aCD77D2540a38a2B95FFb051357a921082EF` · Escrow `0xc0043d41693D7E4DF0785bd3c28e619a543FD368` · Marketplace `0x755500dEB66169fC605Be8Aa25ACBdAd791F1585` · vecchio escrow in sola lettura `0x16C8bfE861Ef1B102CD6D6a4FD4e881FdD38721c` |
 | Proprietario dei contratti | Safe `0xBA2ad0Ca063092E350f1427dd86F7E9C8730245d`, 2 firme su 3 |

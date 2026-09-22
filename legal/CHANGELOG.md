@@ -3,6 +3,48 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-09-22 · società a Malta e rimborso dei 6/7 (file 10, nuovo)
+
+Decisione dell'utente: **costituire la società a Malta e operare da lì**, per
+arrivare al 5% effettivo sugli utili. Nessun cambiamento al codice, ai
+contratti o ai dati personali: è una scelta societaria e fiscale, e per questo
+sta in un file suo.
+
+- **10** (nuovo): come si arriva al 5% (Malta tassa al 35%, il **socio** chiede
+  il rimborso dei 6/7 **dopo** la distribuzione — con l'esempio su 100.000 €);
+  le quattro frazioni di rimborso e perché l'**1% sulle royalty** va qualificato
+  (6/7 o 5/7); requisiti di costituzione e obblighi ricorrenti, revisione del
+  bilancio **obbligatoria** compresa; costi d'ordine di grandezza; il §4, che è
+  il cuore del file: **esterovestizione** (art. 73 co. 3 TUIR come riscritto dal
+  D.Lgs. 209/2023 — sede legale, direzione effettiva, **gestione ordinaria**),
+  **residenza personale** (art. 2 TUIR, il domicilio come luogo delle relazioni
+  personali), **CFC** e **art. 47-bis**, e cosa vuol dire "sostanza" in
+  concreto; come si incastra col veicolo lussemburghese di A6/A11; il vantaggio
+  non fiscale (MFSA, passaporto MiCA e ECSPR); gli svantaggi detti per intero
+  (banche, costo della sostanza, soglia di convenienza); Pillar Two, che non li
+  riguarda; l'ordine consigliato delle cose da fare.
+- **Verificato su fonti pubbliche il 2026-09-22**, perché la materia si muove:
+  il rimborso dei 6/7 è **ancora in vigore nel 2026**; il regime **FITWI** (15%
+  finale, LN 188/2025) riguarda solo i gruppi sopra i 750 M€; Malta ha differito
+  la direttiva sulla tassazione minima **a fine 2029**; Malta è **uscita dalla
+  black list** del D.M. 4 maggio 1999 col D.M. 27 luglio 2010, quindi per chi si
+  trasferisce non scatta la presunzione di residenza fittizia. Fonti elencate in
+  fondo al file; nessuna è ufficiale, tutto ciò che non è confermato è segnato
+  **[verificare]**.
+- **07** sei domande nuove: **L4 🔴** 6/7 o 5/7 sulle nostre commissioni;
+  **L5 🔴** esterovestizione, e il caso di un socio che si trasferisce e uno che
+  resta; **L6 🔴** come si cessa davvero la residenza italiana; **L7 🟠** CFC,
+  art. 47-bis e l'imposta sostitutiva del 15%; **L8 🟠** sopra quale utile
+  conviene, e fiscal unit; **L9 🟠** una banca maltese apre il conto?
+  E **A15 🟠** per l'avvocato dei mercati finanziari: Malta cambia la risposta ad
+  A12/A13, visto che la MFSA passaporta CASP ed ECSP? L4-L6 entrano
+  nell'elenco dei 🔴.
+- **01** §11: rimando al file 10 per dove viene tassata la società.
+- **README**: 10 in tabella e nell'ordine di lettura.
+- **02**, **03**, **04**, **05**, **06**, **08**, **09** invariati: la scelta
+  della giurisdizione non cambia cosa fanno i contratti né quali dati si
+  raccolgono. **check.sh** invariato: nessun file sorvegliato è stato toccato.
+
 ## 2026-09-17 · guida automatica sul sito (§2.100)
 
 Il sito ha un pulsante in basso a destra che apre una guida. Risponde con

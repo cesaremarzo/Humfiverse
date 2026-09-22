@@ -363,6 +363,14 @@ essere esente o no a seconda della qualificazione. La commissione sulle royalty
 una vendita: va qualificata a parte (07 A13). Serve un commercialista o un
 tributarista, non solo l'avvocato.
 
+**Dove viene tassata la società.** L'utente ha deciso di costituire la società a
+**Malta** e di operare da lì, per arrivare al 5% effettivo tramite il rimborso
+dei 6/7. Il meccanismo, i requisiti e — soprattutto — le condizioni italiane da
+cui dipende che quel 5% regga davvero (esterovestizione, residenza personale,
+CFC) sono nel file **[10-fiscalita-malta.md](10-fiscalita-malta.md)**. La
+qualificazione della commissione dell'1% torna anche lì: decide se il rimborso è
+di 6/7 o di 5/7 (07 L4).
+
 ## 12. Diritto d'autore, diritti connessi e contenuti caricati
 
 **Le norme:** L. 633/1941 (legge sul diritto d'autore); D.Lgs. 35/2017 (gestione

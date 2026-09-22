@@ -1,6 +1,6 @@
 # Domande per l'avvocato
 
-*Revisione del 2026-09-17, commit `fd7f822` + §2.101 (A13: commissione sulla distribuzione delle royalty; A12, I4: versamento delle royalty), prima `94ae18f` (A4: storico prezzi) e `27d8d5f` + §2.100 (A14, F4, H4: guida automatica).*
+*Revisione del 2026-09-22 (A15, L4-L9: società maltese, file 10). Prima 2026-09-17, commit `fd7f822` + §2.101 (A13: commissione sulla distribuzione delle royalty; A12, I4: versamento delle royalty), prima `94ae18f` (A4: storico prezzi) e `27d8d5f` + §2.100 (A14, F4, H4: guida automatica).*
 
 Le domande vengono dai file 01-03 e dalle decisioni già prese (note legali §7,
 §7.10; technical-architecture §2.86). Sostituiscono e ampliano l'elenco del §6
@@ -122,6 +122,13 @@ Lussemburgo (CSSF) e Italia (CONSOB).*
   la quota trattenuta comprende anche la parte che torna all'artista stesso
   (token invenduti nel pool)? **[verificare]** *(02 C-12, 02 C-15, 04 §6, 08 A-6)*
 
+- **A15** 🟠 *Nuova, 2026-09-22.* **Scegliere Malta cambia la risposta ad A12 e
+  A13?** Se la società operativa è maltese, il regolatore è la **MFSA**: una
+  autorizzazione **CASP** (MiCA) e una come **ECSP** (crowdfunding) si
+  passaportano in tutta l'UE con una notifica. Conviene rispetto al veicolo
+  lussemburghese di A6 e A11 — o le due cose convivono (operativa a Malta,
+  emissione in Lussemburgo)? Quanto costa e quanto dura ciascuna strada?
+  *(10 §5.1, §5.2)*
 - **A14** 🟠 *Nuova, 2026-09-17.* Dal §2.100 il sito ha una **guida
   automatica**: risposte scritte da noi e, dove è configurata una chiave API,
   risposte generate da Claude a partire da un'istruzione di sistema
@@ -321,14 +328,61 @@ l'azione di recupero. Decisione del 15 settembre 2026, note legali §7.10.*
   finanziaria o no?
 - **L3** 🟢 Obblighi di comunicazione **DAC8** per la piattaforma.
 
+### Malta: la struttura societaria (file 10)
+*Servono due professionisti e vanno fatti parlare tra loro: un tributarista o
+corporate service provider **maltese** e un tributarista **italiano**. Presi
+separatamente ciascuno vede metà del problema.*
+
+- **L4** 🔴 *Nuova, 2026-09-22.* **Le commissioni di Humfiverse danno diritto al
+  rimborso dei 6/7 (5%) o a quello dei 5/7 (≈10%)?** Il 6/7 vale sugli utili da
+  attività commerciale, il 5/7 su interessi e royalty passivi. Le commissioni su
+  vendita, contributi, tranche e rivendite sembrano corrispettivi di un servizio;
+  l'**1% trattenuto su ogni versamento di royalty** è l'unica presa su denaro di
+  terzi in transito (02 C-15, A13) ed è quella da qualificare. *(10 §2)*
+- **L5** 🔴 *Nuova, 2026-09-22.* **Esterovestizione (art. 73 co. 3 TUIR, come
+  riscritto dal D.Lgs. 209/2023).** Cosa serve in concreto perché la società
+  maltese non sia considerata residente in Italia per *sede di direzione
+  effettiva* o per *gestione ordinaria in via principale*? **E il caso che ci
+  riguarda davvero: se uno dei due soci si trasferisce e l'altro resta in Italia
+  continuando a lavorare al prodotto, la gestione ordinaria risulta italiana?**
+  Questa risposta va avuta **prima** di costituire. *(10 §4.1, §4.4)*
+- **L6** 🔴 *Nuova, 2026-09-22.* **Residenza personale (art. 2 TUIR riformato).**
+  Cosa serve per cessare davvero la residenza fiscale italiana, oltre ai 183
+  giorni e all'AIRE, ora che il *domicilio* è definito come il luogo delle
+  relazioni personali e familiari? Qual è l'esposizione nell'anno di
+  trasferimento? *(10 §4.2)*
+- **L7** 🟠 *Nuova, 2026-09-22.* **CFC (art. 167 TUIR) e dividendi da regimi
+  privilegiati (art. 47-bis).** Finché uno di noi è residente in Italia e
+  controlla la società: le commissioni di piattaforma contano come reddito
+  *passivo* ai fini del test di 1/3? Regge l'esimente dell'attività economica
+  effettiva? Conviene l'opzione per l'**imposta sostitutiva del 15%** introdotta
+  dal D.Lgs. 209/2023? E il dividendo viene tassato al 26% o integralmente a
+  IRPEF? *(10 §4.3)*
+- **L8** 🟠 *Nuova, 2026-09-22.* **Sopra quale utile la struttura conviene
+  davvero**, mettendo nel conto revisione obbligatoria, provider, ufficio e
+  trasferimento? Sotto quella soglia una SRL italiana è più economica: qual è la
+  soglia coi nostri numeri? E conviene la **fiscal unit** (5% diretto) invece di
+  35%-poi-rimborso, per non lasciare il 30% degli utili fermo al fisco maltese
+  per un anno? *(10 §1, §3, §5.3)*
+- **L9** 🟠 *Nuova, 2026-09-22.* **Una banca maltese apre davvero un conto** a
+  una società con questo oggetto sociale (piattaforma, USDC, token)? Da
+  verificare **prima** di costituire: se la risposta è no, il resto non serve.
+  *(10 §5.3, §7)*
+
 ---
 
 ## Da chiarire per primo (🔴)
 
-A1 · A2 · A4 · A5 · A9 · A10 · B1 · B3 · B7 · B8 · C1 · C2 · G1 · H1
+A1 · A2 · A4 · A5 · A9 · A10 · B1 · B3 · B7 · B8 · C1 · C2 · G1 · H1 · L4 · L5 · L6
 
 **H1 e G1 si possono affrontare subito e costano poco.** Le altre richiedono
 l'incontro con l'avvocato dei mercati finanziari.
+
+**L4, L5 e L6 hanno un interlocutore diverso** (commercialista, non avvocato) e
+possono quindi correre in parallelo. Vanno però chiuse **prima di costituire
+qualsiasi società a Malta**, non dopo: L5 in particolare dipende da una scelta
+personale — chi si trasferisce — che una volta costituita la società è cara da
+correggere.
 
 ## Materiale da mandare prima dell'incontro
 
@@ -341,6 +395,7 @@ l'incontro con l'avvocato dei mercati finanziari.
 | `whitepaper/` (o link GitBook) | Cosa è già pubblico |
 | `server/contract-template.js` (testo IT o FR) | Il contratto artista attuale |
 | `legal/09-confronto-piattaforme.md` | Come si sono messe in regola ANote Music, SongVest e Royalty Exchange: mostra che le alternative sono state studiate su fonti dirette |
+| `legal/10-fiscalita-malta.md` | Solo per il commercialista (L4-L9) e per A15: la struttura maltese, le condizioni perché il 5% regga e i rischi italiani |
 | `legal/04`, `05`, `06`, `08` | Bozze da rivedere |
 | Link ai contratti verificati su Etherscan | Per chi vuole leggere il codice |
 | Una pagina: numeri del piano (campagne per anno, importi medi, Paesi di investitori e artisti) | Senza questi dati l'avvocato non può valutare soglie ed esenzioni |
