@@ -31,9 +31,12 @@ async function createCampaign(assetId, artistAddress, studioName, studioWallet, 
   const onchainRecord = await onchainService.findTokenWithChainFallback(assetId);
   if (!onchainRecord) throw Object.assign(new Error("asset has no on-chain token yet — mint it before creating a campaign"), { code: "no_token" });
 
+  // The cache maps wallet+name to an id on whichever escrow registered it.
+  // After a redeploy that id is another studio, or none, on the new escrow
+  // (§2.103), so it is reused only if the chain still agrees.
   const studioRow = await escrowRepo.findStudioByWalletAndName(studioWallet, studioName);
   let studioId;
-  if (studioRow) {
+  if (studioRow && (await escrowChain.isStudioOnchain(studioRow.studio_id, studioWallet))) {
     studioId = studioRow.studio_id;
   } else {
     const result = await escrowChain.registerStudioOnchain(studioWallet, studioName);
