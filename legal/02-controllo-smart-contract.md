@@ -18,13 +18,16 @@
 
 | Contratto | File | SHA-256 (primi 16) | Indirizzo Sepolia |
 |---|---|---|---|
-| HumfiverseCatalogueToken | `contracts/contracts/HumfiverseCatalogueToken.sol` | `e6bf460971bae796` | `0xa619aCD77D2540a38a2B95FFb051357a921082EF` |
+| HumfiverseCatalogueToken | `contracts/contracts/HumfiverseCatalogueToken.sol` | `e6bf460971bae796` | `0x3ad890480fce3070BA1B8341dc455c5D52048cF9` |
 | HumfiverseMarketplace | `contracts/contracts/HumfiverseMarketplace.sol` | `2e6e2985317c70a8` | `0x755500dEB66169fC605Be8Aa25ACBdAd791F1585` |
-| HumfiverseMilestoneEscrow | `contracts/contracts/HumfiverseMilestoneEscrow.sol` | `89368accb75bcefa` | `0xc0043d41693D7E4DF0785bd3c28e619a543FD368` |
+| HumfiverseMilestoneEscrow | `contracts/contracts/HumfiverseMilestoneEscrow.sol` | `89368accb75bcefa` | `0xBAEbC0f24C3528137B2A5DcC13E276E7c652a82A` |
 
 Solidity 0.8.24, OpenZeppelin v5, non aggiornabili (niente proxy).
 Pagamenti in USDC di test (`0x1c7D…7238`). Test: **112 passati**. Token ed
-escrow sono stati ridistribuiti il 2026-09-17 (fase 2). Le due campagne
+escrow sono stati ridistribuiti il 2026-09-17 (fase 2) e di nuovo il
+2026-09-27 (technical §2.102) solo per le commissioni del §2.101 — 6% sulla
+vendita diretta, 1% sui versamenti di royalty — che da quel giorno sono in
+vigore sulla catena; il resto del codice è identico. Le due campagne
 concluse prima (`honest-man-595`, `new-song-464`) restano leggibili sul
 **vecchio escrow** `0x16C8…721c`, che segue ancora le regole descritte nelle
 revisioni precedenti; i loro token, con gli stessi saldi, sono sul nuovo token.

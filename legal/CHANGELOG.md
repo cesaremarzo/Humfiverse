@@ -3,6 +3,19 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-09-27 · redeploy per le commissioni del §2.101
+
+Nessun testo giuridico cambia: i sorgenti dei contratti sono quelli già rivisti
+il 2026-09-19 (`check.sh` pulito). Cambia solo che il 6% sulla vendita diretta e
+l'1% sui versamenti di royalty **sono ora applicati dalla catena**, non più solo
+scritti nel codice (technical §2.102).
+
+- **02 «Oggetto»** e **README**: indirizzi nuovi, token
+  `0x3ad890480fce3070BA1B8341dc455c5D52048cF9` ed escrow
+  `0xBAEbC0f24C3528137B2A5DcC13E276E7c652a82A`, proprietà al Safe; tolta la nota
+  «contratto non ancora ridistribuito».
+- Il whitepaper resta falso sulle commissioni (03 W-20) finché non si applica.
+
 ## 2026-09-22 (3) · la società è a socio unico
 
 Decisione dell'utente: **la costituisce Cesare da solo.** Non è un dettaglio

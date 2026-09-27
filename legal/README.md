@@ -33,8 +33,8 @@ autorizzazione e quale regolatore) e su G1 (oggi non esiste nessuna società).
 | | |
 |---|---|
 | Ultima revisione | 2026-09-22 (file 10, struttura maltese) · prima 2026-09-17 |
-| Commit rivisto | §2.100 (guida automatica: nuova tabella `assistant_requests`, Anthropic come fornitore). §2.101 (vendita diretta al 6%, 1% sulla distribuzione delle royalty; **contratto non ancora ridistribuito**). Prima `fd7f822` (§2.98: rendiconto royalty come file, chi versa, intervallo per token). Prima il redeploy di fase 2 su `dev/cesare` (technical §2.92, §2.95-§2.97): royalty on-chain, rimborsi per token con burn, motivi di annullamento, operator, proprietà a un Safe 2 su 3. Prima `94ae18f` (§2.94) |
-| Contratti (Sepolia) | Token `0xa619aCD77D2540a38a2B95FFb051357a921082EF` · Escrow `0xc0043d41693D7E4DF0785bd3c28e619a543FD368` · Marketplace `0x755500dEB66169fC605Be8Aa25ACBdAd791F1585` · vecchio escrow in sola lettura `0x16C8bfE861Ef1B102CD6D6a4FD4e881FdD38721c` |
+| Commit rivisto | §2.102 (redeploy del 2026-09-27: le commissioni del §2.101 sono ora sulla catena; stesso codice, indirizzi nuovi). §2.100 (guida automatica: nuova tabella `assistant_requests`, Anthropic come fornitore). §2.101 (vendita diretta al 6%, 1% sulla distribuzione delle royalty). Prima `fd7f822` (§2.98: rendiconto royalty come file, chi versa, intervallo per token). Prima il redeploy di fase 2 su `dev/cesare` (technical §2.92, §2.95-§2.97): royalty on-chain, rimborsi per token con burn, motivi di annullamento, operator, proprietà a un Safe 2 su 3. Prima `94ae18f` (§2.94) |
+| Contratti (Sepolia) | Token `0x3ad890480fce3070BA1B8341dc455c5D52048cF9` · Escrow `0xBAEbC0f24C3528137B2A5DcC13E276E7c652a82A` · Marketplace `0x755500dEB66169fC605Be8Aa25ACBdAd791F1585` · vecchio escrow in sola lettura `0x16C8bfE861Ef1B102CD6D6a4FD4e881FdD38721c` |
 | Proprietario dei contratti | Safe `0xBA2ad0Ca063092E350f1427dd86F7E9C8730245d`, 2 firme su 3 |
 | Test contratti | 115 passati (`cd contracts && npm test`) |
 | Revisione di un avvocato | **Nessuna** |

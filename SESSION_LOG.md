@@ -2353,3 +2353,28 @@ domanda), ma il commento va sistemato quando si tocca quel file.
 
 **Aperto:** la scelta tra modello e tetto giornaliero spetta ancora a Cesare.
 Il primo giro con una chiave vera non è mai stato fatto: va verificato da capo a fondo.
+
+## 2026-09-27 — quinto redeploy: le commissioni del §2.101 sono sulla catena (§2.102)
+
+Domanda dell'utente: cosa non abbiamo mai provato dal vivo. Risposta, dalla
+produzione: **nessuna royalty mai versata né riscossa, nessuna campagna
+sull'escrow phase 2, il Safe non ha mai firmato nulla, `buy()` mai chiamato,
+firme di un wallet Google sugli endpoint firmati mai verificate.** Prima di
+testarle serviva il quinto redeploy, altrimenti si provava un contratto da buttare.
+
+**Fatto** (dettagli §2.102): token `0x3ad8…cF9`, escrow `0xBAEb…82A`, verificati,
+owner Safe, stessi saldi. Tolti i due appoggi in `server/chain.js`, `docs/`
+ricostruito (il sito ora dice 6% e 1%). Il comando è stato lanciato due volte in
+parallelo: Founder ha una delega EIP-7702 e il nodo accetta una sola transazione
+in sospeso, quindi c'è una coppia orfana `0x6c13…3D14`/`0xB76E…7014` di Founder,
+non letta da nessuno. Regola aggiunta alla skill `contract-redeploy`.
+
+**Render:** vanno cambiate le quattro variabili `CHAIN_CONTRACT_ADDRESS`,
+`CHAIN_ESCROW_ADDRESS`, `CHAIN_CONTRACT_DEPLOY_BLOCK=11795772`,
+`CHAIN_ESCROW_DEPLOY_BLOCK=11795773`; `CHAIN_ESCROW_LEGACY_ADDRESS` resta `0x16C8…721c`.
+
+**Prossimo:** il giro di test completo su Sepolia — nuova campagna → contributi da
+MetaMask e da Google → milestone in ordine → `buy()` al 6% → deposito royalty con
+rendiconto (1%) → trasferimento → secondo deposito → claim di tutti e del pool →
+`withdrawFees` dal Safe; poi una seconda campagna cancellata con ground e rimborso
+con burn. Confrontare al centesimo attese e catena.

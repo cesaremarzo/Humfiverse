@@ -18,6 +18,7 @@ A fresh deploy means fresh, empty contract state: every minted token, every escr
 - **Campaign signatures changed:** `createCampaign(artist, studioId, assetId, tokenId, names, bps, payees)` (no deadline, no goal), and it refuses studio wallet = artist wallet. A fully released campaign is not recreated: point `CHAIN_ESCROW_LEGACY_ADDRESS` at the old escrow instead.
 - **Dry run on a Sepolia fork**, not a blank chain: `networks.hardhat.forking = { url: SEPOLIA_RPC_URL, blockNumber: <latest> }` with `chainId: 11155111`, and a `localhost` network using `DEPLOYER_PRIVATE_KEY`. Pin `blockNumber` to the current head: unpinned, Hardhat forks a few hundred blocks back and misses recent contracts (the Safe was "not found"). Run the backend on the fork with the new addresses before handing the user the real command.
 - **Price and royalty history are scoped by token contract** and start empty after a token redeploy.
+- **One run at a time (§2.102).** Founder's account has an EIP-7702 delegation, and the RPC allows it only one in-flight transaction: a second run of the script started in parallel (a double-submitted `!` command) interleaves with the first and deploys a second, orphaned pair. Make the script resumable (`NEW_TOKEN`/`NEW_ESCROW`), tell the user to wait for it even if the terminal moves it to the background after 120 s, and check `getTransactionCount(latest) == pending` before resuming.
 - **Commit only the files you changed** (`git add <paths>`, never `git commit -a`): other sessions share this checkout.
 
 ## Before touching anything
