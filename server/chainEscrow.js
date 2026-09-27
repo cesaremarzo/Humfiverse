@@ -223,6 +223,14 @@ async function registerStudioOnchain(walletAddress, name) {
   return { studioId: Number(parsed.args.studioId), txHash: receipt.hash };
 }
 
+/** Whether `studioId` on the current escrow is an active studio paying
+ * `walletAddress` — the check a cached id must pass before it is reused,
+ * since ids restart from 1 on every redeployed escrow (§2.103). */
+async function isStudioOnchain(studioId, walletAddress) {
+  const s = await withRetry(() => readContract.studios(studioId));
+  return s.active && s.wallet.toLowerCase() === String(walletAddress).toLowerCase();
+}
+
 /** Admin correction for a genuine mistake in an already-registered studio's
  * name (§2.26) — not exposed via any API route yet, called directly when
  * needed. Renames every campaign already pointing at this studioId too,
@@ -380,6 +388,7 @@ module.exports = {
   getFeeState,
   getContributionFromTx,
   registerStudioOnchain,
+  isStudioOnchain,
   renameStudioOnchain,
   createCampaignOnchain,
   getCampaignInfo,
