@@ -3,6 +3,129 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-09-27 · redeploy per le commissioni del §2.101
+
+Nessun testo giuridico cambia: i sorgenti dei contratti sono quelli già rivisti
+il 2026-09-19 (`check.sh` pulito). Cambia solo che il 6% sulla vendita diretta e
+l'1% sui versamenti di royalty **sono ora applicati dalla catena**, non più solo
+scritti nel codice (technical §2.102).
+
+- **02 «Oggetto»** e **README**: indirizzi nuovi, token
+  `0x3ad890480fce3070BA1B8341dc455c5D52048cF9` ed escrow
+  `0xBAEbC0f24C3528137B2A5DcC13E276E7c652a82A`, proprietà al Safe; tolta la nota
+  «contratto non ancora ridistribuito».
+- Il whitepaper resta falso sulle commissioni (03 W-20) finché non si applica.
+
+## 2026-09-22 (3) · la società è a socio unico
+
+Decisione dell'utente: **la costituisce Cesare da solo.** Non è un dettaglio
+anagrafico, cambia forma societaria e sposta il rischio fiscale da una norma a
+un'altra.
+
+- **10 §3** riscritto: non una Ltd ordinaria ma una **single member company**,
+  che a Malta è una **private exempt company**. Tre semplificazioni — un solo
+  socio basta, **l'amministratore unico può fare anche da company secretary**
+  (regola che vale solo per le private exempt), niente amministratori persona
+  giuridica — e un vincolo nuovo: l'atto costitutivo **deve dichiarare
+  un'attività principale**, e Humfiverse ne fa quattro. Quella dichiarazione si
+  incrocia con l'autorizzazione MFSA (A15).
+- **10 §1**, blocco nuovo: con il socio unico «il socio» della tabella è Cesare
+  persona fisica, quindi dividendo e rimborso arrivano su un conto personale. Se
+  è residente a Malta il dividendo porta un **credito d'imposta pieno** per il
+  35% già pagato e l'aliquota personale massima è anch'essa il 35%, quindi in
+  principio nessuna imposta ulteriore: è il passaggio su cui si regge tutto il
+  piano, **[verificare]** per iscritto. Aggiunto quando servirebbe una **HoldCo**
+  (non per l'aliquota: per non prendersi l'utile addosso ogni anno, e per la
+  fiscal unit).
+- **10 §4.4** riscritto. Con un socio solo la parte societaria si semplifica: una
+  sola residenza da spostare, e spostata quella **CFC e art. 47-bis non si
+  applicano più**, non perché aggirati ma perché non c'è più un socio italiano.
+  Quello che resta, e che il socio unico **non** risolve, è il lavoro svolto
+  dall'Italia da Vincenzo — con due rischi separati: *gestione ordinaria*
+  (rischio minore: la norma parla di atti di amministrazione, non di lavoro
+  operativo; conta chi ha i **poteri**, non le ore) e soprattutto **stabile
+  organizzazione** in Italia, che è il rischio nuovo e più concreto.
+- **07**: **L5** riscritta per il socio unico; nuova **L5-bis 🔴** sulla stabile
+  organizzazione e su quale debba essere l'assetto contrattuale di Vincenzo;
+  **A15** estesa al vincolo dell'attività principale. L5-bis entra tra i 🔴.
+
+## 2026-09-22 (2) · correzione al §2 del file 10: il 5/7 non ci riguarda
+
+Obiezione dell'utente, corretta: *«questo non interessa più le royalties
+generate dagli artisti e trasferite ai token holders?»* — la prima stesura
+segnalava come 🔴 il rischio che l'1% sulle royalty finisse nel rimborso dei 5/7
+(≈10%) invece che in quello dei 6/7. Verificato nel contratto, il rischio non
+c'è, e la segnalazione confondeva due cose diverse.
+
+- **Il lordo non tocca mai i conti della società.** `HumfiverseCatalogueToken`
+  riga 366: sulla vendita primaria `cost - fee` va **direttamente** dal
+  compratore al wallet dell'artista. Righe 456-466: sul versamento di royalty
+  l'intero importo entra **nel contratto**, l'1% si accumula in `accruedFees` e
+  il 99% se lo ritirano i possessori. Le royalty degli artisti non sono mai un
+  ricavo della società: i ricavi sono **solo le commissioni**.
+- Quindi tutte e cinque le commissioni sono **trading income: 6/7, 5%**, l'1%
+  compreso, per due ragioni indipendenti — la società non concede in uso alcuna
+  IP, e il reddito deriva comunque da un'attività d'impresa.
+- Quel che restava valido dell'1% è **un'altra questione**: se serva
+  un'autorizzazione per trasferire denaro di terzi (02 C-15, 07 A13). È una
+  qualificazione dell'attività, non un'aliquota di rimborso. Le due si erano
+  sovrapposte.
+- **10 §2** riscritto: le royalty degli artisti fuori dal discorso, le
+  commissioni tutte al 6/7, e i due casi in cui il 5/7 comparirebbe davvero
+  (rendimento sulla liquidità propria; la società che comprasse lei i cataloghi
+  per darli in licenza) — nessuno dei due è il piano attuale.
+- **10 §3**: corretta di conseguenza la riga sull'esenzione dalla revisione. Il
+  fatturato della società è la somma delle commissioni, non il volume scambiato:
+  93.000 € di commissioni al 6% sono circa 1,5 milioni di cataloghi venduti,
+  quindi l'esenzione regge più a lungo di quanto scritto prima. Resta che la
+  sostanza spinge ad avere dipendenti a Malta, e due dipendenti fanno saltare
+  una delle tre soglie.
+- **07**: **L4** scende da 🔴 a 🟠 e cambia natura — non più «6/7 o 5/7?» ma
+  «confermate che è 6/7». Esce dall'elenco dei 🔴. Nuova **L4-bis 🟢** per i due
+  casi futuri. **01 §11**: rimando corretto.
+
+## 2026-09-22 · società a Malta e rimborso dei 6/7 (file 10, nuovo)
+
+Decisione dell'utente: **costituire la società a Malta e operare da lì**, per
+arrivare al 5% effettivo sugli utili. Nessun cambiamento al codice, ai
+contratti o ai dati personali: è una scelta societaria e fiscale, e per questo
+sta in un file suo.
+
+- **10** (nuovo): come si arriva al 5% (Malta tassa al 35%, il **socio** chiede
+  il rimborso dei 6/7 **dopo** la distribuzione — con l'esempio su 100.000 €);
+  le quattro frazioni di rimborso e perché l'**1% sulle royalty** va qualificato
+  (6/7 o 5/7); requisiti di costituzione e obblighi ricorrenti, revisione del
+  bilancio **obbligatoria** compresa; costi d'ordine di grandezza; il §4, che è
+  il cuore del file: **esterovestizione** (art. 73 co. 3 TUIR come riscritto dal
+  D.Lgs. 209/2023 — sede legale, direzione effettiva, **gestione ordinaria**),
+  **residenza personale** (art. 2 TUIR, il domicilio come luogo delle relazioni
+  personali), **CFC** e **art. 47-bis**, e cosa vuol dire "sostanza" in
+  concreto; come si incastra col veicolo lussemburghese di A6/A11; il vantaggio
+  non fiscale (MFSA, passaporto MiCA e ECSPR); gli svantaggi detti per intero
+  (banche, costo della sostanza, soglia di convenienza); Pillar Two, che non li
+  riguarda; l'ordine consigliato delle cose da fare.
+- **Verificato su fonti pubbliche il 2026-09-22**, perché la materia si muove:
+  il rimborso dei 6/7 è **ancora in vigore nel 2026**; il regime **FITWI** (15%
+  finale, LN 188/2025) riguarda solo i gruppi sopra i 750 M€; Malta ha differito
+  la direttiva sulla tassazione minima **a fine 2029**; Malta è **uscita dalla
+  black list** del D.M. 4 maggio 1999 col D.M. 27 luglio 2010, quindi per chi si
+  trasferisce non scatta la presunzione di residenza fittizia. Fonti elencate in
+  fondo al file; nessuna è ufficiale, tutto ciò che non è confermato è segnato
+  **[verificare]**.
+- **07** sei domande nuove: **L4 🔴** 6/7 o 5/7 sulle nostre commissioni;
+  **L5 🔴** esterovestizione, e il caso di un socio che si trasferisce e uno che
+  resta; **L6 🔴** come si cessa davvero la residenza italiana; **L7 🟠** CFC,
+  art. 47-bis e l'imposta sostitutiva del 15%; **L8 🟠** sopra quale utile
+  conviene, e fiscal unit; **L9 🟠** una banca maltese apre il conto?
+  E **A15 🟠** per l'avvocato dei mercati finanziari: Malta cambia la risposta ad
+  A12/A13, visto che la MFSA passaporta CASP ed ECSP? L4-L6 entrano
+  nell'elenco dei 🔴.
+- **01** §11: rimando al file 10 per dove viene tassata la società.
+- **README**: 10 in tabella e nell'ordine di lettura.
+- **02**, **03**, **04**, **05**, **06**, **08**, **09** invariati: la scelta
+  della giurisdizione non cambia cosa fanno i contratti né quali dati si
+  raccolgono. **check.sh** invariato: nessun file sorvegliato è stato toccato.
+
 ## 2026-09-17 · guida automatica sul sito (§2.100)
 
 Il sito ha un pulsante in basso a destra che apre una guida. Risponde con

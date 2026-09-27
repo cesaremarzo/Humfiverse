@@ -1,6 +1,6 @@
 # Domande per l'avvocato
 
-*Revisione del 2026-09-17, commit `fd7f822` + §2.101 (A13: commissione sulla distribuzione delle royalty; A12, I4: versamento delle royalty), prima `94ae18f` (A4: storico prezzi) e `27d8d5f` + §2.100 (A14, F4, H4: guida automatica).*
+*Revisione del 2026-09-22 (A15, L4-L9: società maltese, file 10). Prima 2026-09-17, commit `fd7f822` + §2.101 (A13: commissione sulla distribuzione delle royalty; A12, I4: versamento delle royalty), prima `94ae18f` (A4: storico prezzi) e `27d8d5f` + §2.100 (A14, F4, H4: guida automatica).*
 
 Le domande vengono dai file 01-03 e dalle decisioni già prese (note legali §7,
 §7.10; technical-architecture §2.86). Sostituiscono e ampliano l'elenco del §6
@@ -122,6 +122,17 @@ Lussemburgo (CSSF) e Italia (CONSOB).*
   la quota trattenuta comprende anche la parte che torna all'artista stesso
   (token invenduti nel pool)? **[verificare]** *(02 C-12, 02 C-15, 04 §6, 08 A-6)*
 
+- **A15** 🟠 *Nuova, 2026-09-22.* **Scegliere Malta cambia la risposta ad A12 e
+  A13?** Se la società operativa è maltese, il regolatore è la **MFSA**: una
+  autorizzazione **CASP** (MiCA) e una come **ECSP** (crowdfunding) si
+  passaportano in tutta l'UE con una notifica. Conviene rispetto al veicolo
+  lussemburghese di A6 e A11 — o le due cose convivono (operativa a Malta,
+  emissione in Lussemburgo)? Quanto costa e quanto dura ciascuna strada?
+  **Vincolo pratico da incrociare:** essendo a socio unico, l'atto costitutivo
+  maltese deve dichiarare **un'attività principale**, e la piattaforma ne fa
+  quattro (vendita primaria, escrow a milestone, distribuzione royalty, mercato
+  secondario). Quale si dichiara, e quella scelta condiziona l'autorizzazione?
+  *(10 §3, §5.1, §5.2)*
 - **A14** 🟠 *Nuova, 2026-09-17.* Dal §2.100 il sito ha una **guida
   automatica**: risposte scritte da noi e, dove è configurata una chiave API,
   risposte generate da Claude a partire da un'istruzione di sistema
@@ -321,14 +332,81 @@ l'azione di recupero. Decisione del 15 settembre 2026, note legali §7.10.*
   finanziaria o no?
 - **L3** 🟢 Obblighi di comunicazione **DAC8** per la piattaforma.
 
+### Malta: la struttura societaria (file 10)
+*Servono due professionisti e vanno fatti parlare tra loro: un tributarista o
+corporate service provider **maltese** e un tributarista **italiano**. Presi
+separatamente ciascuno vede metà del problema.*
+
+- **L4** 🟠 *Nuova, 2026-09-22; ridimensionata lo stesso giorno.* **Conferma che
+  tutte le commissioni sono trading income (6/7, 5%).** Le royalty che gli
+  artisti generano e che arrivano ai possessori dei token **non sono mai ricavi
+  della società**: il contratto manda `cost - fee` dritto al wallet dell'artista
+  e tiene il 99% dei versamenti di royalty per i possessori, quindi il lordo non
+  passa dai conti. Resta da far confermare che l'1% sulle royalty sia un
+  corrispettivo di servizio e non un "royalty income" maltese — a nostro avviso
+  sì, per due ragioni indipendenti (la società non concede in uso alcuna IP, e
+  comunque il reddito deriva da un'attività d'impresa). **Da far confermare, non
+  da risolvere.** *(10 §2)*
+- **L4-bis** 🟢 *Nuova, 2026-09-22.* Se un domani la società tiene liquidità
+  propria e ci guadagna un interesse, o se il modello cambia e la società
+  acquista lei i cataloghi per concederli in licenza, quel reddito diventa
+  **passivo: 5/7, ≈10%**. Non è il caso oggi. Da riaprire se una delle due cose
+  diventa il piano. *(10 §2)*
+- **L5** 🔴 *Nuova, 2026-09-22; riscritta lo stesso giorno, la società è a socio
+  unico.* **Esterovestizione (art. 73 co. 3 TUIR, come riscritto dal D.Lgs.
+  209/2023).** Cosa serve in concreto perché la società maltese non sia
+  considerata residente in Italia per *sede di direzione effettiva* o per
+  *gestione ordinaria in via principale*, dato che il socio unico e
+  amministratore unico è la stessa persona che si trasferisce? Quali prove
+  vanno costruite dal primo giorno (verbali, luogo delle decisioni, contratti,
+  conto)? *(10 §4.1, §4.4)*
+- **L5-bis** 🔴 *Nuova, 2026-09-22.* **Stabile organizzazione in Italia (art. 162
+  TUIR, art. 5 trattato Italia-Malta).** Il socio unico si trasferisce, ma
+  **Vincenzo resta in Italia e continua a lavorare al prodotto**. Questo crea
+  una stabile organizzazione italiana della società maltese, con tassazione in
+  Italia della quota di utile attribuibile? La risposta cambia a seconda che
+  Vincenzo sia **dipendente, collaboratore, fornitore con partita IVA o futuro
+  socio** — e cambia se ha poteri di decidere o solo di eseguire. **Qual è
+  l'assetto che regge?** È diverso dall'esterovestizione (che si prende tutto):
+  qui si rischia una tassazione parziale, ma è molto più facile da contestare.
+  *(10 §4.4)*
+- **L6** 🔴 *Nuova, 2026-09-22.* **Residenza personale (art. 2 TUIR riformato).**
+  Cosa serve per cessare davvero la residenza fiscale italiana, oltre ai 183
+  giorni e all'AIRE, ora che il *domicilio* è definito come il luogo delle
+  relazioni personali e familiari? Qual è l'esposizione nell'anno di
+  trasferimento? *(10 §4.2)*
+- **L7** 🟠 *Nuova, 2026-09-22.* **CFC (art. 167 TUIR) e dividendi da regimi
+  privilegiati (art. 47-bis).** Finché uno di noi è residente in Italia e
+  controlla la società: le commissioni di piattaforma contano come reddito
+  *passivo* ai fini del test di 1/3? Regge l'esimente dell'attività economica
+  effettiva? Conviene l'opzione per l'**imposta sostitutiva del 15%** introdotta
+  dal D.Lgs. 209/2023? E il dividendo viene tassato al 26% o integralmente a
+  IRPEF? *(10 §4.3)*
+- **L8** 🟠 *Nuova, 2026-09-22.* **Sopra quale utile la struttura conviene
+  davvero**, mettendo nel conto revisione obbligatoria, provider, ufficio e
+  trasferimento? Sotto quella soglia una SRL italiana è più economica: qual è la
+  soglia coi nostri numeri? E conviene la **fiscal unit** (5% diretto) invece di
+  35%-poi-rimborso, per non lasciare il 30% degli utili fermo al fisco maltese
+  per un anno? *(10 §1, §3, §5.3)*
+- **L9** 🟠 *Nuova, 2026-09-22.* **Una banca maltese apre davvero un conto** a
+  una società con questo oggetto sociale (piattaforma, USDC, token)? Da
+  verificare **prima** di costituire: se la risposta è no, il resto non serve.
+  *(10 §5.3, §7)*
+
 ---
 
 ## Da chiarire per primo (🔴)
 
-A1 · A2 · A4 · A5 · A9 · A10 · B1 · B3 · B7 · B8 · C1 · C2 · G1 · H1
+A1 · A2 · A4 · A5 · A9 · A10 · B1 · B3 · B7 · B8 · C1 · C2 · G1 · H1 · L5 · L5-bis · L6
 
 **H1 e G1 si possono affrontare subito e costano poco.** Le altre richiedono
 l'incontro con l'avvocato dei mercati finanziari.
+
+**L5, L5-bis e L6 hanno un interlocutore diverso** (commercialista, non avvocato) e
+possono quindi correre in parallelo. Vanno però chiuse **prima di costituire
+qualsiasi società a Malta**, non dopo: L5 in particolare dipende da una scelta
+personale — chi si trasferisce — che una volta costituita la società è cara da
+correggere.
 
 ## Materiale da mandare prima dell'incontro
 
@@ -341,6 +419,7 @@ l'incontro con l'avvocato dei mercati finanziari.
 | `whitepaper/` (o link GitBook) | Cosa è già pubblico |
 | `server/contract-template.js` (testo IT o FR) | Il contratto artista attuale |
 | `legal/09-confronto-piattaforme.md` | Come si sono messe in regola ANote Music, SongVest e Royalty Exchange: mostra che le alternative sono state studiate su fonti dirette |
+| `legal/10-fiscalita-malta.md` | Solo per il commercialista (L4-L9) e per A15: la struttura maltese, le condizioni perché il 5% regga e i rischi italiani |
 | `legal/04`, `05`, `06`, `08` | Bozze da rivedere |
 | Link ai contratti verificati su Etherscan | Per chi vuole leggere il codice |
 | Una pagina: numeri del piano (campagne per anno, importi medi, Paesi di investitori e artisti) | Senza questi dati l'avvocato non può valutare soglie ed esenzioni |

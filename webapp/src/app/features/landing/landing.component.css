@@ -505,25 +505,30 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  gap: 12px;
+  padding-bottom: 12px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--hairline);
 }
 
+/* No tile: the icon sits bare on the card, and the mono index carries the
+ * weight instead. The gradient rounded-square it replaced was the generic
+ * "feature tile" look, repeated on four cards in a row. */
 .landing-step-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  color: var(--accent-on);
-  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 55%, var(--accent-2)));
-  box-shadow: 0 8px 22px -10px color-mix(in srgb, var(--accent) 90%, transparent);
+  color: var(--accent-ink);
 }
 
 .landing-step-index {
-  font-size: 12px;
-  letter-spacing: 0.08em;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 22px;
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -0.02em;
   color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 .landing-step h3 {

@@ -363,6 +363,15 @@ essere esente o no a seconda della qualificazione. La commissione sulle royalty
 una vendita: va qualificata a parte (07 A13). Serve un commercialista o un
 tributarista, non solo l'avvocato.
 
+**Dove viene tassata la società.** L'utente ha deciso di costituire la società a
+**Malta** e di operare da lì, per arrivare al 5% effettivo tramite il rimborso
+dei 6/7. Il meccanismo, i requisiti e — soprattutto — le condizioni italiane da
+cui dipende che quel 5% regga davvero (esterovestizione, residenza personale,
+CFC) sono nel file **[10-fiscalita-malta.md](10-fiscalita-malta.md)**. Le royalty che gli
+artisti generano e che arrivano ai possessori dei token non passano mai dai
+conti della società — il contratto paga l'artista e i possessori direttamente —
+quindi i ricavi della società sono soltanto le commissioni (10 §2).
+
 ## 12. Diritto d'autore, diritti connessi e contenuti caricati
 
 **Le norme:** L. 633/1941 (legge sul diritto d'autore); D.Lgs. 35/2017 (gestione

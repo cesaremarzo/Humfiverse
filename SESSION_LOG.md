@@ -2160,7 +2160,7 @@ graficamente nello stile del sito in basso a destra) per guidare gli utenti
 nell'utilizzo"*. Asked which engine; Cesare chose the **hybrid**: one widget,
 written answers by default, Claude where a key is configured.
 
-**On `dev/cesare`, PR open, not merged** — a feature, needs Cesare's go-ahead.
+**Merged to `main` the same evening** (PR #71, `70723c7`), after Cesare's go-ahead; the effort fix below went in as PR #72.
 
 - Button bottom-right: the inverted nine-bar mark on the brand gradient, bars
   lifting like a meter on hover, `inset-inline-end` so Arabic flips it. Panel in
@@ -2196,3 +2196,185 @@ in nine locales still say 2%.
 **Next:** set `ANTHROPIC_API_KEY` (and optionally `ANTHROPIC_MODEL`,
 `ASSISTANT_DAILY_CAP`) on Render if the AI mode is wanted in production, then
 merge the PR and check the live bundle and `/api/assistant/status`.
+
+### Handoff for the next session (written 19 Sep, royalty/registration thread)
+
+**Live on `main` and verified:** phase 2 contracts (token `0xa619…82EF`, escrow
+`0xc004…D368`, owner = Safe `0xBA2a…245d`), royalty statements as a file hash
+with optional IPFS publication (§2.98), email registration through Brevo
+(§2.93) — Cesare completed a real verification on the site.
+
+**Fees are the one thing out of step.** §2.101 (another session) is merged as
+source: `PRIMARY_FEE_BPS = 600`, new `ROYALTY_FEE_BPS = 100`,
+`totalRoyaltiesDistributed`. The deployed token still charges 2% and has no
+royalty fee. The published `docs/` predates §2.101, so the site still says 2%.
+**Anyone rebuilding `docs/` onto `main` before the fifth redeploy will publish
+6% against a chain that takes 2%** — rebuild only together with the redeploy,
+and change the guide's fee answers (`server/assistant-knowledge.js`,
+`assistant.kb.fees.*` / `assistant.kb.buy.*` in nine locales) in the same
+change.
+
+**Do next, in order:**
+1. Fifth redeploy for §2.101 (`.claude/skills/contract-redeploy`), restoring
+   balances as on 17 Sep; price and royalty history clear again.
+2. Per-token royalty deposit interval (legal 08 C-12): wizard field, stored
+   with the acceptance, shown on the asset page. Decided but not in code.
+3. Signed terms acceptance at registration (08 C-1…C-8), then artist QES, then
+   cancellation with takedown (§2.87).
+4. Counsel question 07 A12: which authorization the platform needs to receive
+   the artist's money and convert it. Cesare thinks one is almost certainly
+   needed, so the question is which and what the alternatives are.
+
+**Never tested live:** a royalty deposit with a real statement file on Pinata.
+The flow is proven on a local chain and in headless Chrome only.
+
+---
+
+## 2026-09-18 (notte) — la guida è live; e un commit che ha rastrellato l'indice condiviso
+
+**Merged and verified live.** PR **#71** (`70723c7`) put the guide widget on
+`main`; the bundle moved to `main-GPE4SACA.js`, the button renders on the
+landing and the marketplace, a typed question ("come funzionano le milestone?")
+answered from the written topics with no console errors, and all nine locales
+serve 737 keys. `/api/assistant/status` answers `available: false` in
+production, which is correct: no `ANTHROPIC_API_KEY` is set on Render, so the
+widget stays in written-answers mode. `/api/assistant/ask` → 503,
+`/api/assistant/usage` without the admin key → 401.
+
+**Bug fix, PR #72** (`c34a1bf`): every request carried
+`output_config.effort`, which Haiku and the older models reject with a 400 —
+so following `.env.example`'s own suggestion (`claude-haiku-4-5`) would have
+broken the endpoint and looked like "no AI configured". Effort now goes only to
+the models that accept it.
+
+**Values Cesare asked about, recommended but not set:**
+`ANTHROPIC_MODEL=claude-haiku-4-5` (~$0.002 a question, against ~$0.013–0.028
+on `claude-opus-5` — the brief is ~2,400 cached tokens), `ASSISTANT_DAILY_CAP=200`
+(~$12/month worst case on Haiku), and the key created in its own Anthropic
+workspace under a spend limit. The per-IP caps (15/hour, 50/day) are in code.
+**The real Anthropic call has still never run against a live key.**
+
+### What went wrong, and what it cost
+
+PR #72 was meant to carry two files. It carried **33**: the other session had
+staged its whole §2.101 fee change into the *shared git index*, and a plain
+`git commit` (after a path-limited `git add`) commits the index, not what you
+just added. So the contracts, the legal folder and the frontend of a change
+that was still in progress reached `main` under a bug-fix message — and
+production then called `totalRoyaltiesDistributed` on a token that only has
+`totalRoyaltiesDeposited`: `/api/royalties/:id` answered 500 for every asset.
+The other session caught it and shipped the fallback (`9e36b50`, PR #73);
+production is healthy again, verified.
+
+**The rule that follows from it** (now also in my memory): in this checkout,
+commit **path-limited** — `git commit -- <paths>` — and read
+`git diff --cached --stat` before, `git show --stat HEAD` after. Earlier in the
+same session the §2.100 commits were kept clean exactly this way: every shared
+file was staged hunk by hunk (`HEAD` content + my block → `git diff --no-index`
+→ `git apply --cached`), `docs/` was rebuilt from a throwaway `git worktree` at
+my own commit, and `./legal/check.sh --update` was run there too, so neither
+recorded the other session's work. That discipline held; the one plain
+`git commit` is what broke it.
+
+**Still open on the guide:** the live key test; and whenever fees or roles
+change, `server/assistant-knowledge.js` (watched by `legal/check.sh`) **and**
+the `assistant.kb.*` strings in nine locales (not watched) have to move with
+them — the §2.101 pass was already done by the other session on `main`.
+
+## 2026-09-19 — §2.101 chiuso lato legale; i due appoggi che vivono in produzione
+
+Sessione delle fee, vista dall'altra parte della collisione descritta sopra.
+La decisione dell'utente, nata leggendo il giro del denaro: un catalogo già
+legato a un flusso di cassa, venduto senza milestone, pagava il 2% e nient'altro
+per sempre — nessuna commissione sulle tranche, e royalty distribuite gratis per
+tutta la vita del catalogo. Quindi **6% sulla vendita diretta** e **1% su ogni
+versamento di royalty**. Il ragionamento completo è in technical §2.101, qui solo
+ciò che non è scritto altrove.
+
+**Esito legale** (`./legal/check.sh` pulito, impronte registrate):
+- **02 C-15 · Media**, nuovo: è la prima commissione su denaro di terzi che la
+  piattaforma sta *trasferendo*, non sul corrispettivo di una vendita.
+- **07 A13 🟠**, nuova domanda: come si qualifica quel compenso, se cambia
+  qualcosa perché è trattenuto dal contratto invece che fatturato all'artista, e
+  se regge che l'1% colpisca anche la quota dei token invenduti, che torna
+  all'artista stesso. **Va all'avvocato insieme ad A12: sono la stessa attività
+  vista da due lati.**
+- **03 W-20**, proposta per il whitepaper: la correzione W-6 ("less the 2%
+  platform fee") è di nuovo falsa. **Non applicata** — il whitepaper si tocca
+  solo su ordine esplicito.
+- Aggiornati 04 §6 (tabella + perché le due aliquote differiscono), 06 §2.1 e
+  nuovo §2.3-bis, 08 A-6 con le due strade a confronto su 10.000 USDC, 01 §10.
+
+**I due appoggi in `server/chain.js`, e quando si tolgono.** Nessuno dei due è
+una scelta di design: esistono perché il codice arriva su `main` con un merge,
+il contratto solo quando un umano lancia il deploy.
+1. `readRoyaltiesDistributed()` prova il nome nuovo e ripiega sul vecchio →
+   **si toglie subito dopo il quinto redeploy**.
+2. La risposta porta `totalDepositedUsdc` accanto a `totalDistributedUsdc`,
+   perché `docs/` si ricostruisce solo al merge e il bundle vivo legge il nome
+   vecchio → **si toglie quando `docs/` porta il frontend nuovo**, cioè nello
+   stesso passaggio del redeploy.
+Su un contratto pre-commissione non veniva trattenuto nulla, quindi i due nomi
+sono lo stesso numero: la fallback non mostra una cifra diversa da quella che il
+contratto riporta.
+
+**Produzione verificata dopo il merge:** `/api/onchain/*`, `/api/royalties/*`
+(entrambi i campi presenti), `/api/escrow/campaigns`, `/api/listings`,
+`/api/fees`, `/api/price-history/*` tutti ok. `feeBps: 200` — la catena prende
+ancora il 2%, com'è giusto finché non si ridistribuisce. Bundle
+`main-GPE4SACA.js`, senza il copy nuovo: il sito non annuncia il 6%.
+(`/api/assets` risponde "not found" a una GET perché è POST-only: non è una
+regressione.)
+
+**Da fare per primo, la prossima volta:** il quinto redeploy. Finché non c'è,
+codice e catena dicono cose diverse in tre punti — le due aliquote e i due
+appoggi qui sopra.
+
+## 2026-09-22 — quanto costerebbe la guida con Claude acceso
+
+Solo domande, nessun codice toccato.
+
+**Stato in produzione:** `/api/assistant/status` → `{"available":false,"model":null}`.
+Su Render manca ancora `ANTHROPIC_API_KEY`, quindi il bottone in basso a destra
+risponde solo con i testi scritti. Con la chiave userebbe `claude-opus-5`
+(default in `server/config.js`), sovrascrivibile con `ANTHROPIC_MODEL`.
+
+**Stima dei costi con Opus 5** ($5 / $25 per milione di token), dai limiti nel codice:
+- una domanda ≈ $0,015–0,03 (brief di sistema ~2.500 token, cache di 5 minuti;
+  risposta con effort `low`, tetto 1.200 token);
+- ~$5–10/mese con 10 domande al giorno, ~$25–45 con 50;
+- al tetto di `ASSISTANT_DAILY_CAP=300` circa $200–270/mese, ~$450 nel caso peggiore.
+- Con `claude-haiku-4-5` circa un quinto (tetto ~$35/mese).
+
+**Imprecisione trovata, non corretta:** `server/.env.example` dice "brief cached"
+anche per Haiku. Non è così: Haiku 4.5 mette in cache solo prompt da 4.096 token
+in su, e il nostro brief ne ha ~2.500. Il costo cambia di pochissimo (~$0,0025 a
+domanda), ma il commento va sistemato quando si tocca quel file.
+
+**Aperto:** la scelta tra modello e tetto giornaliero spetta ancora a Cesare.
+Il primo giro con una chiave vera non è mai stato fatto: va verificato da capo a fondo.
+
+## 2026-09-27 — quinto redeploy: le commissioni del §2.101 sono sulla catena (§2.102)
+
+Domanda dell'utente: cosa non abbiamo mai provato dal vivo. Risposta, dalla
+produzione: **nessuna royalty mai versata né riscossa, nessuna campagna
+sull'escrow phase 2, il Safe non ha mai firmato nulla, `buy()` mai chiamato,
+firme di un wallet Google sugli endpoint firmati mai verificate.** Prima di
+testarle serviva il quinto redeploy, altrimenti si provava un contratto da buttare.
+
+**Fatto** (dettagli §2.102): token `0x3ad8…cF9`, escrow `0xBAEb…82A`, verificati,
+owner Safe, stessi saldi. Tolti i due appoggi in `server/chain.js`, `docs/`
+ricostruito (il sito ora dice 6% e 1%). Il comando è stato lanciato due volte in
+parallelo: Founder ha una delega EIP-7702 e il nodo accetta una sola transazione
+in sospeso, quindi c'è una coppia orfana `0x6c13…3D14`/`0xB76E…7014` di Founder,
+non letta da nessuno. Regola aggiunta alla skill `contract-redeploy`.
+
+**Render:** vanno cambiate le quattro variabili `CHAIN_CONTRACT_ADDRESS`,
+`CHAIN_ESCROW_ADDRESS`, `CHAIN_CONTRACT_DEPLOY_BLOCK=11795772`,
+`CHAIN_ESCROW_DEPLOY_BLOCK=11795773`; `CHAIN_ESCROW_LEGACY_ADDRESS` resta `0x16C8…721c`.
+
+**Prossimo:** il giro di test completo su Sepolia — nuova campagna → contributi da
+MetaMask e da Google → milestone in ordine → `buy()` al 6% → deposito royalty con
+rendiconto (1%) → trasferimento → secondo deposito → claim di tutti e del pool →
+`withdrawFees` dal Safe; poi una seconda campagna cancellata con ground e rimborso
+con burn. Confrontare al centesimo attese e catena.
