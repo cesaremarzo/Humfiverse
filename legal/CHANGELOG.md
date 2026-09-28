@@ -3,6 +3,13 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-09-28 · `escrow_campaigns` indicizzata per asset (technical §2.104)
+
+`server/data/schema.js` cambia solo la chiave primaria della tabella delle
+campagne (da id campagna ad asset) e la ricostruisce all'avvio. Le colonne sono
+le stesse — id campagna, asset, nome e wallet dello studio, tx, data — quindi
+nessun dato personale nuovo e nessun documento da correggere. Impronte aggiornate.
+
 ## 2026-09-27 · redeploy per le commissioni del §2.101
 
 Nessun testo giuridico cambia: i sorgenti dei contratti sono quelli già rivisti
