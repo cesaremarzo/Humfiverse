@@ -64,6 +64,8 @@ const ABI = [
   "function balanceOf(address account, uint256 id) view returns (uint256)",
   // §2.72 primary-sale fee — absent on tokens deployed before it.
   "function PRIMARY_FEE_BPS() view returns (uint256)",
+  // §2.101: deducted from every royalty deposit, into the same accruedFees.
+  "function ROYALTY_FEE_BPS() view returns (uint256)",
   // §2.73: the USDC every price is in — absent on ETH-era tokens.
   "function paymentToken() view returns (address)",
   "function feeRecipient() view returns (address)",
@@ -236,15 +238,19 @@ async function getBalance(tokenId, address) {
 async function getFeeState() {
   if (!(await paymentTokenOf(readContract))) return null;
   const bps = await withRetry(() => readContract.PRIMARY_FEE_BPS());
-  const [recipient, accrued, total] = await Promise.all([
+  const [recipient, accrued, total, royaltyBps] = await Promise.all([
     withRetry(() => readContract.feeRecipient()),
     withRetry(() => readContract.accruedFees()),
-    withRetry(() => readContract.totalFeesCollected())
+    withRetry(() => readContract.totalFeesCollected()),
+    // accruedFees holds both fees on one counter, so the admin page must
+    // name both. Absent before §2.101: null, never an assumed rate.
+    readContract.ROYALTY_FEE_BPS().then(Number, () => null)
   ]);
   return {
     contractAddress: CONTRACT_ADDRESS,
     explorerUrl: `https://sepolia.etherscan.io/address/${CONTRACT_ADDRESS}`,
     feeBps: Number(bps),
+    royaltyFeeBps: royaltyBps,
     feeRecipient: recipient,
     accruedUsdc: accrued.toString(),
     totalCollectedUsdc: total.toString()

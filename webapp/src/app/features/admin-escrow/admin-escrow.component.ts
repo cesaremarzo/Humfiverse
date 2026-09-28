@@ -187,11 +187,21 @@ export class AdminEscrowComponent {
       .catch((err) => this.feesError.set(String(err?.message || err)));
   }
 
+  /** Rates as each contract reports them, never typed here: this text sat
+   * at "2% of every primary purchase" after the token moved to 6% and began
+   * charging royalty deposits into the same counter (§2.101). */
   feeRows(f: FeeSummary): { key: FeeKey; label: string; rule: string; state: FeeContractState }[] {
+    const pct = (bps: number | null | undefined) => (bps == null ? '?' : `${bps / 100}%`);
+    const cat = f.catalogue.status === 'ok' ? f.catalogue : null;
+    const esc = f.escrow.status === 'ok' ? f.escrow : null;
+    const mkt = f.marketplace.status === 'ok' ? f.marketplace : null;
+    const catalogueRule =
+      `${pct(cat?.feeBps)} of every direct sale` +
+      (cat?.royaltyFeeBps != null ? ` + ${pct(cat.royaltyFeeBps)} of every royalty deposit` : '');
     return [
-      { key: 'catalogue', label: 'Catalogue sales', rule: '2% of every primary purchase', state: f.catalogue },
-      { key: 'escrow', label: 'Milestone escrow', rule: '2% of every contribution + 3% of every released tranche', state: f.escrow },
-      { key: 'marketplace', label: 'Secondary market', rule: '1% of every resale payment', state: f.marketplace }
+      { key: 'catalogue', label: 'Catalogue token', rule: catalogueRule, state: f.catalogue },
+      { key: 'escrow', label: 'Milestone escrow', rule: `${pct(esc?.contributionFeeBps)} of every contribution + ${pct(esc?.milestoneFeeBps)} of every released tranche`, state: f.escrow },
+      { key: 'marketplace', label: 'Secondary market', rule: `${pct(mkt?.feeBps)} of every resale payment`, state: f.marketplace }
     ];
   }
 
