@@ -6,6 +6,7 @@ import { CancelGround, EscrowCampaignInfo, EscrowMilestone, FeeContractState, Fe
 import { fmtUSD } from '../../core/format.util';
 import { usdcToUsd } from '../../core/usdc.util';
 import { knownWalletName } from '../../core/known-wallets';
+import { AddressComponent } from '../../shared/address.component';
 
 type CampaignRow = EscrowCampaignInfo & { assetId: string };
 type LoadedCampaignRow = Extract<CampaignRow, { escrow: true }>;
@@ -25,7 +26,7 @@ type FeeKey = 'catalogue' | 'escrow' | 'marketplace';
 @Component({
   selector: 'app-admin-escrow',
   standalone: true,
-  imports: [],
+  imports: [AddressComponent],
   templateUrl: './admin-escrow.component.html'
 })
 export class AdminEscrowComponent {

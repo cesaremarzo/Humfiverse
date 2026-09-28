@@ -11,6 +11,7 @@ import { usdToUsdc } from '../core/usdc.util';
 import { ROYALTY_FEE_BPS } from '../core/primary-fee.util';
 import { ipfsGatewayUrl } from '../core/ipfs.util';
 import { knownWalletName } from '../core/known-wallets';
+import { AddressComponent } from './address.component';
 
 type SupportedRoyalties = Extract<AssetRoyalties, { supported: true }>;
 
@@ -42,7 +43,7 @@ async function sha256Ref(file: Blob): Promise<string> {
 @Component({
   selector: 'app-royalty-payouts',
   standalone: true,
-  imports: [TranslatePipe, IconComponent],
+  imports: [AddressComponent, TranslatePipe, IconComponent],
   template: `
     @if (state(); as s) {
       <div class="card panel">
@@ -132,7 +133,7 @@ async function sha256Ref(file: Blob): Promise<string> {
                       <div class="mono" style="font-size:11px; color:var(--text-secondary);" [title]="d.statementRef">SHA-256 {{ d.statementRef.slice(2, 14) }}…</div>
                     </td>
                     <td class="cell-num mono">{{ fmt(d.amountUsdc) }}</td>
-                    <td style="text-align:right;"><a class="btn btn-ghost btn-sm" [href]="d.explorerUrl" target="_blank" rel="noopener">Etherscan <app-icon name="arrowRight"></app-icon></a></td>
+                    <td style="text-align:right;"><app-address kind="tx" [value]="d.txHash"></app-address></td>
                   </tr>
                 }
               </tbody>
