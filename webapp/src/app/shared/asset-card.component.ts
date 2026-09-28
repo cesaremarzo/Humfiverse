@@ -13,11 +13,12 @@ import { computeProjectedYield } from '../core/yield.util';
 import { StoreService } from '../core/store.service';
 import { PreviewAudioService } from '../core/preview-audio.service';
 import { ipfsGatewayUrl } from '../core/ipfs.util';
+import { AddressComponent } from './address.component';
 
 @Component({
   selector: 'app-asset-card',
   standalone: true,
-  imports: [RouterLink, TranslatePipe, CoverComponent, IconComponent, StatusChipComponent, VerifiedChipComponent, SparklineComponent],
+  imports: [AddressComponent, RouterLink, TranslatePipe, CoverComponent, IconComponent, StatusChipComponent, VerifiedChipComponent, SparklineComponent],
   templateUrl: './asset-card.component.html'
 })
 export class AssetCardComponent {

@@ -763,5 +763,11 @@
   "assistant.kb.studios.keys": "录音室, 工作室, 录音, 录音师, 合作, 注册",
   "assistant.kb.risks.q": "参与前我该知道什么？",
   "assistant.kb.risks.a": "这是测试网上的原型：测试版 USDC 没有货币价值，目前还没有任何法律实体持有真实的版税权利，没有合约经过独立审计，项目页上的版税数字由艺人申报且未经核实。本网站上的任何内容都不是投资要约或投资建议。",
-  "assistant.kb.risks.keys": "风险, 安全, 真钱, 真实, 价值, 测试网, sepolia, 审计, 法律, 骗局, 保证"
+  "assistant.kb.risks.keys": "风险, 安全, 真钱, 真实, 价值, 测试网, sepolia, 审计, 法律, 骗局, 保证",
+  "address.viewOnExplorer": "在 Etherscan 上查看",
+  "address.copy": "复制",
+  "address.copied": "已复制",
+  "detail.onchainContract": "合约",
+  "detail.onchainMintTx": "铸造交易",
+  "detail.royaltyReportedByCol": "报告人"
 }

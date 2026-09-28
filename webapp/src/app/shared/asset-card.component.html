@@ -8,6 +8,7 @@
     <div>
       <div class="asset-title">{{ asset.title }}</div>
       <div class="asset-artist">{{ asset.artistName }} · {{ asset.genre }}</div>
+      @if (asset.artistWallet) { <app-address [value]="asset.artistWallet" [nested]="true"></app-address> }
     </div>
     @if (!isPre && asset.royaltyHistory) {
       <div><app-sparkline [data]="asset.royaltyHistory"></app-sparkline></div>

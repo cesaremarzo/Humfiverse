@@ -763,5 +763,11 @@
   "assistant.kb.studios.keys": "estudio, estudios, grabacion, tecnico, socio, registrar",
   "assistant.kb.risks.q": "¿Qué debo saber antes de participar?",
   "assistant.kb.risks.a": "Que esto es un prototipo en una red de prueba: los USDC de prueba no tienen valor monetario, ninguna entidad jurídica posee todavía un derecho de regalías real, ningún contrato ha pasado una auditoría independiente y las cifras de regalías de un anuncio las declara el artista y no están verificadas. Nada en este sitio es una oferta de inversión ni asesoramiento.",
-  "assistant.kb.risks.keys": "riesgo, riesgos, seguro, seguridad, dinero, real, valor, testnet, sepolia, auditoria, legal, estafa, garantia"
+  "assistant.kb.risks.keys": "riesgo, riesgos, seguro, seguridad, dinero, real, valor, testnet, sepolia, auditoria, legal, estafa, garantia",
+  "address.viewOnExplorer": "Ver en Etherscan",
+  "address.copy": "Copiar",
+  "address.copied": "Copiado",
+  "detail.onchainContract": "Contrato",
+  "detail.onchainMintTx": "Transacción de acuñación",
+  "detail.royaltyReportedByCol": "Declarado por"
 }
