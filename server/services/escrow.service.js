@@ -97,4 +97,22 @@ async function listCampaigns() {
   return infos.filter(Boolean);
 }
 
-module.exports = { createCampaign, listCampaigns };
+/** Records a campaign the chain has and the local table does not — one
+ * whose row was lost (§2.104: the insert collided with a legacy id) or
+ * never written. Called when a campaign is read by asset, so the listing
+ * the artist and studio pages depend on heals itself. Legacy campaigns are
+ * already in the table and are not touched. */
+async function rememberCampaign(assetId, info) {
+  if (!info || info.legacy || (await escrowRepo.hasCampaign(assetId))) return;
+  await escrowRepo.insertCampaign({
+    campaignId: info.campaignId,
+    assetId,
+    studioId: info.studioId,
+    studioName: info.studio?.name ?? null,
+    studioWallet: info.studio?.wallet ?? null,
+    txHash: null,
+    createdAt: new Date().toISOString()
+  });
+}
+
+module.exports = { createCampaign, listCampaigns, rememberCampaign };

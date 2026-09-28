@@ -71,6 +71,10 @@ module.exports = function registerEscrowRoutes(router) {
     try {
       const info = await escrowChain.getCampaignInfoByAssetId(params.assetId);
       if (!info) { sendJson(res, 200, { escrow: false }); return; }
+      // A campaign missing from the local table would be missing from the
+      // artist's and studio's pages too (§2.104); a failed write never
+      // costs the reader the answer.
+      await escrow.rememberCampaign(params.assetId, info).catch((e) => console.warn("could not record campaign", params.assetId, e.message));
       sendJson(res, 200, { escrow: true, assetId: params.assetId, ...info });
     } catch (e) {
       sendJson(res, 502, { error: "could not read escrow campaign", detail: String(e.message || e) });

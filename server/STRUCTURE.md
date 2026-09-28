@@ -99,7 +99,7 @@ deployment*, not a domain rule.
 | `portfolio.repo.js` | `holdings`, `distributions`, `portfolio_snapshots` | Two unrelated things: the wallet-less original simulation, and the real per-wallet daily snapshots feeding the value chart. |
 | `compliance.repo.js` | `contract_acceptances`, `kyc_records` | Append-only in practice. They record what a user was shown and agreed to, at a point in time. |
 | `onchain.repo.js` | `onchain_tokens` | A **cache**, never the source of truth (§2.14). A miss means "not cached", not "no token". |
-| `escrow.repo.js` | `escrow_campaigns`, `escrow_studios` | Also caches, and only valid against the contract they were written for — which is why the admin reset endpoints exist. |
+| `escrow.repo.js` | `escrow_campaigns`, `escrow_studios` | Also caches. Campaigns are keyed by asset and re-recorded from the chain when missing (§2.104); a cached studio id is reused only if the current escrow agrees (§2.103). |
 | `listings.repo.js` | `marketplace_listings` | Listing ids only. The offer itself — price, seller, whether it is still open — is read off the contract. |
 | `assistant.repo.js` | `assistant_requests` | One row per answered guide question (§2.100): an IP, a timestamp and the two token counts, and nothing else. It exists so the caps on a paid, sign-in-free endpoint survive a restart. |
 | `indexer.repo.js` | `indexer_state`, `token_holders`, `token_holder_audit` | The resume cursor and its cross-process lease, the holder table, and the audit row that says whether that token's holdings were checked against supply (§2.70). |

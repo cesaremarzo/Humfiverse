@@ -41,8 +41,12 @@ async function clearStudios() {
 
 async function insertCampaign(row) {
   await db.prepare(
-    "INSERT INTO escrow_campaigns (campaign_id, asset_id, studio_id, studio_name, studio_wallet, tx_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
-  ).run(row.campaignId, row.assetId, row.studioId, row.studioName, row.studioWallet.toLowerCase(), row.txHash, row.createdAt);
+    "INSERT OR REPLACE INTO escrow_campaigns (campaign_id, asset_id, studio_id, studio_name, studio_wallet, tx_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+  ).run(row.campaignId, row.assetId, row.studioId, row.studioName, row.studioWallet ? row.studioWallet.toLowerCase() : null, row.txHash, row.createdAt);
+}
+
+async function hasCampaign(assetId) {
+  return Boolean(await db.prepare("SELECT 1 FROM escrow_campaigns WHERE asset_id = ?").get(assetId));
 }
 
 async function listCampaignAssetIds() {
@@ -60,6 +64,7 @@ module.exports = {
   upsertStudio,
   clearStudios,
   insertCampaign,
+  hasCampaign,
   listCampaignAssetIds,
   deleteCampaignByAssetId
 };

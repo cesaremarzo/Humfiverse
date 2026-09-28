@@ -44,8 +44,8 @@ async function initSchema() {
       minted_at TEXT
     );
     CREATE TABLE IF NOT EXISTS escrow_campaigns (
-      campaign_id INTEGER PRIMARY KEY,
-      asset_id TEXT UNIQUE NOT NULL,
+      asset_id TEXT PRIMARY KEY,
+      campaign_id INTEGER,
       studio_id INTEGER,
       studio_name TEXT,
       studio_wallet TEXT,
@@ -217,6 +217,27 @@ async function initSchema() {
     await db.exec("ALTER TABLE indexer_state ADD COLUMN locked_until INTEGER NOT NULL DEFAULT 0;");
   } catch {
     /* column already exists — fine */
+  }
+  // escrow_campaigns was keyed by campaign_id, but ids restart from 1 on
+  // every escrow: after a redeploy the first new campaign collided with a
+  // legacy row and was never recorded (§2.104). Rebuild it keyed by asset.
+  const cols = await db.prepare("PRAGMA table_info(escrow_campaigns)").all();
+  if (cols.some((c) => c.name === "campaign_id" && Number(c.pk) === 1)) {
+    await db.exec(`
+      CREATE TABLE escrow_campaigns_v2 (
+        asset_id TEXT PRIMARY KEY,
+        campaign_id INTEGER,
+        studio_id INTEGER,
+        studio_name TEXT,
+        studio_wallet TEXT,
+        tx_hash TEXT,
+        created_at TEXT
+      );
+      INSERT INTO escrow_campaigns_v2 (asset_id, campaign_id, studio_id, studio_name, studio_wallet, tx_hash, created_at)
+        SELECT asset_id, campaign_id, studio_id, studio_name, studio_wallet, tx_hash, created_at FROM escrow_campaigns;
+      DROP TABLE escrow_campaigns;
+      ALTER TABLE escrow_campaigns_v2 RENAME TO escrow_campaigns;
+    `);
   }
   // royalty_deposits kept a statement text before statement files (§2.98);
   // the old column stays, unused.
