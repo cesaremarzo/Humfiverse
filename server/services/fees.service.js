@@ -1,7 +1,8 @@
 "use strict";
-/* Platform fees (§2.71, §2.72): 2% of every primary purchase — a catalogue
-   buy() on the token, a contribution on the escrow — 3% of every released
-   escrow tranche, and 1% of every secondary-market payment. Each accrues
+/* Platform fees (§2.71, §2.72, §2.101): 6% of a direct catalogue buy() and
+   1% of every royalty deposit, both on the token; 2% of every escrow
+   contribution and 3% of every released tranche; 1% of every
+   secondary-market payment. Each accrues
    inside its own contract and leaves only through that contract's
    withdrawFees(), which anyone may call and which can only pay the
    contract's feeRecipient.

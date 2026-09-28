@@ -425,8 +425,10 @@ export type FeeContractState =
       status: 'ok';
       contractAddress: string;
       explorerUrl: string;
-      /** Single-rate contracts (token, marketplace). */
+      /** Single-rate contracts (token, marketplace); on the token, the direct-sale rate. */
       feeBps?: number;
+      /** The token's rate on royalty deposits (§2.101), null before it existed. */
+      royaltyFeeBps?: number | null;
       /** The escrow's two rates. */
       contributionFeeBps?: number;
       milestoneFeeBps?: number;
