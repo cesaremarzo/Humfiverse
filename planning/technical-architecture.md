@@ -768,3 +768,9 @@ One trap for anyone verifying with headless Chrome: a `Page.captureScreenshot` w
 
 ---
 *This is an architecture proposal for planning purposes, not a build-ready spec. Chain and vendor choices are illustrative starting points based on what comparable platforms use, not final recommendations — worth validating against the legal path chosen before writing code.*
+
+**2.106 A finance look: Geist, cool neutrals, and a market table (28 Sep 2026).** Asked by the user as graphic designer: cleaner, closer to finance sites, a font "less Claude-like and more DeFi", and a richer experience. The warm cream ground, Fraunces serif titles and IBM Plex read as an editorial blog; an exchange reads as numbers first.
+- *Type.* Geist and Geist Mono from Google Fonts (the only external resource, as before — `legal/05` unchanged in substance). Every family now goes through `--font-sans`, `--font-display`, `--font-mono`; no component names a font directly any more, so the next change is one line.
+- *Palette.* Cool neutrals, one violet accent, green for up/good (`--good` = `--accent-2`), red for down. Surfaces are solid instead of §2.91's glass; gradient text, gradient buttons and glowing card edges removed. Inner pages turn `<app-backdrop>` almost off (no coins, vinyl, gauge); the landing keeps the full picture.
+- *Marketplace.* A market overview (listings, raised on-chain, funded overall, network) summing the same per-asset helpers the cards use, so the header and the cards cannot disagree; dashes while the chain read is in flight, never the mock counters. A grid/table toggle (remembered in `localStorage` as `hv.marketView`), sorting, skeleton cards while loading. Unknown holder counts sort last, never as zero. On narrow screens the table stacks with a label per cell.
+- *Top bar.* A Sepolia network pill; "Connect wallet" is the primary button when no wallet is connected.

@@ -33,7 +33,7 @@
       <p class="mono" style="margin-top:10px; font-size:12.5px; color:var(--text-muted);">{{ wallet.state().address }}</p>
     </div>
   } @else {
-    <h3 style="font-family:'Fraunces',serif; font-size:17px; margin-bottom:14px;">{{ 'studio.campaignsHeading' | translate }}</h3>
+    <h3 style="font-family:var(--font-display); font-size:17px; margin-bottom:14px;">{{ 'studio.campaignsHeading' | translate }}</h3>
 
     @for (c of myCampaigns(); track c.campaignId) {
       <div class="card" style="margin-bottom:24px; padding:20px;">

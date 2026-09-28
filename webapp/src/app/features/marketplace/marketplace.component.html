@@ -6,6 +6,40 @@
   </div>
 </div>
 
+<!-- Market overview: totals of the per-listing figures below, never an
+     estimate. Dashes while the chain read is in flight. -->
+<section class="market-stats card" [attr.aria-busy]="figuresLoading()">
+  <div class="market-stat">
+    <span class="label">{{ 'market.listed' | translate }}</span>
+    @if (loading()) { <span class="value skeleton-text"></span> }
+    @else {
+      <span class="value mono">{{ stats().listed }}</span>
+      <span class="sub">{{ 'market.split' | translate: { c: stats().catalogues, p: stats().preproduction } }}</span>
+    }
+  </div>
+  <div class="market-stat">
+    <span class="label">{{ 'market.raised' | translate }}</span>
+    @if (figuresLoading()) { <span class="value skeleton-text"></span> }
+    @else {
+      <span class="value mono">{{ stats().raised }}</span>
+      <span class="sub">{{ 'market.ofGoal' | translate: { goal: stats().goal } }}</span>
+    }
+  </div>
+  <div class="market-stat">
+    <span class="label">{{ 'market.funded' | translate }}</span>
+    @if (figuresLoading()) { <span class="value skeleton-text"></span> }
+    @else {
+      <span class="value mono">{{ stats().fundedPct }}%</span>
+      <span class="meter"><span [style.width.%]="stats().fundedPct"></span></span>
+    }
+  </div>
+  <div class="market-stat">
+    <span class="label">{{ 'market.network' | translate }}</span>
+    <span class="value market-network"><span class="live-dot"></span>Sepolia</span>
+    <span class="sub">{{ 'market.settlement' | translate }}</span>
+  </div>
+</section>
+
 <div class="toolbar">
   <div class="segmented">
     <button type="button" [class.active]="filter() === 'all'" (click)="filter.set('all')">{{ 'marketplace.filterAll' | translate: { n: totalCount() } }}</button>
@@ -16,16 +50,105 @@
     <app-icon name="search"></app-icon>
     <input type="text" [placeholder]="'marketplace.searchPlaceholder' | translate" [value]="query()" (input)="onQueryInput($any($event.target).value)">
   </div>
+  <div class="toolbar-end">
+    <label class="sort-select">
+      <app-icon name="sort"></app-icon>
+      <select [attr.aria-label]="'market.sortLabel' | translate" [value]="sort()" (change)="sort.set($any($event.target).value)">
+        @for (k of sortKeys; track k) {
+          <option [value]="k">{{ 'market.sort.' + k | translate }}</option>
+        }
+      </select>
+    </label>
+    <div class="segmented segmented-icons" role="group" [attr.aria-label]="'market.viewLabel' | translate">
+      <button type="button" [class.active]="view() === 'grid'" (click)="setView('grid')" [attr.aria-pressed]="view() === 'grid'" [title]="'market.viewGrid' | translate"><app-icon name="grid"></app-icon></button>
+      <button type="button" [class.active]="view() === 'table'" (click)="setView('table')" [attr.aria-pressed]="view() === 'table'" [title]="'market.viewTable' | translate"><app-icon name="rows"></app-icon></button>
+    </div>
+  </div>
 </div>
 
 @if (loading()) {
-  <p class="prose">{{ 'marketplace.loading' | translate }}</p>
-} @else if (list().length) {
-  <div class="grid">
-    @for (a of list(); track a.id) {
-      <app-asset-card [asset]="a"></app-asset-card>
+  <p class="visually-hidden" role="status">{{ 'marketplace.loading' | translate }}</p>
+  <div class="grid" aria-hidden="true">
+    @for (s of skeletons; track s) {
+      <div class="card skeleton-card">
+        <div class="skeleton skeleton-cover"></div>
+        <div class="skeleton-body">
+          <span class="skeleton skeleton-line" style="width:62%"></span>
+          <span class="skeleton skeleton-line" style="width:40%"></span>
+          <span class="skeleton skeleton-line" style="width:100%; height:4px; margin-top:14px"></span>
+          <span class="skeleton skeleton-line" style="width:80%"></span>
+        </div>
+      </div>
     }
   </div>
+} @else if (list().length) {
+  @if (view() === 'grid') {
+    <div class="grid">
+      @for (r of list(); track r.asset.id) {
+        <app-asset-card [asset]="r.asset"></app-asset-card>
+      }
+    </div>
+  } @else {
+    <div class="card market-table-card">
+      <div class="table-wrap">
+        <table class="market-table table-stack">
+          <thead>
+            <tr>
+              <th>{{ 'market.col.asset' | translate }}</th>
+              <th>{{ 'market.col.type' | translate }}</th>
+              <th class="cell-num">{{ 'market.col.price' | translate }}</th>
+              <th>{{ 'market.col.funded' | translate }}</th>
+              <th class="cell-num">{{ 'market.col.raised' | translate }}</th>
+              <th class="cell-num">{{ 'market.col.holders' | translate }}</th>
+              <th class="cell-num">{{ 'market.col.yield' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of list(); track r.asset.id) {
+              <tr class="market-row" (click)="open(r)">
+                <td>
+                  <a class="row-song" [routerLink]="['/asset', r.asset.id]" (click)="$event.stopPropagation()">
+                    <span class="row-thumb" style="position:relative"><app-cover [asset]="r.asset" [play]="false" [motifSize]="24"></app-cover></span>
+                    <span>
+                      <span class="cell-primary">{{ r.asset.title }}</span>
+                      <span class="row-sub">{{ r.asset.artistName }} · {{ r.asset.genre }}</span>
+                    </span>
+                  </a>
+                </td>
+                <td [attr.data-label]="'market.col.type' | translate">
+                  <span class="chip" [class.chip-accent]="r.asset.kind === 'preproduction'" [class.chip-neutral]="r.asset.kind !== 'preproduction'">
+                    {{ (r.asset.kind === 'preproduction' ? 'marketplace.filterPreproduction' : 'market.catalogue') | translate }}
+                  </span>
+                </td>
+                <td [attr.data-label]="'market.col.price' | translate" class="cell-num">{{ usd(r.asset.tokenPrice) }}</td>
+                <td [attr.data-label]="'market.col.funded' | translate">
+                  @if (figuresLoading()) { <span class="text-muted">&mdash;</span> }
+                  @else {
+                    <span class="funded-cell">
+                      <span class="meter"><span [style.width.%]="r.pct"></span></span>
+                      <span class="mono">{{ r.pct }}%</span>
+                    </span>
+                  }
+                </td>
+                <td [attr.data-label]="'market.col.raised' | translate" class="cell-num">
+                  @if (figuresLoading()) { &mdash; }
+                  @else { <span>{{ usdShort(r.raised) }} <span class="text-muted">/ {{ usdShort(r.goal) }}</span></span> }
+                </td>
+                <td [attr.data-label]="'market.col.holders' | translate" class="cell-num">
+                  @if (r.holders !== null) { {{ r.holders }} } @else { <span class="text-muted" [title]="'campaignCard.holdersUnknown' | translate">&mdash;</span> }
+                </td>
+                <td [attr.data-label]="'market.col.yield' | translate" class="cell-num">
+                  @if (r.asset.kind === 'preproduction') { <span class="text-muted">{{ 'market.round' | translate }}</span> }
+                  @else if (r.yieldPct !== null) { <span class="up">{{ r.yieldPct.toFixed(1) }}%</span> }
+                  @else { <span class="text-muted" [title]="'asset.royaltyPending' | translate">&mdash;</span> }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
 } @else {
   <div class="empty-state card">
     <app-icon name="search"></app-icon>

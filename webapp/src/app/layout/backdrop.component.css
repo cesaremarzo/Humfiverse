@@ -217,7 +217,7 @@
 }
 
 .bd-label-text {
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-family:var(--font-mono);
   font-size: 12px;
   letter-spacing: 0.08em;
   fill: var(--text-muted);
@@ -275,36 +275,28 @@
   opacity: 0.07;
 }
 
-/* ---------- Inner pages: same world, turned down ---------- */
+/* ---------- Inner pages: same world, turned almost off ----------
+   §2.106: inner pages are tables, prices and forms. Like an exchange, they
+   sit on a nearly plain ground; the full picture belongs to the landing. */
 :host(.quiet) .bd-svg {
-  opacity: 0.5;
-}
-
-/* The wave is the brightest stroke; on pages full of text it only hints. */
-:host(.quiet) .bd-wave,
-:host(.quiet) .bd-wave-glow {
-  opacity: 0.3;
+  opacity: 0.16;
 }
 
 :host(.quiet) .bd-label-text,
-:host(.quiet) .bd-staff {
+:host(.quiet) .bd-staff,
+:host(.quiet) .bd-coin,
+:host(.quiet) .bd-vinyl,
+:host(.quiet) .bd-gauge,
+:host(.quiet) .bd-note {
   display: none;
 }
 
 :host(.quiet) .bd-orb {
-  opacity: 0.6;
-}
-
-:host(.quiet) .bd-coin {
   opacity: 0.3;
 }
 
-:host(.quiet) .bd-coin--near {
-  display: none;
-}
-
 :host(.quiet) .bd-grid {
-  opacity: 0.6;
+  opacity: 0.35;
 }
 
 @media (max-width: 700px) {

@@ -15,7 +15,7 @@
   <div class="card panel" style="padding:28px;">
 
     @if (stepKey() === 'basics') {
-      <h3 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:4px;">{{ 'wizBasics.title' | translate }}</h3>
+      <h3 style="font-family:var(--font-display); font-size:20px; margin-bottom:4px;">{{ 'wizBasics.title' | translate }}</h3>
       <p class="prose" style="margin-bottom:18px;">{{ 'wizBasics.subtitle' | translate }}</p>
       <div class="form-grid">
         <div class="field"><label>{{ 'wizBasics.titleLabel' | translate }}</label>
@@ -35,7 +35,7 @@
     }
 
     @if (stepKey() === 'model') {
-      <h3 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:4px;">{{ 'wizModel.title' | translate }}</h3>
+      <h3 style="font-family:var(--font-display); font-size:20px; margin-bottom:4px;">{{ 'wizModel.title' | translate }}</h3>
       <p class="prose" style="margin-bottom:18px;">{{ 'wizModel.subtitle' | translate }}</p>
       <div class="choice-cards">
         <button type="button" class="choice-card" [class.selected]="data().model === 'catalogue'" (click)="updateData({ model: 'catalogue' })">
@@ -53,7 +53,7 @@
 
     @if (stepKey() === 'source') {
       @if (data().model === 'preproduction') {
-        <h3 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:4px;">{{ 'wizSource.preprodTitle' | translate }}</h3>
+        <h3 style="font-family:var(--font-display); font-size:20px; margin-bottom:4px;">{{ 'wizSource.preprodTitle' | translate }}</h3>
         <p class="prose" style="margin-bottom:6px;">{{ 'wizSource.preprodSubtitle' | translate }}</p>
         <p class="prose" style="margin-bottom:18px; font-size:12.5px;">{{ 'escrow.platformFeeNote' | translate }}</p>
 
@@ -111,7 +111,7 @@
           <p class="hint" style="margin-top:6px;">{{ 'wizMilestones.amountNote' | translate }}</p>
         </div>
       } @else {
-        <h3 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:4px;">{{ 'wizSource.catalogueTitle' | translate }}</h3>
+        <h3 style="font-family:var(--font-display); font-size:20px; margin-bottom:4px;">{{ 'wizSource.catalogueTitle' | translate }}</h3>
         <p class="prose" style="margin-bottom:18px;">{{ 'wizSource.catalogueSubtitle' | translate }}</p>
         <div class="form-grid">
           <div class="field"><label>{{ 'wizSource.distributorLabel' | translate }}</label>
@@ -256,7 +256,7 @@
     }
 
     @if (stepKey() === 'disclosure') {
-      <h3 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:4px;">{{ 'wizDisclosure.title' | translate }}</h3>
+      <h3 style="font-family:var(--font-display); font-size:20px; margin-bottom:4px;">{{ 'wizDisclosure.title' | translate }}</h3>
       <p class="prose" style="margin-bottom:18px;">{{ 'wizDisclosure.subtitle' | translate }}</p>
       <div class="disclosure-form">
         @for (row of disclosureRows; track row[0]) {
@@ -274,7 +274,7 @@
     }
 
     @if (stepKey() === 'contract') {
-      <h3 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:4px;">{{ 'wizContract.title' | translate }}</h3>
+      <h3 style="font-family:var(--font-display); font-size:20px; margin-bottom:4px;">{{ 'wizContract.title' | translate }}</h3>
       <p class="prose" style="margin-bottom:8px;">{{ 'wizContract.subtitle' | translate }}</p>
       <p class="prose" style="margin-bottom:18px; font-size:12.5px;" [style.color]="isTranslated() ? 'var(--warning)' : 'var(--text-muted)'" [style.font-weight]="isTranslated() ? 600 : null">
         @if (isTranslated()) { <app-icon name="alert"></app-icon> }
@@ -316,10 +316,10 @@
     }
 
     @if (stepKey() === 'review') {
-      <h3 style="font-family:'Fraunces',serif; font-size:20px; margin-bottom:4px;">{{ 'wizReview.title' | translate }}</h3>
+      <h3 style="font-family:var(--font-display); font-size:20px; margin-bottom:4px;">{{ 'wizReview.title' | translate }}</h3>
       <div class="stat-row" style="margin:18px 0;">
-        <div class="card stat-tile"><div class="label">{{ 'wizReview.titleField' | translate }}</div><div class="value" style="font-size:15px; font-family:'IBM Plex Sans',sans-serif;">{{ data().title || '—' }}</div></div>
-        <div class="card stat-tile"><div class="label">{{ 'wizReview.modelField' | translate }}</div><div class="value" style="font-size:15px; font-family:'IBM Plex Sans',sans-serif;">{{ (data().model === 'preproduction' ? 'wizReview.modelPreprod' : 'wizReview.modelCatalogue') | translate }}</div></div>
+        <div class="card stat-tile"><div class="label">{{ 'wizReview.titleField' | translate }}</div><div class="value" style="font-size:15px; font-family:var(--font-sans);">{{ data().title || '—' }}</div></div>
+        <div class="card stat-tile"><div class="label">{{ 'wizReview.modelField' | translate }}</div><div class="value" style="font-size:15px; font-family:var(--font-sans);">{{ (data().model === 'preproduction' ? 'wizReview.modelPreprod' : 'wizReview.modelCatalogue') | translate }}</div></div>
         <div class="card stat-tile"><div class="label">{{ 'wizReview.fundingGoalField' | translate }}</div><div class="value">{{ fmtExact(raise().effectiveUsd) }}</div></div>
         <div class="card stat-tile"><div class="label">{{ 'wizRaise.supplyField' | translate }}</div><div class="value">{{ raise().supply }}</div></div>
         <div class="card stat-tile"><div class="label">{{ 'wizRaise.priceField' | translate }}</div><div class="value">{{ fmtExact(raise().priceUsd) }}</div></div>

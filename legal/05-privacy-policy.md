@@ -116,7 +116,8 @@ Comunichiamo dati alle autorità solo quando la legge lo richiede.
 ## 6. Archiviazione nel browser
 
 Il sito salva nel tuo browser (`localStorage`) la lingua scelta
-(`humfiverse-locale`), un indicatore di sessione del wallet integrato e i dati di
+(`humfiverse-locale`), la vista scelta nel marketplace (`hv.marketView`, griglia o
+tabella), un indicatore di sessione del wallet integrato e i dati di
 sessione che l'SDK di thirdweb salva per mantenerti connesso (verificato nel
 codice al commit `82a7a1b`). Sono strumenti
 tecnici necessari al funzionamento, per cui non serve il consenso (art. 122 del

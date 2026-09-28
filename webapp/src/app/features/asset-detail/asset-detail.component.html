@@ -63,7 +63,7 @@
               <div class="value">{{ holderCount() === null ? '—' : holderCount() }}</div>
             </div>
             @if (isPre(a)) {
-              <div class="card stat-tile"><div class="label">{{ 'detail.useOfFunds' | translate }}</div><div class="value" style="font-size:13px; font-family:'IBM Plex Sans',sans-serif;">{{ a.targetRaiseUse }}</div></div>
+              <div class="card stat-tile"><div class="label">{{ 'detail.useOfFunds' | translate }}</div><div class="value" style="font-size:13px; font-family:var(--font-sans);">{{ a.targetRaiseUse }}</div></div>
             } @else {
               @if (yieldBreakdown(a); as b) {
                 <div class="card stat-tile" style="position:relative;">
@@ -196,7 +196,7 @@
                 <div class="card stat-tile"><div class="label">{{ 'detail.escrowCampaignId' | translate }}</div><div class="value mono">#{{ $any(escrowInfo()).campaignId }}</div></div>
                 <div class="card stat-tile"><div class="label">{{ 'detail.escrowRaisedGoal' | translate }}</div><div class="value mono" style="font-size:14px;">{{ usdcToUsd($any(escrowInfo()).raised) }} / {{ usdcToUsd($any(escrowInfo()).fundingGoal) }}</div></div>
                 @if ($any(escrowInfo()).studio) {
-                  <div class="card stat-tile"><div class="label">{{ 'detail.escrowStudio' | translate }}</div><div class="value" style="font-size:14px; font-family:'IBM Plex Sans',sans-serif;">{{ $any(escrowInfo()).studio.name }}</div></div>
+                  <div class="card stat-tile"><div class="label">{{ 'detail.escrowStudio' | translate }}</div><div class="value" style="font-size:14px; font-family:var(--font-sans);">{{ $any(escrowInfo()).studio.name }}</div></div>
                 }
                 <div class="card stat-tile"><div class="label">{{ 'detail.escrowArtistWallet' | translate }}</div><div class="value mono" style="font-size:14px;">{{ wallet.truncateAddr($any(escrowInfo()).artist) }}</div></div>
               </div>

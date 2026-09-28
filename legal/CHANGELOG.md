@@ -3,6 +3,14 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-09-28 (2) · nuova grafica: font Geist, vista tabella nel marketplace (technical §2.106)
+
+`webapp/src/index.html` carica da Google Fonts Geist e Geist Mono al posto di
+Fraunces e IBM Plex: stesso fornitore, stessi dati trasmessi (IP, user agent),
+quindi 05 §5 e 01 §7 restano veri. Il marketplace ricorda nel browser la vista
+scelta (griglia o tabella) in `localStorage` (`hv.marketView`): aggiunta a 05 §6,
+è una preferenza tecnica senza dati personali. Impronte aggiornate.
+
 ## 2026-09-28 · `escrow_campaigns` indicizzata per asset (technical §2.104)
 
 `server/data/schema.js` cambia solo la chiave primaria della tabella delle
