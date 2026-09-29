@@ -2427,6 +2427,29 @@ piattaforma (Owner/Founder/Fees).
   artista, admin-escrow.
 - 6 chiavi i18n nuove in tutte e 9 le lingue.
 
+**Stato a fine sessione (29 Set):**
+- **Live su `main`** con la PR #78 (merge `8537e3f`), da un branch separato
+  `dev/cesare-addresses`: il sito serve `main-F7BSH4MC.js`. Verificato sulla build
+  pulita contro l'API di produzione: i 10 indirizzi di `test-878` puntano alle
+  pagine Etherscan giuste. Dopo il deploy non l'ho ancora provato cliccando dal vivo.
+- **Non su `main`:** il redesign "Finance look" (§2.106, `5f27220`, merge
+  `31b84dd` di design/finance dentro `origin/dev/cesare`). Serve l'ok di Cesare
+  prima del merge. `docs/` va ricostruita di nuovo dopo il merge, perché la build
+  di `main` non contiene il redesign.
+- **Lavoro non committato di un'altra sessione** nel checkout principale:
+  takedown (§2.105) — `server/*takedown*`, `admin-takedown`, chiavi i18n
+  `detail.removed*`/`takedown.ground.*`, `removedDate` in asset-detail. Il suo
+  `app.routes.ts` punta a un `admin-takedown.component` che non esiste ancora,
+  quindi `ng serve` in quel checkout non compila finché non lo finisce.
+- Il `dev/cesare` locale del checkout principale è divergente (1 avanti — il
+  rebuild di `docs/` già su `main` —, 2 indietro). Non l'ho allineato per non
+  toccare il lavoro non committato dell'altra sessione: `git pull` quando ha
+  committato.
+- Da fare, piccolo: `wallet.service.ts` ha ancora la sua costante
+  `EXPLORER_BASE` e degli URL Etherscan scritti a mano; si possono sostituire con
+  `core/explorer.util.ts`. Il topbar mostra ancora l'indirizzo abbreviato senza
+  link (è il bottone del wallet).
+
 ## 2026-09-29 — procedura di annullamento e rimozione (§2.105); rimborso di Test C
 
 **Rimborso Test C fatto dal vivo:** `0x4ee9` ha rimborsato 2 token → +0.98 USDC,

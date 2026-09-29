@@ -3,6 +3,14 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-09-28 (2) · nuova grafica: font Geist, vista tabella nel marketplace (technical §2.106)
+
+`webapp/src/index.html` carica da Google Fonts Geist e Geist Mono al posto di
+Fraunces e IBM Plex: stesso fornitore, stessi dati trasmessi (IP, user agent),
+quindi 05 §5 e 01 §7 restano veri. Il marketplace ricorda nel browser la vista
+scelta (griglia o tabella) in `localStorage` (`hv.marketView`): aggiunta a 05 §6,
+è una preferenza tecnica senza dati personali. Impronte aggiornate.
+
 ## 2026-09-28 (2) · procedura di annullamento e rimozione (technical §2.105)
 
 La procedura che Termini §5.6 e 08 A-1/A-1-bis descrivono è nel codice. Cosa

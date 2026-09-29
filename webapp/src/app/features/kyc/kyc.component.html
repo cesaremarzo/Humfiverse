@@ -22,7 +22,7 @@
       }
 
       <div>
-        <h3 style="font-family:'Fraunces',serif; font-size:17px; margin-bottom:12px;">{{ 'kyc.identityTitle' | translate }}</h3>
+        <h3 style="font-family:var(--font-display); font-size:17px; margin-bottom:12px;">{{ 'kyc.identityTitle' | translate }}</h3>
         <div class="form-grid">
           <div class="field"><label>{{ 'kyc.fullNameLabel' | translate }}</label><input type="text" [value]="fullName()" (input)="fullName.set($any($event.target).value)"></div>
           <div class="field"><label>{{ 'kyc.dobLabel' | translate }}</label><input type="text" placeholder="YYYY-MM-DD" [value]="dob()" (input)="dob.set($any($event.target).value)"></div>
@@ -31,7 +31,7 @@
       </div>
 
       <div>
-        <h3 style="font-family:'Fraunces',serif; font-size:17px; margin-bottom:12px;">{{ 'kyc.classificationTitle' | translate }}</h3>
+        <h3 style="font-family:var(--font-display); font-size:17px; margin-bottom:12px;">{{ 'kyc.classificationTitle' | translate }}</h3>
         <div class="choice-cards">
           <button type="button" class="choice-card" [class.selected]="classification() === 'retail'" (click)="classification.set('retail')">
             <h4>{{ 'kyc.retailTitle' | translate }}</h4><p>{{ 'kyc.retailBody' | translate }}</p>
@@ -43,7 +43,7 @@
       </div>
 
       <div>
-        <h3 style="font-family:'Fraunces',serif; font-size:17px; margin-bottom:4px;">{{ 'kyc.appropriatenessTitle' | translate }}</h3>
+        <h3 style="font-family:var(--font-display); font-size:17px; margin-bottom:4px;">{{ 'kyc.appropriatenessTitle' | translate }}</h3>
         <p class="prose" style="margin-bottom:14px;">{{ 'kyc.appropriatenessSubtitle' | translate }}</p>
 
         <div class="field" style="margin-bottom:10px;">
@@ -79,7 +79,7 @@
       </div>
 
       <div>
-        <h3 style="font-family:'Fraunces',serif; font-size:17px; margin-bottom:12px;">{{ 'kyc.amlTitle' | translate }}</h3>
+        <h3 style="font-family:var(--font-display); font-size:17px; margin-bottom:12px;">{{ 'kyc.amlTitle' | translate }}</h3>
         <div class="field">
           <label>{{ 'kyc.sourceOfFundsLabel' | translate }}</label>
           <select (change)="sourceOfFunds.set($any($event.target).value)">

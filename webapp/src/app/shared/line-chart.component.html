@@ -24,7 +24,7 @@
     @for (o of labels; track o.i) {
       <text [attr.x]="points[o.i].x.toFixed(1)" [attr.y]="h - 6" font-size="9" fill="var(--text-muted)"
             [attr.text-anchor]="o.i === 0 ? 'start' : o.i === data.length - 1 ? 'end' : 'middle'"
-            font-family="IBM Plex Mono, monospace">{{ o.month }}</text>
+            font-family="Geist Mono, ui-monospace, monospace">{{ o.month }}</text>
     }
   </svg>
   @if (hoverIndex !== null) {
