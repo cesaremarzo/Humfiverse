@@ -2469,7 +2469,48 @@ trovati così e corretti (unpin non ritentato dopo l'azzeramento dell'audio; cam
 dell'hash sparito dopo l'annullamento). `legal/` aggiornato (02 C-2, 04 §5.6, 05,
 08 A-1/A-1-bis, nuova 07 H5).
 
-**Da sapere:** la pagina `/admin/escrow` ha ancora il vecchio bottone di
-annullamento via wallet owner, che col Safe non funziona: annullare ora passa da
-`/admin/takedown`. Test C è stato annullato prima della procedura, quindi non ha
-un caso registrato; la sua pagina resta visibile.
+*(Aggiornato in serata: il vecchio bottone di `/admin/escrow` è stato tolto e
+Test C ha ora un caso chiuso — vedi sotto.)*
+
+## 2026-09-29 (sera) — primo caso vero della procedura: Test C chiuso; stato per la prossima sessione
+
+**Fatto, tutto in `main` e verificato live** (ultimo bundle `main-NTYEQYHU.js`):
+- **PR #79** procedura di annullamento (§2.105), `…/Humfiverse/#/admin/takedown`.
+- **PR #81** `/admin/escrow`: tolto il bottone di annullamento via wallet owner (col
+  Safe non poteva funzionare), al suo posto un link alla procedura; rimossi i tre
+  metodi del wallet che usava solo lui.
+- **PR #82** `complete` accetta un annullamento fatto **prima** dell'avviso del caso
+  (hash diverso): lo registra come annullamento precedente con motivo e hash suoi,
+  mai come esecuzione della decisione del caso. Il testo della decisione precedente
+  si può allegare ed è conservato solo se il suo SHA-256 è quello sulla catena.
+- **PR #83** incollare quel testo perdeva l'a capo finale (hash diverso): il server
+  prova anche le varianti con/senza a capo finale e LF/CRLF e salva quella esatta; la
+  pagina può caricare il file.
+- **Test C (`test-c-576`) chiuso, stato `removed`**: caso con motivo contenuto
+  illecito, collegato alla tx del Safe del 28/09 `0xe83d…d97a` con la decisione
+  originale (`0xa72d…`) nel registro. Rimborso già fatto prima (0.98 a `0x4ee9`).
+  API senza contenuto, metadati del token #5 «Removed content». Il file della
+  decisione originale è anche in `~/Downloads/decisione-test-c-576.txt` sul Mac di
+  Cesare.
+
+**Firme per annullare:** sulla catena 2 su 3 del Safe (Cesare `0xF7ba…`,
+Co-founder `0xE57E…`, riserva `0x4878…`). Fuori catena ogni passo (avviso,
+decisione, completamento) basta **una** firma di un firmatario, e la decisione
+nasconde subito la pagina. **Aperto, decisione di Cesare:** chiedere la conferma di
+un secondo firmatario anche per la decisione.
+
+**Ancora da verificare dal vivo:** l'import del file nel Transaction Builder
+(checksum identico al loro algoritmo, ma mai caricato davvero: Test C era già
+annullato) e l'invio via Brevo di avviso e decisione (nei test solo log).
+
+**Lavoro in parallelo:** un'altra sessione ha fatto il merge del restyle (§2.106–2.108,
+PR #80). Il `dev/cesare` locale della cartella condivisa è rimasto indietro rispetto
+a `main`: prima di lavorarci, `git merge origin/main`. Le PR di questa sessione sono
+partite da branch separati creati da `origin/main` in un worktree
+(`dev/cesare-takedown*`, `dev/cesare-escrow-cancel`), per non trascinare lavoro
+altrui non approvato.
+
+**Prossimi candidati:** secondo firmatario sulla decisione (se Cesare lo vuole);
+intervallo dei versamenti di royalty per token (`legal/08` C-12); motivo `NONE` da
+togliere dal contratto al prossimo redeploy; whitepaper W-16…W-20 su ordine di
+Cesare; domanda 07 H5 all'avvocato.
