@@ -120,7 +120,8 @@
         @if (safeTx(); as tx) {
           <h4 style="margin-top:16px;">4 · Cancel on chain, from the Safe</h4>
           @if (tx.campaignStatus === 'cancelled') {
-            <p style="font-size:13.5px;"><strong>The campaign is already cancelled on chain.</strong> Paste the hash of the Safe transaction that cancelled it; completing checks that it did so on this ground and with this decision's hash.</p>
+            <p style="font-size:13.5px;"><strong>The campaign is already cancelled on chain.</strong> Paste the hash of the Safe transaction that cancelled it; completing checks that it did so on this ground and with this decision's hash. A cancellation made <em>before this case was opened</em> is accepted as an earlier cancellation, with its own ground and hash on record.</p>
+            <div class="field"><label>Earlier decision text (optional, only for a cancellation made before this case — kept only if its SHA-256 is the hash on chain)</label><textarea rows="4" class="mono" [(ngModel)]="priorDecisionText"></textarea></div>
           }
           <ol style="font-size:13.5px; line-height:1.6;">
             <li>Download the batch file, open the owner Safe → Apps → Transaction Builder, and drop the file in. No ABI to paste.</li>
@@ -142,6 +143,7 @@
       @if (c.cancel || c.audio || c.unpinned?.length || c.unpinFailed?.length || c.emailed?.length) {
         <h4 style="margin-top:20px;">Removal steps</h4>
         <ul style="font-size:13px; line-height:1.7;">
+          @if (c.cancel?.['prior']) { <li>Cancelled on chain <strong>before this case</strong>, on {{ c.cancel!['cancelledAt'] }}, ground {{ c.cancel!['priorGround'] }}, decision hash <span class="mono">{{ $any(c.cancel!['priorDecisionHash']).slice(0, 12) }}…</span>{{ c.cancel!['priorDecisionText'] ? ' (text on record)' : ' (text not provided)' }}</li> }
           @if (c.cancel) { <li>On-chain cancellation: <strong>{{ c.cancel.outcome }}</strong> @if (c.cancel['txHash']) { · <a [href]="'https://sepolia.etherscan.io/tx/' + c.cancel['txHash']" target="_blank" rel="noopener" class="mono">{{ $any(c.cancel['txHash']).slice(0, 12) }}…</a> } @if (c.cancel['reason']) { · {{ c.cancel['reason'] }} }</li> }
           @for (u of c.unpinned; track u) { <li>Unpinned <span class="mono">{{ u }}</span></li> }
           @for (u of c.unpinFailed; track u) { <li style="color:var(--critical);">Unpin failed <span class="mono">{{ u }}</span></li> }

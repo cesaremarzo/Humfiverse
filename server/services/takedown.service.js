@@ -43,6 +43,8 @@ const GROUND_TEXT = {
   false_warranties: "(c) false or inaccurate artist warranties"
 };
 const EVIDENCE = ["notice", "authority_order", "court_decision"];
+/** The escrow's CancelGround enum in full, NONE included, for reading one back. */
+const CHAIN_GROUNDS = ["none", ...GROUNDS];
 const EVIDENCE_TEXT = { notice: "notice from the rights holder", authority_order: "order of an authority", court_decision: "court decision" };
 const DAY_MS = 24 * 60 * 60 * 1000;
 const cancelInterface = new ethers.Interface([
@@ -442,7 +444,7 @@ async function safeTransactionFor(assetId) {
 
 /** Checks that `txHash` cancelled this campaign on this ground with this
  * decision — the chain's word, not the caller's. */
-async function verifyCancel(ctx, state, txHash) {
+async function verifyCancel(ctx, state, txHash, priorDecisionText) {
   if (!/^0x[0-9a-fA-F]{64}$/.test(String(txHash || ""))) throw codedError("invalid", "the Safe transaction hash is required");
   const receipt = await provider.getTransactionReceipt(txHash);
   if (!receipt || receipt.status !== 1) throw codedError("invalid", "that transaction is not confirmed, or it failed");
@@ -452,9 +454,27 @@ async function verifyCancel(ctx, state, txHash) {
     .map((l) => { try { return cancelInterface.parseLog(l); } catch { return null; } })
     .find((e) => e && e.name === "CampaignCancelled" && Number(e.args.campaignId) === Number(ctx.escrow.campaignId));
   if (!event) throw codedError("invalid", "that transaction did not cancel this campaign");
-  if (Number(event.args.ground) !== GROUNDS.indexOf(state.ground) + 1) throw codedError("invalid", "the campaign was cancelled on a different ground");
-  if (event.args.decisionHash.toLowerCase() !== state.decision.decisionHash.toLowerCase()) throw codedError("invalid", "the campaign was cancelled with a different decision hash");
-  return { txHash: receipt.hash, block: receipt.blockNumber, campaignId: Number(ctx.escrow.campaignId), escrow: ctx.escrow.contractAddress };
+  const base = { txHash: receipt.hash, block: receipt.blockNumber, campaignId: Number(ctx.escrow.campaignId), escrow: ctx.escrow.contractAddress };
+  const onChainHash = event.args.decisionHash.toLowerCase();
+  if (onChainHash === state.decision.decisionHash.toLowerCase()) {
+    if (Number(event.args.ground) !== GROUNDS.indexOf(state.ground) + 1) throw codedError("invalid", "the campaign was cancelled on a different ground");
+    return base;
+  }
+  // A cancellation from before this case was opened (Test C, cancelled by
+  // hand before §2.105 existed) cannot carry this decision's hash. It is
+  // accepted as what it is — an earlier cancellation, with its own ground
+  // and hash on record — never as the execution of this decision. One
+  // made after the notice with another hash is still refused.
+  const { timestamp } = await provider.getBlock(receipt.blockNumber);
+  if (timestamp * 1000 >= Date.parse(state.noticeAt)) throw codedError("invalid", "the campaign was cancelled with a different decision hash");
+  const prior = { ...base, prior: true, priorGround: CHAIN_GROUNDS[Number(event.args.ground)] ?? String(event.args.ground), priorDecisionHash: onChainHash, cancelledAt: new Date(timestamp * 1000).toISOString() };
+  // The earlier decision's text, kept only if it is the one the chain names.
+  if (priorDecisionText) {
+    const hash = "0x" + require("crypto").createHash("sha256").update(priorDecisionText, "utf8").digest("hex");
+    if (hash !== onChainHash) throw codedError("invalid", "that text is not the earlier decision: its SHA-256 differs from the hash on chain");
+    prior.priorDecisionText = priorDecisionText;
+  }
+  return prior;
 }
 
 async function complete(assetId, body) {
@@ -467,7 +487,7 @@ async function complete(assetId, body) {
   // 1. The cancellation, which the Safe made. Checked, never assumed.
   if (!state.cancel || state.cancel.outcome === "failed") {
     if (ctx.escrow && !ctx.escrow.legacy) {
-      const record = await verifyCancel(ctx, state, payload.txHash);
+      const record = await verifyCancel(ctx, state, payload.txHash, typeof body.priorDecisionText === "string" && body.priorDecisionText ? body.priorDecisionText : null);
       await repo.append({ assetId, step: "cancel", outcome: "ok", actor, payload: record });
     } else {
       const why = ctx.escrow ? "campaign on the legacy escrow, not cancelled by this procedure" : "no escrow campaign: nothing to cancel on chain";
