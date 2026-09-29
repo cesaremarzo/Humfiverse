@@ -1,23 +1,32 @@
 <div class="bd-glow"></div>
 <div class="bd-grid"></div>
 
-@if (mode === 'hero') {
-  <svg class="bd-svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" fill="none">
-    <defs>
-      <linearGradient id="bd-wave" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0" stop-color="var(--accent-ink)" stop-opacity="0" />
-        <stop offset="0.3" stop-color="var(--accent-ink)" />
-        <stop offset="0.8" stop-color="var(--accent-2)" />
-        <stop offset="1" stop-color="var(--accent-2)" stop-opacity="0" />
-      </linearGradient>
-      <linearGradient id="bd-area" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="var(--accent-ink)" stop-opacity="0.10" />
-        <stop offset="0.55" stop-color="var(--accent-ink)" stop-opacity="0" />
-      </linearGradient>
-    </defs>
+<svg class="bd-svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" fill="none">
+  <defs>
+    <linearGradient id="bd-wave" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="var(--accent-ink)" stop-opacity="0" />
+      <stop offset="0.3" stop-color="var(--accent-ink)" />
+      <stop offset="0.8" stop-color="var(--accent-2)" />
+      <stop offset="1" stop-color="var(--accent-2)" stop-opacity="0" />
+    </linearGradient>
+    <linearGradient id="bd-area" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="var(--accent-ink)" stop-opacity="0.10" />
+      <stop offset="0.55" stop-color="var(--accent-ink)" stop-opacity="0" />
+    </linearGradient>
+  </defs>
 
+  <!-- Staves as ribbons: five lines that swell apart and draw together -->
+  @for (s of staves; track $index) {
+    <g class="bd-stave" [class.bd-stave--b]="$index === 1">
+      @for (d of s; track $index) {
+        <path [attr.d]="d" />
+      }
+    </g>
+  }
+
+  @if (mode === 'hero') {
     <!-- A price line that is also a sound wave -->
     <path [attr.d]="waveArea" fill="url(#bd-area)" />
     <path [attr.d]="wave" class="bd-wave" pathLength="1" />
-  </svg>
-}
+  }
+</svg>
