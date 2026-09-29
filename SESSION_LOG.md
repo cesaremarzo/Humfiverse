@@ -2473,3 +2473,34 @@ dell'hash sparito dopo l'annullamento). `legal/` aggiornato (02 C-2, 04 §5.6, 0
 annullamento via wallet owner, che col Safe non funziona: annullare ora passa da
 `/admin/takedown`. Test C è stato annullato prima della procedura, quindi non ha
 un caso registrato; la sua pagina resta visibile.
+
+## 2026-09-29 — restyling "finanza" su `main` (PR #80, §2.106–2.108)
+
+Richiesta: "sei il graphic designer", grafica più pulita e da sito di finanza, font
+meno "Claude" e più DeFi, esperienza più ricca. **Online** su GitHub Pages con
+`main-HED4HSR7.js` (merge `56e5466`), API di produzione verificate.
+
+- **§2.106:** Geist + Geist Mono (Google Fonts, stesso fornitore di prima) dietro
+  `--font-sans/--font-display/--font-mono`, nessun componente nomina più un font.
+  Palette fredda, un solo viola, verde/rosso per lo stato, superfici piene (niente
+  vetro, testo sfumato, bordi luminosi). Marketplace: riepilogo di mercato (somme
+  degli stessi calcoli delle card, trattini finché la catena non risponde), vista
+  griglia/tabella ricordata in `localStorage` `hv.marketView` (aggiunta a legal/05
+  §6), ordinamento, skeleton. Topbar: pillola Sepolia, "Connect wallet" primario.
+  Nuove chiavi `market.*` in 9 lingue.
+- **§2.107:** sfondo "troppo confusionario" → tolti monete, vinile, candele,
+  spettro, etichette, grana.
+- **§2.108:** poi "troppo scarno" → due pentagrammi a nastro nel gradiente
+  viola→verde della linea del prezzo; più tenui nelle pagine interne. Gli è piaciuto.
+
+**Come ho lavorato:** un'altra sessione modificava il checkout principale in
+contemporanea, quindi tutto è stato fatto nel worktree
+`.claude/worktrees/finance-design` (branch `design/finance`, pushato su
+`dev/cesare`). Netlify fa anteprime solo per `dev/cesare` e `dev/vincenzo`, non
+per altri branch. Il controllo dei permessi blocca `gh pr merge` fatto da Claude:
+il merge l'ha lanciato Cesare con `!`.
+
+**Da sapere:** il `dev/cesare` locale nel checkout principale è indietro rispetto
+a `origin` — `git pull` prima di lavorare. Il worktree `finance-design` si può
+rimuovere (`git worktree remove .claude/worktrees/finance-design`). `og-cover`,
+favicon e `render.py` usano ancora la vecchia tipografia/palette: non toccati.
