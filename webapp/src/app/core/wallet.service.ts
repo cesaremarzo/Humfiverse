@@ -163,7 +163,6 @@ const ROYALTY_ABI = [
   'function claimPoolRoyalties(uint256 tokenId) external',
   'function balanceOf(address account, uint256 id) view returns (uint256)'
 ];
-const CANCEL_GROUND_INDEX = { none: 0, unlawful_content: 1, third_party_rights: 2, false_warranties: 3 } as const;
 const CONFIRM_MILESTONE_ABI = [
   'function confirmMilestoneAsArtist(uint256 campaignId, uint256 milestoneIndex) external',
   'function confirmMilestoneAsStudio(uint256 campaignId, uint256 milestoneIndex) external'
@@ -440,10 +439,6 @@ export class WalletService {
     return (this.readProvider ??= new ethers.JsonRpcProvider(SEPOLIA_ADD_PARAMS.rpcUrls[0], 11155111, { staticNetwork: true }));
   }
 
-  async readEscrowOwner(contractAddress: string): Promise<string> {
-    return new ethers.Contract(contractAddress, ESCROW_REFUND_ABI, this.reader())['owner']();
-  }
-
   /** A campaign's refund figures, straight from the contract. `pool` is
    * what the campaign still held when cancelled (raised less released
    * tranches); refunds already claimed are not subtracted, since the
@@ -476,32 +471,11 @@ export class WalletService {
     return (await provider.getSigner()).signMessage(message);
   }
 
-  /** Owner-only on the contract: stops contributions and opens refund(). */
-  async cancelCampaignOnchain(params: { contractAddress: string; campaignId: number }): Promise<{ txHash: string; explorerUrl: string }> {
-    const contract = await this.signerFor(params.contractAddress, ESCROW_REFUND_ABI);
-    const tx = await contract['cancelCampaign'](params.campaignId);
-    const receipt = await tx.wait();
-    if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
-    return { txHash: tx.hash, explorerUrl: `${EXPLORER_BASE}/tx/${tx.hash}` };
-  }
-
   /** The connected wallet's own refund from a cancelled campaign. The 2%
    * contribution fee is not refunded, and the tokens stay where they are. */
   async refundOnchain(params: { contractAddress: string; campaignId: number }): Promise<{ txHash: string; explorerUrl: string }> {
     const contract = await this.signerFor(params.contractAddress, ESCROW_REFUND_ABI);
     const tx = await contract['refund'](params.campaignId);
-    const receipt = await tx.wait();
-    if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
-    return { txHash: tx.hash, explorerUrl: `${EXPLORER_BASE}/tx/${tx.hash}` };
-  }
-
-  /** Phase 2 cancellation (§2.92), owner-only. Without a ground it is
-   * refused on a fully released campaign; with one, `decisionHash` must be
-   * the non-zero hash of the written decision. */
-  async cancelCampaignWithGround(params: { contractAddress: string; campaignId: number; ground: keyof typeof CANCEL_GROUND_INDEX; decisionHash: string }):
-    Promise<{ txHash: string; explorerUrl: string }> {
-    const contract = await this.signerFor(params.contractAddress, ESCROW_V2_ABI);
-    const tx = await contract['cancelCampaign'](params.campaignId, CANCEL_GROUND_INDEX[params.ground], params.decisionHash);
     const receipt = await tx.wait();
     if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
     return { txHash: tx.hash, explorerUrl: `${EXPLORER_BASE}/tx/${tx.hash}` };
