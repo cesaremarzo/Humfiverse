@@ -1,0 +1,1 @@
+import"./chunk-tBgelQpR.js";import"./chunk-CoEj01tB.js";import{t as Fr}from"./chunk-DT_gxC_l.js";export{Fr as estimateGas};

@@ -736,5 +736,11 @@
   "assistant.kb.studios.keys": "スタジオ, レコーディング, エンジニア, パートナー, 登録",
   "assistant.kb.risks.q": "参加する前に知っておくべきことは？",
   "assistant.kb.risks.a": "これはテストネット上のプロトタイプです。テスト用 USDC に金銭的価値はなく、実際の印税権を保有する法人はまだ存在せず、契約は独立した監査を受けておらず、掲載の印税数値はアーティストの申告で検証されていません。このサイトのいかなる内容も投資の勧誘や助言ではありません。",
-  "assistant.kb.risks.keys": "リスク, 危険, 安全, お金, 実際, 価値, テストネット, sepolia, 監査, 法的, 詐欺, 保証"
+  "assistant.kb.risks.keys": "リスク, 危険, 安全, お金, 実際, 価値, テストネット, sepolia, 監査, 法的, 詐欺, 保証",
+  "address.viewOnExplorer": "Etherscanで表示",
+  "address.copy": "コピー",
+  "address.copied": "コピーしました",
+  "detail.onchainContract": "コントラクト",
+  "detail.onchainMintTx": "ミントトランザクション",
+  "detail.royaltyReportedByCol": "報告者"
 }
