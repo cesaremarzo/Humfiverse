@@ -469,10 +469,16 @@ async function verifyCancel(ctx, state, txHash, priorDecisionText) {
   if (timestamp * 1000 >= Date.parse(state.noticeAt)) throw codedError("invalid", "the campaign was cancelled with a different decision hash");
   const prior = { ...base, prior: true, priorGround: CHAIN_GROUNDS[Number(event.args.ground)] ?? String(event.args.ground), priorDecisionHash: onChainHash, cancelledAt: new Date(timestamp * 1000).toISOString() };
   // The earlier decision's text, kept only if it is the one the chain names.
+  // Pasting into a text box drops a final newline and may turn line endings
+  // into CRLF, which changes the hash but not the document; those variants
+  // are tried, and the one that matches the chain is what gets stored.
   if (priorDecisionText) {
-    const hash = "0x" + require("crypto").createHash("sha256").update(priorDecisionText, "utf8").digest("hex");
-    if (hash !== onChainHash) throw codedError("invalid", "that text is not the earlier decision: its SHA-256 differs from the hash on chain");
-    prior.priorDecisionText = priorDecisionText;
+    const sha = (t) => "0x" + require("crypto").createHash("sha256").update(t, "utf8").digest("hex");
+    const lf = priorDecisionText.replace(/\r\n/g, "\n");
+    const variants = [priorDecisionText, lf, lf + "\n", lf.replace(/\n+$/, ""), lf.replace(/\n/g, "\r\n")];
+    const match = variants.find((t) => sha(t) === onChainHash);
+    if (!match) throw codedError("invalid", "that text is not the earlier decision: its SHA-256 differs from the hash on chain");
+    prior.priorDecisionText = match;
   }
   return prior;
 }

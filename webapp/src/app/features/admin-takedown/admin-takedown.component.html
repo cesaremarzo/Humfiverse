@@ -121,7 +121,9 @@
           <h4 style="margin-top:16px;">4 · Cancel on chain, from the Safe</h4>
           @if (tx.campaignStatus === 'cancelled') {
             <p style="font-size:13.5px;"><strong>The campaign is already cancelled on chain.</strong> Paste the hash of the Safe transaction that cancelled it; completing checks that it did so on this ground and with this decision's hash. A cancellation made <em>before this case was opened</em> is accepted as an earlier cancellation, with its own ground and hash on record.</p>
-            <div class="field"><label>Earlier decision text (optional, only for a cancellation made before this case — kept only if its SHA-256 is the hash on chain)</label><textarea rows="4" class="mono" [(ngModel)]="priorDecisionText"></textarea></div>
+            <div class="field"><label>Earlier decision (optional, only for a cancellation made before this case — kept only if its SHA-256 is the hash on chain). Upload the file, or paste its text.</label>
+              <input type="file" accept=".txt,text/plain" (change)="loadPriorDecision($any($event.target).files?.[0])">
+              <textarea rows="4" class="mono" [(ngModel)]="priorDecisionText" style="margin-top:8px;"></textarea></div>
           }
           <ol style="font-size:13.5px; line-height:1.6;">
             <li>Download the batch file, open the owner Safe → Apps → Transaction Builder, and drop the file in. No ABI to paste.</li>
