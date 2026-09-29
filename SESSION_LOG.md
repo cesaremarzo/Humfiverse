@@ -2502,5 +2502,6 @@ il merge l'ha lanciato Cesare con `!`.
 
 **Da sapere:** il `dev/cesare` locale nel checkout principale è indietro rispetto
 a `origin` — `git pull` prima di lavorare. Il worktree `finance-design` si può
-rimuovere (`git worktree remove .claude/worktrees/finance-design`). `og-cover`,
-favicon e `render.py` usano ancora la vecchia tipografia/palette: non toccati.
+rimuovere (`git worktree remove .claude/worktrees/finance-design`). 
+`webapp/art-src/og-cover.html` (anteprima dei link condivisi) usa ancora
+Fraunces/IBM Plex: da rifare con Geist.
