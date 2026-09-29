@@ -7,68 +7,28 @@
   contain: strict;
 }
 
-/* ---------- Light ---------- */
-.bd-orb {
+/* One soft light from above, in the accent colour */
+.bd-glow {
   position: absolute;
-  border-radius: 50%;
-  will-change: transform;
+  left: 50%;
+  top: -40vh;
+  width: 120vw;
+  height: 80vh;
+  translate: -50% 0;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 22%, transparent), transparent);
 }
 
-.bd-orb--a {
-  width: 70vmax;
-  height: 70vmax;
-  left: -18vmax;
-  top: -26vmax;
-  background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 34%, transparent), transparent);
-  animation: bd-drift-a 26s ease-in-out infinite alternate;
-}
-
-.bd-orb--b {
-  width: 60vmax;
-  height: 60vmax;
-  right: -20vmax;
-  top: 18vh;
-  background: radial-gradient(closest-side, color-mix(in srgb, var(--accent-2) 22%, transparent), transparent);
-  animation: bd-drift-b 32s ease-in-out infinite alternate;
-}
-
-.bd-orb--c {
-  width: 50vmax;
-  height: 50vmax;
-  left: 20vw;
-  bottom: -30vmax;
-  background: radial-gradient(closest-side, color-mix(in srgb, var(--gold) 16%, transparent), transparent);
-  animation: bd-drift-a 40s ease-in-out infinite alternate-reverse;
-}
-
-@keyframes bd-drift-a {
-  to { transform: translate3d(6vw, 5vh, 0) scale(1.08); }
-}
-
-@keyframes bd-drift-b {
-  to { transform: translate3d(-7vw, -4vh, 0) scale(0.94); }
-}
-
-/* Perspective ledger grid on the floor of the page */
+/* A flat ledger grid, fading out downwards */
 .bd-grid {
   position: absolute;
-  left: -50%;
-  right: -50%;
-  bottom: -8%;
-  height: 62%;
+  inset: 0;
   background-image:
     linear-gradient(var(--grid-line) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size: 64px 64px;
-  transform: perspective(700px) rotateX(62deg);
-  transform-origin: 50% 100%;
-  mask-image: linear-gradient(to top, #000 10%, transparent 85%);
-  -webkit-mask-image: linear-gradient(to top, #000 10%, transparent 85%);
-  animation: bd-grid-run 18s linear infinite;
-}
-
-@keyframes bd-grid-run {
-  to { background-position: 0 64px, 0 0; }
+  background-position: center top;
+  mask-image: radial-gradient(90% 70% at 50% 0%, #000 20%, transparent 75%);
+  -webkit-mask-image: radial-gradient(90% 70% at 50% 0%, #000 20%, transparent 75%);
 }
 
 .bd-svg {
@@ -79,238 +39,29 @@
   max-width: none;
 }
 
-/* ---------- Stave ---------- */
-.bd-staff path {
-  stroke: var(--text);
-  stroke-width: 1;
-  opacity: 0.09;
-}
-
-.bd-note {
-  animation: bd-bob 6s ease-in-out infinite alternate;
-}
-
-.bd-note image {
-  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.35));
-}
-
-.bd-note line {
-  stroke: var(--gold);
-  stroke-width: 1.4;
-  opacity: 0.5;
-}
-
-@keyframes bd-bob {
-  from { translate: 0 0; }
-  to { translate: 0 -7px; }
-}
-
-/* ---------- Record + gauge ---------- */
-.bd-vinyl-spin {
-  animation: bd-spin 38s linear infinite;
-  transform-box: fill-box;
-  transform-origin: center;
-}
-
-@keyframes bd-spin {
-  from { rotate: 0deg; }
-  to { rotate: 360deg; }
-}
-
-.bd-tick {
-  stroke: var(--text);
-  stroke-width: 1.2;
-  opacity: 0.16;
-}
-
-.bd-gauge-track {
-  stroke: var(--text);
-  stroke-width: 3;
-  opacity: 0.06;
-}
-
-.bd-gauge {
-  stroke: var(--accent-2);
-  stroke-width: 3;
-  stroke-linecap: round;
-  opacity: 0.7;
-  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent-2) 60%, transparent));
-}
-
-/* ---------- Spectrum ---------- */
-.bd-spectrum rect {
-  fill: var(--accent-ink);
-  opacity: 0.16;
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: bd-eq 1.8s ease-in-out infinite alternate;
-}
-
-.bd-spectrum rect:nth-child(odd) {
-  fill: var(--accent-2);
-}
-
-/* ---------- Candles ---------- */
-.bd-candles > g {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-  animation: bd-eq 3.2s ease-in-out infinite alternate;
-}
-
-.bd-candles line {
-  stroke: var(--accent-ink);
-  stroke-width: 1.2;
-  opacity: 0.22;
-}
-
-.bd-candles rect {
-  stroke: var(--accent-ink);
-  stroke-width: 0.8;
-  stroke-opacity: 0.35;
-  opacity: 0.5;
-}
-
-.bd-candles .up rect {
-  stroke: var(--accent-2);
-}
-
-.bd-candles .bd-candle-shine {
-  fill: #fff;
-  stroke: none;
-  opacity: 0.22;
-}
-
-.bd-candles .up line {
-  stroke: var(--accent-2);
-}
-
-@keyframes bd-eq {
-  from { transform: scaleY(0.82); }
-  to { transform: scaleY(1); }
-}
-
-/* ---------- Wave ---------- */
 .bd-wave {
   stroke: url(#bd-wave);
-  stroke-width: 2;
+  stroke-width: 1.6;
   stroke-linejoin: round;
+  opacity: 0.8;
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-  animation: bd-draw 3.2s cubic-bezier(.2,.7,.2,1) 0.3s forwards;
-}
-
-.bd-wave-glow {
-  stroke: url(#bd-wave);
-  stroke-width: 10;
-  opacity: 0.12;
-}
-
-.bd-wave-echo {
-  stroke: var(--accent-ink);
-  stroke-width: 1;
-  stroke-dasharray: 2 6;
-  opacity: 0.22;
+  animation: bd-draw 2.4s cubic-bezier(.2,.7,.2,1) 0.2s forwards;
 }
 
 @keyframes bd-draw {
   to { stroke-dashoffset: 0; }
 }
 
-.bd-label-text {
-  font-family:var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  fill: var(--text-muted);
-  opacity: 0.55;
-}
-
-/* ---------- Rendered coins at three depths ---------- */
-.bd-coin {
-  position: absolute;
-  height: auto;
-  max-width: none;
-  rotate: var(--rot, 0deg);
-  filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.45));
-  animation: bd-float 14s ease-in-out infinite alternate;
-  will-change: transform;
-}
-
-.bd-coin--far {
-  opacity: 0.55;
-  filter: blur(1.5px) drop-shadow(0 8px 10px rgba(0, 0, 0, 0.3));
-  animation-duration: 19s;
-}
-
-.bd-coin--mid {
-  opacity: 0.85;
-}
-
-/* Closest to the camera, so out of focus */
-.bd-coin--near {
-  z-index: 1;
-  opacity: 0.8;
-  filter: blur(7px);
-  animation-duration: 11s;
-}
-
-@keyframes bd-float {
-  from { transform: translate3d(0, 0, 0) rotate(0deg); }
-  to { transform: translate3d(0, -22px, 0) rotate(6deg); }
-}
-
-/* Keeps the lower part of long pages calm */
-.bd-fade {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(120% 90% at 50% 40%, transparent 55%, var(--bg) 100%);
-}
-
-/* Film grain: takes the digital flatness off gradients and renders */
-.bd-grain {
-  position: absolute;
-  inset: 0;
-  background-repeat: repeat;
-  background-size: 180px;
-  mix-blend-mode: overlay;
-  opacity: 0.07;
-}
-
-/* ---------- Inner pages: same world, turned almost off ----------
-   §2.106: inner pages are tables, prices and forms. Like an exchange, they
-   sit on a nearly plain ground; the full picture belongs to the landing. */
-:host(.quiet) .bd-svg {
-  opacity: 0.16;
-}
-
-:host(.quiet) .bd-label-text,
-:host(.quiet) .bd-staff,
-:host(.quiet) .bd-coin,
-:host(.quiet) .bd-vinyl,
-:host(.quiet) .bd-gauge,
-:host(.quiet) .bd-note {
-  display: none;
-}
-
-:host(.quiet) .bd-orb {
-  opacity: 0.3;
+/* ---------- Inner pages: a plain ground ---------- */
+:host(.quiet) .bd-glow {
+  opacity: 0.6;
 }
 
 :host(.quiet) .bd-grid {
-  opacity: 0.35;
+  display: none;
 }
 
-@media (max-width: 700px) {
-  .bd-label-text,
-  .bd-spectrum {
-    display: none;
-  }
-
-  .bd-vinyl {
-    opacity: 0.7;
-  }
-
-  .bd-coin--far,
-  .bd-coin--mid {
-    display: none;
-  }
+@media (prefers-reduced-motion: reduce) {
+  .bd-wave { animation: none; stroke-dashoffset: 0; }
 }
