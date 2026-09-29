@@ -1,0 +1,1 @@
+import{V as d}from"./chunk-B8UE091X.js";async function m(e,a){return d(await e({method:`eth_estimateGas`,params:[a]}))}export{m as t};

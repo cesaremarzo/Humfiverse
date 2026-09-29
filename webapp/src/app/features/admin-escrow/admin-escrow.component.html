@@ -2,7 +2,7 @@
   <div>
     <span class="page-kicker">Internal</span>
     <h1>Milestone escrow — confirmation status and platform fees</h1>
-    <p class="page-sub">Not part of the public site. Humfiverse cannot release a milestone — that requires the artist and the studio to each confirm it from their own wallet (confirmMilestoneAsArtist / confirmMilestoneAsStudio), and the campaigns below only show who's still waiting on whom. The actions here are sending accrued platform fees to their recipient (§2.71) and, from the contract owner's wallet, cancelling a campaign so its contributors can claim refunds (§2.85). See HumfiverseMilestoneEscrow.sol and planning/technical-architecture.md §2.27.</p>
+    <p class="page-sub">Not part of the public site. Humfiverse cannot release a milestone — that requires the artist and the studio to each confirm it from their own wallet (confirmMilestoneAsArtist / confirmMilestoneAsStudio), and the campaigns below only show who's still waiting on whom. The action here is sending accrued platform fees to their recipient (§2.71). Cancelling a campaign goes through the takedown procedure at /admin/takedown (§2.105), since the contract owner is a Safe. See HumfiverseMilestoneEscrow.sol and planning/technical-architecture.md §2.27.</p>
   </div>
 </div>
 
@@ -94,58 +94,13 @@
       }
     </div>
 
-    @if (c.status === 'active') {
-      @if (c.phase2) {
-        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-bottom:10px;">
-          <label style="display:flex; flex-direction:column; gap:6px;">
-            <span style="font-size:12px; color:var(--text-secondary);">Ground</span>
-            <select [value]="cancelDraft(c.campaignId).ground" (change)="setCancelDraft(c.campaignId, { ground: $any($event.target).value })"
-                    style="padding:9px 12px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--text); font:inherit;">
-              @for (g of grounds; track g.value) { <option [value]="g.value">{{ g.label }}</option> }
-            </select>
-          </label>
-          @if (cancelDraft(c.campaignId).ground !== 'none') {
-            <label style="display:flex; flex-direction:column; gap:6px; flex:1; min-width:260px;">
-              <span style="font-size:12px; color:var(--text-secondary);">Written decision (only its hash goes on chain; keep this exact text)</span>
-              <textarea rows="3" [value]="cancelDraft(c.campaignId).decision" (input)="setCancelDraft(c.campaignId, { decision: $any($event.target).value })"
-                        style="padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--text); font:inherit;"></textarea>
-              @if (cancelDraft(c.campaignId).decision.trim()) {
-                <span class="mono" style="font-size:11px; color:var(--text-secondary); word-break:break-all;">{{ decisionHash(cancelDraft(c.campaignId).decision) }}</span>
-              }
-            </label>
-          }
-        </div>
-      }
-      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
-        <button class="btn btn-sm" [class.btn-secondary]="confirmingCancel() !== c.campaignId" [class.btn-primary]="confirmingCancel() === c.campaignId"
-                [disabled]="!!cancelBlocked(c) || !isOwner()(c.contractAddress) || cancelling() !== null" (click)="cancelCampaign(c)">
-          {{ cancelling() === c.campaignId ? 'Cancelling…' : confirmingCancel() === c.campaignId ? 'Confirm: cancel campaign #' + c.campaignId + ' (irreversible)' : 'Cancel campaign' }}
-        </button>
-        @if (confirmingCancel() === c.campaignId) {
-          <button class="btn btn-ghost btn-sm" (click)="confirmingCancel.set(null)">Keep it active</button>
-        }
-        @if (cancelBlocked(c); as reason) {
-          <span style="font-size:12px; color:var(--text-secondary);">{{ reason }}</span>
-        } @else if (!isOwner()(c.contractAddress)) {
-          <span style="font-size:12px; color:var(--text-secondary);">
-            Owner only{{ owners()[c.contractAddress.toLowerCase()] ? ': connect ' + walletLabel(owners()[c.contractAddress.toLowerCase()]) : '' }}.
-          </span>
-        } @else if (c.phase2) {
-          <span style="font-size:12px; color:var(--text-secondary);">Stops contributions and opens refunds of what has not been released: each holder hands back their tokens, which are burned. Contribution fees are not refunded; royalties already earned stay claimable.</span>
-        } @else {
-          <span style="font-size:12px; color:var(--text-secondary);">Stops contributions and opens refunds of what has not been released. Contribution fees are not refunded.</span>
-        }
-      </div>
+    @if (c.status === 'active' && !c.legacy) {
+      <!-- §2.105: cancelling is the owner Safe's transaction, prepared by the
+           takedown procedure; this page no longer sends it. -->
+      <p style="font-size:12.5px; color:var(--text-secondary); margin:0 0 14px;">
+        To cancel this campaign, use the <a routerLink="/admin/takedown">takedown procedure</a>: notice to the artist, a written decision, then the owner Safe cancels on chain.
+      </p>
     }
-    @if (cancelResult(); as r) {
-      @if (r.campaignId === c.campaignId) {
-        <p style="font-size:12.5px; margin:0 0 14px;">
-          @if (r.error) { <strong>Cancellation failed:</strong> {{ r.error }} }
-          @else { Cancelled. <a [href]="r.explorerUrl" target="_blank" rel="noopener">View transaction</a> }
-        </p>
-      }
-    }
-
     @if (c.status === 'cancelled') {
       <div class="card panel" style="margin-bottom:14px;">
         <div class="cell-primary" style="margin-bottom:6px;">Refunds</div>
