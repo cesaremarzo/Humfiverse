@@ -2378,3 +2378,51 @@ MetaMask e da Google → milestone in ordine → `buy()` al 6% → deposito roya
 rendiconto (1%) → trasferimento → secondo deposito → claim di tutti e del pool →
 `withdrawFees` dal Safe; poi una seconda campagna cancellata con ground e rimborso
 con burn. Confrontare al centesimo attese e catena.
+
+## 2026-09-28 — giro di test completo sui contratti del §2.102
+
+Fatto dall'utente dal sito, verificato sulla catena a ogni passo (eventi + stato),
+cifre identiche a una simulazione della stessa sequenza sui contratti veri.
+
+- **`test-878`** (campagna 1): contributi da `0x8541` e `0x4ee9`, quattro milestone in
+  ordine, commissioni 4.94%. Tre depositi di royalty con PDF (hash = SHA-256 del file
+  su IPFS), quota del pool riscossa dall'artista, e soprattutto: un token comprato dal
+  pool **dopo** un deposito non porta royalty passate, e dopo una rivendita sul
+  marketplace il deposito successivo paga i saldi nuovi (4 → 1.98, 6 → 2.97).
+- **`test-b-636`**: `buy()` al 6% (2.82 all'artista, 0.18 al token) — prima volta dal vivo.
+- **`test-c-576`** (campagna 2): annullata dal **Safe** con motivo 1 e hash della
+  decisione — prima transazione mai eseguita dal Safe, firme Cesare + Co-founder.
+  Il rimborso con burn (0.98 su 2 token, a `0x4ee9`) era ancora da fare a fine sessione.
+- Bug trovati e corretti in `main` durante il giro: §2.103 (id studio in cache
+  riusato su un escrow nuovo), §2.104 (`escrow_campaigns` indicizzata per id
+  campagna: la prima campagna nuova non entrava in lista, niente bottone di
+  conferma), etichetta commissioni in `/admin/escrow` (diceva 2% e ignorava l'1%
+  sulle royalty; ora legge le aliquote dalla catena).
+- Firmatari del Safe confermati dall'utente e scritti in `CLAUDE.md`.
+- **Safe, come si fa:** app.safe.global/home?safe=sep:0xBA2a…245d (la lista può
+  nasconderlo: testnet o Safe non "fidato"); Transaction Builder; se l'ABI di
+  Etherscan non si carica, incollare solo il frammento del metodo **dagli appunti**
+  (`pbcopy`), mai copiato dal terminale, che spezza la riga.
+
+## 2026-09-28 — ogni entità on-chain mostra il suo indirizzo, verificabile
+
+Richiesta: sotto ogni nome, l'indirizzo sulla catena; tutto verificabile.
+Il sito non ha profili utente con un nome: le entità con nome sono artisti,
+studi, venditori sul marketplace, chi dichiara le royalty e i wallet della
+piattaforma (Owner/Founder/Fees).
+
+- Nuovo `shared/address.component.ts` (`<app-address>`): indirizzo abbreviato,
+  link a Etherscan, bottone copia, nome Owner/Founder/Fees se è un wallet
+  della piattaforma. `kind="tx"` per le transazioni, `kind="token"` + `tokenId`
+  per un token ERC-1155 (`/nft/<contratto>/<id>`). `nested` dentro un `<a>`
+  (le card): niente `<a>` annidato, apre Etherscan senza seguire la card.
+- `core/explorer.util.ts`: base Etherscan in un posto solo (wallet.service ha
+  ancora la sua copia).
+- Applicato a: card asset e campagna (wallet artista sotto il nome), dettaglio
+  asset (artista sotto il titolo — `artistWallet` o l'artista dell'escrow —,
+  token #id → Etherscan, contratto, tx di conio, contratto escrow, wallet
+  studio, venditori e tx dei listing, colonna "Dichiarato da" delle royalty),
+  royalty-payouts (tx del deposito), portfolio (wallet artista, token delle
+  royalty, contratto + id delle campagne da rimborsare), studio, milestone
+  artista, admin-escrow.
+- 6 chiavi i18n nuove in tutte e 9 le lingue.

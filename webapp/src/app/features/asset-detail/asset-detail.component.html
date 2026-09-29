@@ -28,6 +28,7 @@
           </div>
           <h1>{{ a.title }}</h1>
           <div class="artist">{{ a.artistName }} · {{ a.genre }}</div>
+          @if (artistWallet(a); as w) { <app-address [value]="w"></app-address> }
         </div>
       </div>
 
@@ -147,8 +148,12 @@
                 <span class="chip chip-accent">{{ 'detail.onchainNetwork' | translate }}</span>
               </div>
               <div class="stat-row" style="margin-top:14px;">
-                <div class="card stat-tile"><div class="label">{{ 'detail.onchainTokenId' | translate }}</div><div class="value mono">#{{ $any(onchainInfo()).tokenId }}</div></div>
+                <div class="card stat-tile"><div class="label">{{ 'detail.onchainTokenId' | translate }}</div><div class="value mono">#{{ $any(onchainInfo()).tokenId }}</div><app-address kind="token" [value]="$any(onchainInfo()).contractAddress" [tokenId]="$any(onchainInfo()).tokenId"></app-address></div>
                 <div class="card stat-tile"><div class="label">{{ 'detail.onchainPool' | translate }}</div><div class="value mono">{{ $any(onchainInfo()).poolBalance }} / {{ $any(onchainInfo()).totalSupply }}</div></div>
+                <div class="card stat-tile"><div class="label">{{ 'detail.onchainContract' | translate }}</div><app-address [value]="$any(onchainInfo()).contractAddress"></app-address></div>
+                @if ($any(onchainInfo()).mintTxHash) {
+                  <div class="card stat-tile"><div class="label">{{ 'detail.onchainMintTx' | translate }}</div><app-address kind="tx" [value]="$any(onchainInfo()).mintTxHash"></app-address></div>
+                }
               </div>
               @if ($any(onchainInfo()).onchainTitle) {
                 <div class="card panel" style="margin-top:10px; font-size:12.5px; color:var(--text-secondary);">
@@ -193,12 +198,12 @@
                 </div>
               }
               <div class="stat-row" style="margin-top:14px;">
-                <div class="card stat-tile"><div class="label">{{ 'detail.escrowCampaignId' | translate }}</div><div class="value mono">#{{ $any(escrowInfo()).campaignId }}</div></div>
+                <div class="card stat-tile"><div class="label">{{ 'detail.escrowCampaignId' | translate }}</div><div class="value mono">#{{ $any(escrowInfo()).campaignId }}</div><app-address [value]="$any(escrowInfo()).contractAddress"></app-address></div>
                 <div class="card stat-tile"><div class="label">{{ 'detail.escrowRaisedGoal' | translate }}</div><div class="value mono" style="font-size:14px;">{{ usdcToUsd($any(escrowInfo()).raised) }} / {{ usdcToUsd($any(escrowInfo()).fundingGoal) }}</div></div>
                 @if ($any(escrowInfo()).studio) {
-                  <div class="card stat-tile"><div class="label">{{ 'detail.escrowStudio' | translate }}</div><div class="value" style="font-size:14px; font-family:'IBM Plex Sans',sans-serif;">{{ $any(escrowInfo()).studio.name }}</div></div>
+                  <div class="card stat-tile"><div class="label">{{ 'detail.escrowStudio' | translate }}</div><div class="value" style="font-size:14px; font-family:'IBM Plex Sans',sans-serif;">{{ $any(escrowInfo()).studio.name }}</div><app-address [value]="$any(escrowInfo()).studio.wallet"></app-address></div>
                 }
-                <div class="card stat-tile"><div class="label">{{ 'detail.escrowArtistWallet' | translate }}</div><div class="value mono" style="font-size:14px;">{{ wallet.truncateAddr($any(escrowInfo()).artist) }}</div></div>
+                <div class="card stat-tile"><div class="label">{{ 'detail.escrowArtistWallet' | translate }}</div><div class="value" style="font-size:14px; font-family:'IBM Plex Sans',sans-serif;">{{ a.artistName }}</div><app-address [value]="$any(escrowInfo()).artist"></app-address></div>
               </div>
               <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px;">
                 <a [href]="$any(escrowInfo()).explorerUrl" (click)="openExternal($event, $any(escrowInfo()).explorerUrl)" class="btn btn-secondary btn-sm">
@@ -225,7 +230,7 @@
                   <tbody>
                     @for (l of listings(); track l.id) {
                       <tr>
-                        <td class="mono">{{ l.seller.toLowerCase() === mySeller() ? ('detail.resaleYou' | translate) : wallet.truncateAddr(l.seller) }}</td>
+                        <td>@if (l.seller.toLowerCase() === mySeller()) { <div>{{ 'detail.resaleYou' | translate }}</div> }<app-address [value]="l.seller"></app-address>@if (l.txHash) { <div><app-address kind="tx" [value]="l.txHash"></app-address></div> }</td>
                         <td class="cell-num mono">{{ l.qty }}@if (!l.deliverable) { <span class="chip chip-neutral" style="margin-left:6px;">{{ 'detail.resaleNotDeliverable' | translate }}</span> }</td>
                         <td class="cell-num mono">{{ fmt(usdcToUsd(l.pricePerTokenUsdc)) }}</td>
                         <td style="text-align:right;">
@@ -318,7 +323,7 @@
               @if (a.royaltyHistory?.length) {
                 <div class="table-wrap" style="margin-top:14px;">
                   <table>
-                    <thead><tr><th>{{ 'detail.royaltyReportMonthLabel' | translate }}</th><th class="cell-num">{{ 'detail.monthlyUsd' | translate }}</th><th></th><th></th></tr></thead>
+                    <thead><tr><th>{{ 'detail.royaltyReportMonthLabel' | translate }}</th><th class="cell-num">{{ 'detail.monthlyUsd' | translate }}</th><th>{{ 'detail.royaltyReportedByCol' | translate }}</th><th></th></tr></thead>
                     <tbody>
                       @for (m of a.royaltyHistory!; track m.month) {
                         <tr>
@@ -326,7 +331,7 @@
                           <td class="cell-num mono">{{ fmt(m.royaltyUSD) }}</td>
                           <td style="font-size:11.5px; color:var(--text-secondary);">
                             @if (m.reportedBy) {
-                              {{ 'detail.royaltyReportReportedBy' | translate: { addr: wallet.truncateAddr(m.reportedBy) } }}
+                              <app-address [value]="m.reportedBy"></app-address>
                             }
                           </td>
                           <td style="text-align:right;">

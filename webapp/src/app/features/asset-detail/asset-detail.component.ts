@@ -31,10 +31,11 @@ type TabKey = 'overview' | 'royalty' | 'milestones' | 'disclosure' | 'documents'
 
 import { RegistrationGateComponent } from '../../shared/registration-gate.component';
 import { RoyaltyPayoutsComponent } from '../../shared/royalty-payouts.component';
+import { AddressComponent } from '../../shared/address.component';
 @Component({
   selector: 'app-asset-detail',
   standalone: true,
-  imports: [RegistrationGateComponent, RoyaltyPayoutsComponent, RouterLink, TranslatePipe, IconComponent, CoverComponent, StatusChipComponent, MilestoneTrackComponent, DisclosureChipComponent, LineChartComponent],
+  imports: [AddressComponent, RegistrationGateComponent, RoyaltyPayoutsComponent, RouterLink, TranslatePipe, IconComponent, CoverComponent, StatusChipComponent, MilestoneTrackComponent, DisclosureChipComponent, LineChartComponent],
   templateUrl: './asset-detail.component.html'
 })
 export class AssetDetailComponent {
@@ -322,6 +323,13 @@ export class AssetDetailComponent {
    * asset's owner wallet may record or remove them — the one the wizard
    * stored, or its escrow campaign's artist for an older asset. The server
    * enforces the same rule; this only decides what to offer. */
+  /** The artist's wallet, shown under their name: the one the wizard stored,
+   * or its escrow campaign's artist for an older asset (as isAssetOwner). */
+  artistWallet(a: Asset): string | null {
+    const escrow = this.escrowInfo();
+    return a.artistWallet ?? (escrow?.escrow ? escrow.artist : null);
+  }
+
   isAssetOwner(a: Asset): boolean {
     const me = this.wallet.state().address?.toLowerCase();
     if (!me) return false;

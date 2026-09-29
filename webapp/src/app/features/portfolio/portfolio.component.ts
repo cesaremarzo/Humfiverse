@@ -16,6 +16,7 @@ import { platformFeeUsd } from '../../core/marketplace-fee.util';
 import { onchainErrorTranslation } from '../../core/onchain-error.util';
 import { usdcToUsd, usdToUsdc } from '../../core/usdc.util';
 import { lowestAvailablePrice, bucketSnapshots, ChartGranularity } from '../../core/token-value.util';
+import { AddressComponent } from '../../shared/address.component';
 
 /** A real on-chain holding — replaces the fictional Portfolio.holdings mock
  * data (§2.37), which was seeded fixed demo numbers never tied to any
@@ -54,7 +55,7 @@ function formatSnapshotDate(iso: string, granularity: ChartGranularity): string 
 @Component({
   selector: 'app-portfolio',
   standalone: true,
-  imports: [RouterLink, TranslatePipe, IconComponent, LineChartComponent, PieChartComponent],
+  imports: [AddressComponent, RouterLink, TranslatePipe, IconComponent, LineChartComponent, PieChartComponent],
   templateUrl: './portfolio.component.html'
 })
 export class PortfolioComponent {
@@ -125,6 +126,12 @@ export class PortfolioComponent {
     // A fully released campaign delivered everything it raised for; if it
     // was cancelled anyway its tokens keep their value (§2.86).
     return !!escrow?.escrow && escrow.status === 'cancelled' && escrow.releasedBps < 10_000;
+  }
+
+  /** The artist's wallet for a holding, shown under their name. */
+  artistWallet(assetId: string): string | null {
+    const escrow = this.store.escrowFor(assetId);
+    return this.store.assetById(assetId)?.artistWallet ?? (escrow?.escrow ? escrow.artist : null);
   }
 
   effectiveHoldings = computed(() =>

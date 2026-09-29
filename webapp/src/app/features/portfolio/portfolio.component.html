@@ -70,7 +70,7 @@
           <tbody>
             @for (r of royalties()!.rows; track r.tokenId) {
               <tr>
-                <td><a [routerLink]="['/asset', r.assetId]" style="color:inherit;">{{ r.title }}</a></td>
+                <td><a [routerLink]="['/asset', r.assetId]" style="color:inherit;">{{ r.title }}</a><div><app-address kind="token" [value]="royalties()!.contractAddress" [tokenId]="r.tokenId"></app-address></div></td>
                 <td class="cell-num mono">{{ fmtUsdcExact(r.claimable) }} USDC</td>
               </tr>
             }
@@ -90,7 +90,7 @@
           <tbody>
             @for (r of refunds(); track r.campaignId) {
               <tr>
-                <td><a [routerLink]="['/asset', r.assetId]" style="color:inherit;">{{ r.title }}</a></td>
+                <td><a [routerLink]="['/asset', r.assetId]" style="color:inherit;">{{ r.title }}</a><div><app-address [value]="r.contractAddress"></app-address> · #{{ r.campaignId }}</div></td>
                 <td class="cell-num mono">{{ fmtUsdcExact(r.refundable) }} USDC
                   @if (r.tokens !== null) {<div style="font-size:11px; color:var(--text-secondary);">{{ 'portfolio.refundBurnsTokens' | translate: { tokens: r.tokens.toString() } }}</div>}
                 </td>
@@ -157,7 +157,7 @@
                 <tr>
                   <td><a [routerLink]="['/asset', h.assetId]" style="text-decoration:none; color:inherit;"><div class="row-song">
                     <div class="row-thumb" [style.background]="bg(h.assetId, 'catalogue')"></div>
-                    <div><div class="cell-primary">{{ h.title }}</div><div style="font-size:12px; color:var(--text-secondary);">{{ h.artist }}</div></div>
+                    <div><div class="cell-primary">{{ h.title }}</div><div style="font-size:12px; color:var(--text-secondary);">{{ h.artist }}</div>@if (artistWallet(h.assetId); as w) { <app-address [value]="w" [nested]="true"></app-address> }</div>
                   </div></a></td>
                   <td class="cell-num mono">{{ h.tokens }}</td>
                   <td class="cell-num mono">{{ fmt(h.valueUsd) }}</td>

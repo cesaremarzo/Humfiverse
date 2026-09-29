@@ -736,5 +736,11 @@
   "assistant.kb.studios.keys": "studio, studios, tonstudio, aufnahme, techniker, partner, registrieren",
   "assistant.kb.risks.q": "Was sollte ich vorher wissen?",
   "assistant.kb.risks.a": "Dass dies ein Prototyp in einem Testnetz ist: Test-USDC hat keinen Geldwert, noch hält keine juristische Person ein echtes Tantiemenrecht, kein Vertrag wurde unabhängig geprüft, und die Tantiemenzahlen eines Angebots stammen vom Künstler und sind nicht verifiziert. Nichts auf dieser Seite ist ein Anlageangebot oder eine Beratung.",
-  "assistant.kb.risks.keys": "risiko, risiken, sicher, sicherheit, geld, echt, wert, testnetz, sepolia, audit, rechtlich, betrug, garantie"
+  "assistant.kb.risks.keys": "risiko, risiken, sicher, sicherheit, geld, echt, wert, testnetz, sepolia, audit, rechtlich, betrug, garantie",
+  "address.viewOnExplorer": "Auf Etherscan ansehen",
+  "address.copy": "Kopieren",
+  "address.copied": "Kopiert",
+  "detail.onchainContract": "Vertrag",
+  "detail.onchainMintTx": "Mint-Transaktion",
+  "detail.royaltyReportedByCol": "Gemeldet von"
 }

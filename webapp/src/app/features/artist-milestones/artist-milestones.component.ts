@@ -8,6 +8,7 @@ import { EscrowCampaignInfo, EscrowMilestone } from '../../core/models';
 import { fmtUSD } from '../../core/format.util';
 import { onchainErrorTranslation } from '../../core/onchain-error.util';
 import { usdcToUsd } from '../../core/usdc.util';
+import { AddressComponent } from '../../shared/address.component';
 
 type CampaignRow = EscrowCampaignInfo & { assetId: string };
 type LoadedCampaignRow = Extract<CampaignRow, { escrow: true }>;
@@ -20,7 +21,7 @@ type LoadedCampaignRow = Extract<CampaignRow, { escrow: true }>;
 @Component({
   selector: 'app-artist-milestones',
   standalone: true,
-  imports: [TranslatePipe, IconComponent],
+  imports: [AddressComponent, TranslatePipe, IconComponent],
   templateUrl: './artist-milestones.component.html'
 })
 export class ArtistMilestonesComponent {

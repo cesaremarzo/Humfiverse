@@ -736,5 +736,11 @@
   "assistant.kb.studios.keys": "studio, studi, registrazione, sala, fonico, partner",
   "assistant.kb.risks.q": "Cosa devo sapere prima di partecipare?",
   "assistant.kb.risks.a": "Che questo è un prototipo su una rete di test: gli USDC di test non hanno valore monetario, nessun soggetto giuridico detiene ancora un diritto di royalty reale, nessun contratto è stato sottoposto a un audit indipendente e i dati di royalty di un annuncio sono dichiarati dall'artista e non verificati. Niente su questo sito è un'offerta di investimento o una consulenza.",
-  "assistant.kb.risks.keys": "rischio, rischi, sicuro, sicurezza, soldi, reale, valore, testnet, sepolia, audit, legale, truffa, garanzia"
+  "assistant.kb.risks.keys": "rischio, rischi, sicuro, sicurezza, soldi, reale, valore, testnet, sepolia, audit, legale, truffa, garanzia",
+  "address.viewOnExplorer": "Vedi su Etherscan",
+  "address.copy": "Copia",
+  "address.copied": "Copiato",
+  "detail.onchainContract": "Contratto",
+  "detail.onchainMintTx": "Transazione di conio",
+  "detail.royaltyReportedByCol": "Dichiarato da"
 }

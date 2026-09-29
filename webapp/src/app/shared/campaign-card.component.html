@@ -10,6 +10,7 @@
         <div>
           <div class="asset-title" style="font-size:16px;">{{ a.title }}</div>
           <div class="asset-artist">{{ a.artistName }}</div>
+          @if (a.artistWallet) { <app-address [value]="a.artistWallet"></app-address> }
         </div>
       </div>
       <app-status-chip [asset]="a"></app-status-chip>

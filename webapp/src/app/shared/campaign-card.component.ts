@@ -13,11 +13,12 @@ import { fundingPctFor, fundingRaisedFor } from '../core/onchain-progress.util';
 import { milestonesWithOnchainStatus } from '../core/milestone-status.util';
 import { coverBackground } from '../core/cover.util';
 import { ipfsGatewayUrl } from '../core/ipfs.util';
+import { AddressComponent } from './address.component';
 
 @Component({
   selector: 'app-campaign-card',
   standalone: true,
-  imports: [MediaManagerComponent, RouterLink, TranslatePipe, IconComponent, StatusChipComponent, MilestoneTrackComponent],
+  imports: [AddressComponent, MediaManagerComponent, RouterLink, TranslatePipe, IconComponent, StatusChipComponent, MilestoneTrackComponent],
   templateUrl: './campaign-card.component.html'
 })
 export class CampaignCardComponent {

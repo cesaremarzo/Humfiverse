@@ -736,5 +736,11 @@
   "assistant.kb.studios.keys": "studio, studios, recording, engineer, partner, register",
   "assistant.kb.risks.q": "What should I know before taking part?",
   "assistant.kb.risks.a": "That this is a prototype on a test network: test USDC has no monetary value, no legal entity holds a real royalty right yet, no contract has been independently audited, and the royalty figures on a listing are declared by the artist and not verified. Nothing on this site is an investment offer or advice.",
-  "assistant.kb.risks.keys": "risk, risks, safe, safety, real, money, value, testnet, sepolia, audit, legal, warning, scam, guarantee"
+  "assistant.kb.risks.keys": "risk, risks, safe, safety, real, money, value, testnet, sepolia, audit, legal, warning, scam, guarantee",
+  "address.viewOnExplorer": "View on Etherscan",
+  "address.copy": "Copy",
+  "address.copied": "Copied",
+  "detail.onchainContract": "Contract",
+  "detail.onchainMintTx": "Mint transaction",
+  "detail.royaltyReportedByCol": "Reported by"
 }

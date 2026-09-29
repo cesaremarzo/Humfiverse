@@ -20,14 +20,14 @@
         <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;">
           <div><strong>{{ row.label }}</strong> <span style="font-size:12px; color:var(--text-secondary);">· {{ row.rule }}</span></div>
           @if (row.state.status === 'ok') {
-            <a class="mono" style="font-size:12px;" [href]="row.state.explorerUrl" target="_blank" rel="noopener">{{ wallet.truncateAddr(row.state.contractAddress) }}</a>
+            <app-address [value]="row.state.contractAddress"></app-address>
           }
         </div>
         @if (row.state.status === 'ok') {
           <div class="stat-row" style="margin:10px 0;">
             <div class="card stat-tile"><div class="label">To withdraw</div><div class="value">{{ fmt(usdcToUsd(row.state.accruedUsdc)) }}</div></div>
             <div class="card stat-tile"><div class="label">Collected, all time</div><div class="value">{{ fmt(usdcToUsd(row.state.totalCollectedUsdc)) }}</div></div>
-            <div class="card stat-tile"><div class="label">Recipient</div><div class="value mono" style="font-size:14px;">{{ walletLabel(row.state.feeRecipient) }}</div></div>
+            <div class="card stat-tile"><div class="label">Recipient</div><app-address [value]="row.state.feeRecipient"></app-address></div>
           </div>
           <button class="btn btn-secondary btn-sm"
                   [disabled]="row.state.accruedUsdc === '0' || !wallet.state().address || withdrawing() !== null"
@@ -75,8 +75,8 @@
       <div>
         <div class="cell-primary">{{ c.assetId }}</div>
         <div style="font-size:12px; color:var(--text-secondary);">
-          Campaign #{{ c.campaignId }} · Artist {{ walletLabel(c.artist) }}
-          @if (c.studio) { · Studio "{{ c.studio.name }}" ({{ walletLabel(c.studio.wallet) }}) }
+          Campaign #{{ c.campaignId }} · Artist <app-address [value]="c.artist"></app-address>
+          @if (c.studio) { · Studio "{{ c.studio.name }}" <app-address [value]="c.studio.wallet"></app-address> }
         </div>
       </div>
       <span class="chip" [class.chip-good]="c.status === 'active'" [class.chip-neutral]="c.status === 'cancelled'">{{ c.status }}</span>
