@@ -23,6 +23,13 @@ function fail(res, e, fallbackMessage) {
   sendJson(res, 502, { error: fallbackMessage, detail: String((e && e.message) || e) });
 }
 
+const takedown = require("../services/takedown.service");
+
+async function hideRemoved(rows) {
+  const removed = await takedown.removedAssets();
+  return rows.filter((l) => !removed.has(l.assetId));
+}
+
 module.exports = function registerListingRoutes(router) {
   router.get("/api/listings", async (req, res) => {
     try {
@@ -32,7 +39,9 @@ module.exports = function registerListingRoutes(router) {
         // which contract to send `list()` to, and there is no listing to
         // read the address off yet.
         marketplaceAddress: listings.marketplaceAddress(),
-        listings: await listings.listActive()
+        // §2.105: a removed asset's resale listings are hidden (legal/08
+        // A-1-bis 1(a)); they stay on chain, where the seller can cancel them.
+        listings: await hideRemoved(await listings.listActive())
       });
     } catch (e) {
       fail(res, e, "could not read listings");

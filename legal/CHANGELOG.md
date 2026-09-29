@@ -11,6 +11,24 @@ quindi 05 §5 e 01 §7 restano veri. Il marketplace ricorda nel browser la vista
 scelta (griglia o tabella) in `localStorage` (`hv.marketView`): aggiunta a 05 §6,
 è una preferenza tecnica senza dati personali. Impronte aggiornate.
 
+## 2026-09-28 (2) · procedura di annullamento e rimozione (technical §2.105)
+
+La procedura che Termini §5.6 e 08 A-1/A-1-bis descrivono è nel codice. Cosa
+cambia nei documenti:
+
+- **02 C-2**, nuovo blocco «Risolto in parte»: avviso, termine, decisione con
+  hash verificato sulla catena, rimozione di pagina, file e audio, metadati
+  neutri, registro in sola aggiunta. Restano aperti: il motivo `NONE` nel
+  contratto, titolo e artista nello storage del token, chi non ha un'email.
+- **05 §3**: nuova riga per `takedown_events` (contiene la motivazione, il
+  riferimento della prova e le osservazioni dell'artista); l'email di
+  registrazione serve anche per avviso e decisione.
+- **04 §5.6**: nota sul fatto che avviso e decisione arrivano solo a chi ha
+  un'email verificata.
+- **08 A-1, A-1-bis**: note di implementazione.
+- **07 H5** 🟠, nuova: si può mandare la decisione integrale a tutti gli
+  investitori, e per quanto si conserva il registro?
+
 ## 2026-09-28 · `escrow_campaigns` indicizzata per asset (technical §2.104)
 
 `server/data/schema.js` cambia solo la chiave primaria della tabella delle

@@ -48,7 +48,8 @@ export class MarketplaceComponent {
    * graceful-degradation pattern rather than showing an empty marketplace. */
   chainVerifiedAssets = computed(() => {
     const ids = this.store.onchainAssetIds();
-    const all = this.store.assets();
+    // §2.105: removed content is not listed.
+    const all = this.store.assets().filter((a) => !a.removed?.removed);
     return ids ? all.filter((a) => ids.has(a.id)) : all;
   });
 

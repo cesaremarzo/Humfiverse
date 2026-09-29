@@ -1,6 +1,6 @@
 # Domande per l'avvocato
 
-*Revisione del 2026-09-22 (A15, L4-L9: società maltese, file 10). Prima 2026-09-17, commit `fd7f822` + §2.101 (A13: commissione sulla distribuzione delle royalty; A12, I4: versamento delle royalty), prima `94ae18f` (A4: storico prezzi) e `27d8d5f` + §2.100 (A14, F4, H4: guida automatica).*
+*Revisione del 2026-09-28 (H5: decisione di annullamento agli investitori). Prima 2026-09-22 (A15, L4-L9: società maltese, file 10). Prima 2026-09-17, commit `fd7f822` + §2.101 (A13: commissione sulla distribuzione delle royalty; A12, I4: versamento delle royalty), prima `94ae18f` (A4: storico prezzi) e `27d8d5f` + §2.100 (A14, F4, H4: guida automatica).*
 
 Le domande vengono dai file 01-03 e dalle decisioni già prese (note legali §7,
 §7.10; technical-architecture §2.86). Sostituiscono e ampliano l'elenco del §6
@@ -303,6 +303,13 @@ l'azione di recupero. Decisione del 15 settembre 2026, note legali §7.10.*
   usati per l'addestramento** e per quanto tempo Anthropic li conserva? Basta
   l'avvertenza «non scrivere dati personali» (04 §12.3) o serve altro? *(05 §3
   e §5, 01 §7)*
+- **H5** 🟠 *Nuova, 2026-09-28.* La decisione di annullamento (Termini §5.6(b),
+  08 A-1 §3) viene mandata per email **per intero** all'artista e a ogni
+  investitore: contiene motivazione, riferimento della prova (che può nominare
+  chi ha segnalato), osservazioni dell'artista, nome e wallet dell'artista.
+  Va bene così, o agli investitori va mandata una versione ridotta (motivo, data,
+  esito, impronta)? Per quanto si conserva il registro della procedura, che
+  oggi non si cancella mai? *(05 §3, technical §2.105)*
 
 ## Gruppo I · Diritto d'autore e musica
 *Avvocato IP o diritto dello spettacolo e della musica.*

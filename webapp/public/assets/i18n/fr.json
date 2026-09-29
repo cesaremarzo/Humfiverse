@@ -769,5 +769,11 @@
   "address.copied": "Copié",
   "detail.onchainContract": "Contrat",
   "detail.onchainMintTx": "Transaction de frappe",
-  "detail.royaltyReportedByCol": "Déclaré par"
+  "detail.royaltyReportedByCol": "Déclaré par",
+  "detail.removedTitle": "Contenu retiré",
+  "detail.removedBody": "Le contenu de cette campagne a été retiré le {{date}}. Motif : {{ground}}.",
+  "detail.removedRefund": "Si vous détenez ses jetons, le remboursement éventuel qui vous revient se demande depuis votre portefeuille :",
+  "takedown.ground.unlawful_content": "contenu illicite",
+  "takedown.ground.third_party_rights": "atteinte aux droits de tiers",
+  "takedown.ground.false_warranties": "déclarations inexactes de l'artiste"
 }

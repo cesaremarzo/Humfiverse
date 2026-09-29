@@ -29,8 +29,77 @@ export interface Milestone {
   status: 'active' | 'pending' | 'done';
 }
 
+/** §2.105: the takedown grounds of legal/08 A-1 §1, as the backend names them. */
+export type TakedownGround = 'unlawful_content' | 'third_party_rights' | 'false_warranties';
+
+/** What anyone may know about a removal: that it happened, when, and why in
+ * one word. The reasons and evidence stay in the procedure's record. */
+export interface TakedownPublic {
+  removed: boolean;
+  ground?: TakedownGround;
+  removedAt?: string;
+}
+
+/** One recorded step of a takedown case (§2.105). */
+export interface TakedownEvent {
+  id: number;
+  step: string;
+  outcome: 'ok' | 'failed' | 'skipped';
+  actor: string | null;
+  payload: Record<string, unknown>;
+  at: string;
+}
+
+/** A takedown case as the admin page sees it: the backend's fold of its events. */
+export interface TakedownCase {
+  assetId?: string;
+  stage: 'none' | 'dismissed' | 'noticed' | 'decided' | 'removed';
+  ground?: TakedownGround;
+  evidenceType?: 'notice' | 'authority_order' | 'court_decision' | null;
+  evidenceRef?: string | null;
+  reasons?: string;
+  urgent?: boolean;
+  urgentBasis?: string | null;
+  noticeAt?: string;
+  replyDeadline?: string;
+  noticeEmail?: { outcome: string; detail: Record<string, unknown> } | null;
+  replies?: { at: string; by: string; text: string }[];
+  decision?: { at: string; by: string; text: string; document: string; decisionHash: string } | null;
+  hidden?: boolean;
+  hiddenAt?: string | null;
+  cancel?: ({ outcome: string } & Record<string, unknown>) | null;
+  unpinned?: string[];
+  unpinFailed?: string[];
+  audio?: ({ outcome: string } & Record<string, unknown>) | null;
+  emailed?: string[];
+  emailFailed?: string[];
+  noEmail?: string[];
+  events: TakedownEvent[];
+}
+
+export interface TakedownCaseList {
+  viewer: string;
+  noticeDays: number;
+  cases: TakedownCase[];
+}
+
+/** The Safe's cancelCampaign call for a decision, ready for the Transaction Builder. */
+export interface TakedownSafeTransaction {
+  to: string;
+  value: string;
+  data: string;
+  method: string;
+  args: { campaignId: string; ground: string; decisionHash: string };
+  batch: unknown;
+  /** 'cancelled' once the Safe has executed it (or anything else did). */
+  campaignStatus: 'active' | 'cancelled';
+}
+
 export interface Asset {
   id: string;
+  /** Set by the backend when the content was removed (§2.105); the other
+   * content fields then arrive empty. */
+  removed?: TakedownPublic;
   kind: AssetKind;
   title: string;
   artistName: string;
@@ -467,7 +536,7 @@ export interface LaunchAuthorization {
 }
 
 /** §2.89: a single write signed by the wallet it concerns. */
-export type SignedActionKind = 'royalty-report' | 'royalty-remove' | 'kyc-submit' | 'email-verify' | 'asset-media';
+export type SignedActionKind = 'royalty-report' | 'royalty-remove' | 'kyc-submit' | 'email-verify' | 'asset-media' | 'takedown';
 
 /** §2.93: whether a wallet has a verified email, and whether this deployment
  * asks for one (it can't without email sending configured). */

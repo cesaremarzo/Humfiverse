@@ -2449,3 +2449,27 @@ piattaforma (Owner/Founder/Fees).
   `EXPLORER_BASE` e degli URL Etherscan scritti a mano; si possono sostituire con
   `core/explorer.util.ts`. Il topbar mostra ancora l'indirizzo abbreviato senza
   link (è il bottone del wallet).
+
+## 2026-09-29 — procedura di annullamento e rimozione (§2.105); rimborso di Test C
+
+**Rimborso Test C fatto dal vivo:** `0x4ee9` ha rimborsato 2 token → +0.98 USDC,
+token bruciati, escrow a 0 (tx `0x4277…a129`). Con questo ogni funzione dei
+contratti del §2.102 è stata provata dal vivo almeno una volta.
+
+**Procedura di annullamento (§2.105), pagina `/admin/takedown`.** Avviso
+all'artista con motivo e termine (5 giorni, `TAKEDOWN_NOTICE_DAYS`), osservazioni,
+decisione scritta il cui SHA-256 va al Safe, file per il Transaction Builder già
+pronto (niente più ABI incollate a mano), poi un solo passo che verifica
+l'annullamento sulla catena, fa unpin su Pinata, azzera l'audio sul token e manda
+la decisione per email ad artista e holder. Contenuto nascosto dall'API, metadati
+del token neutri, banner «contenuto rimosso» in 9 lingue. Ogni passo firmato da un
+firmatario del Safe (letti dalla catena) e registrato in `takedown_events`, in sola
+aggiunta. Provato su un fork di Sepolia e cliccato in Chrome headless; due bug
+trovati così e corretti (unpin non ritentato dopo l'azzeramento dell'audio; campo
+dell'hash sparito dopo l'annullamento). `legal/` aggiornato (02 C-2, 04 §5.6, 05,
+08 A-1/A-1-bis, nuova 07 H5).
+
+**Da sapere:** la pagina `/admin/escrow` ha ancora il vecchio bottone di
+annullamento via wallet owner, che col Safe non funziona: annullare ora passa da
+`/admin/takedown`. Test C è stato annullato prima della procedura, quindi non ha
+un caso registrato; la sua pagina resta visibile.

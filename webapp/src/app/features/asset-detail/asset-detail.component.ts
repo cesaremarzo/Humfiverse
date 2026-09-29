@@ -44,6 +44,12 @@ export class AssetDetailComponent {
   id = computed(() => this.paramMap()?.get('id') ?? '');
   asset = computed<Asset | undefined>(() => this.store.assetById(this.id()));
 
+  /** §2.105: when the content was removed, as a local date. */
+  removedDate(a: Asset): string {
+    const at = a.removed?.removedAt;
+    return at ? new Date(at).toLocaleDateString(this.translate.currentLang() || undefined) : '';
+  }
+
   tab = signal<TabKey>('overview');
   qty = signal(1);
   ack = signal(false);

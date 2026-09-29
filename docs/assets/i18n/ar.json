@@ -736,5 +736,17 @@
   "assistant.kb.studios.keys": "استوديو, استوديوهات, تسجيل, مهندس, شريك",
   "assistant.kb.risks.q": "ماذا يجب أن أعرف قبل المشاركة؟",
   "assistant.kb.risks.a": "أن هذا نموذج أولي على شبكة اختبار: لا قيمة نقدية لـ USDC التجريبي، ولا يملك أي كيان قانوني حقًا حقيقيًا في العوائد بعد، ولم يخضع أي عقد لتدقيق مستقل، وأرقام العوائد في العرض يصرّح بها الفنان ولم يجرِ التحقق منها. لا شيء في هذا الموقع عرض استثمار أو نصيحة.",
-  "assistant.kb.risks.keys": "مخاطر, خطر, أمان, مال, حقيقي, قيمة, شبكة اختبار, sepolia, تدقيق, قانوني, احتيال, ضمان"
+  "assistant.kb.risks.keys": "مخاطر, خطر, أمان, مال, حقيقي, قيمة, شبكة اختبار, sepolia, تدقيق, قانوني, احتيال, ضمان",
+  "address.viewOnExplorer": "عرض على Etherscan",
+  "address.copy": "نسخ",
+  "address.copied": "تم النسخ",
+  "detail.onchainContract": "العقد",
+  "detail.onchainMintTx": "معاملة السك",
+  "detail.royaltyReportedByCol": "أبلغ عنه",
+  "detail.removedTitle": "تمت إزالة المحتوى",
+  "detail.removedBody": "تمت إزالة محتوى هذه الحملة في {{date}}. السبب: {{ground}}.",
+  "detail.removedRefund": "إذا كنت تملك رموزها، فاطلب أي استرداد مستحق لك من محفظتك:",
+  "takedown.ground.unlawful_content": "محتوى غير قانوني",
+  "takedown.ground.third_party_rights": "انتهاك حقوق الغير",
+  "takedown.ground.false_warranties": "إقرارات كاذبة من الفنان"
 }

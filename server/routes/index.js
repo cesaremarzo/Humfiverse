@@ -26,6 +26,7 @@ const registerSignedActionRoutes = require("./signed-action.routes");
 const registerRegistrationRoutes = require("./registration.routes");
 const registerMediaRoutes = require("./media.routes");
 const registerAssistantRoutes = require("./assistant.routes");
+const registerTakedownRoutes = require("./takedown.routes");
 
 module.exports = function registerRoutes(router) {
   registerSystemRoutes(router);
@@ -34,6 +35,7 @@ module.exports = function registerRoutes(router) {
   registerSignedActionRoutes(router);
   registerRegistrationRoutes(router);
   registerCatalogueRoutes(router);
+  registerTakedownRoutes(router);
   registerMediaRoutes(router);
   registerComplianceRoutes(router);
   registerOnchainRoutes(router);

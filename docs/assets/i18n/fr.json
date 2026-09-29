@@ -736,5 +736,17 @@
   "assistant.kb.studios.keys": "studio, studios, enregistrement, ingenieur, partenaire, inscrire",
   "assistant.kb.risks.q": "Que dois-je savoir avant de participer ?",
   "assistant.kb.risks.a": "Que ceci est un prototype sur un réseau de test : les USDC de test n'ont aucune valeur monétaire, aucune entité juridique ne détient encore un vrai droit de royalties, aucun contrat n'a été audité de façon indépendante, et les chiffres de royalties d'une annonce sont déclarés par l'artiste, non vérifiés. Rien sur ce site n'est une offre d'investissement ni un conseil.",
-  "assistant.kb.risks.keys": "risque, risques, sur, securite, argent, reel, valeur, testnet, sepolia, audit, juridique, arnaque, garantie"
+  "assistant.kb.risks.keys": "risque, risques, sur, securite, argent, reel, valeur, testnet, sepolia, audit, juridique, arnaque, garantie",
+  "address.viewOnExplorer": "Voir sur Etherscan",
+  "address.copy": "Copier",
+  "address.copied": "Copié",
+  "detail.onchainContract": "Contrat",
+  "detail.onchainMintTx": "Transaction de frappe",
+  "detail.royaltyReportedByCol": "Déclaré par",
+  "detail.removedTitle": "Contenu retiré",
+  "detail.removedBody": "Le contenu de cette campagne a été retiré le {{date}}. Motif : {{ground}}.",
+  "detail.removedRefund": "Si vous détenez ses jetons, le remboursement éventuel qui vous revient se demande depuis votre portefeuille :",
+  "takedown.ground.unlawful_content": "contenu illicite",
+  "takedown.ground.third_party_rights": "atteinte aux droits de tiers",
+  "takedown.ground.false_warranties": "déclarations inexactes de l'artiste"
 }
