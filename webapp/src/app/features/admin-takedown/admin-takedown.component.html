@@ -1,0 +1,170 @@
+<div class="page-head">
+  <div>
+    <span class="page-kicker">Admin</span>
+    <h1>Takedown procedure</h1>
+    <p class="page-sub">Cancelling a campaign for one of the grounds in legal/08 A-1 §1, and removing its content (A-1-bis). Notice to the artist, a reply period, a written decision, then the Safe cancels on chain and this page carries out the rest. Every step is signed by a signer of the owner Safe and recorded with its outcome; nothing is ever edited or deleted from the record.</p>
+  </div>
+</div>
+
+@if (!wallet.state().address) {
+  <div class="card panel" style="max-width:480px;">
+    <p class="prose">Connect a wallet that signs for the owner Safe.</p>
+    <button class="btn btn-primary" [disabled]="wallet.state().connecting" (click)="connect()">{{ wallet.state().connecting ? 'Connecting…' : 'Connect wallet' }}</button>
+  </div>
+} @else if (cases() === null) {
+  <div class="card panel" style="max-width:560px;">
+    <p class="prose">Reading the record needs a signature from a Safe signer: reasons and evidence are not public.</p>
+    <button class="btn btn-primary" [disabled]="loading()" (click)="load()">{{ loading() ? 'Waiting for signature…' : 'Sign in and load cases' }}</button>
+  </div>
+}
+
+@if (error()) {
+  <div class="card panel" style="border-color:var(--critical); margin:12px 0;"><strong>{{ error() }}</strong></div>
+}
+
+@if (cases(); as list) {
+  <div class="card panel" style="margin-bottom:20px;">
+    <div class="field"><label>Asset</label>
+      <select (change)="select($any($event.target).value)">
+        <option value="" [selected]="!selectedId()">— choose an asset —</option>
+        @for (a of assets(); track a.id) {
+          <option [value]="a.id" [selected]="a.id === selectedId()">{{ a.label }}</option>
+        }
+      </select>
+    </div>
+    @if (list.length) {
+      <p style="font-size:12.5px; color:var(--text-secondary); margin-top:10px;">Open and past cases:
+        @for (c of list; track c.assetId) { <a href="javascript:void(0)" (click)="select(c.assetId!)" style="margin-right:10px;">{{ c.assetId }} ({{ c.stage }})</a> }
+      </p>
+    }
+    <p style="font-size:12px; color:var(--text-muted);">Reply period: {{ noticeDays() }} days (TAKEDOWN_NOTICE_DAYS).</p>
+  </div>
+
+  @if (selectedCase(); as c) {
+    <div class="card panel" style="margin-bottom:20px;">
+      <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+        <h3 class="panel-title" style="margin:0;">{{ c.assetId }}</h3>
+        <span class="chip" [class.chip-good]="c.stage === 'removed'" [class.chip-warning]="c.stage === 'noticed' || c.stage === 'decided'">{{ c.stage }}</span>
+      </div>
+
+      <!-- 1. Notice -->
+      @if (c.stage === 'none' || c.stage === 'dismissed') {
+        <h4 style="margin-top:16px;">1 · Notice to the artist</h4>
+        <div class="field"><label>Ground</label>
+          <select [(ngModel)]="ground">
+            @for (g of grounds; track g.value) { <option [value]="g.value">{{ g.label }}</option> }
+          </select>
+        </div>
+        @if (ground === 'third_party_rights') {
+          <div class="field"><label>Evidence</label>
+            <select [(ngModel)]="evidenceType">
+              @for (e of evidenceTypes; track e.value) { <option [value]="e.value">{{ e.label }}</option> }
+            </select>
+          </div>
+        }
+        <div class="field"><label>Evidence reference (who, what, when)</label><input type="text" [(ngModel)]="evidenceRef" maxlength="500"></div>
+        <div class="field"><label>Reasons, as the artist will read them</label><textarea rows="5" [(ngModel)]="reasons" maxlength="4000"></textarea></div>
+        <label style="display:flex; gap:8px; align-items:center; margin:8px 0;"><input type="checkbox" [(ngModel)]="urgent"> The law or an authority requires immediate removal (hides the content now, no reply period)</label>
+        @if (urgent) {
+          <div class="field"><label>Legal basis for immediate removal</label><input type="text" [(ngModel)]="urgentBasis" maxlength="500"></div>
+        }
+        <button class="btn btn-primary" [disabled]="busy() || !reasons.trim() || (urgent && !urgentBasis.trim())" (click)="sendNotice()">{{ busy() === 'notice' ? 'Signing…' : 'Sign and send notice' }}</button>
+      }
+
+      @if (c.stage !== 'none' && c.stage !== 'dismissed') {
+        <dl style="display:grid; grid-template-columns:max-content 1fr; gap:4px 14px; font-size:13.5px; margin-top:14px;">
+          <dt>Ground</dt><dd>{{ groundLabel(c.ground) }}</dd>
+          @if (c.evidenceType || c.evidenceRef) { <dt>Evidence</dt><dd>{{ c.evidenceType }} {{ c.evidenceRef }}</dd> }
+          <dt>Reasons</dt><dd style="white-space:pre-wrap;">{{ c.reasons }}</dd>
+          <dt>Notice</dt><dd>{{ c.noticeAt }} · @if (c.urgent) { urgent: {{ c.urgentBasis }} } @else { reply until {{ c.replyDeadline }} }</dd>
+          <dt>Notice email</dt>
+          <dd>
+            @if (c.noticeEmail?.outcome === 'ok') { sent }
+            @else { <span style="color:var(--critical);">not sent: {{ c.noticeEmail?.detail?.['error'] }}</span> }
+          </dd>
+          <dt>Content</dt><dd>{{ c.hidden ? 'hidden since ' + c.hiddenAt : 'still visible' }}</dd>
+        </dl>
+      }
+
+      <!-- 2. Replies, dismissal, decision -->
+      @if (c.stage === 'noticed') {
+        @if (c.noticeEmail?.outcome !== 'ok') {
+          <button class="btn btn-secondary btn-sm" [disabled]="busy()" (click)="resendNotice()">Retry notice email</button>
+          <p style="font-size:12px; color:var(--text-secondary);">If the artist has no verified email, reach them another way and record it as a reply.</p>
+        }
+        <h4 style="margin-top:16px;">2 · Artist's observations</h4>
+        @for (r of c.replies; track r.at) { <p style="font-size:13px; white-space:pre-wrap;"><strong>{{ r.at }}</strong> — {{ r.text }}</p> }
+        @empty { <p style="font-size:13px; color:var(--text-secondary);">None recorded.</p> }
+        <div class="field"><label>Record a reply received</label><textarea rows="3" [(ngModel)]="replyText" maxlength="8000"></textarea></div>
+        <button class="btn btn-secondary btn-sm" [disabled]="busy() || !replyText.trim()" (click)="recordReply()">Sign and record reply</button>
+
+        <h4 style="margin-top:20px;">3 · Decision</h4>
+        @if (!deadlinePassed()) {
+          <p style="font-size:13px; color:var(--text-secondary);">The reply period runs until {{ c.replyDeadline }}; the decision can be taken after it.</p>
+        }
+        <div class="field"><label>Decision, written and reasoned (goes to the artist and the holders)</label><textarea rows="5" [(ngModel)]="decisionText" maxlength="8000"></textarea></div>
+        <button class="btn btn-primary" [disabled]="busy() || !deadlinePassed() || !decisionText.trim()" (click)="decide()">{{ busy() === 'decide' ? 'Signing…' : 'Sign decision (hides the content)' }}</button>
+
+        <div style="margin-top:16px;" class="field"><label>Or close the case without removal</label><input type="text" [(ngModel)]="dismissReason" maxlength="2000" placeholder="e.g. the artist removed the violation"></div>
+        <button class="btn btn-secondary btn-sm" [disabled]="busy() || !dismissReason.trim()" (click)="dismiss()">Sign and dismiss</button>
+      }
+
+      <!-- 3. Decision taken: Safe, then completion -->
+      @if (c.decision; as d) {
+        <h4 style="margin-top:20px;">Decision</h4>
+        <p style="font-size:12.5px;">SHA-256 <span class="mono">{{ d.decisionHash }}</span> <button class="btn btn-ghost btn-sm" (click)="copy(d.decisionHash)">Copy</button> <button class="btn btn-ghost btn-sm" (click)="downloadDecision()">Download .txt</button></p>
+        <pre style="white-space:pre-wrap; font-size:12px; background:var(--surface-2, rgba(0,0,0,.04)); padding:12px; border-radius:8px; max-height:280px; overflow:auto;">{{ d.document }}</pre>
+      }
+
+      @if (c.stage === 'decided') {
+        @if (safeTx(); as tx) {
+          <h4 style="margin-top:16px;">4 · Cancel on chain, from the Safe</h4>
+          @if (tx.campaignStatus === 'cancelled') {
+            <p style="font-size:13.5px;"><strong>The campaign is already cancelled on chain.</strong> Paste the hash of the Safe transaction that cancelled it; completing checks that it did so on this ground and with this decision's hash.</p>
+          }
+          <ol style="font-size:13.5px; line-height:1.6;">
+            <li>Download the batch file, open the owner Safe → Apps → Transaction Builder, and drop the file in. No ABI to paste.</li>
+            <li>Check it reads <span class="mono">cancelCampaign({{ tx.args.campaignId }}, {{ tx.args.ground }}, {{ tx.args.decisionHash.slice(0, 10) }}…)</span> on <span class="mono">{{ tx.to }}</span>, then create, sign, and have a second signer confirm and execute.</li>
+            <li>Paste the executed transaction's hash below.</li>
+          </ol>
+          <button class="btn btn-primary btn-sm" (click)="downloadBatch()">Download Transaction Builder file</button>
+          <button class="btn btn-ghost btn-sm" (click)="copy(tx.data)">Copy raw calldata</button>
+          <div class="field" style="margin-top:12px;"><label>Executed Safe transaction hash</label><input type="text" class="mono" [(ngModel)]="txHash" placeholder="0x…"></div>
+        } @else if (!c.cancel || c.cancel.outcome === 'failed') {
+          <p style="font-size:13px; color:var(--text-secondary); margin-top:14px;">No active campaign on the current escrow: nothing to cancel on chain. Completing removes the content only.</p>
+        }
+
+        <h4 style="margin-top:16px;">5 · Carry out the removal</h4>
+        <p style="font-size:13px; color:var(--text-secondary);">Verifies the cancellation on chain, unpins the media from Pinata, clears the audio link on the token, and emails the decision to the artist and the holders. Run it again to retry whatever failed.</p>
+        <button class="btn btn-primary" [disabled]="busy() || (!!safeTx() && !txHash.trim())" (click)="complete()">{{ busy() === 'complete' ? 'Working…' : 'Sign and complete' }}</button>
+      }
+
+      @if (c.cancel || c.audio || c.unpinned?.length || c.unpinFailed?.length || c.emailed?.length) {
+        <h4 style="margin-top:20px;">Removal steps</h4>
+        <ul style="font-size:13px; line-height:1.7;">
+          @if (c.cancel) { <li>On-chain cancellation: <strong>{{ c.cancel.outcome }}</strong> @if (c.cancel['txHash']) { · <a [href]="'https://sepolia.etherscan.io/tx/' + c.cancel['txHash']" target="_blank" rel="noopener" class="mono">{{ $any(c.cancel['txHash']).slice(0, 12) }}…</a> } @if (c.cancel['reason']) { · {{ c.cancel['reason'] }} }</li> }
+          @for (u of c.unpinned; track u) { <li>Unpinned <span class="mono">{{ u }}</span></li> }
+          @for (u of c.unpinFailed; track u) { <li style="color:var(--critical);">Unpin failed <span class="mono">{{ u }}</span></li> }
+          @if (c.audio) { <li>Audio link on the token: <strong>{{ c.audio.outcome }}</strong> @if (c.audio['reason']) { · {{ c.audio['reason'] }} } @if (c.audio['error']) { · {{ c.audio['error'] }} }</li> }
+          @if (c.emailed?.length) { <li>Decision emailed to {{ c.emailed!.length }} wallet(s)</li> }
+          @for (w of c.emailFailed; track w) { <li style="color:var(--critical);">Email failed: <span class="mono">{{ w }}</span></li> }
+          @for (w of c.noEmail; track w) { <li style="color:var(--text-secondary);">No verified email: <span class="mono">{{ w }}</span></li> }
+        </ul>
+      }
+
+      @if (c.events.length) {
+        <h4 style="margin-top:20px;">Record</h4>
+        <div class="table-wrap">
+          <table class="table-stack">
+            <thead><tr><th>When</th><th>Step</th><th>Outcome</th><th>Signer</th></tr></thead>
+            <tbody>
+              @for (e of c.events; track e.id) {
+                <tr><td class="mono" style="font-size:12px;">{{ e.at }}</td><td>{{ e.step }}</td><td>{{ e.outcome }}</td><td class="mono" style="font-size:12px;">{{ e.actor }}</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+}

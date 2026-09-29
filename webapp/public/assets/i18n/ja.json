@@ -742,5 +742,11 @@
   "address.copied": "コピーしました",
   "detail.onchainContract": "コントラクト",
   "detail.onchainMintTx": "ミントトランザクション",
-  "detail.royaltyReportedByCol": "報告者"
+  "detail.royaltyReportedByCol": "報告者",
+  "detail.removedTitle": "コンテンツは削除されました",
+  "detail.removedBody": "このキャンペーンのコンテンツは {{date}} に削除されました。理由：{{ground}}。",
+  "detail.removedRefund": "トークンを保有している場合、受け取るべき返金はポートフォリオから請求できます：",
+  "takedown.ground.unlawful_content": "違法なコンテンツ",
+  "takedown.ground.third_party_rights": "第三者の権利の侵害",
+  "takedown.ground.false_warranties": "アーティストによる虚偽の表明"
 }

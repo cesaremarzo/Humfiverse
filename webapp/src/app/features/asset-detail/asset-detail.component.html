@@ -7,6 +7,19 @@
 }
 
 @if (asset(); as a) {
+  @if (a.removed?.removed) {
+  <!-- §2.105: the content was removed. Only the ground and the date are
+       public; the token and the refund path stay reachable. -->
+  <div class="breadcrumb">
+    <a routerLink="/marketplace">{{ 'nav.marketplace' | translate }}</a>
+  </div>
+  <div class="empty-state card">
+    <app-icon name="alert"></app-icon>
+    <h3>{{ 'detail.removedTitle' | translate }}</h3>
+    <p>{{ 'detail.removedBody' | translate: { date: removedDate(a), ground: ('takedown.ground.' + a.removed!.ground | translate) } }}</p>
+    <p>{{ 'detail.removedRefund' | translate }} <a routerLink="/portfolio">{{ 'nav.portfolio' | translate }}</a></p>
+  </div>
+  } @else {
   <div class="breadcrumb">
     <a routerLink="/marketplace">{{ 'nav.marketplace' | translate }}</a>
     <span><app-icon name="chevronLeft"></app-icon></span>
@@ -572,4 +585,5 @@
       </div>
     </div>
   }
+}
 }

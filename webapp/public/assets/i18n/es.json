@@ -742,5 +742,11 @@
   "address.copied": "Copiado",
   "detail.onchainContract": "Contrato",
   "detail.onchainMintTx": "Transacción de acuñación",
-  "detail.royaltyReportedByCol": "Declarado por"
+  "detail.royaltyReportedByCol": "Declarado por",
+  "detail.removedTitle": "Contenido retirado",
+  "detail.removedBody": "El contenido de esta campaña se retiró el {{date}}. Motivo: {{ground}}.",
+  "detail.removedRefund": "Si tienes sus tokens, el reembolso que te corresponda se solicita desde tu cartera:",
+  "takedown.ground.unlawful_content": "contenido ilícito",
+  "takedown.ground.third_party_rights": "infracción de derechos de terceros",
+  "takedown.ground.false_warranties": "declaraciones falsas del artista"
 }

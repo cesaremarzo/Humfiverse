@@ -93,6 +93,17 @@ const KINDS = {
     },
     lines: (f) => [`Asset: ${f.assetId}`, `Media: ${f.kind}`, `File SHA-256: ${f.sha256}`]
   },
+  // §2.105: one step of the takedown procedure, run by a signer of the
+  // owner Safe. The digest covers the step's whole payload (reasons,
+  // decision text), which is too long for the signed text itself.
+  "takedown": {
+    heading: "Humfiverse — takedown procedure step",
+    fields: (f) => {
+      if (!/^0x[0-9a-f]{64}$/.test(String(f.digest || ""))) throw codedError("invalid", "digest is required");
+      return { assetId: line(f.assetId, "assetId"), step: line(f.step, "step"), digest: String(f.digest) };
+    },
+    lines: (f) => [`Asset: ${f.assetId}`, `Step: ${f.step}`, `Details digest (SHA-256): ${f.digest}`]
+  },
   "kyc-submit": {
     heading: "Humfiverse — submit my investor verification",
     // Prepared from the whole submission, signed and verified as a digest.
@@ -155,4 +166,12 @@ function verifyAction(kind, auth) {
   return { wallet: action.wallet, fields: action.fields };
 }
 
-module.exports = { prepareAction, verifyAction, kycDigest, ACTION_WINDOW_MS };
+/** SHA-256 of a payload as JSON with its keys sorted at every level, so the
+ * browser and this server hash the same bytes whatever order they built the
+ * object in. */
+function canonicalDigest(value) {
+  const sort = (v) => (Array.isArray(v) ? v.map(sort) : v && typeof v === "object" ? Object.fromEntries(Object.keys(v).sort().map((k) => [k, sort(v[k])])) : v);
+  return "0x" + crypto.createHash("sha256").update(JSON.stringify(sort(value ?? null))).digest("hex");
+}
+
+module.exports = { prepareAction, verifyAction, kycDigest, canonicalDigest, ACTION_WINDOW_MS };

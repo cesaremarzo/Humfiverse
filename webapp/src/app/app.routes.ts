@@ -16,6 +16,7 @@ export const routes: Routes = [
   { path: 'artist/milestones', title: 'Milestones · Humfiverse', loadComponent: () => import('./features/artist-milestones/artist-milestones.component').then((m) => m.ArtistMilestonesComponent) },
   { path: 'studio', title: 'For studios · Humfiverse', loadComponent: () => import('./features/studio/studio.component').then((m) => m.StudioComponent) },
   // Internal operator tool (§2.15) — deliberately not linked from nav.
+  { path: 'admin/takedown', title: 'Takedown · Humfiverse', loadComponent: () => import('./features/admin-takedown/admin-takedown.component').then((m) => m.AdminTakedownComponent) },
   { path: 'admin/escrow', title: 'Escrow admin · Humfiverse', loadComponent: () => import('./features/admin-escrow/admin-escrow.component').then((m) => m.AdminEscrowComponent) },
   { path: '**', redirectTo: 'marketplace' }
 ];

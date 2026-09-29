@@ -742,5 +742,11 @@
   "address.copied": "تم النسخ",
   "detail.onchainContract": "العقد",
   "detail.onchainMintTx": "معاملة السك",
-  "detail.royaltyReportedByCol": "أبلغ عنه"
+  "detail.royaltyReportedByCol": "أبلغ عنه",
+  "detail.removedTitle": "تمت إزالة المحتوى",
+  "detail.removedBody": "تمت إزالة محتوى هذه الحملة في {{date}}. السبب: {{ground}}.",
+  "detail.removedRefund": "إذا كنت تملك رموزها، فاطلب أي استرداد مستحق لك من محفظتك:",
+  "takedown.ground.unlawful_content": "محتوى غير قانوني",
+  "takedown.ground.third_party_rights": "انتهاك حقوق الغير",
+  "takedown.ground.false_warranties": "إقرارات كاذبة من الفنان"
 }

@@ -102,6 +102,7 @@ deployment*, not a domain rule.
 | `escrow.repo.js` | `escrow_campaigns`, `escrow_studios` | Also caches. Campaigns are keyed by asset and re-recorded from the chain when missing (§2.104); a cached studio id is reused only if the current escrow agrees (§2.103). |
 | `listings.repo.js` | `marketplace_listings` | Listing ids only. The offer itself — price, seller, whether it is still open — is read off the contract. |
 | `assistant.repo.js` | `assistant_requests` | One row per answered guide question (§2.100): an IP, a timestamp and the two token counts, and nothing else. It exists so the caps on a paid, sign-in-free endpoint survive a restart. |
+| `takedown.repo.js` | `takedown_events` | The takedown procedure's record (§2.105). **Append-only by design**: no update or delete exists; a case's state is the fold of its events. |
 | `indexer.repo.js` | `indexer_state`, `token_holders`, `token_holder_audit` | The resume cursor and its cross-process lease, the holder table, and the audit row that says whether that token's holdings were checked against supply (§2.70). |
 
 ### `services/` — domain logic
@@ -117,6 +118,7 @@ deployment*, not a domain rule.
 | `identity-jwt.service.js` | Signs RS256 JWTs that open a thirdweb in-app wallet from an identity this backend verified (§2.83), and publishes the public key. Not callable from any route yet: whatever calls it must have verified the person first. |
 | `fees.service.js` | Platform fees (§2.71, §2.72): reads the token's, the escrow's and the marketplace's own counters — accrued, lifetime total, recipient — and reports `unsupported`/`unavailable` with a reason instead of a zero when it cannot. |
 | `assistant.service.js` | The guide widget's free-text mode (§2.100): validates and trims the conversation, enforces the per-IP and platform caps, calls the Messages API with `assistant-knowledge.js` as the system prompt, and reports `available: false` where no key is set so the frontend keeps to its written topics. |
+| `takedown.service.js` | The takedown procedure (§2.105): notice, reply, dismiss, decision, and completion after the Safe cancels — verifies the cancel on chain, unpins, clears the audio link, emails the decision. Every step signed by an owner-Safe signer (`lib/safe-owners.js`). Also what `/api/data`, listings and token metadata use to hide removed content. |
 | `indexer.service.js` | Who holds each token. `reconcile` is the authority — real balances from `balanceOf`, verified by `held + pool == totalSupply`; the eth_getLogs walk only follows movement between passes (§2.70). |
 
 ### `routes/` — one module per path prefix
@@ -137,6 +139,7 @@ deployment*, not a domain rule.
 | `listings.routes.js` | `GET /api/listings`, `POST /api/listings`, `POST /api/listings/index`, and the `:id` cancel/buy pair |
 | `holders.routes.js` | `GET /api/holders`, `GET /api/holders/:assetId`, `GET /api/indexer/status`, and the admin reconcile/reindex/step trio |
 | `fees.routes.js` | `GET /api/fees`. No withdrawal route: `withdrawFees()` is sent from a wallet on the admin page (§2.71) |
+| `takedown.routes.js` | `GET /api/takedown/:assetId` (public: removed or not, ground, date), `GET /api/takedown/:assetId/safe-transaction`, `POST /api/takedown/cases` (signed read), `POST /api/takedown/:assetId/:step` |
 | `admin.routes.js` | The three `X-Admin-Key` reset endpoints, all of which exist because of contract redeploys |
 | `assistant.routes.js` | `GET /api/assistant/status`, `POST /api/assistant/ask`, and the admin-only `GET /api/assistant/usage` (§2.100) |
 

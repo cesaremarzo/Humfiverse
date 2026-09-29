@@ -49,8 +49,16 @@ const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || "";
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || "claude-opus-5";
 const ASSISTANT_DAILY_CAP = Number(process.env.ASSISTANT_DAILY_CAP || 300);
 
+/* §2.105 — the takedown procedure. The artist's reply period is a setting
+   (legal/08 A-1 §2: 5 days), and the Safe whose signers may run the
+   procedure is read from chain, not listed here. */
+const TAKEDOWN_NOTICE_DAYS = Number(process.env.TAKEDOWN_NOTICE_DAYS || 5);
+const OWNER_SAFE_ADDRESS = process.env.OWNER_SAFE_ADDRESS || "0xBA2ad0Ca063092E350f1427dd86F7E9C8730245d";
+
 module.exports = {
   PORT,
+  TAKEDOWN_NOTICE_DAYS,
+  OWNER_SAFE_ADDRESS,
   ADMIN_API_KEY,
   TOKEN_METADATA_BASE,
   AUTH_JWT_PRIVATE_KEY,

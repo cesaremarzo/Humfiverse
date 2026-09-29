@@ -742,5 +742,11 @@
   "address.copied": "Скопировано",
   "detail.onchainContract": "Контракт",
   "detail.onchainMintTx": "Транзакция выпуска",
-  "detail.royaltyReportedByCol": "Заявлено"
+  "detail.royaltyReportedByCol": "Заявлено",
+  "detail.removedTitle": "Контент удалён",
+  "detail.removedBody": "Контент этой кампании был удалён {{date}}. Основание: {{ground}}.",
+  "detail.removedRefund": "Если у вас есть её токены, причитающийся возврат можно запросить в вашем портфеле:",
+  "takedown.ground.unlawful_content": "незаконный контент",
+  "takedown.ground.third_party_rights": "нарушение прав третьих лиц",
+  "takedown.ground.false_warranties": "недостоверные заверения артиста"
 }
