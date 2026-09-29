@@ -29,6 +29,8 @@
 
   <div class="side-spacer"></div>
 
+  <span class="net-pill" [title]="'market.networkTitle' | translate"><span class="live-dot"></span>Sepolia</span>
+
   <div class="lang-select">
     <select [attr.aria-label]="'lang.label' | translate" [value]="store.locale()" (change)="setLocale($any($event.target).value)">
       @for (l of locales; track l) {
@@ -47,7 +49,7 @@
       <app-icon name="wallet"></app-icon> {{ wallet.truncateAddr(wallet.state().address) }}
     </button>
   } @else {
-    <button class="btn btn-secondary btn-sm" [disabled]="wallet.state().connecting" (click)="connectWallet()">
+    <button class="btn btn-primary btn-sm" [disabled]="wallet.state().connecting" (click)="connectWallet()">
       <app-icon name="wallet"></app-icon> {{ (wallet.state().connecting ? 'wallet.connecting' : 'wallet.connect') | translate }}
     </button>
   }

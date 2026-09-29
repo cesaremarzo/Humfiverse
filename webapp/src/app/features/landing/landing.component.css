@@ -72,7 +72,7 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  font-family:var(--font-sans);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.32em;
@@ -92,18 +92,18 @@
 }
 
 .landing-tagline {
-  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-family:var(--font-display);
   font-optical-sizing: auto;
-  font-size: clamp(44px, 7.4vw, 96px);
-  font-weight: 400;
-  letter-spacing: -0.035em;
-  line-height: 1.02;
+  font-size: clamp(42px, 7vw, 88px);
+  font-weight: 600;
+  letter-spacing: -0.055em;
+  line-height: 0.98;
   color: var(--text);
   text-wrap: balance;
   max-width: 14ch;
   margin: 0;
   padding-bottom: 0.08em;
-  background: linear-gradient(100deg, var(--text) 25%, color-mix(in srgb, var(--accent-ink) 85%, var(--text)) 70%, var(--accent-2) 105%);
+  background: linear-gradient(180deg, var(--text) 45%, color-mix(in srgb, var(--text) 55%, var(--accent-ink)) 110%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -393,7 +393,7 @@
   gap: 14px;
   padding: 15px 28px;
   white-space: nowrap;
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-family:var(--font-mono);
   font-size: 12.5px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -522,7 +522,7 @@
 }
 
 .landing-step-index {
-  font-family: "IBM Plex Mono", monospace;
+  font-family:var(--font-mono);
   font-size: 22px;
   font-weight: 300;
   line-height: 1;
