@@ -1,6 +1,6 @@
 # Termini di Servizio: bozza
 
-*Bozza del 2026-09-15, commit `82a7a1b`; §5.3 aggiornato il 2026-09-17 (ordine delle milestone); §5.7 il 2026-09-17 (chi versa le royalty e rendiconto, pubblicazione facoltativa, §2.98); §5.7 e §6 il 2026-09-17 (vendita diretta al 6%, 1% sulla distribuzione delle royalty, §2.101); §12 il 2026-09-17 (guida automatica, §2.100). **Da far rivedere a un avvocato prima
+*Bozza del 2026-09-15, commit `82a7a1b`; nota a §5.6 il 2026-09-28 (avviso e decisione solo a chi ha un'email, §2.105); §5.3 aggiornato il 2026-09-17 (ordine delle milestone); §5.7 il 2026-09-17 (chi versa le royalty e rendiconto, pubblicazione facoltativa, §2.98); §5.7 e §6 il 2026-09-17 (vendita diretta al 6%, 1% sulla distribuzione delle royalty, §2.101); §12 il 2026-09-17 (guida automatica, §2.100). **Da far rivedere a un avvocato prima
 della pubblicazione.** Non è consulenza legale.*
 
 ## Note per chi usa questa bozza (da togliere prima di pubblicare)
@@ -160,6 +160,13 @@ titolare, da un ordine di un'autorità o da una decisione giudiziaria; oppure
 per rispondere, salvo i casi in cui il contenuto deve essere rimosso subito per
 legge o per ordine di un'autorità. La decisione è motivata, datata e conservata,
 e comunicata agli investitori della campagna.
+
+> **[Nota di implementazione, 2026-09-28, §2.105]** Avviso e decisione partono
+> all'**email verificata** collegata al wallet. Un artista o un investitore senza
+> email registrata non li riceve: il testo definitivo dovrebbe dirlo, oppure la
+> registrazione dell'email deve diventare obbligatoria per tutti (08 C-11).
+> L'impronta SHA-256 della decisione è scritta sulla blockchain insieme
+> all'annullamento, quindi chi riceve il testo può controllarlo.
 (c) Con l'annullamento gli investitori ricevono il rimborso pro-quota della
 parte non ancora rilasciata (§5.4).
 (d) **Il rimborso non estingue i diritti degli investitori verso l'artista**:

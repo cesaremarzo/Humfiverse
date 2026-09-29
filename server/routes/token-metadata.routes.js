@@ -17,6 +17,7 @@ const { TOKEN_METADATA_BASE } = require("../config");
 const { tokenImageSvg } = require("../lib/token-image");
 const onchainRepo = require("../data/onchain.repo");
 const catalogueRepo = require("../data/catalogue.repo");
+const takedown = require("../services/takedown.service");
 
 /** §2.93: the artist's uploaded image, through a public gateway (wallets
  * differ on ipfs:// support), or null to fall back to the generated SVG. */
@@ -27,12 +28,28 @@ async function uploadedImageUrl(tokenId) {
   return typeof uri === "string" && uri.startsWith("ipfs://") ? `https://gateway.pinata.cloud/ipfs/${uri.slice(7)}` : null;
 }
 
+async function isRemovedToken(tokenId) {
+  const token = await onchainRepo.findTokenByTokenId(tokenId).catch(() => null);
+  return token ? (await takedown.removedAssets()).has(token.asset_id) : false;
+}
+
 module.exports = function registerTokenMetadataRoutes(router) {
   router.get(/^\/api\/token-metadata\/(?<hexTokenId>[0-9a-f]{64})\.json$/, async (req, res, { params }) => {
     try {
       const tokenId = parseInt(params.hexTokenId, 16);
       const info = await chain.getPoolInfo(tokenId);
       if (!info.onchainTitle) { sendJson(res, 404, { error: "no token minted at this id" }); return; }
+      // §2.105: a neutral placeholder once the content is removed. The title
+      // and artist stay in the contract's storage, which this cannot change.
+      if (await isRemovedToken(tokenId)) {
+        sendJson(res, 200, {
+          name: "Removed content",
+          description: "The content of this Humfiverse token was removed. Testnet prototype, not a real financial instrument.",
+          image: `${TOKEN_METADATA_BASE}/api/token-metadata/${tokenId}/image.svg`,
+          attributes: [{ trait_type: "Status", value: "Removed" }, { trait_type: "Network", value: "Sepolia (testnet)" }]
+        });
+        return;
+      }
       sendJson(res, 200, {
         name: info.onchainTitle,
         description: `"${info.onchainTitle}" by ${info.onchainArtist} — a Humfiverse catalogue token on Sepolia. Testnet prototype, not a real financial instrument.`,
@@ -56,6 +73,7 @@ module.exports = function registerTokenMetadataRoutes(router) {
   router.get(/^\/api\/token-metadata\/(?<tokenId>\d+)\/image\.svg$/, async (req, res, { params }) => {
     try {
       const tokenId = Number(params.tokenId);
+      if (await isRemovedToken(tokenId)) { sendRaw(res, 200, "image/svg+xml", tokenImageSvg("Removed content", "")); return; }
       const info = await chain.getPoolInfo(tokenId);
       sendRaw(res, 200, "image/svg+xml", tokenImageSvg(info.onchainTitle || `Token #${tokenId}`, info.onchainArtist || ""));
     } catch (e) {

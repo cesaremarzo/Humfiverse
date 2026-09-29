@@ -57,6 +57,8 @@ async function authorize(req, asset, kind, buffer) {
 
 const EXTENSION = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "video/mp4": "mp4", "video/quicktime": "mov", "video/webm": "webm" };
 
+const takedown = require("../services/takedown.service");
+
 module.exports = function registerMediaRoutes(router) {
   router.post("/api/assets/:assetId/media/:kind", async (req, res, { params }) => {
     try {
@@ -72,6 +74,11 @@ module.exports = function registerMediaRoutes(router) {
       const asset = await catalogueRepo.findAssetById(params.assetId);
       if (!asset) {
         sendJson(res, 404, { error: "no asset with this id" });
+        return;
+      }
+      // §2.105: removed content stays removed; a new upload would put it back.
+      if ((await takedown.publicState(asset.id)).removed) {
+        sendJson(res, 409, { error: "this asset's content was removed" });
         return;
       }
       const buffer = await readRawBody(req, LIMITS[kind].maxBytes);

@@ -12,16 +12,25 @@ const { verifyLaunch, requireMatch } = require("../lib/launch-auth");
 const { verifyAction } = require("../lib/signed-action");
 const registration = require("../services/registration.service");
 
+const takedown = require("../services/takedown.service");
+
 module.exports = function registerCatalogueRoutes(router) {
   /* The app-boot aggregate: one round trip instead of three, since the
      frontend needs all of it before it can render anything. */
   router.get("/api/data", async (req, res) => {
-    const [assets, campaigns, portfolio] = await Promise.all([
+    const [assets, campaigns, portfolio, removed] = await Promise.all([
       catalogueRepo.listAssets(),
       catalogueRepo.listCampaigns(),
-      portfolioRepo.getSimulatedPortfolio()
+      portfolioRepo.getSimulatedPortfolio(),
+      takedown.removedAssets()
     ]);
-    sendJson(res, 200, { assets, campaigns, portfolio });
+    // §2.105: a removed asset's content is not served at all — hiding it in
+    // the page alone would leave it one API call away.
+    sendJson(res, 200, {
+      assets: assets.map((a) => (removed.has(a.id) ? takedown.strippedAsset(a, removed.get(a.id)) : a)),
+      campaigns: campaigns.filter((c) => !removed.has(c.assetId ?? c.id)),
+      portfolio
+    });
   });
 
   /* Persists a campaign the onboarding wizard just created, so it shows

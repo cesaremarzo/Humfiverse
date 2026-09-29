@@ -1,6 +1,6 @@
 # Controllo degli smart contract e del backend, dal punto di vista legale
 
-*Revisione del 2026-09-17, dopo il redeploy di fase 2 (technical §2.92, §2.95-§2.97); C-12 aggiornato per il rendiconto come file (§2.98, commit `fd7f822`). Non è un audit di sicurezza e non
+*Revisione del 2026-09-17, dopo il redeploy di fase 2 (technical §2.92, §2.95-§2.97); C-12 aggiornato per il rendiconto come file (§2.98, commit `fd7f822`); C-2 aggiornato il 2026-09-28 per la procedura di annullamento (§2.105). Non è un audit di sicurezza e non
 è consulenza legale.*
 
 ## Cosa è e cosa non è questo controllo
@@ -160,7 +160,7 @@ nessuna parte**.
 6. **Annullare non basta a rimuovere il contenuto** (technical-architecture
    §2.87): pagina, audio su IPFS, metadati e testo on-chain restano. Per
    contenuti illeciti l'atto che conta è la rimozione. Clausola nel file 08,
-   A-1-bis; procedura tecnica nel §2.87, non ancora implementata.
+   A-1-bis; procedura tecnica nel §2.87, implementata il 2026-09-28 (§2.105).
 
 **Risolto in parte (2026-09-17, §2.92 e §2.97).** Il contratto di fase 2 registra
 il motivo on-chain: `cancelCampaign(id, motivo, hashDecisione)`, con motivi
@@ -171,6 +171,23 @@ accettato finché una tranche non è pagata, quindi il contratto non limita
 l'annullamento ai soli motivi di legge. Il limite resta contrattuale
 (Termini §5.6), la procedura (punto 2) non è nel codice e la rimozione dei
 contenuti (punto 6) non è implementata.
+
+**Risolto in parte (2026-09-28, technical §2.105).** Procedura (punto 2) e
+rimozione (punto 6) sono nel backend, pagina `/admin/takedown`: avviso motivato
+all'artista via email con termine di risposta (impostazione
+`TAKEDOWN_NOTICE_DAYS`, 5 giorni) salvo urgenza, osservazioni registrate,
+decisione scritta e datata il cui SHA-256 è l'`hashDecisione` passato dal Safe a
+`cancelCampaign`; il server verifica sulla catena che la transazione del Safe
+abbia annullato proprio quella campagna, con quel motivo e quell'hash. Poi: pagina,
+scheda e inserzioni nascoste (l'API non serve più il contenuto), file tolti da
+Pinata, link all'audio azzerato sul token (`setTrackAudioUri(id, "")`, Founder),
+metadati del token sostituiti da un segnaposto, decisione mandata per email
+all'artista e agli holder. Ogni passo è firmato da un firmatario del Safe e
+registrato in una tabella in sola aggiunta (`takedown_events`), esiti falliti
+compresi. **Resta aperto:** il motivo `NONE` accettato dal contratto; titolo e
+nome artista restano nello storage del token; chi non ha un'email verificata non
+riceve avviso né decisione (il registro lo segnala); pubblicare o no la
+motivazione (DSA, 07 C7) non è deciso: oggi resta privata.
 
 ### C-3 · Alta · Conferma "doppia" che non sempre è doppia
 

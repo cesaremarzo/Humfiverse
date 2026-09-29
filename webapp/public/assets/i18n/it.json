@@ -742,5 +742,11 @@
   "address.copied": "Copiato",
   "detail.onchainContract": "Contratto",
   "detail.onchainMintTx": "Transazione di conio",
-  "detail.royaltyReportedByCol": "Dichiarato da"
+  "detail.royaltyReportedByCol": "Dichiarato da",
+  "detail.removedTitle": "Contenuto rimosso",
+  "detail.removedBody": "Il contenuto di questa campagna è stato rimosso il {{date}}. Motivo: {{ground}}.",
+  "detail.removedRefund": "Se possiedi i suoi token, l'eventuale rimborso che ti spetta si richiede dal tuo portafoglio:",
+  "takedown.ground.unlawful_content": "contenuto illecito",
+  "takedown.ground.third_party_rights": "violazione di diritti di terzi",
+  "takedown.ground.false_warranties": "dichiarazioni dell'artista non veritiere"
 }

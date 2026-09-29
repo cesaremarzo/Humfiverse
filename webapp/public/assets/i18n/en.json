@@ -742,5 +742,11 @@
   "address.copied": "Copied",
   "detail.onchainContract": "Contract",
   "detail.onchainMintTx": "Mint transaction",
-  "detail.royaltyReportedByCol": "Reported by"
+  "detail.royaltyReportedByCol": "Reported by",
+  "detail.removedTitle": "Content removed",
+  "detail.removedBody": "The content of this campaign was removed on {{date}}. Ground: {{ground}}.",
+  "detail.removedRefund": "If you hold its tokens, any refund due to you is claimed from your portfolio:",
+  "takedown.ground.unlawful_content": "unlawful content",
+  "takedown.ground.third_party_rights": "infringement of third-party rights",
+  "takedown.ground.false_warranties": "false artist warranties"
 }

@@ -1,6 +1,6 @@
 # Bozza di clausole: Accordo Artista, Accordo Investitore, accettazione
 
-*Bozza del 2026-09-15, commit `82a7a1b`; A-5 aggiornata il 2026-09-17 (ordine delle milestone); A-8 e C-12 nuove il 2026-09-17 (versamento delle royalty, §2.98); A-6 aggiornata il 2026-09-17 (vendita diretta al 6%, 1% sulle royalty, §2.101). **Da far rivedere a un avvocato.** Non
+*Bozza del 2026-09-15, commit `82a7a1b`; A-5 aggiornata il 2026-09-17 (ordine delle milestone); A-8 e C-12 nuove il 2026-09-17 (versamento delle royalty, §2.98); A-6 aggiornata il 2026-09-17 (vendita diretta al 6%, 1% sulle royalty, §2.101); note di implementazione ad A-1 e A-1-bis il 2026-09-28 (§2.105). **Da far rivedere a un avvocato.** Non
 è consulenza legale.*
 
 Traduce in testo contrattuale la decisione del 15 settembre 2026 (note legali
@@ -52,6 +52,16 @@ Sostituisce le clausole `manager-discretion`, `milestones` e `refund` e integra
 5. L'annullamento nei casi del comma 1 non costituisce inadempimento della
    Piattaforma o del Veicolo.
 
+> **Nota di implementazione (2026-09-28, technical §2.105).** Commi 2 e 3 sono nel
+> codice (`/admin/takedown`): l'avviso va all'**email verificata** dell'artista (il
+> wallet non si può "avvisare": viene solo indicato), il termine è un'impostazione
+> (5 giorni), l'urgenza richiede di indicare la base di legge o l'ordine. La
+> decisione è un testo che il server compone con motivo, prova, motivazione,
+> osservazioni e decisione; il suo SHA-256 è l'hash passato al Safe, e il server
+> accetta come avvenuto solo l'annullamento che porta quel motivo e quell'hash. La
+> decisione va per email all'artista e agli Investitori che hanno un'email
+> verificata; chi non ce l'ha resta nel registro come non raggiunto.
+
 ### A-1-bis · Rimozione dei contenuti `[V]`
 *Nuova. Corrisponde ai requisiti tecnici di technical-architecture §2.87.*
 
@@ -70,6 +80,14 @@ Sostituisce le clausole `manager-discretion`, `milestones` e `refund` e integra
    momento della creazione restano per sempre** sulla blockchain.
 3. La rimozione non pregiudica il rimborso agli Investitori (A-2), che resta
    accessibile dal loro portafoglio.
+
+> **Nota di implementazione (2026-09-28, §2.105).** (a) la pagina mostra solo
+> «contenuto rimosso», il motivo e la data; l'API non serve più titolo,
+> descrizione e media, e nasconde le inserzioni (che restano sul contratto del
+> marketplace, dove il venditore può chiuderle). (b) audio, immagine e video
+> vengono tolti da Pinata e il link all'audio sul token viene azzerato; un
+> nuovo caricamento di media è rifiutato. (c) i metadati del token diventano
+> «Removed content». Nel caso urgente il contenuto è nascosto già all'avviso.
 
 ### A-2 · Effetti dell'annullamento e rimborso `[V]`
 *Sostituisce `refund` (T-3).*

@@ -25,7 +25,7 @@ import {
   RedeemResult,
   RoyaltyMonth,
   SecondaryListing, FeeSummary, RegistrationStatus, MediaKind,
-  AssistantStatus, AssistantAnswer } from './models';
+  AssistantStatus, AssistantAnswer, TakedownCase, TakedownCaseList, TakedownPublic, TakedownSafeTransaction } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -272,6 +272,24 @@ export class ApiService {
   }
 
   /** Platform fee totals for the escrow and the marketplace (§2.71). */
+  /* §2.105 — the takedown procedure. Every step but the public read is
+     signed by a signer of the owner Safe. */
+  getTakedown(assetId: string): Promise<TakedownPublic> {
+    return firstValueFrom(this.http.get<TakedownPublic>(`${this.base}/api/takedown/${encodeURIComponent(assetId)}`));
+  }
+
+  listTakedownCases(auth: SignedAction): Promise<TakedownCaseList> {
+    return firstValueFrom(this.http.post<TakedownCaseList>(`${this.base}/api/takedown/cases`, { auth }));
+  }
+
+  takedownStep<T = TakedownCase>(assetId: string, step: string, body: Record<string, unknown>, auth: SignedAction): Promise<T> {
+    return firstValueFrom(this.http.post<T>(`${this.base}/api/takedown/${encodeURIComponent(assetId)}/${step}`, { ...body, auth }));
+  }
+
+  getTakedownSafeTransaction(assetId: string): Promise<{ safeTransaction: TakedownSafeTransaction | null }> {
+    return firstValueFrom(this.http.get<{ safeTransaction: TakedownSafeTransaction | null }>(`${this.base}/api/takedown/${encodeURIComponent(assetId)}/safe-transaction`));
+  }
+
   getFees(): Promise<FeeSummary> {
     return firstValueFrom(this.http.get<FeeSummary>(`${this.base}/api/fees`));
   }

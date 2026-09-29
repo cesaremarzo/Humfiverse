@@ -742,5 +742,11 @@
   "address.copied": "已复制",
   "detail.onchainContract": "合约",
   "detail.onchainMintTx": "铸造交易",
-  "detail.royaltyReportedByCol": "报告人"
+  "detail.royaltyReportedByCol": "报告人",
+  "detail.removedTitle": "内容已移除",
+  "detail.removedBody": "此活动的内容已于 {{date}} 移除。原因：{{ground}}。",
+  "detail.removedRefund": "如果您持有其代币，可在您的投资组合中申请应得的退款：",
+  "takedown.ground.unlawful_content": "违法内容",
+  "takedown.ground.third_party_rights": "侵犯第三方权利",
+  "takedown.ground.false_warranties": "艺术家的虚假保证"
 }

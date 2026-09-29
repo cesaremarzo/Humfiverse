@@ -52,6 +52,16 @@ async function initSchema() {
       tx_hash TEXT,
       created_at TEXT
     );
+    CREATE TABLE IF NOT EXISTS takedown_events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      asset_id TEXT NOT NULL,
+      step TEXT NOT NULL,
+      outcome TEXT NOT NULL,
+      actor TEXT,
+      payload TEXT,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS takedown_events_asset ON takedown_events (asset_id, id);
     CREATE TABLE IF NOT EXISTS escrow_studios (
       studio_id INTEGER PRIMARY KEY,
       wallet TEXT UNIQUE NOT NULL,
