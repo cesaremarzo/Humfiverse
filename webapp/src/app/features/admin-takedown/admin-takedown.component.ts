@@ -163,6 +163,11 @@ export class AdminTakedownComponent {
     return this.run('complete', body);
   }
 
+  /** The earlier decision file read as-is, so no byte is lost to a paste. */
+  async loadPriorDecision(file: File | undefined): Promise<void> {
+    if (file) this.priorDecisionText = await file.text();
+  }
+
   downloadBatch(): void {
     const tx = this.safeTx();
     if (!tx) return;
