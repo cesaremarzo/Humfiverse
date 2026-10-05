@@ -113,26 +113,32 @@ export class StoreService {
    * Called from app.ts whenever WalletService's connected address changes;
    * `null` (disconnect) resets to unverified rather than leaving a stale
    * verification from a *different* wallet in place. */
+  /** Which wallet the KYC and registration state below belong to. A wallet
+   * switch clears both at once and a late answer for another wallet is
+   * dropped, so one wallet never shows another's status: a failed or slow
+   * read used to leave the previous wallet's in place, so a registered
+   * wallet was asked to verify its email again and an unverified one could
+   * pass as verified. */
+  private kycWallet: string | null = null;
+  private registrationWallet: string | null = null;
+
   async syncKycForWallet(walletAddress: string | null): Promise<void> {
-    if (!walletAddress) {
-      this.investor.set({ verified: false, classification: null, appropriatenessResult: null, score: null, receiptHash: null });
-      return;
-    }
+    const wallet = walletAddress?.toLowerCase() ?? null;
+    this.kycWallet = wallet;
+    this.investor.set({ verified: false, classification: null, appropriatenessResult: null, score: null, receiptHash: null });
+    if (!wallet) return;
     try {
-      const status = await this.api.getKycStatus(walletAddress);
-      if (status.verified) {
-        this.investor.set({
-          verified: true,
-          classification: status.classification ?? null,
-          appropriatenessResult: status.appropriatenessResult ?? null,
-          score: status.score ?? null,
-          receiptHash: status.receiptHash ?? null
-        });
-      } else {
-        this.investor.set({ verified: false, classification: null, appropriatenessResult: null, score: null, receiptHash: null });
-      }
+      const status = await retrying(() => this.api.getKycStatus(walletAddress!));
+      if (this.kycWallet !== wallet || !status.verified) return;
+      this.investor.set({
+        verified: true,
+        classification: status.classification ?? null,
+        appropriatenessResult: status.appropriatenessResult ?? null,
+        score: status.score ?? null,
+        receiptHash: status.receiptHash ?? null
+      });
     } catch {
-      /* backend unreachable — leave whatever local state already exists */
+      /* backend unreachable: stays unverified; the server checks again */
     }
   }
 
@@ -149,12 +155,15 @@ export class StoreService {
   }
 
   async syncRegistrationForWallet(walletAddress: string | null): Promise<RegistrationStatus | null> {
-    if (!walletAddress) {
-      this.registration.set({ registered: false, required: false, checked: false });
-      return null;
-    }
+    const wallet = walletAddress?.toLowerCase() ?? null;
+    this.registrationWallet = wallet;
+    // Unchecked until this wallet's own answer arrives: the gates stay open
+    // and the server, which checks every gated action, has the last word.
+    this.registration.set({ registered: false, required: false, checked: false });
+    if (!wallet) return null;
     try {
-      const status = await this.api.getRegistrationStatus(walletAddress);
+      const status = await retrying(() => this.api.getRegistrationStatus(walletAddress!));
+      if (this.registrationWallet !== wallet) return null;
       this.registration.set({ ...status, checked: true });
       return status;
     } catch {
