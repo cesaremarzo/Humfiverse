@@ -21,7 +21,7 @@
               "base": "../docs",
               "browser": ""
             },
-            "baseHref": "/Humfiverse/",
+            "baseHref": "/",
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
             "assets": [

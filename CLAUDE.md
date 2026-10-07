@@ -45,7 +45,7 @@ who's driving:
 - Remember what a merge to `main` actually does: it redeploys *both* the
   frontend to GitHub Pages and the backend to Render. Verify afterwards
   rather than assuming — check the live bundle filename changed
-  (`curl -s https://cesaremarzo.github.io/Humfiverse/ | grep -o 'main-[^"]*\.js'`)
+  (`curl -s https://humfiverse.com/ | grep -o 'main-[^"]*\.js'`)
   and sweep the production API's read endpoints. Both are quick.
 - If you're about to touch a file the other person is likely also
   mid-change on (check recent commits on their branch with
@@ -119,7 +119,7 @@ touched either `.env` file's surrounding area.
 ## Stack quick reference
 
 - Frontend: Angular 17+ (standalone components, signals), built to
-  `docs/` for GitHub Pages (`cesaremarzo.github.io/Humfiverse`).
+  `docs/` for GitHub Pages, served at `humfiverse.com` (custom domain, DNS on Cloudflare; the old `cesaremarzo.github.io/Humfiverse` redirects there).
 - Backend: Node.js, zero-dependency `http` server + Turso (libSQL) in
   production / local SQLite file in dev, deployed on Render (free tier —
   cold starts after 15 min idle).
