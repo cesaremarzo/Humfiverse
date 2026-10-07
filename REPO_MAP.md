@@ -76,7 +76,7 @@ Builds to `../docs` (see below) for GitHub Pages; Netlify builds it fresh from s
 
 ## `docs/` — the deployed frontend (GitHub Pages source)
 
-**Generated output, not hand-edited.** This is `webapp`'s build output (`ng build` writes here per `angular.json`'s `outputPath`), committed to git because GitHub Pages serves straight from this folder with no build step of its own. Rebuild after any `webapp/src` change: `cd webapp && npx ng build --base-href=/Humfiverse/`. Hashed chunk filenames change on every build — that's normal, not a conflict.
+**Generated output, not hand-edited.** This is `webapp`'s build output (`ng build` writes here per `angular.json`'s `outputPath`), committed to git because GitHub Pages serves straight from this folder with no build step of its own. Rebuild after any `webapp/src` change: `cd webapp && npx ng build`. Hashed chunk filenames change on every build — that's normal, not a conflict.
 
 ## `planning/` — planning & decision docs
 

@@ -1,11 +1,8 @@
 [build]
-  # angular.json's outputPath is set to "../docs" with baseHref "/Humfiverse/"
-  # (needed for GitHub Pages, which serves this repo from a /Humfiverse/
-  # subpath). Netlify serves from the domain root, so that baseHref is wrong
-  # here — every asset request 404s even though index.html itself deploys
-  # fine (this was the actual cause of the reported 404). --base-href=/
-  # overrides it for this build only; it never touches the docs/ folder
-  # committed to git for GitHub Pages.
+  # angular.json's baseHref is "/" since the site moved to humfiverse.com
+  # (§2.109); it used to be "/Humfiverse/" for the GitHub Pages subpath,
+  # which made every asset 404 here. --base-href=/ is kept explicit so a
+  # future change to angular.json can't silently break preview deploys.
   command = "cd webapp && npm ci && npx ng build --base-href=/"
   publish = "docs"
 

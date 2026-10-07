@@ -74,7 +74,7 @@ A fresh deploy means fresh, empty contract state: every minted token, every escr
 ## Verify locally before shipping
 
 12. Start the backend locally against the new contracts (`cd server && rm -f humfiverse.db && node server.js`) and confirm, via `curl`, that `/api/onchain/list`, `/api/portfolio/:wallet` (for a wallet with restored balance), and `/api/escrow/campaigns` all self-heal correctly from the fresh local table — this exercises the exact recent-scan fallback path (§2.39) that a real user's browser will hit first.
-13. `cd contracts && npx hardhat test` once more, and `cd webapp && npx ng build --base-href=/Humfiverse/` — both must pass before committing.
+13. `cd contracts && npx hardhat test` once more, and `cd webapp && npx ng build` — both must pass before committing.
 
 ## Ship it
 

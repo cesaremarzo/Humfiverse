@@ -1,6 +1,6 @@
 # Informativa Privacy: bozza
 
-*Bozza del 2026-09-17: storico prezzi dal §2.94 (commit `94ae18f`); prima commit `cc06a70` con le modifiche dei §2.88 e §2.89; email di registrazione, immagini e video dal §2.93; file del rendiconto royalty dal §2.98; guida automatica dal §2.100; procedura di annullamento e rimozione dal §2.105 (2026-09-28). **Da far rivedere a un avvocato o a un
+*Bozza del 2026-09-17: storico prezzi dal §2.94 (commit `94ae18f`); prima commit `cc06a70` con le modifiche dei §2.88 e §2.89; email di registrazione, immagini e video dal §2.93; file del rendiconto royalty dal §2.98; guida automatica dal §2.100; procedura di annullamento e rimozione dal §2.105 (2026-09-28); dominio humfiverse.com e Cloudflare dal §2.109 (2026-10-07). **Da far rivedere a un avvocato o a un
 esperto privacy prima della pubblicazione.** Non è consulenza legale.*
 
 ## Note per chi usa questa bozza (da togliere prima di pubblicare)
@@ -109,7 +109,8 @@ titolari autonomi:
 | Pinata Cloud, Inc. | Pubblicazione su IPFS di audio, immagini e video dei brani | Audio, immagini, video, metadati | USA | [DPF / SCC] |
 | Brevo (Sendinblue SAS) | Invio delle email con il codice di verifica (§2.93) | Indirizzo email, testo del messaggio (codice) | Francia (UE) **[verificare la sede dei server]** | Responsabile del trattamento: serve l'accordo art. 28 (DPA di Brevo) |
 | Anthropic PBC (Claude) | Genera le risposte della guida automatica, solo dove la chiave API è configurata (§2.100) | Testo della conversazione con la guida e l'istruzione di sistema; **non inviamo wallet, email né il tuo IP** (la chiamata parte dal nostro server) | USA | [DPF / SCC]. Serve l'accordo art. 28 (DPA di Anthropic) e la verifica che i dati dell'API non siano usati per l'addestramento **[verificare, 07 H4]** |
-| GitHub (Pages) e Netlify | Hosting del sito | IP, user agent | USA | [DPF / SCC] |
+| GitHub (Pages) e Netlify | Hosting del sito (humfiverse.com) | IP, user agent | USA | [DPF / SCC] |
+| Cloudflare, Inc. | DNS del dominio humfiverse.com (§2.109) | Oggi nessuno: i record sono «solo DNS», il traffico va diretto a GitHub. **Se si attiva il proxy di Cloudflare, passano IP, user agent e richieste: va aggiunto come responsabile** | USA | [DPF / SCC] se si attiva il proxy |
 | Etherscan | Link di verifica delle transazioni (solo se li apri) | IP | [verificare] | Titolare autonomo |
 
 Comunichiamo dati alle autorità solo quando la legge lo richiede.
