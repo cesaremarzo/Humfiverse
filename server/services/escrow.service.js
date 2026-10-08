@@ -91,10 +91,34 @@ async function createCampaign(assetId, artistAddress, studioName, studioWallet, 
  * them. */
 async function listCampaigns() {
   const assetIds = await escrowRepo.listCampaignAssetIds();
-  const infos = await Promise.all(
-    assetIds.map((assetId) => escrowChain.getCampaignInfoByAssetId(assetId).then((info) => info && { escrow: true, assetId, ...info }))
-  );
+  // §2.109b: all campaigns used to be read at once, and Alchemy throttles a
+  // burst of eth_calls — ethers reports the refused call as "missing revert
+  // data" — so one throttled read turned the whole list into a 502. Read a
+  // few at a time and retry a throttled read; a read that still fails after
+  // that fails the list, as before, rather than dropping that campaign.
+  const infos = [];
+  for (let i = 0; i < assetIds.length; i += LIST_CONCURRENCY) {
+    const batch = assetIds.slice(i, i + LIST_CONCURRENCY);
+    infos.push(...(await Promise.all(batch.map((assetId) => readCampaignForList(assetId)))));
+  }
   return infos.filter(Boolean);
+}
+
+const LIST_CONCURRENCY = 3;
+
+async function readCampaignForList(assetId, attempts = 4) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      const info = await escrowChain.getCampaignInfoByAssetId(assetId);
+      return info && { escrow: true, assetId, ...info };
+    } catch (err) {
+      // These are view calls that never revert, so "missing revert data"
+      // here is the RPC refusing the call, not the contract.
+      const throttled = /missing revert data|rate limit|429|timeout/i.test(String(err && err.message));
+      if (!throttled || attempt >= attempts) throw err;
+      await new Promise((resolve) => setTimeout(resolve, 600 * attempt));
+    }
+  }
 }
 
 /** Records a campaign the chain has and the local table does not — one

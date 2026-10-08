@@ -65,7 +65,7 @@
   </div>
 }
 
-@if (!loading() && campaigns().length === 0) {
+@if (!loading() && !error() && campaigns().length === 0) {
   <div class="empty-state card"><h3>No escrow campaigns yet</h3><p>Preproduction campaigns get one automatically when created with a connected artist wallet.</p></div>
 }
 
