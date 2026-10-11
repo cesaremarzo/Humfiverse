@@ -3,11 +3,29 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-10-11 · redeploy: le correzioni dell'audit sono sulla catena (technical §2.111)
+
+Token `0xe26C2FC4A77e26cc1A4404DD5DA63ae8761dF997` ed escrow `0x0D5232579773e61b898e70866b2160b2B077aDb7`, proprietà al Safe. Tolte da 01, 02, 04, 06 e dal
+README le note "dal prossimo redeploy"; aggiornati gli indirizzi in 02 e README.
+
+- **Due escrow in sola lettura.** Le quattro campagne dell'escrow precedente
+  (tre concluse, una annullata con i rimborsi pagati) restano lì, come quelle
+  dell'escrow `0x16C8…721c`; i loro token sono sul nuovo token con gli stessi
+  saldi. Northern Lights e Golden Hour sono state completate prima del
+  redeploy, con le conferme di artista e studio demo, per non lasciare fondi
+  su un escrow che il nuovo token non riconosce.
+- **Test C** (`test-c-576`, rimossa con la procedura del §2.105, nessun
+  possessore) non è stata ricreata.
+- **Storico royalty**: i 44,55 USDC di test versati e riscossi su `test-878`
+  restano sul token precedente; sul nuovo il conteggio riparte da zero.
+- **Studi**: il nuovo escrow parte senza studi. Bluehouse Studio, lo studio
+  della demo, va registrato dal Safe con una transazione a parte (07 B5-bis:
+  la verifica degli studi resta da definire).
+
 ## 2026-10-11 · correzioni dell'audit dei contratti (technical §2.110)
 
 Un audit dei contratti ha portato a modifiche di token ed escrow, nel codice e
-nei test (123 passati), **non ancora sulla catena**: valgono dal prossimo
-redeploy. Gli indirizzi nei documenti restano quelli dei contratti attuali.
+nei test (123 passati), sulla catena dal redeploy dello stesso giorno (voce sopra).
 
 - **Studi verificati (02 C-3, 01 §4, 04 §5.3, 06 §2.2 e §3, 08 A-5).** Registrare
   e rinominare uno studio spetta solo al Safe, dopo una verifica fuori catena; il

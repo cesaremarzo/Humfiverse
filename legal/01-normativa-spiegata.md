@@ -73,8 +73,8 @@ comunque impegnative.
 - Dal 2026-09-17 (fase 2) `HumfiverseCatalogueToken` **paga royalty**: chiunque
   può versare USDC per un token, il contratto li divide fra chi ha posseduto i
   token dal versamento precedente, in proporzione ai token e al tempo di
-  possesso (dal prossimo redeploy, §2.110; oggi ancora in parti uguali sui saldi
-  del momento), e ogni possessore riscuote la sua quota (02, C-12, C-16). Il token
+  possesso (dal 2026-10-11, §2.110-§2.111; prima in parti uguali sui saldi del
+  momento), e ogni possessore riscuote la sua quota (02, C-12, C-16). Il token
   *on-chain* quindi **dà già un diritto economico**, anche se oggi solo con USDC
   di test senza valore. Quanto viene versato dipende da chi versa (l'artista, o
   la Piattaforma per suo conto): ogni versamento indica l'impronta del file del

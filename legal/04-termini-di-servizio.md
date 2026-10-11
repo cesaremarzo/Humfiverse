@@ -1,6 +1,6 @@
 # Termini di Servizio: bozza
 
-*Bozza del 2026-09-15, commit `82a7a1b`; §5.3 e §5.7 aggiornati il 2026-10-11 (studi verificati, royalty in proporzione al tempo di possesso, §2.110: valgono dal prossimo redeploy); nota a §5.6 il 2026-09-28 (avviso e decisione solo a chi ha un'email, §2.105); §5.3 aggiornato il 2026-09-17 (ordine delle milestone); §5.7 il 2026-09-17 (chi versa le royalty e rendiconto, pubblicazione facoltativa, §2.98); §5.7 e §6 il 2026-09-17 (vendita diretta al 6%, 1% sulla distribuzione delle royalty, §2.101); §12 il 2026-09-17 (guida automatica, §2.100); §1 il 2026-10-07 (dominio humfiverse.com, §2.109). **Da far rivedere a un avvocato prima
+*Bozza del 2026-09-15, commit `82a7a1b`; §5.3 e §5.7 aggiornati il 2026-10-11 (studi verificati, royalty in proporzione al tempo di possesso, §2.110: in vigore sulla catena dal redeploy dello stesso giorno, §2.111); nota a §5.6 il 2026-09-28 (avviso e decisione solo a chi ha un'email, §2.105); §5.3 aggiornato il 2026-09-17 (ordine delle milestone); §5.7 il 2026-09-17 (chi versa le royalty e rendiconto, pubblicazione facoltativa, §2.98); §5.7 e §6 il 2026-09-17 (vendita diretta al 6%, 1% sulla distribuzione delle royalty, §2.101); §12 il 2026-09-17 (guida automatica, §2.100); §1 il 2026-10-07 (dominio humfiverse.com, §2.109). **Da far rivedere a un avvocato prima
 della pubblicazione.** Non è consulenza legale.*
 
 ## Note per chi usa questa bozza (da togliere prima di pubblicare)

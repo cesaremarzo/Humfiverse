@@ -1,6 +1,6 @@
 # Avvertenze e scheda rischi: bozza
 
-*Bozza del 2026-10-11 per §2.2, §2.3-bis e §3 (studi verificati, royalty in proporzione al tempo di possesso, §2.110: valgono dal prossimo redeploy); prima 2026-09-17, commit `fd7f822` + §2.101 (§2.1 vendita diretta al 6%, §2.3-bis commissione sulle royalty), prima `94ae18f` (§2.4 storico prezzi) e `82a7a1b`. **Da far rivedere a un avvocato.** Non
+*Bozza del 2026-10-11 per §2.2, §2.3-bis e §3 (studi verificati, royalty in proporzione al tempo di possesso, §2.110: in vigore sulla catena dal redeploy dello stesso giorno, §2.111); prima 2026-09-17, commit `fd7f822` + §2.101 (§2.1 vendita diretta al 6%, §2.3-bis commissione sulle royalty), prima `94ae18f` (§2.4 storico prezzi) e `82a7a1b`. **Da far rivedere a un avvocato.** Non
 è consulenza legale.*
 
 Testi pronti da inserire nel sito, in italiano e in inglese. Sono pensati per il
