@@ -1,1 +1,0 @@
-import{i as N}from"./chunk-ClhUyKtI.js";function o(r=32){return N(e(r))}function e(r=32){return globalThis.crypto.getRandomValues(new Uint8Array(r))}export{o as t};

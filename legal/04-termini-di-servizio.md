@@ -1,6 +1,6 @@
 # Termini di Servizio: bozza
 
-*Bozza del 2026-09-15, commit `82a7a1b`; nota a §5.6 il 2026-09-28 (avviso e decisione solo a chi ha un'email, §2.105); §5.3 aggiornato il 2026-09-17 (ordine delle milestone); §5.7 il 2026-09-17 (chi versa le royalty e rendiconto, pubblicazione facoltativa, §2.98); §5.7 e §6 il 2026-09-17 (vendita diretta al 6%, 1% sulla distribuzione delle royalty, §2.101); §12 il 2026-09-17 (guida automatica, §2.100). **Da far rivedere a un avvocato prima
+*Bozza del 2026-09-15, commit `82a7a1b`; nota a §5.6 il 2026-09-28 (avviso e decisione solo a chi ha un'email, §2.105); §5.3 aggiornato il 2026-09-17 (ordine delle milestone); §5.7 il 2026-09-17 (chi versa le royalty e rendiconto, pubblicazione facoltativa, §2.98); §5.7 e §6 il 2026-09-17 (vendita diretta al 6%, 1% sulla distribuzione delle royalty, §2.101); §12 il 2026-09-17 (guida automatica, §2.100); §1 il 2026-10-07 (dominio humfiverse.com, §2.109). **Da far rivedere a un avvocato prima
 della pubblicazione.** Non è consulenza legale.*
 
 ## Note per chi usa questa bozza (da togliere prima di pubblicare)
@@ -26,7 +26,7 @@ della pubblicazione.** Non è consulenza legale.*
 
 ## 1. Chi siamo
 
-Il sito [URL: cesaremarzo.github.io/Humfiverse e altri domini] e i servizi
+Il sito humfiverse.com [e altri domini] e i servizi
 collegati ("**Humfiverse**" o la "**Piattaforma**") sono gestiti da
 [GESTORE: denominazione, forma giuridica, sede, codice fiscale/partita IVA,
 numero REA, PEC, email di contatto] ("**noi**").

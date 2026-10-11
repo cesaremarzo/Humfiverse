@@ -3,6 +3,16 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-10-07 · dominio humfiverse.com (technical §2.109)
+
+Il sito passa da `cesaremarzo.github.io/Humfiverse` a `humfiverse.com`, sempre
+su GitHub Pages, con il DNS su Cloudflare. In `webapp/src/index.html` cambiano
+solo gli URL del sito stesso (canonical, Open Graph, JSON-LD): nessuna nuova
+risorsa esterna. **04 §1**: l'URL del sito. **05 §5**: Cloudflare aggiunto come
+fornitore del DNS; oggi non tratta dati degli utenti perché i record sono «solo
+DNS», ma se si attiva il proxy diventa un responsabile e va trattato come tale.
+Impronte aggiornate.
+
 ## 2026-09-28 (2) · nuova grafica: font Geist, vista tabella nel marketplace (technical §2.106)
 
 `webapp/src/index.html` carica da Google Fonts Geist e Geist Mono al posto di

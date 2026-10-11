@@ -60,6 +60,7 @@ export class AdminTakedownComponent {
   dismissReason = '';
   decisionText = '';
   txHash = '';
+  priorDecisionText = '';
 
   assets = computed(() => this.store.assets().map((a) => ({ id: a.id, label: a.title ? `${a.title} — ${a.artistName} (${a.id})` : a.id })));
   selectedCase = computed<TakedownCase | null>(() => {
@@ -156,7 +157,15 @@ export class AdminTakedownComponent {
   complete(): Promise<void> {
     const c = this.selectedCase();
     const needsTx = !!this.safeTx() || (c?.cancel?.outcome === 'failed');
-    return this.run('complete', needsTx || this.txHash.trim() ? { txHash: this.txHash.trim() } : {});
+    const body: Record<string, unknown> = needsTx || this.txHash.trim() ? { txHash: this.txHash.trim() } : {};
+    // Exact text, not trimmed: its SHA-256 must equal the hash on chain.
+    if (this.priorDecisionText) body['priorDecisionText'] = this.priorDecisionText;
+    return this.run('complete', body);
+  }
+
+  /** The earlier decision file read as-is, so no byte is lost to a paste. */
+  async loadPriorDecision(file: File | undefined): Promise<void> {
+    if (file) this.priorDecisionText = await file.text();
   }
 
   downloadBatch(): void {

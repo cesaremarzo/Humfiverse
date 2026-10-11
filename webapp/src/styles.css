@@ -211,7 +211,6 @@
   .brand{ display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--text); flex:0 0 auto; }
   .brand-mark{ width:30px; height:30px; flex:none; }
   .brand-name{ font-family:var(--font-display); font-weight:600; font-size:18px; letter-spacing:-0.04em; }
-  .brand-tag{ display:none; }
 
   .topnav{ display:flex; align-items:center; gap:4px; flex:0 1 auto; min-width:0; flex-wrap:wrap; }
   .topnav a{
@@ -667,7 +666,6 @@
   .feature-card p{ font-size:13.5px; color:var(--text-secondary); line-height:1.6; }
   .feature-card .feature-note{ font-size:12.5px; padding-top:10px; margin-top:4px; border-top:1px solid var(--hairline); }
 
-  @media (min-width:520px){ .brand-tag{ display:inline; font-size:11px; color:var(--text-muted); border-left:1px solid var(--border); padding-left:10px; margin-left:2px; } }
   @media (max-width:700px){
     .topnav{ order:3; flex-basis:100%; padding-top:2px; }
     .side-spacer{ flex:1; }

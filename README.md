@@ -160,7 +160,7 @@ git, because Pages serves that folder directly with no build step of its
 own. Rebuild it after any change under `webapp/src`:
 
 ```bash
-cd webapp && npx ng build --base-href=/Humfiverse/
+cd webapp && npx ng build
 ```
 
 The hashed chunk filenames change on every build. That is normal, not a
