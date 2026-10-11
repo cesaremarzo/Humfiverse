@@ -1,5 +1,6 @@
 const { expect } = require("chai");
-const { ethers } = require("hardhat");
+const { ethers, network } = require("hardhat");
+const { time } = require("@nomicfoundation/hardhat-network-helpers");
 
 describe("HumfiverseCatalogueToken", function () {
   let usdc;
@@ -347,21 +348,45 @@ describe("HumfiverseCatalogueToken", function () {
     });
   });
 
-  describe("royalty distribution (§2.92)", function () {
+  describe("royalty distribution (§2.92, time-weighted since §2.110)", function () {
     const ID = 7;
     const SUPPLY = 1000;
+    const GAS = { gasLimit: 1_000_000 };
 
-    async function royaltyFixture() {
-      const ctx = await deployFixture();
-      const [, , , artist, alice, bob, admin] = await ethers.getSigners();
-      await ctx.token.mintCatalogue(ID, ["royalty-track", "Royalty Track", "Artist"], SUPPLY, ethers.parseUnits("1000", 6), artist.address, true);
-      return { ...ctx, artist, alice, bob, admin };
+    // Sends every call into a single block, so a mint and the purchases
+    // after it share one timestamp and every holder's window starts together.
+    async function inOneBlock(sends) {
+      await network.provider.send("evm_setAutomine", [false]);
+      try {
+        const txs = [];
+        for (const send of sends) txs.push(await send());
+        await network.provider.send("evm_mine");
+        for (const tx of txs) await tx.wait();
+      } finally {
+        await network.provider.send("evm_setAutomine", [true]);
+      }
     }
 
-    it("shares a deposit equally over every token, the unsold pool's share going to the payout wallet", async function () {
-      const { token, artist, alice, bob, admin } = await royaltyFixture();
-      await token.connect(alice).buy(ID, 600);
-      await token.connect(bob).buy(ID, 150); // 250 stay in the pool
+    const at = async (offset) => {
+      const t = BigInt((await ethers.provider.getBlock("latest")).timestamp) + BigInt(offset);
+      await time.setNextBlockTimestamp(t);
+      return t;
+    };
+
+    // Mints ID to `artist` and makes the given purchases in the same block.
+    async function royaltyFixture(buys = []) {
+      const ctx = await deployFixture();
+      const [, , , artist, alice, bob, admin] = await ethers.getSigners();
+      const named = { alice, bob, admin };
+      await inOneBlock([
+        () => ctx.token.mintCatalogue(ID, ["royalty-track", "Royalty Track", "Artist"], SUPPLY, ethers.parseUnits("1000", 6), artist.address, true, GAS),
+        ...buys.map(([who, n]) => () => ctx.token.connect(named[who]).buy(ID, n, GAS))
+      ]);
+      return { ...ctx, artist, alice, bob, admin, inOneBlock, at };
+    }
+
+    it("shares a deposit equally over tokens held for the whole window, the unsold pool's share going to the payout wallet", async function () {
+      const { token, artist, alice, bob, admin } = await royaltyFixture([["alice", 600], ["bob", 150]]); // 250 stay in the pool
 
       const ref = ethers.id("statement 2026-Q3");
       // 10,000 deposited, 1% kept: 9,900 shared over 1,000 tokens.
@@ -384,8 +409,7 @@ describe("HumfiverseCatalogueToken", function () {
     });
 
     it("charges the 1% on the whole deposit, the pool's share included (§2.101)", async function () {
-      const { token, artist, alice, admin } = await royaltyFixture();
-      await token.connect(alice).buy(ID, 100); // 900 of 1,000 stay unsold
+      const { token, artist, alice, admin } = await royaltyFixture([["alice", 100]]); // 900 of 1,000 stay unsold
       const feesBefore = await token.accruedFees();
 
       await token.connect(admin).depositRoyalties(ID, 50_000n, ethers.ZeroHash);
@@ -399,8 +423,7 @@ describe("HumfiverseCatalogueToken", function () {
     });
 
     it("shares a deposit too small to round up a fee whole", async function () {
-      const { token, alice, admin } = await royaltyFixture();
-      await token.connect(alice).buy(ID, 1000);
+      const { token, admin } = await royaltyFixture([["alice", 1000]]);
       const feesBefore = await token.accruedFees();
       await token.connect(admin).depositRoyalties(ID, 99n, ethers.ZeroHash);
       expect((await token.accruedFees()) - feesBefore).to.equal(0n);
@@ -408,8 +431,7 @@ describe("HumfiverseCatalogueToken", function () {
     });
 
     it("pays the holder whoever calls the claim, and refuses an empty claim", async function () {
-      const { token, alice, bob, admin } = await royaltyFixture();
-      await token.connect(alice).buy(ID, 100);
+      const { token, alice, bob, admin } = await royaltyFixture([["alice", 100]]);
       await token.connect(admin).depositRoyalties(ID, 1_000n, ethers.ZeroHash);
 
       const aliceBefore = await usdc.balanceOf(alice.address);
@@ -422,22 +444,52 @@ describe("HumfiverseCatalogueToken", function () {
       await expect(token.claimRoyalties(await token.getAddress(), [ID])).to.be.revertedWith("HumfiverseCatalogueToken: bad holder");
     });
 
-    it("follows the token: a seller keeps what it earned before the transfer, the buyer earns only after", async function () {
-      const { token, alice, bob, admin } = await royaltyFixture();
-      await token.connect(alice).buy(ID, 500);
-      await token.connect(admin).depositRoyalties(ID, 1_000n, ethers.ZeroHash); // 990 shared: alice earns 495
-      await token.connect(alice).safeTransferFrom(alice.address, bob.address, ID, 500, "0x");
-      await token.connect(admin).depositRoyalties(ID, 2_000n, ethers.ZeroHash); // 1,980 shared: bob earns 990
-
+    it("pays each holder for the time it held: a seller keeps what it earned, the buyer earns from the sale on", async function () {
+      const { token, alice, bob, admin, at } = await royaltyFixture([["alice", 500]]);
+      await at(100);
+      await token.connect(admin).depositRoyalties(ID, 1_000n, ethers.ZeroHash); // 990: alice held half the supply all window
       expect(await token.claimableRoyalties(ID, alice.address)).to.equal(495n);
-      expect(await token.claimableRoyalties(ID, bob.address)).to.equal(990n);
+
+      await at(50);
+      await token.connect(alice).safeTransferFrom(alice.address, bob.address, ID, 500, "0x");
+      await at(50);
+      // 1,980 for a 100-second window: half the supply, 50 seconds each.
+      await token.connect(admin).depositRoyalties(ID, 2_000n, ethers.ZeroHash);
+      expect(await token.claimableRoyalties(ID, alice.address)).to.equal(495n + 495n);
+      expect(await token.claimableRoyalties(ID, bob.address)).to.equal(495n);
+    });
+
+    it("leaves a buyer who arrives just before a deposit almost nothing of it (§2.110)", async function () {
+      const { token, artist, admin, at } = await royaltyFixture();
+      const [, , , , , , , sniper] = await ethers.getSigners();
+      // A quarter with every token unsold, then the whole pool bought one
+      // second before a large deposit lands.
+      await at(90 * 24 * 3600);
+      await token.connect(sniper).buy(ID, SUPPLY);
+      await at(1);
+      await token.connect(admin).depositRoyalties(ID, ethers.parseUnits("10000", 6), ethers.ZeroHash);
+
+      const shared = ethers.parseUnits("9900", 6);
+      const sniperShare = await token.claimableRoyalties(ID, sniper.address);
+      const poolShare = await token.claimableRoyalties(ID, await token.getAddress());
+      expect(sniperShare < shared / 1_000_000n).to.equal(true); // under a millionth
+      expect(shared - poolShare - sniperShare <= 1n).to.equal(true);
+      const before = await usdc.balanceOf(artist.address);
+      await token.claimPoolRoyalties(ID);
+      expect((await usdc.balanceOf(artist.address)) - before).to.equal(poolShare);
+    });
+
+    it("pays time held since the last deposit only at the next one", async function () {
+      const { token, alice, admin, at } = await royaltyFixture([["alice", 1000]]);
+      await token.connect(admin).depositRoyalties(ID, 1_000n, ethers.ZeroHash);
+      await at(1000);
+      await token.connect(alice).safeTransferFrom(alice.address, admin.address, ID, 1, "0x");
+      expect(await token.claimableRoyalties(ID, alice.address)).to.equal(990n);
     });
 
     it("keeps every unit: remainders are carried, so what all parties claim equals what was deposited", async function () {
-      const { token, alice, bob, admin } = await royaltyFixture();
+      const { token, alice, bob, admin } = await royaltyFixture([["alice", 333], ["bob", 1]]);
       const holders = [alice, bob, admin];
-      await token.connect(alice).buy(ID, 333);
-      await token.connect(bob).buy(ID, 1);
       let distributed = 0n;
       // Uneven deposits interleaved with transfers, including to a new holder.
       const steps = [7n, 1n, 999n, 13n, 2n, 100_003n, 5n];
@@ -451,8 +503,6 @@ describe("HumfiverseCatalogueToken", function () {
           await token.connect(from).safeTransferFrom(from.address, to.address, ID, bal / 3n, "0x");
         }
       }
-      // Move every token out of the pool so its sub-unit share is swept too.
-      await token.releaseFromPool(alice.address, ID, await token.poolBalance(ID));
 
       let claimed = 0n;
       for (const h of holders) {
@@ -473,20 +523,27 @@ describe("HumfiverseCatalogueToken", function () {
     });
 
     it("keeps royalties apart from fees, and claims several tokens at once", async function () {
-      const { token, alice, admin } = await royaltyFixture();
-      await token.mintCatalogue(8, ["second", "Second", "Artist"], 10, ethers.parseUnits("10", 6), ethers.ZeroAddress, true);
-      await token.connect(alice).buy(ID, 1000);
-      await token.connect(alice).buy(8, 10);
+      const { token, alice, admin, artist, inOneBlock } = await royaltyFixture();
+      await inOneBlock([
+        () => token.mintCatalogue(8, ["second", "Second", "Artist"], 10, ethers.parseUnits("10", 6), artist.address, true, GAS),
+        () => token.connect(alice).buy(ID, 1000, GAS),
+        () => token.connect(alice).buy(8, 10, GAS)
+      ]);
       await token.connect(admin).depositRoyalties(ID, 300n, ethers.ZeroHash); // 1% = 3, shares 297
       await token.connect(admin).depositRoyalties(8, 40n, ethers.ZeroHash); // under 100: no fee
 
       const fees = await token.accruedFees();
       await token.withdrawFees();
+      // ID's pool held every token for the seconds between its mint and
+      // this block, so alice's share of ID is a hair under 297.
+      const claimable = (await token.claimableRoyalties(ID, alice.address)) + (await token.claimableRoyalties(8, alice.address));
       const before = await usdc.balanceOf(alice.address);
       await token.claimRoyalties(alice.address, [ID, 8]);
-      expect((await usdc.balanceOf(alice.address)) - before).to.equal(337n);
+      expect((await usdc.balanceOf(alice.address)) - before).to.equal(claimable);
+      expect(await token.claimableRoyalties(8, alice.address)).to.equal(0n);
       expect(fees > 0n).to.equal(true);
-      expect(await usdc.balanceOf(await token.getAddress())).to.equal(0n);
+      await token.claimPoolRoyalties(ID);
+      expect((await usdc.balanceOf(await token.getAddress())) <= 2n).to.equal(true);
     });
 
     it("refuses a zero deposit and a deposit on a token that does not exist", async function () {
@@ -512,6 +569,53 @@ describe("HumfiverseCatalogueToken", function () {
       await expect(token.connect(other).setFeeRecipient(other.address)).to.be.revertedWithCustomError(token, "OwnableUnauthorizedAccount");
       await expect(token.connect(other).setEscrowContract(other.address)).to.be.revertedWithCustomError(token, "OwnableUnauthorizedAccount");
       await expect(token.connect(other).setPayoutRecipient(other.address)).to.be.revertedWithCustomError(token, "OwnableUnauthorizedAccount");
+    });
+
+    it("links audio once and clears it, but only the owner replaces a linked track (§2.110)", async function () {
+      const { token, other } = await deployFixture();
+      await token.setOperator(other.address);
+      await token.connect(other).mintCatalogue(MIDNIGHT_STATIC_ID, ["m", "T", "A"], 10, ethers.parseUnits("1", 6), other.address, true);
+      await token.connect(other).setTrackAudioUri(MIDNIGHT_STATIC_ID, "ipfs://first");
+      await expect(token.connect(other).setTrackAudioUri(MIDNIGHT_STATIC_ID, "ipfs://swapped")).to.be.revertedWith(
+        "HumfiverseCatalogueToken: only the owner replaces linked audio"
+      );
+      await token.connect(other).setTrackAudioUri(MIDNIGHT_STATIC_ID, ""); // a takedown
+      await token.connect(other).setTrackAudioUri(MIDNIGHT_STATIC_ID, "ipfs://relinked");
+      await token.setTrackAudioUri(MIDNIGHT_STATIC_ID, "ipfs://owner-fix");
+      expect(await token.trackAudioUri(MIDNIGHT_STATIC_ID)).to.equal("ipfs://owner-fix");
+    });
+  });
+
+  describe("escrow links and pool closing (§2.110)", function () {
+    it("keeps a replaced escrow able to burn and close pools, never to release", async function () {
+      const { token, owner, buyer, other } = await deployFixture();
+      await token.mintCatalogue(MIDNIGHT_STATIC_ID, ["m", "T", "A"], 10, ethers.parseUnits("1", 6), owner.address, false);
+      await token.setEscrowContract(other.address);
+      await token.connect(other).releaseFromPool(buyer.address, MIDNIGHT_STATIC_ID, 3);
+      await token.setEscrowContract(owner.address); // relinked: `other` is retired
+      expect(await token.retiredEscrow(other.address)).to.equal(true);
+
+      await expect(token.connect(other).releaseFromPool(buyer.address, MIDNIGHT_STATIC_ID, 1)).to.be.revertedWith(
+        "HumfiverseCatalogueToken: not authorized"
+      );
+      await token.connect(other).burnForRefund(buyer.address, MIDNIGHT_STATIC_ID, 1);
+      await token.connect(other).closePool(MIDNIGHT_STATIC_ID);
+
+      await expect(token.connect(buyer).revokeRetiredEscrow(other.address)).to.be.revertedWithCustomError(token, "OwnableUnauthorizedAccount");
+      await token.revokeRetiredEscrow(other.address);
+      await expect(token.connect(other).burnForRefund(buyer.address, MIDNIGHT_STATIC_ID, 1)).to.be.revertedWith(
+        "HumfiverseCatalogueToken: not authorized"
+      );
+    });
+
+    it("lets nothing leave a closed pool, the owner included", async function () {
+      const { token, owner, buyer, other } = await deployFixture();
+      await token.mintCatalogue(MIDNIGHT_STATIC_ID, ["m", "T", "A"], 10, ethers.parseUnits("1", 6), owner.address, true);
+      await token.setEscrowContract(other.address);
+      await expect(token.connect(buyer).closePool(MIDNIGHT_STATIC_ID)).to.be.revertedWith("HumfiverseCatalogueToken: not authorized");
+      await expect(token.connect(other).closePool(MIDNIGHT_STATIC_ID)).to.emit(token, "PoolClosed").withArgs(MIDNIGHT_STATIC_ID);
+      await expect(token.releaseFromPool(owner.address, MIDNIGHT_STATIC_ID, 1)).to.be.revertedWith("HumfiverseCatalogueToken: pool closed");
+      await expect(token.connect(buyer).buy(MIDNIGHT_STATIC_ID, 1)).to.be.revertedWith("HumfiverseCatalogueToken: pool closed");
     });
   });
 });

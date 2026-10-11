@@ -3,6 +3,48 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-10-11 · redeploy: le correzioni dell'audit sono sulla catena (technical §2.111)
+
+Token `0xe26C2FC4A77e26cc1A4404DD5DA63ae8761dF997` ed escrow `0x0D5232579773e61b898e70866b2160b2B077aDb7`, proprietà al Safe. Tolte da 01, 02, 04, 06 e dal
+README le note "dal prossimo redeploy"; aggiornati gli indirizzi in 02 e README.
+
+- **Due escrow in sola lettura.** Le quattro campagne dell'escrow precedente
+  (tre concluse, una annullata con i rimborsi pagati) restano lì, come quelle
+  dell'escrow `0x16C8…721c`; i loro token sono sul nuovo token con gli stessi
+  saldi. Northern Lights e Golden Hour sono state completate prima del
+  redeploy, con le conferme di artista e studio demo, per non lasciare fondi
+  su un escrow che il nuovo token non riconosce.
+- **Test C** (`test-c-576`, rimossa con la procedura del §2.105, nessun
+  possessore) non è stata ricreata.
+- **Storico royalty**: i 44,55 USDC di test versati e riscossi su `test-878`
+  restano sul token precedente; sul nuovo il conteggio riparte da zero.
+- **Studi**: il nuovo escrow parte senza studi. Bluehouse Studio, lo studio
+  della demo, va registrato dal Safe con una transazione a parte (07 B5-bis:
+  la verifica degli studi resta da definire).
+
+## 2026-10-11 · correzioni dell'audit dei contratti (technical §2.110)
+
+Un audit dei contratti ha portato a modifiche di token ed escrow, nel codice e
+nei test (123 passati), sulla catena dal redeploy dello stesso giorno (voce sopra).
+
+- **Studi verificati (02 C-3, 01 §4, 04 §5.3, 06 §2.2 e §3, 08 A-5).** Registrare
+  e rinominare uno studio spetta solo al Safe, dopo una verifica fuori catena; il
+  Founder può solo sospenderne uno. Il wizard offre solo studi verificati. Nuova
+  domanda **07 B5-bis** sulla verifica e sulla responsabilità che comporta.
+- **Campagne senza studio: decisione dell'utente.** Restano possibili e si
+  dichiarano (07 B5 aggiornata; testi in 04, 06, 08).
+- **Royalty in proporzione al tempo di possesso (02 C-12, nuovo C-16; 01 §1; 04
+  §5.7; 06 §2.3-bis e §3; 08 A-6 e A-8 punti 5-6).** Un versamento paga il
+  periodo dal versamento precedente, diviso per token × tempo. Il momento del
+  versamento decide chi partecipa: nuovo obbligo per l'artista di versare nei
+  termini, senza anticipare né ritardare.
+- **Altri poteri (02 §1, C-9, C-10).** L'artista di una campagna è il wallet che
+  incassa del token; un token ha una sola campagna; l'annullamento chiude il pool;
+  un escrow sostituito può ancora bruciare token per i rimborsi; l'operator
+  collega l'audio solo la prima volta o lo toglie.
+- Testi del sito e della guida (`assistant-knowledge.js`, `assistant.kb.royalties`
+  nelle nove lingue) aggiornati di conseguenza. Impronte aggiornate.
+
 ## 2026-10-07 · dominio humfiverse.com (technical §2.109)
 
 Il sito passa da `cesaremarzo.github.io/Humfiverse` a `humfiverse.com`, sempre

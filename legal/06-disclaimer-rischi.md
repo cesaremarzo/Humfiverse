@@ -1,6 +1,6 @@
 # Avvertenze e scheda rischi: bozza
 
-*Bozza del 2026-09-17, commit `fd7f822` + §2.101 (§2.1 vendita diretta al 6%, §2.3-bis commissione sulle royalty), prima `94ae18f` (§2.4 storico prezzi) e `82a7a1b`. **Da far rivedere a un avvocato.** Non
+*Bozza del 2026-10-11 per §2.2, §2.3-bis e §3 (studi verificati, royalty in proporzione al tempo di possesso, §2.110: in vigore sulla catena dal redeploy dello stesso giorno, §2.111); prima 2026-09-17, commit `fd7f822` + §2.101 (§2.1 vendita diretta al 6%, §2.3-bis commissione sulle royalty), prima `94ae18f` (§2.4 storico prezzi) e `82a7a1b`. **Da far rivedere a un avvocato.** Non
 è consulenza legale.*
 
 Testi pronti da inserire nel sito, in italiano e in inglese. Sono pensati per il
@@ -53,8 +53,9 @@ pagine non esistono.*
 
 **IT**
 > - I fondi restano nel contratto escrow e vengono pagati a tranche quando
->   artista e studio confermano le milestone. **[Se la campagna non ha uno
->   studio: basta la conferma dell'artista.]**
+>   artista e uno studio verificato dalla piattaforma confermano le milestone.
+>   **[Se la campagna non ha uno studio: ogni tranche si rilascia con la sola
+>   conferma dell'artista, e nessun terzo controlla la milestone.]**
 > - **La campagna non ha scadenza.** Le prime tranche possono essere pagate
 >   anche se l'obiettivo non viene raggiunto, e non esiste un rimborso
 >   automatico.
@@ -73,8 +74,9 @@ pagine non esistono.*
 
 **EN**
 > - Funds stay in the escrow contract and are paid out in tranches when the
->   artist and the studio confirm each milestone. **[If the campaign has no
->   studio: the artist's confirmation alone is enough.]**
+>   artist and a studio verified by the platform confirm each milestone. **[If
+>   the campaign has no studio: each tranche is released on the artist's
+>   confirmation alone, and no third party checks the milestone.]**
 > - **The campaign has no deadline.** Early tranches can be paid even if the
 >   goal is never reached, and there is no automatic refund.
 > - 2% of your contribution is the platform fee and is **not returned, even if
@@ -113,7 +115,10 @@ pagine non esistono.*
 
 **IT**
 > - La piattaforma trattiene l'**1%** di quanto versi come commissione di
->   distribuzione; il resto è diviso fra tutti i token esistenti.
+>   distribuzione; il resto è diviso fra chi ha posseduto i token dal
+>   versamento precedente, in proporzione ai token e al tempo.
+> - **Versa ogni rendiconto appena arriva**: un versamento in ritardo è diviso
+>   anche con chi ha comprato nel frattempo.
 > - L'1% si applica anche alla quota dei token **invenduti**, che torna al tuo
 >   stesso wallet.
 > - Un versamento **non si può ritirare** e nessuno verifica che corrisponda
@@ -121,7 +126,10 @@ pagine non esistono.*
 
 **EN**
 > - The platform keeps **1%** of what you deposit as a distribution fee; the
->   rest is shared over every token that exists.
+>   rest goes to whoever held the tokens since the previous deposit, by tokens
+>   and time held.
+> - **Deposit each statement as soon as it arrives**: a late deposit is also
+>   shared with whoever bought in the meantime.
 > - The 1% applies to the **unsold** tokens' share too, which comes back to your
 >   own wallet.
 > - A deposit **cannot be taken back**, and no one checks that it matches the
@@ -160,13 +168,19 @@ Testo in inglese, come il whitepaper.
   on-chain guarantee.
 - **One key controls the operator role today.** If it were compromised,
   everything that role can do could be done by someone else.
-- **Token metadata and the linked audio can be changed** by the operator after
-  tokens are sold.
+- **Token metadata can be changed** by the platform after tokens are sold. The
+  linked audio can be replaced by the owner multisig; the operator can only
+  link it the first time or remove it (from the next contract deploy, §2.110).
 
 **Campaign mechanics**
 - **Campaigns have no deadline and no all-or-nothing rule.** A partly funded
   campaign can pay out its first tranches and stay open indefinitely.
-- **A campaign without a studio is released by the artist alone.**
+- **A campaign without a studio is released by the artist alone.** With a
+  studio, the studio is one the platform verified; the check is made off
+  chain, and the contract cannot tell two wallets of one person apart.
+- **When a royalty deposit is made decides who shares it.** A deposit pays for
+  the time since the previous one, split by tokens and time held; a late
+  deposit is also shared with whoever bought in the meantime.
 - **Refunds follow tokens and burn them.** The refund per token is the same for
   everyone, whatever they paid; tokens handed back stop earning royalties.
 - **Royalty deposits are not verified.** The artist, or the platform on the

@@ -4,9 +4,10 @@
    from chain.js (which talks to HumfiverseCatalogueToken) since these are
    two independent contracts with two independent addresses.
 
-   Reads work with just an RPC URL. Writes (registerStudio, createCampaign,
-   confirmMilestone) require CHAIN_OPERATOR_PRIVATE_KEY — the same operator
-   key chain.js uses, since Humfiverse is the owner of both contracts.
+   Reads work with just an RPC URL. Writes (createCampaign) require
+   CHAIN_OPERATOR_PRIVATE_KEY — the same operator key chain.js uses.
+   Registering a studio is the Owner Safe's alone (§2.110): a studio is
+   verified off chain first, so nothing here registers one.
    TESTNET ONLY. */
 
 const { ethers } = require("ethers");
@@ -20,8 +21,8 @@ const RPC_URL = process.env.CHAIN_RPC_URL || "https://ethereum-sepolia-rpc.publi
 // again in §2.43 alongside the token (an immutable reference, so any token
 // redeploy forces an escrow redeploy too). See chain.js's CONTRACT_ADDRESS.
 // Redeployed in §2.71 (fee), §2.72 (with the token), §2.73 (USDC), §2.79 (goal from the token) §2.81 (escrow-only tokens), §2.96 (phase 2) and §2.102 (with the token, for its fees).
-const ESCROW_ADDRESS = process.env.CHAIN_ESCROW_ADDRESS || "0xBAEbC0f24C3528137B2A5DcC13E276E7c652a82A";
-const ESCROW_DEPLOY_BLOCK = Number(process.env.CHAIN_ESCROW_DEPLOY_BLOCK || 11795773);
+const ESCROW_ADDRESS = process.env.CHAIN_ESCROW_ADDRESS || "0x0D5232579773e61b898e70866b2160b2B077aDb7";
+const ESCROW_DEPLOY_BLOCK = Number(process.env.CHAIN_ESCROW_DEPLOY_BLOCK || 11894452);
 // §2.71: the escrow this one replaced, read-only. A campaign that finished
 // there (Guns: funded, every tranche released) cannot be recreated on the
 // new contract without reading as unfunded and unreleased, so it is left
@@ -31,7 +32,12 @@ const ESCROW_DEPLOY_BLOCK = Number(process.env.CHAIN_ESCROW_DEPLOY_BLOCK || 1179
 // the §2.78 cleanup; and a hard-coded fallback meant an empty variable could
 // not switch the lookup off — on any chain without that contract every
 // "does this asset have a campaign" check failed, blocking campaign creation.
-const LEGACY_ESCROW_ADDRESS = process.env.CHAIN_ESCROW_LEGACY_ADDRESS || "";
+// §2.111: a comma-separated list, newest first — the §2.111 redeploy left
+// finished campaigns on two earlier escrows. Each is searched in order.
+const LEGACY_ESCROW_ADDRESSES = (process.env.CHAIN_ESCROW_LEGACY_ADDRESS || "")
+  .split(",")
+  .map((a) => a.trim())
+  .filter(Boolean);
 // §2.39: Alchemy's free tier caps eth_getLogs at a 10-block range per call,
 // and the public-RPC default this project used before that started
 // silently returning *incomplete* results for a full-history scan instead
@@ -144,7 +150,6 @@ async function writerFor(address) {
 /* Synchronous handles for the calls that are the same on both generations
    (campaignIdByAssetId, fees, studios, Contributed). */
 const readContract = new ethers.Contract(ESCROW_ADDRESS, ABI_V1, provider);
-const legacyContract = LEGACY_ESCROW_ADDRESS ? new ethers.Contract(LEGACY_ESCROW_ADDRESS, ABI_V1, provider) : null;
 
 function writeEnabled() {
   return operatorWallet !== null;
@@ -215,12 +220,26 @@ async function getContributionFromTx(txHash) {
   };
 }
 
-async function registerStudioOnchain(walletAddress, name) {
-  const writeContract = await writerFor(ESCROW_ADDRESS);
-  const tx = await withRetry(() => writeContract.registerStudio(walletAddress, name));
-  const receipt = await tx.wait();
-  const parsed = receipt.logs.map((l) => { try { return readContract.interface.parseLog(l); } catch { return null; } }).find((e) => e && e.name === "StudioRegistered");
-  return { studioId: Number(parsed.args.studioId), txHash: receipt.hash };
+/** Every studio registered on the current escrow, in id order. Ids are
+ * sequential from 1 and a studio is never deleted, so the first id with no
+ * wallet is the end. There are a handful, verified one by one (§2.110), so
+ * reading them in turn is cheaper than any event scan (§2.39). */
+const MAX_STUDIOS = 500;
+async function listStudiosOnchain() {
+  const studios = [];
+  for (let id = 1; id <= MAX_STUDIOS; id++) {
+    const s = await withRetry(() => readContract.studios(id));
+    if (s.wallet === ethers.ZeroAddress) break;
+    studios.push({ studioId: id, name: s.name, wallet: s.wallet, active: s.active });
+  }
+  return studios;
+}
+
+/** The active, owner-registered studio paying `walletAddress`, or null —
+ * what a campaign may name as its studio since §2.110. */
+async function findVerifiedStudioOnchain(walletAddress) {
+  const wallet = String(walletAddress).toLowerCase();
+  return (await listStudiosOnchain()).find((s) => s.active && s.wallet.toLowerCase() === wallet) || null;
 }
 
 /** Whether `studioId` on the current escrow is an active studio paying
@@ -350,9 +369,11 @@ async function getCampaignInfo(campaignId, address = ESCROW_ADDRESS) {
 async function getCampaignInfoByAssetId(assetId) {
   const campaignId = await readContract.campaignIdByAssetId(assetId);
   if (campaignId !== 0n) return getCampaignInfo(Number(campaignId));
-  if (!legacyContract) return null;
-  const legacyId = await legacyContract.campaignIdByAssetId(assetId);
-  return legacyId === 0n ? null : getCampaignInfo(Number(legacyId), LEGACY_ESCROW_ADDRESS);
+  for (const address of LEGACY_ESCROW_ADDRESSES) {
+    const legacyId = await (await readerFor(address)).campaignIdByAssetId(assetId);
+    if (legacyId !== 0n) return getCampaignInfo(Number(legacyId), address);
+  }
+  return null;
 }
 
 /** A *recent-activity* scan only (§2.39) — same rationale as chain.js's
@@ -387,7 +408,8 @@ module.exports = {
   writeEnabled,
   getFeeState,
   getContributionFromTx,
-  registerStudioOnchain,
+  listStudiosOnchain,
+  findVerifiedStudioOnchain,
   isStudioOnchain,
   renameStudioOnchain,
   createCampaignOnchain,

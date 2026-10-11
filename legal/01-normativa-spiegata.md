@@ -1,6 +1,6 @@
 # La normativa che riguarda Humfiverse, spiegata
 
-*Revisione del 2026-09-15, commit `82a7a1b`; §10 aggiornato il 2026-09-17 (aliquote delle commissioni, §2.101); §7 e §13 aggiornati il 2026-09-17 (guida automatica, §2.100). Non è consulenza legale.*
+*Revisione del 2026-09-15, commit `82a7a1b`; §10 aggiornato il 2026-09-17 (aliquote delle commissioni, §2.101); §7 e §13 aggiornati il 2026-09-17 (guida automatica, §2.100); §1 e §4 aggiornati il 2026-10-11 (correzioni dell'audit dei contratti, §2.110). Non è consulenza legale.*
 
 Questo documento non ripete `planning/legal-regulatory-notes.md`, che resta la
 ricerca di partenza. Lo riorganizza in una mappa unica e aggiunge le aree che
@@ -71,8 +71,10 @@ comunque impegnative.
 **Come si applica al codice:**
 
 - Dal 2026-09-17 (fase 2) `HumfiverseCatalogueToken` **paga royalty**: chiunque
-  può versare USDC per un token, il contratto li divide in parti uguali su tutti
-  i token esistenti e ogni possessore riscuote la sua quota (02, C-12). Il token
+  può versare USDC per un token, il contratto li divide fra chi ha posseduto i
+  token dal versamento precedente, in proporzione ai token e al tempo di
+  possesso (dal 2026-10-11, §2.110-§2.111; prima in parti uguali sui saldi del
+  momento), e ogni possessore riscuote la sua quota (02, C-12, C-16). Il token
   *on-chain* quindi **dà già un diritto economico**, anche se oggi solo con USDC
   di test senza valore. Quanto viene versato dipende da chi versa (l'artista, o
   la Piattaforma per suo conto): ogni versamento indica l'impronta del file del
@@ -175,7 +177,9 @@ chiave del backend ha solo quelli di routine (02, C-9):
   investimento. Il contratto di fase 2 registra motivo e hash della decisione, ma
   accetta ancora l'annullamento senza motivo finché resta una tranche da pagare;
 - `registerStudio` / `setStudioActive` / `renameStudio`: sceglie quali studi sono
-  ammessi;
+  ammessi. Dal §2.110 registrare e rinominare spettano solo al Safe, dopo una
+  verifica di chi gestisce lo studio: è una scelta della Piattaforma, da
+  vincolare con criteri scritti come gli altri poteri (07 B5-bis);
 - `releaseFromPool`: consegna token del pool senza pagamento;
 - `createCampaign`: decide quali campagne esistono.
 

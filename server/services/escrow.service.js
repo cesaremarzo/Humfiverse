@@ -9,11 +9,14 @@ const escrowRepo = require("../data/escrow.repo");
 const onchainService = require("./onchain.service");
 
 /** Creates the on-chain milestone escrow campaign for a preproduction
- * asset: registers the studio (if not already registered — keyed by
- * wallet address, since there's no studio-picker UI yet, only a
- * name+wallet field on the onboarding wizard) and creates the campaign
- * with the milestones the wizard collected, each routed to either the
- * artist's or the studio's wallet. */
+ * asset, with the milestones the wizard collected, each routed to either
+ * the artist's or the studio's wallet.
+ *
+ * §2.110: the studio must already be registered and active — registered by
+ * the Owner Safe once checked off chain, never here on the artist's word,
+ * because a studio the artist names can be a second wallet of the artist's
+ * own, and then both confirmations of every milestone come from one
+ * person. The wizard offers only these studios. */
 async function createCampaign(assetId, artistAddress, studioName, studioWallet, milestones) {
   // §2.89: artist and studio must be two wallets, or the dual confirmation
   // of every milestone (§2.27) is one wallet confirming twice.
@@ -31,24 +34,11 @@ async function createCampaign(assetId, artistAddress, studioName, studioWallet, 
   const onchainRecord = await onchainService.findTokenWithChainFallback(assetId);
   if (!onchainRecord) throw Object.assign(new Error("asset has no on-chain token yet — mint it before creating a campaign"), { code: "no_token" });
 
-  // The cache maps wallet+name to an id on whichever escrow registered it.
-  // After a redeploy that id is another studio, or none, on the new escrow
-  // (§2.103), so it is reused only if the chain still agrees.
-  const studioRow = await escrowRepo.findStudioByWalletAndName(studioWallet, studioName);
-  let studioId;
-  if (studioRow && (await escrowChain.isStudioOnchain(studioRow.studio_id, studioWallet))) {
-    studioId = studioRow.studio_id;
-  } else {
-    const result = await escrowChain.registerStudioOnchain(studioWallet, studioName);
-    studioId = result.studioId;
-    await escrowRepo.upsertStudio({
-      studioId,
-      wallet: studioWallet,
-      name: studioName,
-      txHash: result.txHash,
-      createdAt: new Date().toISOString()
-    });
+  const studio = await escrowChain.findVerifiedStudioOnchain(studioWallet);
+  if (!studio) {
+    throw Object.assign(new Error("this studio is not verified on Humfiverse yet — ask us to verify it, then pick it from the list"), { code: "studio_unverified" });
   }
+  const studioId = studio.studioId;
 
   const names = milestones.map((m) => m.name);
   const bps = milestones.map((m) => m.bps);
@@ -59,7 +49,7 @@ async function createCampaign(assetId, artistAddress, studioName, studioWallet, 
     campaignId: created.campaignId,
     assetId,
     studioId,
-    studioName,
+    studioName: studio.name,
     studioWallet,
     txHash: created.txHash,
     createdAt: new Date().toISOString()
