@@ -2505,3 +2505,100 @@ a `origin` — `git pull` prima di lavorare. Il worktree `finance-design` si pu�
 rimuovere (`git worktree remove .claude/worktrees/finance-design`). 
 `webapp/art-src/og-cover.html` (anteprima dei link condivisi) usa ancora
 Fraunces/IBM Plex: da rifare con Geist.
+
+## 2026-09-29 — stima dei costi e EBITDA per valutazione (il "contabile")
+
+Solo analisi, nessun codice. Richiesta: stimare tutti i costi di Humfiverse e
+l'EBITDA che servirebbe per valutazioni da 100 k€ a 2 mld€. Ordini di
+grandezza, **non verificati** con commercialista o consulente regolamentare.
+
+**Ricavi = solo commissioni** (`legal/10` §2: il lordo non entra in bilancio).
+Take rate medio ≈ **5% del volume primario** (6% vendita diretta, 2% + 3% escrow,
+1% rivendite e royalty quasi irrilevanti). In fase 1 con ECSP/SIM partner il
+netto scende a ~2,5–3,5%.
+
+**Costi per fase:**
+- Fase 0 (oggi, testnet): ~0,5–1 k€/anno (piani gratuiti + guida Claude 5–45 $/mese).
+- Fase 1 (Malta + pilota via soggetto autorizzato): una tantum **50–160 k€**
+  (costituzione, fiscalisti MT+IT 5–15 k, parere regolamentare 15–50 k, **audit
+  contratti 15–60 k**, legale 5–15 k, ERC-3643/KYC 5–20 k); ricorrenti
+  **80–250 k€/anno** (società 3–8 k, sostanza 5–15 k, stipendi fondatori 50–120 k,
+  KYC 3–12 k, infra 1–4 k, gas 0,5–3 k su L2 vs 5–30 k su L1, D&O/cyber 2–8 k,
+  legale 5–20 k, acquisizione artisti 5–30 k).
+- Fase 2 (licenza ECSP propria): **0,5–1,5 M€/anno** + 50–150 k€ per la domanda.
+- Fase 3 (CASP MiCA / MTF): **3–15 M€/anno**.
+
+**Valutazione → EBITDA → volume** (ricavi = EBITDA + costi; volume = ricavi / take):
+
+| Valutazione | Multiplo | EBITDA | Costi | Ricavi | Take | Volume/anno |
+|---|---|---|---|---|---|---|
+| 100 k€ | 3× | 33 k€ | 120 k€ | 153 k€ | 3% | 5,1 M€ |
+| 200 k€ | 3× | 67 k€ | 120 k€ | 187 k€ | 3% | 6,2 M€ |
+| 400 k€ | 3,5× | 114 k€ | 150 k€ | 264 k€ | 3% | 8,8 M€ |
+| 2 M€ | 5× | 400 k€ | 400 k€ | 800 k€ | 5% | 16 M€ |
+| 20 M€ | 9× | 2,2 M€ | 2,2 M€ | 4,4 M€ | 5,5% | 80 M€ |
+| 200 M€ | 15× | 13 M€ | 11 M€ | 24 M€ | 5,5% | 440 M€ |
+| 2 mld€ | 20× | 100 M€ | 60 M€ | 160 M€ | 5,5% | 2,9 mld€ |
+
+**Conclusioni:** break-even ~4 M€ di volume con partner (2–3 M€ con licenza
+propria); il take rate pesa più dei costi (3% → 5% riduce il volume necessario
+del ~40%, argomento economico per la fase 2); sotto i 20 M€ un round valuta su
+ricavi/crescita, non EBITDA; oltre i 200 M€ il limite è la domanda del mercato;
+Malta cambia la cassa, non l'EBITDA (35% pagato subito, 6/7 rimborsato ~1 anno
+dopo: ~120 k€ fermi su 400 k€ di utile); L1 vs L2 in mainnet è una voce di bilancio.
+
+**Aperti:** multipli da verificare su comparabili; tariffe MFSA per ECSP;
+commissione del partner di fase 1 (decide se il netto è 2% o 3,5%). Offerta non
+ancora raccolta: pagina con ipotesi modificabili e tabella che si ricalcola.
+
+
+## 2026-10-11 — hackathon Colosseum: dominio, email, social, demo e pitch; handoff a Petru
+
+**Hackathon:** Colosseum Crypto World's Fair, scadenza **12 ott 2026 23:59 PT
+(13 ott 08:59 in Italia)**. Richiesti: video demo ≤ 3 min su YouTube/Loom/Vimeo
+("show the live product, not a slide deck") e video pitch. Cesare carica la
+submission come team leader.
+
+**Fatto in questa sessione:**
+- **Dominio humfiverse.com:** Cloudflare DNS (solo DNS) → GitHub Pages, CNAME in
+  `webapp/public`, baseHref `/` (PR #86, merged). Email @humfiverse.com: in
+  entrata Cloudflare Email Routing, in uscita Brevo SMTP + DKIM, un solo SPF
+  (vedi memoria `humfiverse-domain-email`).
+- **Social:** header e bio per X; canale Telegram t.me/humfiverse con messaggio
+  fissato.
+- **Fix PR #88 (merged, verificato live):** `listCampaigns` in
+  `server/services/escrow.service.js` legge 3 campagne alla volta con retry su
+  errori di throttling Alchemy (prima: 502 su `/admin/escrow`); stato vuoto
+  nascosto quando c'è errore.
+- **Video demo (3:00)** in `~/Desktop/humfiverse-demo/`: voce di Cesare
+  (`audio/01–07.m4a`), registrato sul sito live con un registratore CDP
+  (`tools/`) e un wallet EIP-6963 iniettato che firma in Node con chiavi testnet
+  (`tools/demo-wallets.json`, mai in git). Mostra il flusso vero on-chain sulla
+  campagna `golden-hour-538` (artista "Lena Marsh", fittizia, visibile sul
+  marketplace di produzione): lancio campagna → fan finanzia in USDC → artista e
+  studio confermano → fondi rilasciati → dashboard `/admin/escrow` → Etherscan.
+  Musica originale sintetizzata (`music/compose.py`). File finale
+  `humfiverse-demo.mp4`; Cesare lo carica su YouTube (non in elenco).
+- **Video pitch (2:30)** in `~/Desktop/humfiverse-pitch/`: voce AI Kokoro
+  (`tts.py`, voce af_heart) con correzioni di pronuncia sui fonemi
+  (HUM-fiverse, e-THE-reum, "lives on-chain" come verbo; "European Union
+  Intellectual Property Office" per esteso). Slide HTML in `cards/`.
+- **Handoff a Petru:** nuovo branch **`dev/petru`** (da `origin/main`, già
+  pushato) con `hackathon/HANDOFF.md` (contesto, regole del branch, come rifare
+  pitch e demo, testo della narrazione) e i sorgenti di demo e pitch, percorsi
+  resi relativi; `.gitignore` esclude chiavi e media. Copia sul Desktop:
+  `HANDOFF-Petru.md`. Petru lavora solo su `dev/petru` in `hackathon/`.
+
+**Da mandare a Petru in privato:** `demo-wallets.json`, `CHAIN_RPC_URL`, gli mp4
+e le cartelle `scenes/`/`parts/`, il link YouTube della demo. Gli script con i
+percorsi relativi non sono stati rieseguiti dopo la modifica.
+
+**Aperti:**
+- Pitch scena 01: manca la riga sul co-founder.
+- Sito: il testo "Governance" (`detail.governanceProse`) descrive un voto
+  consultivo; il template di contratto dice che lo SPV Manager decide da solo
+  sulle milestone (in conflitto con la doppia conferma). Segnalati, non toccati.
+- Fuori repo (cartella `~/Desktop/Brevetto su credenziali uniche/`): scrittura
+  privata tra coinventori per la domanda di brevetto 102026000010150; restano i
+  dati di Cesare da completare, il foro e la possibile clausola 2.8 sui nuovi
+  debitori (cessioni/fusioni).
