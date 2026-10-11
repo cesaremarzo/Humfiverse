@@ -1,0 +1,23 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1920px;height:1080px;overflow:hidden;background:#08090C;font-family:Geist,sans-serif;color:#EDEFF3}
+.bg{position:absolute;inset:0;background:radial-gradient(900px 520px at 50% 40%,rgba(113,89,255,.18),transparent 70%),radial-gradient(700px 400px at 90% 90%,rgba(45,212,160,.08),transparent 70%)}
+.grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:64px 64px;-webkit-mask-image:radial-gradient(1100px 600px at 50% 45%,#000 30%,transparent 80%)}
+.wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.f{opacity:0;transform:translateY(18px);animation:in .9s cubic-bezier(.2,.7,.2,1) forwards}
+.out{animation:in .9s cubic-bezier(.2,.7,.2,1) forwards, out .7s ease forwards}
+@keyframes in{to{opacity:1;transform:none}}
+@keyframes out{to{opacity:0;transform:translateY(-14px)}}
+.k{font-family:"Geist Mono",monospace;font-size:22px;letter-spacing:.16em;text-transform:uppercase;color:#9AA2B0}
+.grad{background:linear-gradient(95deg,#EDEFF3 10%,#A797FF 60%,#2DD4A0 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.mk svg{width:120px;height:120px}
+</style></head><body><div class="bg"></div><div class="grid"></div><style>.s{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px}
+h1{font-size:84px;font-weight:600;letter-spacing:-.035em;line-height:1.08;max-width:1400px}
+.big{font-size:150px;font-weight:600;letter-spacing:-.04em}
+.p{font-size:40px;color:#9AA2B0;max-width:1200px;line-height:1.35}</style>
+<div class="s"><div class="k f out" style="animation-delay:.3s,6.6s">The problem</div><h1 class="f out" style="animation-delay:.6s,6.6s">Independent artists have<br>a <span class="grad">funding problem.</span></h1></div>
+<div class="s"><h1 class="f out" style="animation-delay:7.4s,12.6s">Recording an album<br>costs <span class="grad">thousands.</span></h1><p class="p f out" style="animation-delay:8.6s,12.6s">Fan funding means trusting a platform with the money.</p></div>
+<div class="s"><div class="k f" style="animation-delay:13.4s">PledgeMusic · 2019</div><div class="big f" style="animation-delay:13.8s">Collapsed.</div><p class="p f" style="animation-delay:15.6s">Artists never saw money their fans<br>had <span style="color:#EDEFF3">already paid</span>.</p></div>
+</body></html>

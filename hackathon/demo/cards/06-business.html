@@ -1,0 +1,25 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1920px;height:1080px;overflow:hidden;background:#08090C;font-family:Geist,sans-serif;color:#EDEFF3}
+.bg{position:absolute;inset:0;background:radial-gradient(900px 520px at 50% 40%,rgba(113,89,255,.18),transparent 70%),radial-gradient(700px 400px at 90% 90%,rgba(45,212,160,.08),transparent 70%)}
+.grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:64px 64px;-webkit-mask-image:radial-gradient(1100px 600px at 50% 45%,#000 30%,transparent 80%)}
+.wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.f{opacity:0;transform:translateY(18px);animation:in .9s cubic-bezier(.2,.7,.2,1) forwards}
+.out{animation:in .9s cubic-bezier(.2,.7,.2,1) forwards, out .7s ease forwards}
+@keyframes in{to{opacity:1;transform:none}}
+@keyframes out{to{opacity:0;transform:translateY(-14px)}}
+.k{font-family:"Geist Mono",monospace;font-size:22px;letter-spacing:.16em;text-transform:uppercase;color:#9AA2B0}
+.grad{background:linear-gradient(95deg,#EDEFF3 10%,#A797FF 60%,#2DD4A0 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.mk svg{width:120px;height:120px}
+</style></head><body><div class="bg"></div><div class="grid"></div><style>.box{display:flex;flex-direction:column;align-items:center;gap:20px}
+h1{font-size:72px;font-weight:600;letter-spacing:-.035em;margin-bottom:24px}
+.tbl{display:flex;flex-direction:column;gap:14px;width:1100px}
+.row{display:flex;align-items:center;gap:40px;padding:20px 36px;border:1px solid #21252E;border-radius:18px;background:rgba(16,18,23,.7);text-align:left}
+.pct{font-family:"Geist Mono",monospace;font-size:54px;font-weight:500;width:150px}
+.what{font-size:34px;font-weight:500;display:flex;flex-direction:column;gap:4px}.what span{font-size:22px;color:#9AA2B0;font-weight:400}
+.foot{margin-top:30px;font-size:32px;color:#9AA2B0}.foot b{color:#EDEFF3;font-weight:500}</style>
+<div class="wrap"><div class="box"><div class="k f" style="animation-delay:.3s">Business model</div><h1 class="f" style="animation-delay:.5s">A small fee when value moves</h1>
+<div class="tbl"><div class="row f" style="animation-delay:1.6s"><div class="pct grad">2%</div><div class="what">on every contribution<span>escrow campaigns</span></div></div><div class="row f" style="animation-delay:3.1s"><div class="pct grad">3%</div><div class="what">on each released tranche<span>paid only when a milestone is confirmed</span></div></div><div class="row f" style="animation-delay:4.6s"><div class="pct grad">6%</div><div class="what">on direct catalogue sales<span>artist keeps 94%</span></div></div><div class="row f" style="animation-delay:6.1s"><div class="pct grad">1%</div><div class="what">on marketplace resales<span></span></div></div><div class="row f" style="animation-delay:7.6s"><div class="pct grad">1%</div><div class="what">on royalty distribution<span></span></div></div></div>
+<p class="foot f" style="animation-delay:12s"><b>Artists and studios first</b> · growing step by step, in line with EU regulation</p></div></div></body></html>

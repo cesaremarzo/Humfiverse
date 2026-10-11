@@ -1,0 +1,14 @@
+# Testnet keys for the recorder's wallets: shared privately, never committed
+demo/tools/demo-wallets.json
+# Generated media (large, rebuilt locally)
+demo/frames/
+demo/scenes/
+demo/parts/
+demo/check/
+*.mp4
+*.wav
+pitch/audio/
+pitch/parts/
+pitch/check/
+pitch/tts/
+*.log

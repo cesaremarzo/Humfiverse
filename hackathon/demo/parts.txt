@@ -1,0 +1,8 @@
+file 'parts/01-problem.mp4'
+file 'parts/02-solution.mp4'
+file 'parts/03-escrow.mp4'
+file 'parts/04-catalogue.mp4'
+file 'parts/05-trust.mp4'
+file 'parts/06-business.mp4'
+file 'parts/07-close.mp4'
+
