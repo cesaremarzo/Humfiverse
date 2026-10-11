@@ -27,6 +27,13 @@ import {
   SecondaryListing, FeeSummary, RegistrationStatus, MediaKind,
   AssistantStatus, AssistantAnswer, TakedownCase, TakedownCaseList, TakedownPublic, TakedownSafeTransaction } from './models';
 
+/** A studio registered on the escrow after Humfiverse verified it (§2.110). */
+export interface EscrowStudio {
+  studioId: number;
+  name: string;
+  wallet: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private base = environment.apiBase;
@@ -250,6 +257,12 @@ export class ApiService {
 
   getEscrowCampaign(assetId: string): Promise<EscrowCampaignInfo> {
     return firstValueFrom(this.http.get<EscrowCampaignInfo>(`${this.base}/api/escrow/campaign/${encodeURIComponent(assetId)}`));
+  }
+
+  /** §2.110: the studios a campaign may name — verified by Humfiverse and
+   * registered by the Owner Safe. The wizard offers only these. */
+  getEscrowStudios(): Promise<{ studios: EscrowStudio[] }> {
+    return firstValueFrom(this.http.get<{ studios: EscrowStudio[] }>(`${this.base}/api/escrow/studios`));
   }
 
   createEscrowCampaign(payload: {

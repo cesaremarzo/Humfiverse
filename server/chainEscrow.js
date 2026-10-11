@@ -4,9 +4,10 @@
    from chain.js (which talks to HumfiverseCatalogueToken) since these are
    two independent contracts with two independent addresses.
 
-   Reads work with just an RPC URL. Writes (registerStudio, createCampaign,
-   confirmMilestone) require CHAIN_OPERATOR_PRIVATE_KEY — the same operator
-   key chain.js uses, since Humfiverse is the owner of both contracts.
+   Reads work with just an RPC URL. Writes (createCampaign) require
+   CHAIN_OPERATOR_PRIVATE_KEY — the same operator key chain.js uses.
+   Registering a studio is the Owner Safe's alone (§2.110): a studio is
+   verified off chain first, so nothing here registers one.
    TESTNET ONLY. */
 
 const { ethers } = require("ethers");
@@ -215,12 +216,26 @@ async function getContributionFromTx(txHash) {
   };
 }
 
-async function registerStudioOnchain(walletAddress, name) {
-  const writeContract = await writerFor(ESCROW_ADDRESS);
-  const tx = await withRetry(() => writeContract.registerStudio(walletAddress, name));
-  const receipt = await tx.wait();
-  const parsed = receipt.logs.map((l) => { try { return readContract.interface.parseLog(l); } catch { return null; } }).find((e) => e && e.name === "StudioRegistered");
-  return { studioId: Number(parsed.args.studioId), txHash: receipt.hash };
+/** Every studio registered on the current escrow, in id order. Ids are
+ * sequential from 1 and a studio is never deleted, so the first id with no
+ * wallet is the end. There are a handful, verified one by one (§2.110), so
+ * reading them in turn is cheaper than any event scan (§2.39). */
+const MAX_STUDIOS = 500;
+async function listStudiosOnchain() {
+  const studios = [];
+  for (let id = 1; id <= MAX_STUDIOS; id++) {
+    const s = await withRetry(() => readContract.studios(id));
+    if (s.wallet === ethers.ZeroAddress) break;
+    studios.push({ studioId: id, name: s.name, wallet: s.wallet, active: s.active });
+  }
+  return studios;
+}
+
+/** The active, owner-registered studio paying `walletAddress`, or null —
+ * what a campaign may name as its studio since §2.110. */
+async function findVerifiedStudioOnchain(walletAddress) {
+  const wallet = String(walletAddress).toLowerCase();
+  return (await listStudiosOnchain()).find((s) => s.active && s.wallet.toLowerCase() === wallet) || null;
 }
 
 /** Whether `studioId` on the current escrow is an active studio paying
@@ -387,7 +402,8 @@ module.exports = {
   writeEnabled,
   getFeeState,
   getContributionFromTx,
-  registerStudioOnchain,
+  listStudiosOnchain,
+  findVerifiedStudioOnchain,
   isStudioOnchain,
   renameStudioOnchain,
   createCampaignOnchain,

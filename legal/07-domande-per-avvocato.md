@@ -1,6 +1,6 @@
 # Domande per l'avvocato
 
-*Revisione del 2026-09-28 (H5: decisione di annullamento agli investitori). Prima 2026-09-22 (A15, L4-L9: società maltese, file 10). Prima 2026-09-17, commit `fd7f822` + §2.101 (A13: commissione sulla distribuzione delle royalty; A12, I4: versamento delle royalty), prima `94ae18f` (A4: storico prezzi) e `27d8d5f` + §2.100 (A14, F4, H4: guida automatica).*
+*Revisione del 2026-10-11 (B5 decisa, nuova B5-bis: verifica degli studi, §2.110). Prima 2026-09-28 (H5: decisione di annullamento agli investitori). Prima 2026-09-22 (A15, L4-L9: società maltese, file 10). Prima 2026-09-17, commit `fd7f822` + §2.101 (A13: commissione sulla distribuzione delle royalty; A12, I4: versamento delle royalty), prima `94ae18f` (A4: storico prezzi) e `27d8d5f` + §2.100 (A14, F4, H4: guida automatica).*
 
 Le domande vengono dai file 01-03 e dalle decisioni già prese (note legali §7,
 §7.10; technical-architecture §2.86). Sostituiscono e ampliano l'elenco del §6
@@ -166,7 +166,15 @@ Lussemburgo (CSSF) e Italia (CONSOB).*
   **recesso di 14 giorni** per i servizi finanziari a distanza come si conciliano
   con token consegnati subito e fondi già in escrow? *(01 §3, §8)*
 - **B5** 🟠 Una campagna **senza studio** viene rilasciata dalla sola conferma
-  dell'artista. Basta dichiararlo o va vietato? *(02 C-3)*
+  dell'artista. Basta dichiararlo o va vietato? *(02 C-3)* **Decisione
+  dell'utente (2026-10-11):** restano possibili e si dichiarano (04 §5.3, 06
+  §2.2). Da confermare con l'avvocato che la dichiarazione basti.
+- **B5-bis** 🟠 Dal §2.110 la Piattaforma **verifica gli studi** prima di
+  registrarli, e da quella verifica dipende la garanzia della doppia conferma.
+  Quali controlli servono (identità, P.IVA, legame con l'artista), che
+  responsabilità si assume la Piattaforma se uno studio verificato si rivela
+  legato all'artista, e la verifica sposta l'analisi sulla "discrezionalità"
+  (01 §4)? *(02 C-3)*
 - **B6** 🟠 L'ECSPR ammette l'uso di **veicoli dedicati** solo per trasferire agli
   investitori un bene illiquido o indivisibile. Il flusso di royalty di un
   singolo brano rientra in quella nozione, o l'uso di un comparto del veicolo

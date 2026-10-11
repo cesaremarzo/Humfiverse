@@ -57,18 +57,24 @@
         <p class="prose" style="margin-bottom:6px;">{{ 'wizSource.preprodSubtitle' | translate }}</p>
         <p class="prose" style="margin-bottom:18px; font-size:12.5px;">{{ 'escrow.platformFeeNote' | translate }}</p>
 
-        <div class="field"><label>{{ 'wizSource.studioNameLabel' | translate }}</label>
-          <input type="text" [value]="data().preprod.studioName" (input)="updatePreprodTextField('studioName', $any($event.target).value)" [placeholder]="'wizSource.studioNamePlaceholder' | translate">
-        </div>
         <div class="field">
-          <label>{{ 'wizSource.studioWalletLabel' | translate }}</label>
-          <input type="text" class="mono" [value]="data().preprod.studioWallet" (input)="updatePreprodTextField('studioWallet', $any($event.target).value)" placeholder="0x…">
-          @if (data().preprod.studioWallet && !isValidWalletAddress(data().preprod.studioWallet)) {
-            <span class="hint" style="color:var(--warning-ink, #b45309);">{{ 'wizSource.studioWalletInvalid' | translate }}</span>
-          } @else if (studioIsArtist(data().preprod.studioWallet)) {
+          <label>{{ 'wizSource.studioPickLabel' | translate }}</label>
+          <select [attr.aria-label]="'wizSource.studioPickLabel' | translate" (change)="pickStudio('preprod', $any($event.target).value)">
+            <option value="" [selected]="!isVerifiedStudio(data().preprod.studioWallet)">{{ 'wizSource.studioPickPlaceholder' | translate }}</option>
+            @for (s of studios() ?? []; track s.studioId) {
+              <option [value]="s.wallet" [selected]="s.wallet.toLowerCase() === data().preprod.studioWallet.toLowerCase()">{{ s.name }} · {{ s.wallet.slice(0, 6) }}…{{ s.wallet.slice(-4) }}</option>
+            }
+          </select>
+          @if (studiosFailed()) {
+            <span class="hint" style="color:var(--warning-ink, #b45309);">{{ 'wizSource.studioPickError' | translate }} <button type="button" class="btn btn-ghost btn-sm" (click)="loadStudios()">{{ 'wizSource.studioPickRetry' | translate }}</button></span>
+          } @else if (studios() === null) {
+            <span class="hint">{{ 'wizSource.studioPickLoading' | translate }}</span>
+          } @else if (data().preprod.studioWallet && studioIsArtist(data().preprod.studioWallet)) {
             <span class="hint" style="color:var(--warning-ink, #b45309);">{{ 'wizSource.studioIsArtist' | translate }}</span>
+          } @else if (data().preprod.studioWallet && !isVerifiedStudio(data().preprod.studioWallet)) {
+            <span class="hint" style="color:var(--warning-ink, #b45309);">{{ 'wizSource.studioNotVerified' | translate }}</span>
           } @else {
-            <span class="hint">{{ 'wizSource.studioWalletHint' | translate }}</span>
+            <span class="hint">{{ 'wizSource.studioPickHint' | translate }}</span>
           }
         </div>
 
@@ -151,18 +157,23 @@
 
         @if (data().catalogueCampaign.enabled) {
           <div class="field">
-            <label>{{ 'wizSource.studioNameLabel' | translate }}</label>
-            <input type="text" [value]="data().catalogueCampaign.studioName" (input)="updateCatalogueCampaignTextField('studioName', $any($event.target).value)" [placeholder]="'wizSource.studioNamePlaceholder' | translate">
-          </div>
-          <div class="field">
-            <label>{{ 'wizSource.studioWalletLabel' | translate }}</label>
-            <input type="text" class="mono" [value]="data().catalogueCampaign.studioWallet" (input)="updateCatalogueCampaignTextField('studioWallet', $any($event.target).value)" placeholder="0x…">
-            @if (data().catalogueCampaign.studioWallet && !isValidWalletAddress(data().catalogueCampaign.studioWallet)) {
-              <span class="hint" style="color:var(--warning-ink, #b45309);">{{ 'wizSource.studioWalletInvalid' | translate }}</span>
-            } @else if (studioIsArtist(data().catalogueCampaign.studioWallet)) {
+            <label>{{ 'wizSource.studioPickLabel' | translate }}</label>
+            <select [attr.aria-label]="'wizSource.studioPickLabel' | translate" (change)="pickStudio('catalogueCampaign', $any($event.target).value)">
+              <option value="" [selected]="!isVerifiedStudio(data().catalogueCampaign.studioWallet)">{{ 'wizSource.studioPickPlaceholder' | translate }}</option>
+              @for (s of studios() ?? []; track s.studioId) {
+                <option [value]="s.wallet" [selected]="s.wallet.toLowerCase() === data().catalogueCampaign.studioWallet.toLowerCase()">{{ s.name }} · {{ s.wallet.slice(0, 6) }}…{{ s.wallet.slice(-4) }}</option>
+              }
+            </select>
+            @if (studiosFailed()) {
+              <span class="hint" style="color:var(--warning-ink, #b45309);">{{ 'wizSource.studioPickError' | translate }} <button type="button" class="btn btn-ghost btn-sm" (click)="loadStudios()">{{ 'wizSource.studioPickRetry' | translate }}</button></span>
+            } @else if (studios() === null) {
+              <span class="hint">{{ 'wizSource.studioPickLoading' | translate }}</span>
+            } @else if (data().catalogueCampaign.studioWallet && studioIsArtist(data().catalogueCampaign.studioWallet)) {
               <span class="hint" style="color:var(--warning-ink, #b45309);">{{ 'wizSource.studioIsArtist' | translate }}</span>
+            } @else if (data().catalogueCampaign.studioWallet && !isVerifiedStudio(data().catalogueCampaign.studioWallet)) {
+              <span class="hint" style="color:var(--warning-ink, #b45309);">{{ 'wizSource.studioNotVerified' | translate }}</span>
             } @else {
-              <span class="hint">{{ 'wizSource.studioWalletHint' | translate }}</span>
+              <span class="hint">{{ 'wizSource.studioPickHint' | translate }}</span>
             }
           </div>
           <p class="prose" style="margin-top:6px; font-size:12.5px;">{{ 'wizSource.extraCampaignMilestonesNote' | translate }}</p>

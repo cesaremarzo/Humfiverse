@@ -56,9 +56,8 @@ module.exports = function registerAdminRoutes(router) {
      on. After redeploying HumfiverseMilestoneEscrow, every cached id is
      stale (studio ids restart from 1 on the new contract), so campaign
      creation would silently reuse the wrong id instead of registering
-     fresh. Clearing the whole table is safe either way —
-     registerStudioOnchain is just an extra tx if it turns out to be
-     unnecessary, never incorrect. */
+     fresh. Since §2.110 campaign creation reads the studio registry on
+     chain and no longer consults this table at all; clearing it is safe. */
   router.delete("/api/admin/escrow-studios-reset", async (req, res) => {
     if (!requireAdmin(req, res)) return;
     await escrowRepo.clearStudios();

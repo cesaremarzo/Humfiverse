@@ -3,6 +3,30 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-10-11 · correzioni dell'audit dei contratti (technical §2.110)
+
+Un audit dei contratti ha portato a modifiche di token ed escrow, nel codice e
+nei test (123 passati), **non ancora sulla catena**: valgono dal prossimo
+redeploy. Gli indirizzi nei documenti restano quelli dei contratti attuali.
+
+- **Studi verificati (02 C-3, 01 §4, 04 §5.3, 06 §2.2 e §3, 08 A-5).** Registrare
+  e rinominare uno studio spetta solo al Safe, dopo una verifica fuori catena; il
+  Founder può solo sospenderne uno. Il wizard offre solo studi verificati. Nuova
+  domanda **07 B5-bis** sulla verifica e sulla responsabilità che comporta.
+- **Campagne senza studio: decisione dell'utente.** Restano possibili e si
+  dichiarano (07 B5 aggiornata; testi in 04, 06, 08).
+- **Royalty in proporzione al tempo di possesso (02 C-12, nuovo C-16; 01 §1; 04
+  §5.7; 06 §2.3-bis e §3; 08 A-6 e A-8 punti 5-6).** Un versamento paga il
+  periodo dal versamento precedente, diviso per token × tempo. Il momento del
+  versamento decide chi partecipa: nuovo obbligo per l'artista di versare nei
+  termini, senza anticipare né ritardare.
+- **Altri poteri (02 §1, C-9, C-10).** L'artista di una campagna è il wallet che
+  incassa del token; un token ha una sola campagna; l'annullamento chiude il pool;
+  un escrow sostituito può ancora bruciare token per i rimborsi; l'operator
+  collega l'audio solo la prima volta o lo toglie.
+- Testi del sito e della guida (`assistant-knowledge.js`, `assistant.kb.royalties`
+  nelle nove lingue) aggiornati di conseguenza. Impronte aggiornate.
+
 ## 2026-10-07 · dominio humfiverse.com (technical §2.109)
 
 Il sito passa da `cesaremarzo.github.io/Humfiverse` a `humfiverse.com`, sempre

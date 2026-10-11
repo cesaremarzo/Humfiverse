@@ -106,7 +106,11 @@ ROYALTIES
   the artist, or the platform after receiving the money from the artist.
   Distribution is automated and verifiable; the confirmation step is not
   trustless, and the assistant should say so rather than oversell it.
-- A deposit is shared equally over every token of that catalogue. What your
+- A deposit pays for the time since the previous deposit (or the launch):
+  it is split among whoever held tokens in that time, by how many tokens and
+  for how long. Someone who buys just before a deposit gets only the small
+  part matching that time, so buying ahead of a known payout does not take
+  the income the earlier holders and the unsold tokens earned. What your
   tokens earned stays yours even if you sell them afterwards. Claiming is
   done from the portfolio page.
 - Each deposit carries the SHA-256 hash of the royalty statement it comes
