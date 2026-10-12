@@ -38,7 +38,11 @@ Sostituisce le clausole `manager-discretion`, `milestones` e `refund` e integra
    circostanziata del titolare dei diritti, da un provvedimento di un'autorità o
    da una decisione giudiziaria;
    (c) una o più dichiarazioni e garanzie dell'Artista di cui alla clausola A-4
-   risultano false o inesatte.
+   risultano false o inesatte;
+   (d) il progetto è abbandonato: la soglia minima di raccolta è stata
+   raggiunta, restano tranche da rilasciare e sono trascorsi almeno 180 giorni
+   dal raggiungimento della soglia o dall'ultimo rilascio (§2.116; il contratto
+   escrow lo verifica da sé).
 2. Prima dell'annullamento la Piattaforma comunica all'Artista, all'indirizzo
    email e al wallet indicati, i motivi e gli elementi su cui si basa, e gli
    concede 5 giorni per presentare osservazioni o rimuovere la violazione. Il

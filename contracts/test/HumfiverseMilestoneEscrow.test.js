@@ -972,4 +972,39 @@ describe("HumfiverseMilestoneEscrow", function () {
       await expect(escrow.cancelCampaign(campaignId, ABANDONED, DECISION)).to.be.revertedWith("HumfiverseMilestoneEscrow: fully released, nothing abandoned");
     });
   });
+
+  describe("the artist moves the campaign to a new wallet (§2.117)", function () {
+    it("only the artist proposes; the new wallet accepts once it is the token's payout wallet", async function () {
+      const { escrow, token, campaignId, artist, other, owner } = await campaignFixture();
+      await expect(escrow.connect(owner).proposeArtist(campaignId, other.address)).to.be.revertedWith("HumfiverseMilestoneEscrow: not this campaign's artist");
+      await escrow.connect(artist).proposeArtist(campaignId, other.address);
+      await expect(escrow.connect(other).acceptArtist(campaignId)).to.be.revertedWith("HumfiverseMilestoneEscrow: move the token's payout first");
+      await token.connect(artist).proposePayout(TOKEN_ID, other.address);
+      await token.connect(other).acceptPayout(TOKEN_ID);
+      await expect(escrow.connect(other).acceptArtist(campaignId)).to.emit(escrow, "ArtistChanged").withArgs(campaignId, artist.address, other.address);
+      expect((await escrow.campaigns(campaignId)).artist).to.equal(other.address);
+    });
+
+    it("after the change the new wallet confirms and is paid; the old one cannot confirm", async function () {
+      const { escrow, token, campaignId, artist, other, studioWallet, contributor1 } = await campaignFixture();
+      await escrow.connect(contributor1).contribute(campaignId, GOAL);
+      await token.connect(artist).proposePayout(TOKEN_ID, other.address);
+      await token.connect(other).acceptPayout(TOKEN_ID);
+      await escrow.connect(artist).proposeArtist(campaignId, other.address);
+      await escrow.connect(other).acceptArtist(campaignId);
+      await expect(escrow.connect(artist).confirmMilestoneAsArtist(campaignId, 0)).to.be.revertedWith("HumfiverseMilestoneEscrow: not this campaign's artist");
+      const before = await usdc.balanceOf(other.address);
+      await escrow.connect(other).confirmMilestoneAsArtist(campaignId, 0);
+      await escrow.connect(studioWallet).confirmMilestoneAsStudio(campaignId, 0);
+      expect((await usdc.balanceOf(other.address)) - before).to.equal(net(ARTIST_BPS));
+    });
+
+    it("the new artist wallet cannot be the studio's", async function () {
+      const { escrow, token, campaignId, artist, studioWallet } = await campaignFixture();
+      await token.connect(artist).proposePayout(TOKEN_ID, studioWallet.address);
+      await token.connect(studioWallet).acceptPayout(TOKEN_ID);
+      await escrow.connect(artist).proposeArtist(campaignId, studioWallet.address);
+      await expect(escrow.connect(studioWallet).acceptArtist(campaignId)).to.be.revertedWith("HumfiverseMilestoneEscrow: studio wallet is the artist");
+    });
+  });
 });

@@ -18,12 +18,12 @@
 
 | Contratto | File | SHA-256 (primi 16) | Indirizzo Sepolia |
 |---|---|---|---|
-| HumfiverseCatalogueToken | `contracts/contracts/HumfiverseCatalogueToken.sol` | `e6bf460971bae796` | `0xe26C2FC4A77e26cc1A4404DD5DA63ae8761dF997` |
-| HumfiverseMarketplace | `contracts/contracts/HumfiverseMarketplace.sol` | `2e6e2985317c70a8` | `0x755500dEB66169fC605Be8Aa25ACBdAd791F1585` |
-| HumfiverseMilestoneEscrow | `contracts/contracts/HumfiverseMilestoneEscrow.sol` | `4e9a8d426220c880` | `0x613c1e658930562a655C0883667034AB92146C16` |
+| HumfiverseCatalogueToken | `contracts/contracts/HumfiverseCatalogueToken.sol` | `fdf39ce48153417e` | `0x471DE935a7538D67F0E231aaf2768f5C4EB42431` |
+| HumfiverseMarketplace | `contracts/contracts/HumfiverseMarketplace.sol` | `e2eb57f242d07868` | `0xC684B23492659b224635A5A7C475F50fcADc2E03` |
+| HumfiverseMilestoneEscrow | `contracts/contracts/HumfiverseMilestoneEscrow.sol` | `c3c95c37f9270d8b` | `0xcEb91B21020B6e32643dFD9d596e848c303c7553` |
 
 Solidity 0.8.24, OpenZeppelin v5, non aggiornabili (niente proxy).
-Pagamenti in USDC di test (`0x1c7D…7238`). Test: **130 passati**. L'escrow è quello del settimo redeploy, 2026-10-12 (technical §2.114: scadenza e soglia minima, C-4), con il precedente `0x0D5232579773e61b898e70866b2160b2B077aDb7` in sola lettura; token e marketplace sono quelli del redeploy del 2026-10-11 (technical §2.111), che ha portato sulla catena le correzioni del §2.110: le righe della tabella §1 marcate §2.110 descrivono i contratti in uso. Token ed
+Pagamenti in USDC di test (`0x1c7D…7238`). Test: **143 passati**. I tre contratti sono quelli dell'ottavo redeploy, 2026-10-12 (technical §2.117: marketplace limitato al token Humfiverse con annunci a scadenza, wallet dell'artista modificabile solo dall'artista, annullamento sempre motivato con il nuovo motivo "abbandono"), di proprietà del Safe; gli escrow precedenti restano in sola lettura. Token ed
 escrow sono stati ridistribuiti il 2026-09-17 (fase 2) e di nuovo il
 2026-09-27 (technical §2.102) solo per le commissioni del §2.101 — 6% sulla
 vendita diretta, 1% sui versamenti di royalty — che da quel giorno sono in
@@ -58,7 +58,7 @@ storico delle royalty già versate e riscosse (44,55 USDC di test su
 
 | Funzione | Chi può chiamarla | Effetto |
 |---|---|---|
-| `mintCatalogue` | Owner o operator (Founder) | Crea un token id con offerta fissa. Prezzo = `funding / supply`, non modificabile. Imposta il wallet che incassa (`payoutOf`) e se il token è in vendita diretta |
+| `mintCatalogue` | Owner o operator (Founder) | Crea un token id con offerta fissa. Prezzo = `funding / supply`, non modificabile. Imposta il wallet che incassa (`payoutOf`) e se il token è in vendita diretta **§2.117:** il wallet che incassa lo può cambiare **solo l'artista**, in due passi (`proposePayout` dal wallet attuale, `acceptPayout` dal nuovo); nessun altro, Owner compreso. |
 | `buy` | chiunque | Compra dal pool al prezzo fisso. 94% al wallet dell'artista, 6% trattenuto come commissione (§2.101) |
 | `releaseFromPool` | Owner (Safe 2 su 3) o contratto escrow | Consegna token del pool **senza pagamento** |
 | `setURI` | Owner | Cambia l'indirizzo dei metadati (nome, immagine, descrizione) |
@@ -66,16 +66,16 @@ storico delle royalty già versate e riscosse (44,55 USDC di test su
 | `depositRoyalties` | chiunque | Versa USDC come royalty di un token. L'1% è trattenuto come commissione di distribuzione (§2.101), il resto è diviso subito in parti uguali su tutti i token esistenti (pool compreso). **§2.110:** il versamento paga il periodo dal versamento precedente (o dal mint) ed è diviso in proporzione a token × tempo di possesso in quel periodo (C-12, C-16). Registra un riferimento al rendiconto (`statementRef`): dal §2.98 il sito vi scrive l'impronta SHA-256 del file del rendiconto |
 | `claimRoyalties` | chiunque, per qualsiasi possessore | Paga al possessore quanto hanno maturato i suoi token; chi chiama sceglie solo quando |
 | `claimPoolRoyalties` | chiunque | Paga la quota dei token invenduti al wallet che incassa del token (l'artista) |
-| `createCampaign` | Owner o operator | Apre una campagna escrow su un token non in vendita diretta e mai venduto. **Rifiuta** uno studio con lo stesso wallet dell'artista. **§2.110:** l'artista deve essere il wallet che incassa del token (`payoutOf`), e un token ha al massimo una campagna |
+| `createCampaign` | Owner o operator | Apre una campagna escrow su un token non in vendita diretta e mai venduto. **Rifiuta** uno studio con lo stesso wallet dell'artista. **§2.110:** l'artista deve essere il wallet che incassa del token (`payoutOf`), e un token ha al massimo una campagna **§2.117:** l'artista di una campagna può passarla a un nuovo wallet (`proposeArtist` / `acceptArtist`), solo se il nuovo wallet è già quello che incassa del token e non è lo studio. |
 | `contribute` | chiunque | Paga in USDC. 2% trattenuto, 98% accreditato alla campagna, token consegnati subito |
 | `confirmMilestoneAsArtist` / `…AsStudio` | wallet artista / wallet studio | Quando entrambi hanno confermato e i fondi coprono la tranche, la paga meno il 3%. Il contratto rifiuta la conferma finché la milestone precedente non è pagata (§2.96) |
-| `cancelCampaign` | Owner | Blocca la campagna e apre i rimborsi. Registra un **motivo** (nessuno, contenuto illecito, diritti di terzi, garanzie false) e, per i motivi di legge, l'hash della decisione scritta. **Senza motivo** è rifiutato se tutte le tranche sono già pagate. **§2.110:** chiude anche il pool del token (`closePool`): dopo l'annullamento nessun token può più uscirne, Owner compreso |
+| `cancelCampaign` | Owner | Blocca la campagna e apre i rimborsi. Registra un **motivo** (nessuno, contenuto illecito, diritti di terzi, garanzie false) e, per i motivi di legge, l'hash della decisione scritta. **Senza motivo** è rifiutato se tutte le tranche sono già pagate. **§2.110:** chiude anche il pool del token (`closePool`): dopo l'annullamento nessun token può più uscirne, Owner compreso **Dall'ottavo redeploy (§2.116-§2.117):** il motivo `NONE` è rifiutato e ogni annullamento richiede motivo e hash della decisione; nuovo motivo `ABANDONED` (abbandono), solo a soglia raggiunta, con tranche ancora da pagare e 180 giorni senza progressi. |
 | `refund` | chi possiede i token | Restituisce i token, che vengono **bruciati**, in cambio della loro quota di `raccolto − rilasciato` al momento dell'annullamento. Il 2% resta trattenuto |
 | `burnForRefund` | solo il contratto escrow | Brucia i token restituiti con `refund`. Le royalty già maturate restano riscuotibili. **§2.110:** anche un escrow sostituito (`retiredEscrow`), così i rimborsi restano possibili dopo un nuovo collegamento |
 | `closePool` | contratto escrow (anche sostituito) | **§2.110.** Chiude il pool di un token alla cancellazione della sua campagna |
 | `revokeRetiredEscrow` | Owner | **§2.110.** Toglie a un escrow sostituito il potere di bruciare token |
 | `registerStudio`, `setStudioActive`, `renameStudio` | Owner o operator | Gestisce l'elenco degli studi ammessi. **§2.110:** registrare e rinominare spetta solo all'Owner, dopo una verifica fuori catena; l'operator può solo sospendere uno studio, non riattivarlo |
-| `list` / `buyListing` / `cancelListing` | chiunque | Rivendita tra utenti. 99% al venditore, 1% trattenuto |
+| `list` / `buyListing` / `cancelListing` | chiunque | Rivendita tra utenti. 99% al venditore, 1% trattenuto **§2.117:** solo il token Humfiverse (fissato al deploy); ogni annuncio scade entro 30 giorni. |
 | `withdrawFees` | chiunque | Invia le commissioni accumulate al wallet Fees |
 | `setOperator`, `setFeeRecipient`, `setPayoutRecipient`, `setEscrowContract`, `transferOwnership`, `renounceOwnership` | Owner | Configurazione |
 
@@ -178,9 +178,11 @@ nessuna parte**.
 il motivo on-chain: `cancelCampaign(id, motivo, hashDecisione)`, con motivi
 `UNLAWFUL_CONTENT`, `THIRD_PARTY_RIGHTS`, `FALSE_WARRANTIES` e l'hash della
 decisione scritta obbligatorio per ciascuno (punto 3). Il potere è in mano al
-Safe Owner 2 su 3 (punto 5). **Resta aperto:** il motivo `NONE` è ancora
-accettato finché una tranche non è pagata, quindi il contratto non limita
-l'annullamento ai soli motivi di legge. Il limite resta contrattuale
+Safe Owner 2 su 3 (punto 5). **Risolto con l'ottavo redeploy (§2.116):** il
+motivo `NONE` è rifiutato; il quarto motivo, l'abbandono, è vincolato dal
+contratto (soglia raggiunta, tranche da pagare, 180 giorni senza progressi).
+*Prima:* il motivo `NONE` era accettato finché una tranche non era pagata, e il
+limite ai soli motivi di legge restava contrattuale
 (Termini §5.6), la procedura (punto 2) non è nel codice e la rimozione dei
 contenuti (punto 6) non è implementata.
 
@@ -196,7 +198,7 @@ Pinata, link all'audio azzerato sul token (`setTrackAudioUri(id, "")`, Founder),
 metadati del token sostituiti da un segnaposto, decisione mandata per email
 all'artista e agli holder. Ogni passo è firmato da un firmatario del Safe e
 registrato in una tabella in sola aggiunta (`takedown_events`), esiti falliti
-compresi. **Resta aperto:** il motivo `NONE` accettato dal contratto; titolo e
+compresi. **Resta aperto:** ~~il motivo `NONE` accettato dal contratto~~ (tolto, §2.116); titolo e
 nome artista restano nello storage del token; chi non ha un'email verificata non
 riceve avviso né decisione (il registro lo segnala); pubblicare o no la
 motivazione (DSA, 07 C7) non è deciso: oggi resta privata.
@@ -372,6 +374,12 @@ Humfiverse.
 **Proposta.** Limitare `list` all'indirizzo del token Humfiverse. Portare la
 domanda A4 (file 07) all'avvocato **prima** di pubblicizzare la rivendita.
 
+**Risolto in parte (2026-10-12, technical §2.117).** Il marketplace accetta solo
+il token Humfiverse, fissato al deploy, e ogni annuncio scade entro 30 giorni
+(prima un annuncio mai annullato tornava valido al prezzo vecchio se il venditore
+riotteneva i token). Resta aperta la qualificazione come sistema di negoziazione
+(A4).
+
 ### C-8 · Media · Il ricavato va direttamente all'artista, non a un veicolo
 
 **Codice.** `buy` trasferisce il 94% a `payoutOf[tokenId]`, il wallet
@@ -390,6 +398,10 @@ Anche la fiscalità cambia.
 **Proposta.** Decidere con l'avvocato il flusso giuridico (A1, A5) e poi
 allineare il codice: `payoutOf` = wallet del comparto del veicolo, non
 dell'artista.
+
+**Nota (§2.117).** `payoutOf` non è più fisso: l'artista lo può spostare da solo,
+in due passi. Questo serve se il wallet va sostituito; non risolve il punto del
+veicolo, e se la chiave è persa il wallet resta quello (nessuno può dirottarlo).
 
 ### C-9 · Media · Una sola chiave, sempre online, controlla tutto
 

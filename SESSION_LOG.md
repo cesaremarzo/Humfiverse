@@ -2932,3 +2932,23 @@ dell'hackathon e `humfiverse-demo:audio/`.
   riferimento, firma del wallet, indipendenza dagli artisti, nome), due
   firmatari, poi `registerStudio` dal Safe; sospensione dal Founder,
   riattivazione solo dal Safe. Analog Sun non passerebbe C5.
+
+## 2026-10-12 — ottavo redeploy: token, escrow e marketplace (§2.116-§2.117)
+
+Richiesta di Cesare: fare tutto ciò che richiede un redeploy, con il motivo
+"abbandono" al posto di NONE. Decisioni: wallet dell'artista spostabile solo
+dall'artista (due passi); annunci con scadenza massima 30 giorni; riportare
+tutti gli asset con possessori, completando prima Night Swim.
+
+- Night Swim completata con i wallet demo (3 milestone).
+- Contratti nuovi, verificati, del Safe: token `0x471DE935…2431`, escrow
+  `0xcEb91B21…7553`, marketplace `0xC684B234…2E03`. 7 asset e 15 saldi
+  riportati e controllati campo per campo. 143 test.
+- Backend e frontend leggono entrambe le generazioni di marketplace; testi in 9
+  lingue; template v0.6-draft; legale aggiornato (W-22 proposta, non applicata).
+- **Da fare su Render dopo il merge:** `CHAIN_CONTRACT_ADDRESS`,
+  `CHAIN_CONTRACT_DEPLOY_BLOCK=11901539`, `CHAIN_ESCROW_ADDRESS`,
+  `CHAIN_ESCROW_DEPLOY_BLOCK=11901543`, `CHAIN_MARKETPLACE_ADDRESS`,
+  `CHAIN_ESCROW_LEGACY_ADDRESS` (quattro escrow).
+- **Incidente:** durante un controllo del `.env` locale sono state stampate in
+  chiaro nella sessione la chiave del Founder e la chiave Alchemy. Da ruotare.

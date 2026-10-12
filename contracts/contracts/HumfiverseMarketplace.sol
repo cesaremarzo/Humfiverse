@@ -10,7 +10,9 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 /// @title HumfiverseMarketplace
 /// @notice TESTNET DEMO CONTRACT — not audited, not for real funds, not a
 ///         security offering. Peer-to-peer secondary-market exchange for
-///         HumfiverseCatalogueToken (or any IERC1155) holdings.
+///         HumfiverseCatalogueToken holdings — that token only, fixed at
+///         deployment (§2.117), so a listing can never point at some other
+///         ERC-1155 dressed up as a Humfiverse catalogue.
 ///
 ///         This is deliberately a separate contract from
 ///         HumfiverseCatalogueToken's `releaseFromPool`: that function is
@@ -29,6 +31,11 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 ///         rounded to nothing on any trade under 100 tokens.) The fee
 ///         accrues in this contract and leaves through withdrawFees(), so a
 ///         fee recipient that cannot receive can never block a trade.
+///
+///         Every listing expires (§2.117), at most MAX_LISTING_PERIOD after it
+///         is made. Listings are non-custodial, so a listing that was never
+///         cancelled used to come back to life at its old price whenever the
+///         seller held the tokens again; an expiry bounds that.
 /// @dev Non-custodial listings: a seller keeps holding (and can still use
 ///      or transfer) their tokens after listing; nothing moves until a
 ///      buyer actually purchases. The seller must
@@ -45,14 +52,20 @@ contract HumfiverseMarketplace is Ownable, ReentrancyGuard {
     uint256 public constant PLATFORM_FEE_BPS = 100;
     uint256 private constant BPS_DENOMINATOR = 10_000;
 
+    /// @notice Longest a listing may stay open (§2.117).
+    uint256 public constant MAX_LISTING_PERIOD = 30 days;
+
     struct Listing {
         address seller;
-        address token; // ERC-1155 contract address
         uint256 tokenId;
         uint256 amount; // remaining amount available for sale
         uint256 pricePerToken; // paymentToken base units per token (USDC: 1e6 = $1)
+        uint256 expiresAt; // unix seconds; not buyable after this
         bool active;
     }
+
+    /// @notice The only token this marketplace trades (§2.117).
+    IERC1155 public immutable token;
 
     uint256 private nextListingId = 1;
     mapping(uint256 => Listing) public listings;
@@ -67,38 +80,42 @@ contract HumfiverseMarketplace is Ownable, ReentrancyGuard {
     /// @notice Every fee ever retained, withdrawn or not — never decreases.
     uint256 public totalFeesCollected;
 
-    event Listed(uint256 indexed listingId, address indexed seller, address indexed token, uint256 tokenId, uint256 amount, uint256 pricePerToken);
+    event Listed(uint256 indexed listingId, address indexed seller, uint256 indexed tokenId, uint256 amount, uint256 pricePerToken, uint256 expiresAt);
     event ListingCancelled(uint256 indexed listingId, uint256 amountReturned);
     event Purchased(uint256 indexed listingId, address indexed buyer, uint256 amount, uint256 platformFee, uint256 paid);
     event FeesWithdrawn(address indexed recipient, uint256 amount);
     event FeeRecipientUpdated(address indexed previous, address indexed next);
 
-    constructor(address _paymentToken, address initialFeeRecipient) Ownable(msg.sender) {
+    constructor(address _token, address _paymentToken, address initialFeeRecipient) Ownable(msg.sender) {
+        require(_token != address(0), "HumfiverseMarketplace: zero token");
         require(_paymentToken != address(0), "HumfiverseMarketplace: zero payment token");
+        token = IERC1155(_token);
         paymentToken = IERC20(_paymentToken);
         feeRecipient = initialFeeRecipient == address(0) ? msg.sender : initialFeeRecipient;
     }
 
-    /// @notice List `amount` of `tokenId` (from ERC-1155 contract `token`)
-    ///         for sale at `pricePerToken` paymentToken base units each. The caller must already
-    ///         hold at least `amount` and have approved this contract via
-    ///         `setApprovalForAll` on `token`.
-    function list(address token, uint256 tokenId, uint256 amount, uint256 pricePerToken) external returns (uint256 listingId) {
+    /// @notice List `amount` of `tokenId` for sale at `pricePerToken`
+    ///         paymentToken base units each, until `expiresAt` (at most
+    ///         MAX_LISTING_PERIOD away). The caller must already hold at least
+    ///         `amount` and have approved this contract via `setApprovalForAll`.
+    function list(uint256 tokenId, uint256 amount, uint256 pricePerToken, uint256 expiresAt) external returns (uint256 listingId) {
         require(amount > 0, "HumfiverseMarketplace: amount must be > 0");
         require(pricePerToken > 0, "HumfiverseMarketplace: price must be > 0");
-        require(IERC1155(token).balanceOf(msg.sender, tokenId) >= amount, "HumfiverseMarketplace: insufficient balance");
-        require(IERC1155(token).isApprovedForAll(msg.sender, address(this)), "HumfiverseMarketplace: marketplace not approved");
+        require(expiresAt > block.timestamp, "HumfiverseMarketplace: expiry must be in the future");
+        require(expiresAt <= block.timestamp + MAX_LISTING_PERIOD, "HumfiverseMarketplace: expiry too far");
+        require(token.balanceOf(msg.sender, tokenId) >= amount, "HumfiverseMarketplace: insufficient balance");
+        require(token.isApprovedForAll(msg.sender, address(this)), "HumfiverseMarketplace: marketplace not approved");
 
         listingId = nextListingId++;
         listings[listingId] = Listing({
             seller: msg.sender,
-            token: token,
             tokenId: tokenId,
             amount: amount,
             pricePerToken: pricePerToken,
+            expiresAt: expiresAt,
             active: true
         });
-        emit Listed(listingId, msg.sender, token, tokenId, amount, pricePerToken);
+        emit Listed(listingId, msg.sender, tokenId, amount, pricePerToken, expiresAt);
     }
 
     /// @notice Cancel a listing. Only the seller may cancel — tokens never
@@ -120,13 +137,13 @@ contract HumfiverseMarketplace is Ownable, ReentrancyGuard {
     function buyListing(uint256 listingId, uint256 amount) external nonReentrant {
         Listing storage listing = listings[listingId];
         require(listing.active, "HumfiverseMarketplace: not active");
+        require(block.timestamp <= listing.expiresAt, "HumfiverseMarketplace: listing expired");
         require(amount > 0 && amount <= listing.amount, "HumfiverseMarketplace: bad amount");
 
         uint256 cost = amount * listing.pricePerToken;
 
         uint256 fee = (cost * PLATFORM_FEE_BPS) / BPS_DENOMINATOR;
         address seller = listing.seller;
-        address token = listing.token;
         uint256 tokenId = listing.tokenId;
 
         // Effects before interactions: shrink (or close) the listing first.
@@ -135,7 +152,7 @@ contract HumfiverseMarketplace is Ownable, ReentrancyGuard {
         accruedFees += fee;
         totalFeesCollected += fee;
 
-        IERC1155(token).safeTransferFrom(seller, msg.sender, tokenId, amount, "");
+        token.safeTransferFrom(seller, msg.sender, tokenId, amount, "");
 
         paymentToken.safeTransferFrom(msg.sender, seller, cost - fee);
         if (fee > 0) paymentToken.safeTransferFrom(msg.sender, address(this), fee);

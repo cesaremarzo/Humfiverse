@@ -204,6 +204,11 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     /// @notice campaignId => when the campaign last made progress: the moment
     ///         its minimum was reached, then each release. 0 before the minimum.
     mapping(uint256 => uint256) public lastProgressAt;
+    /// @notice campaignId => an artist wallet proposed by the current one and
+    ///         not yet accepted (§2.117). It must already be the token's payout
+    ///         wallet when it accepts, so the campaign and the token never pay
+    ///         two different wallets.
+    mapping(uint256 => address) public pendingArtistOf;
 
     uint256 private nextCampaignId = 1;
     uint256 private nextStudioId = 1;
@@ -245,6 +250,8 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     event Refunded(uint256 indexed campaignId, address indexed holder, uint256 tokensBurned, uint256 amount);
     event RaiseTermsSet(uint256 indexed campaignId, uint64 raiseDeadline, uint256 minRaise);
     event CampaignFailed(uint256 indexed campaignId, uint256 refundPool, uint256 refundTokens);
+    event ArtistProposed(uint256 indexed campaignId, address indexed current, address indexed next);
+    event ArtistChanged(uint256 indexed campaignId, address indexed previous, address indexed next);
     event OperatorUpdated(address indexed previous, address indexed next);
     event ContributionFeeRetained(uint256 indexed campaignId, address indexed contributor, uint256 fee);
     event PlatformFeeRetained(uint256 indexed campaignId, uint256 indexed milestoneIndex, uint256 fee);
@@ -388,6 +395,30 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         minRaiseOf[campaignId] = (fundingTargetOf(campaignId) * minRaiseBps) / 10_000;
         emit CampaignCreated(campaignId, artist, fundingGoal, studioId, assetId);
         emit RaiseTermsSet(campaignId, raiseDeadline, minRaiseOf[campaignId]);
+    }
+
+    /// @notice The campaign's artist proposes a new wallet (§2.117);
+    ///         address(0) withdraws a proposal. Nobody else can move it.
+    function proposeArtist(uint256 campaignId, address next) external {
+        Campaign storage c = campaigns[campaignId];
+        require(c.artist != address(0) && msg.sender == c.artist, "HumfiverseMilestoneEscrow: not this campaign's artist");
+        require(next != c.artist, "HumfiverseMilestoneEscrow: already the artist");
+        pendingArtistOf[campaignId] = next;
+        emit ArtistProposed(campaignId, c.artist, next);
+    }
+
+    /// @notice The proposed wallet becomes the artist — confirming milestones
+    ///         and receiving the artist's tranches — once it is the token's
+    ///         payout wallet too, and is not the studio.
+    function acceptArtist(uint256 campaignId) external {
+        Campaign storage c = campaigns[campaignId];
+        require(msg.sender != address(0) && msg.sender == pendingArtistOf[campaignId], "HumfiverseMilestoneEscrow: not the proposed artist");
+        require(msg.sender == catalogueToken.payoutOf(campaignTokenId[campaignId]), "HumfiverseMilestoneEscrow: move the token's payout first");
+        if (c.studioId != 0) require(studios[c.studioId].wallet != msg.sender, "HumfiverseMilestoneEscrow: studio wallet is the artist");
+        address previous = c.artist;
+        c.artist = msg.sender;
+        delete pendingArtistOf[campaignId];
+        emit ArtistChanged(campaignId, previous, msg.sender);
     }
 
     /// @notice §2.114: the minimum is in. It stays in: `raised` never falls.

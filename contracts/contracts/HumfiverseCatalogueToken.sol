@@ -109,6 +109,13 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
     ///         platform's own wallet (§2.68).
     mapping(uint256 => address) public payoutOf;
 
+    /// @notice tokenId => a payout wallet proposed by the current one and not
+    ///         yet accepted (§2.117). Only the artist moves their own payout:
+    ///         nobody else — the owner included — can redirect it, so a lost
+    ///         key stays lost, but a wallet that must be replaced (compromised,
+    ///         blocked by the stablecoin issuer) no longer freezes the token.
+    mapping(uint256 => address) public pendingPayoutOf;
+
     /// @notice tokenId => whether buy() sells it directly (§2.81). False for a
     ///         token whose funding is released by milestones: its only way to
     ///         market is its escrow campaign's contribute(). Set at mint and
@@ -211,6 +218,8 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
     event RoyaltiesClaimed(uint256 indexed tokenId, address indexed holder, address indexed paidTo, uint256 amount);
     event RetiredEscrowRevoked(address indexed escrow);
     event PoolClosed(uint256 indexed tokenId);
+    event PayoutProposed(uint256 indexed tokenId, address indexed current, address indexed next);
+    event PayoutChanged(uint256 indexed tokenId, address indexed previous, address indexed next);
 
     /// @notice The backend's key: may mint a catalogue, link its audio once
     ///         and clear that link, nothing else. Zero means only the owner can.
@@ -483,6 +492,27 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
         );
         trackAudioUri[tokenId] = uri;
         emit TrackAudioUriUpdated(tokenId, uri);
+    }
+
+    /// @notice The token's current payout wallet proposes `next` (§2.117);
+    ///         address(0) withdraws a proposal. Nothing changes until `next`
+    ///         accepts, so a mistyped address cannot take the payouts.
+    function proposePayout(uint256 tokenId, address next) external {
+        address current = payoutOf[tokenId];
+        require(current != address(0) && msg.sender == current, "HumfiverseCatalogueToken: not the payout wallet");
+        require(next != current, "HumfiverseCatalogueToken: already the payout wallet");
+        pendingPayoutOf[tokenId] = next;
+        emit PayoutProposed(tokenId, current, next);
+    }
+
+    /// @notice The proposed wallet takes over the token's sales proceeds and
+    ///         the pool's royalty share, unclaimed ones included.
+    function acceptPayout(uint256 tokenId) external {
+        require(msg.sender != address(0) && msg.sender == pendingPayoutOf[tokenId], "HumfiverseCatalogueToken: not the proposed payout wallet");
+        address previous = payoutOf[tokenId];
+        payoutOf[tokenId] = msg.sender;
+        delete pendingPayoutOf[tokenId];
+        emit PayoutChanged(tokenId, previous, msg.sender);
     }
 
     function setPayoutRecipient(address next) external onlyOwner {
