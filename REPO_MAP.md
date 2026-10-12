@@ -82,6 +82,7 @@ Builds to `../docs` (see below) for GitHub Pages; Netlify builds it fresh from s
 ## `planning/` — planning & decision docs
 
 - `technical-architecture.md` — **the detailed technical changelog**, dated and numbered (§2.1 → §2.44+ and counting). Every non-obvious bug, fix, or architectural decision this project has made is documented here with its reasoning. Check here before re-diagnosing something that may already have a documented answer.
+- `procedura-verifica-studi.md` — draft procedure (Italian) for verifying a studio before the Safe registers it (§2.110; legal/07 B5-bis). Awaiting approval.
 - `business-overview.md`, `legal-regulatory-notes.md`, `blockchain-infrastructure-implementation-notes.md`, `frontend-prototype.md` — the original business/legal/technical planning docs, more static, written before most of the build-out.
 
 ## `whitepaper/` — public-facing whitepaper (GitBook)
