@@ -16,6 +16,7 @@ A folder-by-folder index of this repo: what's where, and where to read the *why*
 | `render.yaml` | Render deploy config for the backend (`server/`). |
 | `run-dev.sh` | Runs backend + frontend together locally. |
 | `.gitbook.yaml` | Tells GitBook where the synced whitepaper content lives (`whitepaper/`) when the space is connected to this repo. |
+| `brand/` | Logo, avatar, X header, trademark image and the YouTube banner with its HTML source (see `brand/README.md`). |
 | `password` | Empty, untracked-origin file that showed up once during development (§ in `SESSION_LOG.md`'s 2026-08-29 entry). Harmless, gitignored, never resolved — not a real credential. |
 
 ## `contracts/` — Solidity smart contracts (Hardhat)

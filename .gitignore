@@ -8,3 +8,9 @@ server/humfiverse.db
 !.claude/skills/
 .env
 password
+
+# Angular build cache
+.angular/
+# Hackathon material kept locally, not ours to publish
+Crypto World's Fair Hackathon Rules.pdf
+humfiverse-demo:audio/

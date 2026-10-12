@@ -2736,7 +2736,7 @@ scrive "120+" (≈123 `it(` contati su main, suite non lanciata).
 
 **Canale YouTube:** scritta la descrizione del canale (in chat, inglese, senza
 parole da investimento). **Banner** 2560×1440 in
-`humfiverse-youtube-banner.png` (radice del repo, non tracciato) con sorgente
+`humfiverse-youtube-banner.png` (radice del repo, non tracciato — dal 12 ott in `brand/`, tracciato) con sorgente
 `humfiverse-youtube-banner.html` (stile header X: pentagrammi viola→verde,
 marchio a nove barre, Geist; testo nella zona sicura 1546×423). Rigenerare con
 Chrome headless `--window-size=2560,1440 --screenshot`.
@@ -2912,3 +2912,11 @@ whitepaper — fatto (cap. 2, 3, 4, 6, 9); (3) guida con Haiku — default
 `claude-haiku-5-5`, manca `ANTHROPIC_API_KEY` su Render; (4) seconda firma sulla
 decisione di annullamento — fatta (step `confirm`, stage `proposed`), 6 test.
 Ritiro commissioni dai vecchi escrow: bloccato dai permessi, comando a Cesare.
+
+## 2026-10-12 — pulizia del repo
+
+Rimossi i 5 worktree vecchi (audit, domain, finance-design, legal-benchmark,
+petru): i loro branch restano, tutti già su main tranne `dev/petru` (1 commit,
+pushato). Loghi, avatar, header X e banner YouTube spostati in `brand/`
+(tracciati, con README). In `.gitignore`: `.angular/`, il PDF del regolamento
+dell'hackathon e `humfiverse-demo:audio/`.
