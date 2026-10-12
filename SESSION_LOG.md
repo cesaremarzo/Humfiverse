@@ -2835,3 +2835,25 @@ gli stessi termini e la campagna viene creata con lo stesso controllo della firm
   durata di conservazione da definire.
 - In produzione oggi nessun token è senza campagna (Test B è vendita diretta);
   i token coniati prima di questa modifica non hanno termini salvati.
+
+## 2026-10-12 — contraddizione sulla governance sistemata (§2.113)
+
+Aperto dall'11 ott. La pagina campagna ("Governance") prometteva un voto
+consultivo e uno "SPV manager" che decide; il testo dell'escrow diceva che lo SPV
+manager conferma le tranche e che i rimborsi scattano a obiettivo mancato; il
+contratto artista (`manager-discretion`) dava allo SPV Manager il potere di
+confermare o sospendere le milestone. Nel codice: nessun voto, confermano solo
+artista e studio, il Safe può solo annullare, rimborsi solo dopo l'annullamento.
+
+- **Contratto v0.4-draft:** `manager-discretion` → `cancellation` (testo di
+  legal/08 A-1, 5 lingue); copia JSON del frontend rigenerata.
+- **Sito, 9 lingue:** "Governance" e testo dell'escrow riscritti; corretto anche
+  il fattore di rischio dei dati demo.
+- **Legale:** 03 T-1 risolto, 08 A-1 segnata nel codice, CHANGELOG, check pulito.
+- Controllato in locale (Chrome headless) in inglese e italiano.
+- **Da sapere:** sulla catena il Safe può ancora annullare senza motivo (`NONE`)
+  finché la campagna non è tutta rilasciata: per questo il sito dice che
+  Humfiverse "si impegna" ad annullare solo per motivi di legge. Il limite vero
+  arriva togliendo `NONE` al prossimo redeploy.
+- **Restano:** T-2 (`milestones`: tranche "all'Artista") e T-3 (`refund`: obiettivo
+  mancato e scadenze).

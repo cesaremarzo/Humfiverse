@@ -1,10 +1,10 @@
 # Bozza di clausole: Accordo Artista, Accordo Investitore, accettazione
 
-*Bozza del 2026-09-15, commit `82a7a1b`; A-5 punto 1 e A-8 punti 5-6 aggiornati il 2026-10-11 (royalty in proporzione al tempo di possesso, studi verificati, §2.110); A-5 aggiornata il 2026-09-17 (ordine delle milestone); A-8 e C-12 nuove il 2026-09-17 (versamento delle royalty, §2.98); A-6 aggiornata il 2026-09-17 (vendita diretta al 6%, 1% sulle royalty, §2.101); note di implementazione ad A-1 e A-1-bis il 2026-09-28 (§2.105). **Da far rivedere a un avvocato.** Non
+*Bozza del 2026-09-15, commit `82a7a1b`; A-5 punto 1 e A-8 punti 5-6 aggiornati il 2026-10-11 (royalty in proporzione al tempo di possesso, studi verificati, §2.110); A-5 aggiornata il 2026-09-17 (ordine delle milestone); A-8 e C-12 nuove il 2026-09-17 (versamento delle royalty, §2.98); A-6 aggiornata il 2026-09-17 (vendita diretta al 6%, 1% sulle royalty, §2.101); note di implementazione ad A-1 e A-1-bis il 2026-09-28 (§2.105); A-1 riportata nel template il 2026-10-12 (§2.113). **Da far rivedere a un avvocato.** Non
 è consulenza legale.*
 
 Traduce in testo contrattuale la decisione del 15 settembre 2026 (note legali
-§7.10) e le correzioni del file 03 (T-1…T-9). **Non è ancora nel codice.** Va
+§7.10) e le correzioni del file 03 (T-1…T-9). **Solo A-1 è nel codice** (dal 2026-10-12, clausola `cancellation` del template v0.4-draft); il resto no. Va
 riportato in `server/contract-template.js`, nelle 5 lingue del template, e nel
 flusso di registrazione.
 
@@ -27,7 +27,7 @@ Sostituisce le clausole `manager-discretion`, `milestones` e `refund` e integra
 `assignment` ed `exclusivity` del template v0.3-draft.
 
 ### A-1 · Annullamento della campagna `[V]`
-*Sostituisce `manager-discretion` (T-1).*
+*Sostituisce `manager-discretion` (T-1).* **Nel template dal 2026-10-12** come clausola `cancellation` (§2.113), in forma breve, nelle 5 lingue: rinvia alla conferma sul contratto di escrow invece che alla clausola A-5, che nel template non c'è ancora.
 
 1. La Piattaforma può annullare la Campagna, anche dopo il rilascio di una o più
    tranche, esclusivamente se:

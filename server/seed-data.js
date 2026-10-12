@@ -44,7 +44,7 @@ const ASSETS = [
     dspPolicy: "TIDAL demonetizes fully AI-generated tracks — financing aims to add enough human production to exit that classification before release.",
     riskFactors: [
       "This track is unreleased and has no royalty history — financing carries venture-style risk, not bond-like income.",
-      "Funds are held in milestone-gated escrow; a tranche only releases when the SPV manager confirms that milestone was met.",
+      "Funds are held in milestone-gated escrow; a tranche only releases when both the artist and the studio confirm that milestone.",
       "If the funding goal is not reached, uncommitted funds are refunded pro-rata."
     ],
     documents: [{ name: "Production budget breakdown", type: "PDF", date: "Aug 2026" }, { name: "Draft demo (instrumental)", type: "MP3", date: "Aug 2026" }],

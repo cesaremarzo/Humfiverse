@@ -3,6 +3,27 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-10-12 · governance e clausola di annullamento (technical §2.113)
+
+Il contratto artista diceva l'opposto del codice: la clausola `manager-discretion`
+dava allo "SPV Manager" il potere di confermare o sospendere le milestone, e la
+pagina della campagna parlava di un voto consultivo dei possessori. Sul contratto
+escrow confermano solo artista e studio; il Safe può solo annullare.
+
+- **Template v0.4-draft:** `manager-discretion` sostituita da `cancellation`, con
+  il testo di 08 A-1 (tre motivi di legge, avviso di 5 giorni, decisione scritta,
+  rimborso dei fondi non rilasciati), nelle 5 lingue. Resta vessatoria.
+- **03 T-1** risolto; **08** A-1 segnata come riportata nel template.
+- **Sito:** "Governance" ora dice che non ci sono votazioni, chi conferma, e che
+  Humfiverse può solo annullare (impegnandosi a farlo solo per motivi di legge);
+  il testo dell'escrow non cita più lo SPV manager né rimborsi automatici.
+- **Attenzione:** sulla catena il Safe può ancora annullare *senza* motivo di legge
+  (motivo `NONE`) finché la campagna non è tutta rilasciata. La clausola è un
+  impegno contrattuale; il limite tecnico arriva solo togliendo `NONE` al prossimo
+  redeploy (già in lista).
+- Restano aperti T-2 (`milestones`: tranche "all'Artista") e T-3 (`refund`:
+  obiettivo mancato e scadenze che il codice non ha).
+
 ## 2026-10-12 · termini di lancio conservati per le campagne solo escrow (technical §2.112)
 
 Il server crea ora la campagna escrow nella stessa richiesta del conio del token,
