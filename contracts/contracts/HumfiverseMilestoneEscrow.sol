@@ -60,8 +60,15 @@ import "./HumfiverseCatalogueToken.sol";
 ///         over the tokens sold at that moment, and whoever holds them
 ///         claims it by handing the tokens back to be burned — a resale
 ///         buyer included, and nobody keeps both the money and the token.
-///         There are no deadlines: a campaign ends by selling out, by
-///         releasing every milestone, or by cancellation.
+///         Raise deadline and minimum (§2.114): every campaign has a date
+///         by which at least `minRaiseOf` must be raised, both fixed at
+///         creation from what the artist signed. Until the minimum is in, no
+///         tranche is released. If the date passes below it, the campaign has
+///         failed — by rule, with nobody deciding: contributions and
+///         confirmations stop, and the first refund settles it and opens
+///         refunds for every holder. Once the minimum is reached the date no
+///         longer matters, and the campaign ends as before: by selling out,
+///         by releasing every milestone, or by cancellation.
 ///         Studios are verified, not declared (§2.110): only the owner
 ///         registers one, after checking off chain who runs it, because a
 ///         studio the artist names is too often a second wallet of the
@@ -83,7 +90,8 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     }
     enum CampaignStatus {
         ACTIVE,
-        CANCELLED
+        CANCELLED,
+        FAILED // §2.114: past its raise deadline below its minimum, settled
     }
     /// @notice Why a campaign was cancelled. NONE is allowed only while some
     ///         milestone is unreleased; the others need a decision hash.
@@ -172,6 +180,18 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     ///         refund, so the last token takes any rounding remainder.
     mapping(uint256 => uint256) public refundTokensOf;
 
+    /// @notice §2.114: campaignId => unix time by which the minimum must be
+    ///         raised. Set once at creation.
+    mapping(uint256 => uint64) public raiseDeadlineOf;
+    /// @notice §2.114: campaignId => the minimum, in paymentToken base units
+    ///         credited (net of the contribution fee, like `raised`) — the
+    ///         artist's percentage of fundingTargetOf, so X% means X% of the
+    ///         tokens sold.
+    mapping(uint256 => uint256) public minRaiseOf;
+
+    /// @notice Longest raise period a campaign may set.
+    uint256 public constant MAX_RAISE_PERIOD = 365 days;
+
     uint256 private nextCampaignId = 1;
     uint256 private nextStudioId = 1;
 
@@ -210,6 +230,8 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     event MilestoneConfirmed(uint256 indexed campaignId, uint256 indexed milestoneIndex, address indexed payee, uint256 amount);
     event CampaignCancelled(uint256 indexed campaignId, CancelGround ground, bytes32 decisionHash, uint256 refundPool, uint256 refundTokens);
     event Refunded(uint256 indexed campaignId, address indexed holder, uint256 tokensBurned, uint256 amount);
+    event RaiseTermsSet(uint256 indexed campaignId, uint64 raiseDeadline, uint256 minRaise);
+    event CampaignFailed(uint256 indexed campaignId, uint256 refundPool, uint256 refundTokens);
     event OperatorUpdated(address indexed previous, address indexed next);
     event ContributionFeeRetained(uint256 indexed campaignId, address indexed contributor, uint256 fee);
     event PlatformFeeRetained(uint256 indexed campaignId, uint256 indexed milestoneIndex, uint256 fee);
@@ -275,7 +297,9 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     /// @notice The goal is not a parameter (§2.79): it is the linked token's
     ///         price times its supply, so a campaign always aims for exactly
     ///         what selling every token raises — never more tokens than the
-    ///         goal pays for, never a goal the tokens cannot reach.
+    ///         goal pays for, never a goal the tokens cannot reach. The raise
+    ///         deadline and the minimum, as a share of that goal in bps, are
+    ///         (§2.114).
     function createCampaign(
         address artist,
         uint256 studioId,
@@ -283,8 +307,13 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         uint256 tokenId,
         string[] calldata milestoneNames,
         uint16[] calldata milestoneBps,
-        Payee[] calldata milestonePayees
+        Payee[] calldata milestonePayees,
+        uint64 raiseDeadline,
+        uint16 minRaiseBps
     ) external onlyOwnerOrOperator returns (uint256 campaignId) {
+        require(raiseDeadline > block.timestamp, "HumfiverseMilestoneEscrow: raise deadline must be in the future");
+        require(raiseDeadline <= block.timestamp + MAX_RAISE_PERIOD, "HumfiverseMilestoneEscrow: raise deadline too far");
+        require(minRaiseBps > 0 && minRaiseBps <= 10_000, "HumfiverseMilestoneEscrow: minimum out of range");
         require(artist != address(0), "HumfiverseMilestoneEscrow: zero artist");
         require(bytes(assetId).length > 0, "HumfiverseMilestoneEscrow: assetId required");
         require(campaignIdByAssetId[assetId] == 0, "HumfiverseMilestoneEscrow: asset already has a campaign");
@@ -342,7 +371,23 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
                 Milestone({name: milestoneNames[i], bps: milestoneBps[i], payee: milestonePayees[i], released: false})
             );
         }
+        raiseDeadlineOf[campaignId] = raiseDeadline;
+        minRaiseOf[campaignId] = (fundingTargetOf(campaignId) * minRaiseBps) / 10_000;
         emit CampaignCreated(campaignId, artist, fundingGoal, studioId, assetId);
+        emit RaiseTermsSet(campaignId, raiseDeadline, minRaiseOf[campaignId]);
+    }
+
+    /// @notice §2.114: the minimum is in. It stays in: `raised` never falls.
+    function minRaiseReached(uint256 campaignId) public view returns (bool) {
+        return campaigns[campaignId].raised >= minRaiseOf[campaignId];
+    }
+
+    /// @notice §2.114: past the raise deadline below the minimum — failed by
+    ///         rule, whether or not a refund has settled it yet.
+    function raiseFailed(uint256 campaignId) public view returns (bool) {
+        Campaign storage c = campaigns[campaignId];
+        if (c.status == CampaignStatus.FAILED) return true;
+        return c.status == CampaignStatus.ACTIVE && c.artist != address(0) && block.timestamp > raiseDeadlineOf[campaignId] && !minRaiseReached(campaignId);
     }
 
     /// @notice Contributes USDC to a campaign and, in the same transaction,
@@ -361,6 +406,7 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         Campaign storage c = campaigns[campaignId];
         require(c.artist != address(0), "HumfiverseMilestoneEscrow: unknown campaign");
         require(c.status == CampaignStatus.ACTIVE, "HumfiverseMilestoneEscrow: not active");
+        require(!raiseFailed(campaignId), "HumfiverseMilestoneEscrow: raise failed");
         require(amount > 0, "HumfiverseMilestoneEscrow: zero contribution");
         uint256 tokenId = campaignTokenId[campaignId];
         uint256 price = catalogueToken.pricePerToken(tokenId);
@@ -397,6 +443,7 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         Campaign storage c = campaigns[campaignId];
         require(msg.sender == c.artist, "HumfiverseMilestoneEscrow: not this campaign's artist");
         require(c.status == CampaignStatus.ACTIVE, "HumfiverseMilestoneEscrow: not active");
+        require(!raiseFailed(campaignId), "HumfiverseMilestoneEscrow: raise failed");
         require(milestoneIndex < campaignMilestones[campaignId].length, "HumfiverseMilestoneEscrow: bad index");
         require(!campaignMilestones[campaignId][milestoneIndex].released, "HumfiverseMilestoneEscrow: already released");
         _requirePreviousReleased(campaignId, milestoneIndex);
@@ -415,6 +462,7 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         require(c.studioId != 0, "HumfiverseMilestoneEscrow: campaign has no studio");
         require(msg.sender == studios[c.studioId].wallet, "HumfiverseMilestoneEscrow: not this campaign's studio");
         require(c.status == CampaignStatus.ACTIVE, "HumfiverseMilestoneEscrow: not active");
+        require(!raiseFailed(campaignId), "HumfiverseMilestoneEscrow: raise failed");
         require(milestoneIndex < campaignMilestones[campaignId].length, "HumfiverseMilestoneEscrow: bad index");
         require(!campaignMilestones[campaignId][milestoneIndex].released, "HumfiverseMilestoneEscrow: already released");
         _requirePreviousReleased(campaignId, milestoneIndex);
@@ -463,6 +511,8 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         bool studioSideDone = c.studioId == 0 || studioConfirmed[campaignId][milestoneIndex];
         if (!(artistConfirmed[campaignId][milestoneIndex] && studioSideDone)) return;
 
+        // §2.114: nothing leaves before the minimum is in.
+        if (!minRaiseReached(campaignId)) return;
         uint256 target = fundingTargetOf(campaignId);
         // Not enough raised yet — releases once it is, on the next confirming call.
         if (c.raised < (target * (c.releasedBps + m.bps)) / 10_000) return;
@@ -513,6 +563,9 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         Campaign storage c = campaigns[campaignId];
         require(c.artist != address(0), "HumfiverseMilestoneEscrow: unknown campaign");
         require(c.status == CampaignStatus.ACTIVE, "HumfiverseMilestoneEscrow: not active");
+        // §2.114: a failed raise refunds by rule; a cancellation would only
+        // relabel it as someone's decision.
+        require(!raiseFailed(campaignId), "HumfiverseMilestoneEscrow: raise failed, refunds are open");
         if (ground == CancelGround.NONE) {
             require(c.releasedBps < 10_000, "HumfiverseMilestoneEscrow: fully released, needs a legal ground");
         } else {
@@ -539,9 +592,13 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     ///         rate stays the same for everyone and the last token takes any
     ///         rounding remainder. Royalties the tokens earned before the burn
     ///         stay claimable on the token contract.
+    ///         A failed raise (§2.114) refunds the same way: the first refund
+    ///         after the deadline settles it — status FAILED, pool and token
+    ///         count fixed, token pool closed — so nobody has to trigger it.
     function refund(uint256 campaignId, uint256 tokens) external nonReentrant {
         Campaign storage c = campaigns[campaignId];
-        require(c.status == CampaignStatus.CANCELLED, "HumfiverseMilestoneEscrow: not cancelled");
+        if (c.status == CampaignStatus.ACTIVE && raiseFailed(campaignId)) _settleFailed(campaignId);
+        require(c.status == CampaignStatus.CANCELLED || c.status == CampaignStatus.FAILED, "HumfiverseMilestoneEscrow: not refundable");
         require(tokens > 0, "HumfiverseMilestoneEscrow: zero tokens");
         uint256 remainingTokens = refundTokensOf[campaignId];
         require(tokens <= remainingTokens, "HumfiverseMilestoneEscrow: more tokens than refundable");
@@ -558,12 +615,38 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         emit Refunded(campaignId, msg.sender, tokens, amount);
     }
 
-    /// @notice What `tokens` would refund right now; 0 if not cancelled.
+    /// @notice §2.114: fixes a failed raise's refund pool and token count,
+    ///         exactly as cancelCampaign does, and closes the token pool.
+    ///         Nothing was released (no tranche leaves below the minimum), so
+    ///         the pool is everything raised.
+    function _settleFailed(uint256 campaignId) private {
+        Campaign storage c = campaigns[campaignId];
+        uint256 tokenId = campaignTokenId[campaignId];
+        c.status = CampaignStatus.FAILED;
+        refundPoolOf[campaignId] = c.raised - campaignReleased[campaignId];
+        refundTokensOf[campaignId] = catalogueToken.releasedOf(tokenId) - catalogueToken.burnedOf(tokenId);
+        catalogueToken.closePool(tokenId);
+        emit CampaignFailed(campaignId, refundPoolOf[campaignId], refundTokensOf[campaignId]);
+    }
+
+    /// @notice What `tokens` would refund right now; 0 if not refundable.
+    ///         For a failed raise not yet settled, what settling would give.
     function refundQuote(uint256 campaignId, uint256 tokens) external view returns (uint256) {
-        if (campaigns[campaignId].status != CampaignStatus.CANCELLED) return 0;
-        uint256 remainingTokens = refundTokensOf[campaignId];
+        Campaign storage c = campaigns[campaignId];
+        uint256 pool;
+        uint256 remainingTokens;
+        if (c.status == CampaignStatus.CANCELLED || c.status == CampaignStatus.FAILED) {
+            pool = refundPoolOf[campaignId];
+            remainingTokens = refundTokensOf[campaignId];
+        } else if (raiseFailed(campaignId)) {
+            uint256 tokenId = campaignTokenId[campaignId];
+            pool = c.raised - campaignReleased[campaignId];
+            remainingTokens = catalogueToken.releasedOf(tokenId) - catalogueToken.burnedOf(tokenId);
+        } else {
+            return 0;
+        }
         if (tokens == 0 || tokens > remainingTokens) return 0;
-        return (refundPoolOf[campaignId] * tokens) / remainingTokens;
+        return (pool * tokens) / remainingTokens;
     }
 
     /// @notice What a campaign can actually hold once sold out — its goal

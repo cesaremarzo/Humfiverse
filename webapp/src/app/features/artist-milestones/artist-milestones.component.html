@@ -42,7 +42,7 @@
               @if (c.studio) { · Studio "{{ c.studio.name }}" <app-address [value]="c.studio.wallet"></app-address> }
             </div>
           </div>
-          <span class="chip" [class.chip-good]="c.status === 'active'" [class.chip-neutral]="c.status === 'cancelled'">{{ c.status }}</span>
+          <span class="chip" [class.chip-good]="c.status === 'active'" [class.chip-neutral]="c.status !== 'active'">{{ c.status }}</span>
         </div>
 
         <div class="stat-row" style="margin-bottom:14px;">

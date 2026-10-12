@@ -79,7 +79,7 @@
           @if (c.studio) { · Studio "{{ c.studio.name }}" <app-address [value]="c.studio.wallet"></app-address> }
         </div>
       </div>
-      <span class="chip" [class.chip-good]="c.status === 'active'" [class.chip-neutral]="c.status === 'cancelled'">{{ c.status }}</span>
+      <span class="chip" [class.chip-good]="c.status === 'active'" [class.chip-neutral]="c.status !== 'active'">{{ c.status }}</span>
     </div>
 
     <div class="stat-row" style="margin-bottom:14px;">
@@ -101,7 +101,7 @@
         To cancel this campaign, use the <a routerLink="/admin/takedown">takedown procedure</a>: notice to the artist, a written decision, then the owner Safe cancels on chain.
       </p>
     }
-    @if (c.status === 'cancelled') {
+    @if (c.status === 'cancelled' || c.status === 'failed') {
       <div class="card panel" style="margin-bottom:14px;">
         <div class="cell-primary" style="margin-bottom:6px;">Refunds</div>
         @if (c.legacy) {

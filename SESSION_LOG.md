@@ -2857,3 +2857,21 @@ artista e studio, il Safe può solo annullare, rimborsi solo dopo l'annullamento
   arriva togliendo `NONE` al prossimo redeploy.
 - **Restano:** T-2 (`milestones`: tranche "all'Artista") e T-3 (`refund`: obiettivo
   mancato e scadenze).
+
+## 2026-10-12 — scadenza e soglia minima della raccolta (§2.114)
+
+Cesare ha riaperto la decisione del 15 set (niente scadenze) e scelto il "punto 1":
+ogni campagna escrow ha una **scadenza** e una **soglia minima** scelte
+dall'artista. Sotto la soglia nessuna tranche; se alla scadenza manca la soglia, la
+campagna fallisce **per regola** (nessuno la dichiara) e il primo rimborso apre i
+rimborsi per tutti, pari a quanto versato meno il 2%. Raggiunta la soglia, la
+scadenza non conta più.
+
+- Contratto escrow + 7 test (130); backend (terza generazione dell'escrow, termini
+  nella firma di lancio); wizard, pagina campagna, portafoglio, testi in 9 lingue,
+  guida; template v0.5-draft (risolti T-2 e T-3); legale aggiornato (B3 riscritta).
+- Provato su un fork: deploy con lo script, Safe impersonato, lancio, contributo al
+  10%, scadenza superata, rimborso 0,98 USDC; wizard cliccato in Chrome headless.
+- **Redeploy da fare** (solo escrow): `contracts/scripts/redeployEscrowRaise.js`,
+  poi il Safe firma `setEscrowContract`, poi merge, poi le variabili su Render.
+  Night Swim (20% rilasciato) resta sul vecchio escrow, che entra nella lista legacy.

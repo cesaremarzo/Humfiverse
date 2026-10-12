@@ -1,6 +1,6 @@
 # Come si sono messe in regola le altre piattaforme
 
-*Revisione del 2026-09-16, commit `7765a2d`. Non è consulenza legale.*
+*nota sulla soglia minima il 2026-10-12 (§2.114). Revisione del 2026-09-16, commit `7765a2d`. Non è consulenza legale.*
 
 Tre piattaforme che vendono al pubblico quote di royalty musicali esistono e
 operano da anni: **ANote Music** (Lussemburgo), **SongVest** (USA) e **Royalty
@@ -180,7 +180,8 @@ Ogni campagna diventa un'offerta di crowdfunding. Comporta, sul prodotto:
   consegnare il token nello stesso istante, o deve restare rimborsabile;
 - tetto di **5 milioni di euro per artista** in 12 mesi;
 - probabilmente una **soglia minima di raccolta** prima della prima tranche
-  (07 B3).
+  (07 B3). *C'è dal 2026-10-12 (§2.114), scelta dall'artista con una scadenza;
+  resta da capire se serve un minimo fisso.*
 
 **Fase 3 — mercato secondario vero**
 Solo con un MTF partner o dentro il **DLT Pilot Regime**, non da soli.

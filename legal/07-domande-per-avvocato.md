@@ -1,6 +1,6 @@
 # Domande per l'avvocato
 
-*Revisione del 2026-10-11 (B5 decisa, nuova B5-bis: verifica degli studi, §2.110). Prima 2026-09-28 (H5: decisione di annullamento agli investitori). Prima 2026-09-22 (A15, L4-L9: società maltese, file 10). Prima 2026-09-17, commit `fd7f822` + §2.101 (A13: commissione sulla distribuzione delle royalty; A12, I4: versamento delle royalty), prima `94ae18f` (A4: storico prezzi) e `27d8d5f` + §2.100 (A14, F4, H4: guida automatica).*
+*B3 riscritta il 2026-10-12 (decisione cambiata: scadenza e soglia minima, §2.114). Revisione del 2026-10-11 (B5 decisa, nuova B5-bis: verifica degli studi, §2.110). Prima 2026-09-28 (H5: decisione di annullamento agli investitori). Prima 2026-09-22 (A15, L4-L9: società maltese, file 10). Prima 2026-09-17, commit `fd7f822` + §2.101 (A13: commissione sulla distribuzione delle royalty; A12, I4: versamento delle royalty), prima `94ae18f` (A4: storico prezzi) e `27d8d5f` + §2.100 (A14, F4, H4: guida automatica).*
 
 Le domande vengono dai file 01-03 e dalle decisioni già prese (note legali §7,
 §7.10; technical-architecture §2.86). Sostituiscono e ampliano l'elenco del §6
@@ -156,11 +156,15 @@ Lussemburgo (CSSF) e Italia (CONSOB).*
   conto separato o il prestatore di servizi di pagamento che l'ECSPR richiede per
   la custodia dei fondi? Serve anche una licenza di pagamento o di moneta
   elettronica per maneggiare USDC? *(01 §3)*
-- **B3** 🔴 Abbiamo **deciso di non avere scadenze** (§2.86): una campagna finisce
-  solo se vende tutto, rilascia tutto o viene annullata; le prime tranche possono
-  essere pagate con una raccolta parziale e non c'è un rimborso automatico. È
-  compatibile con l'ECSPR e con la tutela del consumatore, se dichiarato con
-  chiarezza? Serve almeno una soglia minima di raccolta prima della prima tranche?
+- **B3** 🔴 **Decisione cambiata il 2026-10-12 (§2.114):** ogni campagna ha una
+  **scadenza** (da un'ora a un anno) e una **soglia minima** scelte dall'artista.
+  Sotto la soglia non si paga nessuna tranche; se alla scadenza la soglia manca,
+  la campagna fallisce per regola e ogni possessore recupera quanto versato meno
+  il 2%. Raggiunta la soglia, la campagna resta aperta senza limiti e paga le
+  tranche coperte. Domande: (a) la soglia scelta liberamente dall'artista, anche
+  molto bassa, basta per ECSPR e tutela del consumatore, o serve un minimo fisso
+  (es. 50%)? (b) Dopo la soglia, una campagna senza fine è accettabile se
+  dichiarata? (c) Il 2% trattenuto anche su una raccolta fallita è sostenibile?
   *(02 C-4)*
 - **B4** 🟠 Il **periodo di riflessione di 4 giorni** (ECSPR art. 22) o il
   **recesso di 14 giorni** per i servizi finanziari a distanza come si conciliano

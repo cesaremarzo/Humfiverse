@@ -37,8 +37,9 @@ module.exports = function registerEscrowRoutes(router) {
         sendJson(res, 503, { error: "escrow admin actions are disabled on this server (no operator key configured)" });
         return;
       }
+      // §2.114: the raise terms come only from the signature.
       const result = await escrow.createCampaign(
-        body.assetId, body.artistAddress, body.studioName, body.studioWallet, body.milestones
+        body.assetId, body.artistAddress, body.studioName, body.studioWallet, body.milestones, launch.raiseDeadline, launch.minRaiseBps
       );
       sendJson(res, 200, result);
     } catch (e) {
@@ -50,6 +51,8 @@ module.exports = function registerEscrowRoutes(router) {
         sendJson(res, 409, { error: "asset already has an escrow campaign", record: e.record });
       } else if (e.code === "studio_unverified") {
         sendJson(res, 400, { error: e.message, code: e.code });
+      } else if (/raise deadline|minimum out of range/.test(String(e.shortMessage || e.reason || e.message))) {
+        sendJson(res, 400, { error: "the raise deadline has passed or is out of range: launch the campaign again with new terms", code: "raise_terms" });
       } else if (e.code === "no_token") {
         sendJson(res, 400, { error: e.message });
       } else {

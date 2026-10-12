@@ -87,7 +87,20 @@ export class AssetDetailComponent {
    * does not take them back), so the page stops offering to trade them. */
   campaignCancelled = computed(() => {
     const escrow = this.escrowInfo();
-    return !!escrow?.escrow && escrow.status === 'cancelled' && escrow.releasedBps < 10_000;
+    return !!escrow?.escrow && (escrow.status === 'cancelled' || escrow.status === 'failed') && escrow.releasedBps < 10_000;
+  });
+
+  /** §2.114: the raise rule of an active escrow campaign, for the buy panel. */
+  raiseRule = computed(() => {
+    const escrow = this.escrowInfo();
+    if (!escrow?.escrow || escrow.status !== 'active' || !escrow.raiseDeadline || escrow.minRaiseUsdc == null) return null;
+    const target = Number(escrow.fundingTargetUsdc ?? escrow.fundingGoal) || 0;
+    return {
+      // The deadline is the end of a day in UTC; shown in local time it reads as the next day east of Greenwich.
+      date: new Date(escrow.raiseDeadline * 1000).toLocaleDateString(this.store.locale(), { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' }) + ' (UTC)',
+      percent: target > 0 ? Math.round((Number(escrow.minRaiseUsdc) / target) * 100) : 0,
+      reached: !!escrow.minRaiseReached
+    };
   });
 
   myListings = computed(() => {

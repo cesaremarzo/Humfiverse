@@ -1,6 +1,6 @@
 # Termini di Servizio: bozza
 
-*Bozza del 2026-09-15, commit `82a7a1b`; §5.3 e §5.7 aggiornati il 2026-10-11 (studi verificati, royalty in proporzione al tempo di possesso, §2.110: in vigore sulla catena dal redeploy dello stesso giorno, §2.111); nota a §5.6 il 2026-09-28 (avviso e decisione solo a chi ha un'email, §2.105); §5.3 aggiornato il 2026-09-17 (ordine delle milestone); §5.7 il 2026-09-17 (chi versa le royalty e rendiconto, pubblicazione facoltativa, §2.98); §5.7 e §6 il 2026-09-17 (vendita diretta al 6%, 1% sulla distribuzione delle royalty, §2.101); §12 il 2026-09-17 (guida automatica, §2.100); §1 il 2026-10-07 (dominio humfiverse.com, §2.109). **Da far rivedere a un avvocato prima
+*§5.3 e §5.4 aggiornati il 2026-10-12 (scadenza e soglia minima, §2.114). Bozza del 2026-09-15, commit `82a7a1b`; §5.3 e §5.7 aggiornati il 2026-10-11 (studi verificati, royalty in proporzione al tempo di possesso, §2.110: in vigore sulla catena dal redeploy dello stesso giorno, §2.111); nota a §5.6 il 2026-09-28 (avviso e decisione solo a chi ha un'email, §2.105); §5.3 aggiornato il 2026-09-17 (ordine delle milestone); §5.7 il 2026-09-17 (chi versa le royalty e rendiconto, pubblicazione facoltativa, §2.98); §5.7 e §6 il 2026-09-17 (vendita diretta al 6%, 1% sulla distribuzione delle royalty, §2.101); §12 il 2026-09-17 (guida automatica, §2.100); §1 il 2026-10-07 (dominio humfiverse.com, §2.109). **Da far rivedere a un avvocato prima
 della pubblicazione.** Non è consulenza legale.*
 
 ## Note per chi usa questa bozza (da togliere prima di pubblicare)
@@ -135,13 +135,20 @@ già pagate, **anche se l'obiettivo complessivo non è stato raggiunto**.
 > *Nota per il team:* dal 2026-09-17 l'ordine lo verifica anche il contratto
 > escrow (technical §2.96-§2.97).
 
-**Le campagne non hanno
-scadenza**: una campagna si chiude solo quando tutti i token sono venduti, quando
-tutte le tranche sono rilasciate o quando viene annullata. Non esiste un rimborso
-automatico se l'obiettivo non viene raggiunto. Se artista e studio non
-confermano, i fondi restano nel contratto finché la campagna non viene annullata.
+**Scadenza e soglia
+minima** (dal 2026-10-12, §2.114): ogni campagna ha una data entro cui deve
+raccogliere almeno una soglia minima, entrambe scelte dall'artista e indicate
+nella pagina della campagna. Prima della soglia nessuna tranche viene pagata. Se
+alla scadenza la soglia non è raggiunta, la campagna fallisce automaticamente e
+si applica il punto 5.4. Raggiunta la soglia, la scadenza non conta più: la
+campagna si chiude quando tutti i token sono venduti, quando tutte le tranche sono
+rilasciate o quando viene annullata. Se artista e studio non confermano, i fondi
+restano nel contratto finché la campagna non viene annullata.
 
-5.4. **Rimborsi.** Se una campagna viene annullata, **chi possiede i token**
+5.4. **Rimborsi.** Se una campagna fallisce perché la soglia minima non è
+raggiunta entro la scadenza, **chi possiede i token** può restituirli e
+ricevere quanto è stato versato per essi, meno il 2% (non viene rilasciata nessuna
+tranche prima della soglia, quindi c'è tutto). Se una campagna viene annullata, **chi possiede i token**
 della campagna può restituirli e ricevere la loro quota di quanto non era ancora
 stato rilasciato al momento dell'annullamento. La quota è uguale per ogni token,
 anche per chi li ha comprati da un altro utente. **I token restituiti vengono

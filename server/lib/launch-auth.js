@@ -71,6 +71,18 @@ function normalizePayload(p, { issuedAt } = {}) {
       })
     : [];
 
+  // §2.114: an escrow campaign's raise deadline (unix seconds) and minimum
+  // (bps of the target). Required when the token is sold only through its
+  // escrow; a direct sale has neither.
+  let raiseDeadline = 0;
+  let minRaiseBps = 0;
+  if (!p.directSale) {
+    raiseDeadline = Number(p.raiseDeadline);
+    minRaiseBps = Number(p.minRaiseBps);
+    if (!Number.isSafeInteger(raiseDeadline) || raiseDeadline <= 0) throw codedError("invalid", "raiseDeadline is required");
+    if (!Number.isInteger(minRaiseBps) || minRaiseBps < 1 || minRaiseBps > 10_000) throw codedError("invalid", "minRaiseBps must be between 1 and 10000");
+  }
+
   const stamp = issuedAt ?? p.issuedAt;
   if (!stamp || Number.isNaN(Date.parse(stamp))) throw codedError("invalid", "issuedAt is required");
 
@@ -93,6 +105,8 @@ function normalizePayload(p, { issuedAt } = {}) {
     studioName: text(p.studioName, "studioName", { optional: true }),
     studioWallet,
     milestones,
+    raiseDeadline,
+    minRaiseBps,
     issuedAt: new Date(stamp).toISOString()
   };
 }
@@ -113,14 +127,25 @@ function buildLaunchMessage(payload) {
     `Direct sale: ${payload.directSale ? "yes" : "no, escrow only"}`,
     `Studio: ${payload.studioName || "none"}${payload.studioWallet ? ` (${payload.studioWallet})` : ""}`,
     `Milestones: ${milestones}`,
+    ...(payload.directSale ? [] : [`Raise: at least ${payload.minRaiseBps / 100}% by ${new Date(payload.raiseDeadline * 1000).toISOString()}, or every holder is refunded`]),
     `Issued: ${payload.issuedAt}`
   ].join("\n");
 }
 
 /** For POST /api/launch/message: stamps the time and returns the exact
  * text the wallet must sign, with the payload it was built from. */
+/** Longest raise a campaign may set, matching the escrow's MAX_RAISE_PERIOD. */
+const MAX_RAISE_SECONDS = 365 * 24 * 60 * 60;
+
 function prepareLaunch(rawPayload) {
   const payload = normalizePayload(rawPayload, { issuedAt: new Date().toISOString() });
+  // Checked only when signing starts: a later check of the same signature
+  // (e.g. completing a campaign, §2.112) is the contract's to refuse.
+  if (!payload.directSale) {
+    const now = Math.floor(Date.now() / 1000);
+    if (payload.raiseDeadline <= now + 3600) throw codedError("invalid", "the raise deadline must be at least an hour away");
+    if (payload.raiseDeadline > now + MAX_RAISE_SECONDS) throw codedError("invalid", "the raise deadline can be at most a year away");
+  }
   return { payload, message: buildLaunchMessage(payload) };
 }
 

@@ -223,6 +223,21 @@
         }
       }
 
+      <!-- §2.114: every escrow campaign has a raise deadline and a minimum -->
+      @if (data().model === 'preproduction' || data().catalogueCampaign.enabled) {
+        <div class="field" style="margin-top:14px;">
+          <label>{{ 'wizRaiseRule.title' | translate }}</label>
+          <p class="hint" style="margin:0 0 8px;">{{ 'wizRaiseRule.intro' | translate }}</p>
+          <div class="budget-row"><label>{{ 'wizRaiseRule.deadlineLabel' | translate }}</label><input type="date" class="mono" [min]="raiseDeadlineMin" [max]="raiseDeadlineMax" [value]="data().raiseRule.deadline" (input)="updateRaiseRule('deadline', $any($event.target).value)"></div>
+          <div class="budget-row"><label>{{ 'wizRaiseRule.minLabel' | translate }}</label><input type="number" min="1" max="100" step="1" class="mono" [value]="data().raiseRule.minPercent" (input)="updateRaiseRule('minPercent', $any($event.target).value)"></div>
+          @if (raiseRuleValid()) {
+            <span class="hint">{{ 'wizRaiseRule.summary' | translate: { min: fmtExact(minRaiseUsd()), percent: data().raiseRule.minPercent, date: data().raiseRule.deadline } }}</span>
+          } @else {
+            <span class="hint" style="color:var(--warning-ink, #b45309);">{{ 'wizRaiseRule.invalid' | translate }}</span>
+          }
+        </div>
+      }
+
       <div class="field" style="margin-top:14px;">
         <label>{{ 'wizSource.audioLabel' | translate }}</label>
         <label class="doc-row" style="cursor:pointer;">
@@ -334,6 +349,10 @@
         <div class="card stat-tile"><div class="label">{{ 'wizReview.fundingGoalField' | translate }}</div><div class="value">{{ fmtExact(raise().effectiveUsd) }}</div></div>
         <div class="card stat-tile"><div class="label">{{ 'wizRaise.supplyField' | translate }}</div><div class="value">{{ raise().supply }}</div></div>
         <div class="card stat-tile"><div class="label">{{ 'wizRaise.priceField' | translate }}</div><div class="value">{{ fmtExact(raise().priceUsd) }}</div></div>
+        @if (data().model === 'preproduction' || data().catalogueCampaign.enabled) {
+          <div class="card stat-tile"><div class="label">{{ 'wizRaiseRule.minField' | translate }}</div><div class="value">{{ data().raiseRule.minPercent }}% · {{ fmtExact(minRaiseUsd()) }}</div></div>
+          <div class="card stat-tile"><div class="label">{{ 'wizRaiseRule.deadlineField' | translate }}</div><div class="value mono" style="font-size:15px;">{{ data().raiseRule.deadline }}</div></div>
+        }
         @if (data().model !== 'preproduction') {
           <div class="card stat-tile"><div class="label">{{ 'wizReview.historyField' | translate }}</div><div class="value">{{ 'detail.moSuffix' | translate: { n: data().catalogue.months } }}</div></div>
         }

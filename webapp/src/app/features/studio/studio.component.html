@@ -42,7 +42,7 @@
             <div class="cell-primary">{{ c.assetId }}</div>
             <div style="font-size:12px; color:var(--text-secondary);">Campaign #{{ c.campaignId }} · Artist <app-address [value]="c.artist"></app-address></div>
           </div>
-          <span class="chip" [class.chip-good]="c.status === 'active'" [class.chip-neutral]="c.status === 'cancelled'">{{ c.status }}</span>
+          <span class="chip" [class.chip-good]="c.status === 'active'" [class.chip-neutral]="c.status !== 'active'">{{ c.status }}</span>
         </div>
 
         <div class="stat-row" style="margin-bottom:14px;">

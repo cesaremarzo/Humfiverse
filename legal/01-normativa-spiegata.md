@@ -1,6 +1,6 @@
 # La normativa che riguarda Humfiverse, spiegata
 
-*Revisione del 2026-09-15, commit `82a7a1b`; §10 aggiornato il 2026-09-17 (aliquote delle commissioni, §2.101); §7 e §13 aggiornati il 2026-09-17 (guida automatica, §2.100); §1 e §4 aggiornati il 2026-10-11 (correzioni dell'audit dei contratti, §2.110). Non è consulenza legale.*
+*punto "Obiettivo non raggiunto" aggiornato il 2026-10-12 (scadenza e soglia minima, §2.114). Revisione del 2026-09-15, commit `82a7a1b`; §10 aggiornato il 2026-09-17 (aliquote delle commissioni, §2.101); §7 e §13 aggiornati il 2026-09-17 (guida automatica, §2.100); §1 e §4 aggiornati il 2026-10-11 (correzioni dell'audit dei contratti, §2.110). Non è consulenza legale.*
 
 Questo documento non ripete `planning/legal-regulatory-notes.md`, che resta la
 ricerca di partenza. Lo riorganizza in una mappa unica e aggiunge le aree che
@@ -143,12 +143,13 @@ e vale in tutta l'UE. I limiti sono stringenti:
   istante in cui arriva il pagamento, e il 2% di commissione non è mai
   rimborsabile. Il ripensamento entro 4 giorni non è previsto.
 - **Obiettivo non raggiunto.** Nel crowdfunding tipico, se l'obiettivo non viene
-  raggiunto entro la scadenza i soldi tornano indietro. Humfiverse ha **deciso di
-  non avere scadenze** (§2.86): una campagna finisce solo se vende tutto, se
-  rilascia tutto o se viene annullata, e le prime tranche possono essere
-  rilasciate anche se la raccolta si ferma al 30%. È una scelta di prodotto
-  legittima, ma va dichiarata con chiarezza e verificata con l'avvocato se si
-  punta all'ECSPR (domanda B3).
+  raggiunto entro la scadenza i soldi tornano indietro. Dal 2026-10-12 (§2.114)
+  Humfiverse fa qualcosa di simile: ogni campagna ha una **scadenza** e una
+  **soglia minima** scelte dall'artista; sotto la soglia non si paga nessuna
+  tranche, e se alla scadenza la soglia manca tutti recuperano quanto versato
+  meno il 2%. A differenza del "tutto o niente" classico, la soglia può essere
+  più bassa dell'obiettivo e, una volta raggiunta, la campagna resta aperta senza
+  limiti. Va verificato con l'avvocato se basta per l'ECSPR (domanda B3).
 - **Chi custodisce i fondi.** I fondi stanno in un contratto di cui il Founder è
   `owner`. Serve capire se un escrow on-chain possa sostituire il prestatore di
   servizi di pagamento o il conto separato che ECSPR richiede.

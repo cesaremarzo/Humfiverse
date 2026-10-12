@@ -108,6 +108,21 @@ const ABI_V2 = [
   "event Refunded(uint256 indexed campaignId, address indexed holder, uint256 tokensBurned, uint256 amount)"
 ];
 
+/* §2.114: phase 2 plus a raise deadline and a minimum on every campaign. A
+   campaign past its deadline below the minimum has failed by rule: status
+   FAILED (2) once a refund has settled it, `raiseFailed` true either way. */
+const ABI_V3 = [
+  ...ABI_V2.filter((f) => !f.startsWith("function createCampaign(")),
+  "function createCampaign(address artist, uint256 studioId, string assetId, uint256 tokenId, string[] milestoneNames, uint16[] milestoneBps, uint8[] milestonePayees, uint64 raiseDeadline, uint16 minRaiseBps) returns (uint256)",
+  "function raiseDeadlineOf(uint256) view returns (uint64)",
+  "function minRaiseOf(uint256) view returns (uint256)",
+  "function minRaiseReached(uint256) view returns (bool)",
+  "function raiseFailed(uint256) view returns (bool)",
+  "function catalogueToken() view returns (address)"
+];
+const TOKEN_SUPPLY_ABI = ["function releasedOf(uint256) view returns (uint256)", "function burnedOf(uint256) view returns (uint256)"];
+const ABIS = { 1: ABI_V1, 2: ABI_V2, 3: ABI_V3 };
+
 /** The contract's cancellation grounds, in enum order (§2.92). */
 const CANCEL_GROUNDS = ["none", "unlawful_content", "third_party_rights", "false_warranties"];
 
@@ -123,28 +138,38 @@ const versionPromises = new Map();
 function escrowVersion(address) {
   const key = address.toLowerCase();
   if (!versionPromises.has(key)) {
-    const probe = new ethers.Contract(address, ABI_V2, provider);
+    const probe = new ethers.Contract(address, ABI_V3, provider);
+    // A revert or undecodable data means the function isn't there.
+    const has = (call) =>
+      withRetry(call).then(
+        () => true,
+        (err) => {
+          if (err.code === "CALL_EXCEPTION" || err.code === "BAD_DATA") return false;
+          throw err;
+        }
+      );
     versionPromises.set(
       key,
-      withRetry(() => probe.refundQuote(0, 0))
-        .then(() => 2)
-        .catch((err) => {
-          if (err.code === "CALL_EXCEPTION" || err.code === "BAD_DATA") return 1;
-          versionPromises.delete(key);
-          throw err;
-        })
+      (async () => {
+        if (await has(() => probe.raiseFailed(0))) return 3;
+        if (await has(() => probe.refundQuote(0, 0))) return 2;
+        return 1;
+      })().catch((err) => {
+        versionPromises.delete(key);
+        throw err;
+      })
     );
   }
   return versionPromises.get(key);
 }
 
 async function readerFor(address) {
-  return new ethers.Contract(address, (await escrowVersion(address)) === 2 ? ABI_V2 : ABI_V1, provider);
+  return new ethers.Contract(address, ABIS[await escrowVersion(address)], provider);
 }
 
 async function writerFor(address) {
   if (!operatorWallet) throw new Error("escrow admin actions are disabled (no operator key configured)");
-  return new ethers.Contract(address, (await escrowVersion(address)) === 2 ? ABI_V2 : ABI_V1, operatorWallet);
+  return new ethers.Contract(address, ABIS[await escrowVersion(address)], operatorWallet);
 }
 
 /* Synchronous handles for the calls that are the same on both generations
@@ -263,14 +288,18 @@ async function renameStudioOnchain(studioId, name) {
 
 /** Creates a campaign on whichever escrow generation is configured. Phase 2
  * dropped the deadline argument (§2.92); the earlier contract still takes
- * one, and 0 there has always meant "none". */
-async function createCampaignOnchain(artist, studioId, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees) {
+ * one, and 0 there has always meant "none". §2.114 brought back a raise
+ * deadline (unix seconds) and a minimum (bps of the target); an older escrow
+ * ignores them. */
+async function createCampaignOnchain(artist, studioId, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees, raiseDeadline, minRaiseBps) {
   const writeContract = await writerFor(ESCROW_ADDRESS);
-  const phase2 = (await escrowVersion(ESCROW_ADDRESS)) === 2;
+  const version = await escrowVersion(ESCROW_ADDRESS);
   const tx = await withRetry(() =>
-    phase2
-      ? writeContract.createCampaign(artist, studioId, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees)
-      : writeContract.createCampaign(artist, studioId, 0, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees)
+    version === 3
+      ? writeContract.createCampaign(artist, studioId, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees, raiseDeadline, minRaiseBps)
+      : version === 2
+        ? writeContract.createCampaign(artist, studioId, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees)
+        : writeContract.createCampaign(artist, studioId, 0, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees)
   );
   const receipt = await tx.wait();
   const parsed = receipt.logs.map((l) => { try { return writeContract.interface.parseLog(l); } catch { return null; } }).find((e) => e && e.name === "CampaignCreated");
@@ -288,7 +317,8 @@ async function createCampaignOnchain(artist, studioId, assetId, tokenId, milesto
 
 async function getCampaignInfo(campaignId, address = ESCROW_ADDRESS) {
   const contract = await readerFor(address);
-  const phase2 = (await escrowVersion(address)) === 2;
+  const version = await escrowVersion(address);
+  const phase2 = version >= 2;
   const [c, milestones, rates, toUsdc] = await Promise.all([contract.campaigns(campaignId), contract.getMilestones(campaignId), getFeeRates(contract), toUsdcFor(contract)]);
   const [campaignFees, target] =
     rates === null
@@ -326,11 +356,28 @@ async function getCampaignInfo(campaignId, address = ESCROW_ADDRESS) {
       };
     })
   );
-  // §2.92: what a cancelled campaign still owes, and to how many tokens.
-  // Both fall as holders refund, so the rate per token is the same for all.
-  const refund = phase2 && Number(c.status) === 1
-    ? await Promise.all([contract.refundPoolOf(campaignId), contract.refundTokensOf(campaignId), contract.cancelGroundOf(campaignId)])
+  // §2.114: the raise terms, and whether the raise has failed by rule.
+  const raise = version === 3
+    ? await Promise.all([contract.raiseDeadlineOf(campaignId), contract.minRaiseOf(campaignId), contract.minRaiseReached(campaignId), contract.raiseFailed(campaignId)])
     : null;
+  const failed = !!raise && raise[3];
+  // §2.114: below the minimum no tranche is covered, whatever it costs.
+  if (raise && !raise[2]) for (const m of milestonesWithConfirmations) if (!m.released) m.fundedEnough = false;
+  const status = Number(c.status) === 0 ? (failed ? "failed" : "active") : Number(c.status) === 2 ? "failed" : "cancelled";
+  // §2.92: what a cancelled (or failed) campaign still owes, and to how many
+  // tokens. Both fall as holders refund, so the rate per token is the same
+  // for all. A failed raise nobody has refunded yet isn't settled on chain:
+  // its figures are what the first refund will fix — everything raised, over
+  // every token sold.
+  let refund = null;
+  if (phase2 && Number(c.status) !== 0) {
+    refund = await Promise.all([contract.refundPoolOf(campaignId), contract.refundTokensOf(campaignId), contract.cancelGroundOf(campaignId)]);
+  } else if (failed) {
+    const token = new ethers.Contract(await contract.catalogueToken(), TOKEN_SUPPLY_ABI, provider);
+    const tokenId = await contract.campaignTokenId(campaignId);
+    const [released, burned, paidOut] = await Promise.all([token.releasedOf(tokenId), token.burnedOf(tokenId), contract.campaignReleased(campaignId)]);
+    refund = [c.raised - paidOut, released - burned, 0n];
+  }
   return {
     campaignId,
     assetId: c.assetId,
@@ -349,12 +396,15 @@ async function getCampaignInfo(campaignId, address = ESCROW_ADDRESS) {
     fundingTargetUsdc: toUsdc(target).toString(),
     raised: toUsdc(c.raised).toString(),
     deadline: phase2 ? null : Number(c.deadline),
-    status: Number(c.status) === 0 ? "active" : "cancelled",
+    status,
+    raiseDeadline: raise ? Number(raise[0]) : null,
+    minRaiseUsdc: raise ? toUsdc(raise[1]).toString() : null,
+    minRaiseReached: raise ? raise[2] : null,
     releasedBps: Number(c.releasedBps),
     contributionFeeBps: rates?.contributionBps ?? null,
     milestoneFeeBps: rates?.milestoneBps ?? null,
     feesCollectedUsdc: campaignFees === null ? null : toUsdc(campaignFees).toString(),
-    cancelGround: refund ? CANCEL_GROUNDS[Number(refund[2])] ?? null : null,
+    cancelGround: refund && status === "cancelled" ? CANCEL_GROUNDS[Number(refund[2])] ?? null : null,
     refundPoolUsdc: refund ? toUsdc(refund[0]).toString() : null,
     refundTokens: refund ? refund[1].toString() : null,
     milestones: milestonesWithConfirmations

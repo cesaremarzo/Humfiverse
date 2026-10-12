@@ -103,7 +103,7 @@ module.exports = function registerOnchainRoutes(router) {
       // it. The handler runs to the end even if the client has gone.
       if (escrowOnly && escrowChain.writeEnabled()) {
         try {
-          result.escrow = await escrow.createCampaign(launch.assetId, launch.artistWallet, launch.studioName, launch.studioWallet, launch.milestones);
+          result.escrow = await escrow.createCampaign(launch.assetId, launch.artistWallet, launch.studioName, launch.studioWallet, launch.milestones, launch.raiseDeadline, launch.minRaiseBps);
         } catch (e) {
           console.warn("escrow campaign after mint failed", launch.assetId, e.message);
           result.escrowError = { code: e.code || "failed", message: String(e.message || e) };

@@ -263,18 +263,33 @@ export function buildCampaignDraft(asset: Asset): Campaign {
   };
 }
 
+/** §2.114: the escrow refuses a raise deadline more than a year away, and the
+ * backend one less than an hour away. */
+export const RAISE_MAX_DAYS = 365;
+
+/** The raise rule as the escrow takes it: the end of the chosen day in UTC,
+ * in unix seconds, and the minimum in bps of the goal. Null if invalid. */
+export function raiseRuleOnChain(rule: WizardData['raiseRule'], now = Date.now()): { raiseDeadline: number; minRaiseBps: number } | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(rule.deadline)) return null;
+  const end = Date.parse(rule.deadline + 'T23:59:59Z');
+  if (Number.isNaN(end) || end <= now + 2 * 3_600_000 || end > now + RAISE_MAX_DAYS * 86_400_000 - 3_600_000) return null;
+  const minRaiseBps = Math.round(Number(rule.minPercent) * 100);
+  if (!Number.isFinite(minRaiseBps) || minRaiseBps < 1 || minRaiseBps > 10_000) return null;
+  return { raiseDeadline: Math.floor(end / 1000), minRaiseBps };
+}
+
 /** Which fields each step requires before the wizard will move on. */
 export function canAdvanceFrom(step: WizardStepKey, d: WizardData): boolean {
   if (step === 'basics') return !!d.title.trim() && !!d.artistName.trim();
   if (step === 'model') return !!d.model;
   if (step === 'source' && d.model === 'preproduction') {
     const budget = d.preprod.studio + d.preprod.session + d.preprod.mix + d.preprod.extra;
-    return raiseTerms(budget, d.preprod.supply).valid && !!d.preprod.studioName.trim() && isValidWalletAddress(d.preprod.studioWallet) && milestonesValid(d.preprodMilestones);
+    return raiseTerms(budget, d.preprod.supply).valid && !!d.preprod.studioName.trim() && isValidWalletAddress(d.preprod.studioWallet) && milestonesValid(d.preprodMilestones) && raiseRuleOnChain(d.raiseRule) !== null;
   }
   if (step === 'source' && d.model === 'catalogue') {
     if (!raiseTerms(d.catalogue.funding, d.catalogue.supply).valid) return false;
     if (!d.catalogueCampaign.enabled) return true;
-    return !!d.catalogueCampaign.studioName.trim() && isValidWalletAddress(d.catalogueCampaign.studioWallet) && milestonesValid(d.catalogueMilestones);
+    return !!d.catalogueCampaign.studioName.trim() && isValidWalletAddress(d.catalogueCampaign.studioWallet) && milestonesValid(d.catalogueMilestones) && raiseRuleOnChain(d.raiseRule) !== null;
   }
   return true;
 }

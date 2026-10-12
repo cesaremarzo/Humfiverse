@@ -125,7 +125,7 @@ export class PortfolioComponent {
     const escrow = this.store.escrowFor(assetId);
     // A fully released campaign delivered everything it raised for; if it
     // was cancelled anyway its tokens keep their value (§2.86).
-    return !!escrow?.escrow && escrow.status === 'cancelled' && escrow.releasedBps < 10_000;
+    return !!escrow?.escrow && (escrow.status === 'cancelled' || escrow.status === 'failed') && escrow.releasedBps < 10_000;
   }
 
   /** The artist's wallet for a holding, shown under their name. */
@@ -265,7 +265,7 @@ export class PortfolioComponent {
   }
 
   private loadRefunds(address: string, campaigns: EscrowCampaignInfo[]): void {
-    const cancelled = campaigns.filter((c): c is Extract<EscrowCampaignInfo, { escrow: true }> => c.escrow && c.status === 'cancelled' && !c.legacy);
+    const cancelled = campaigns.filter((c): c is Extract<EscrowCampaignInfo, { escrow: true }> => c.escrow && (c.status === 'cancelled' || c.status === 'failed') && !c.legacy);
     Promise.all(
       cancelled.map((c): Promise<RefundRow | null> => {
         const base = { assetId: c.assetId, title: this.store.assetById(c.assetId)?.title ?? c.assetId, campaignId: c.campaignId, contractAddress: c.contractAddress };
