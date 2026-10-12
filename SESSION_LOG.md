@@ -2878,3 +2878,12 @@ scadenza non conta più.
   della PR, poi su Render `CHAIN_ESCROW_ADDRESS`, `CHAIN_ESCROW_DEPLOY_BLOCK=11900419`,
   `CHAIN_ESCROW_LEGACY_ADDRESS` con `0x0D52…aDb7` in testa. Night Swim resta sul
   vecchio escrow (legacy). Lo script `redeployEscrowRaise.js` va cancellato dopo.
+
+## 2026-10-12 — scadenza e soglia minima live (settimo redeploy completato)
+
+Safe ha firmato `setEscrowContract` (il token punta a `0x613c…6C16`), PR #92 e #93
+unite, variabili `CHAIN_ESCROW_*` aggiornate su Render. Verificato in produzione:
+bundle `main-YGZTSVPR.js`, contratto artista v0.5-draft, Night Swim e le campagne
+precedenti lette come legacy dai loro escrow, endpoint di lettura tutti 200. Le
+nuove campagne vanno sul nuovo escrow con scadenza e soglia. Script
+`redeployEscrowRaise.js` cancellato (una tantum, come da REPO_MAP).
