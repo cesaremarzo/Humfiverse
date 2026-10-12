@@ -1,6 +1,6 @@
 # Controllo degli smart contract e del backend, dal punto di vista legale
 
-*Revisione del 2026-09-17, dopo il redeploy di fase 2 (technical §2.92, §2.95-§2.97); C-12 aggiornato per il rendiconto come file (§2.98, commit `fd7f822`); C-2 aggiornato il 2026-09-28 per la procedura di annullamento (§2.105). Non è un audit di sicurezza e non
+*Revisione del 2026-09-17, dopo il redeploy di fase 2 (technical §2.92, §2.95-§2.97); C-12 aggiornato per il rendiconto come file (§2.98, commit `fd7f822`); C-2 aggiornato il 2026-09-28 per la procedura di annullamento (§2.105); tabella §1, C-3, C-9, C-10, C-12 e nuovo C-16 aggiornati il 2026-10-11 per le correzioni dell'audit dei contratti (§2.110), sulla catena dal redeploy dello stesso giorno (technical §2.111). Non è un audit di sicurezza e non
 è consulenza legale.*
 
 ## Cosa è e cosa non è questo controllo
@@ -18,12 +18,12 @@
 
 | Contratto | File | SHA-256 (primi 16) | Indirizzo Sepolia |
 |---|---|---|---|
-| HumfiverseCatalogueToken | `contracts/contracts/HumfiverseCatalogueToken.sol` | `e6bf460971bae796` | `0x3ad890480fce3070BA1B8341dc455c5D52048cF9` |
+| HumfiverseCatalogueToken | `contracts/contracts/HumfiverseCatalogueToken.sol` | `e6bf460971bae796` | `0xe26C2FC4A77e26cc1A4404DD5DA63ae8761dF997` |
 | HumfiverseMarketplace | `contracts/contracts/HumfiverseMarketplace.sol` | `2e6e2985317c70a8` | `0x755500dEB66169fC605Be8Aa25ACBdAd791F1585` |
-| HumfiverseMilestoneEscrow | `contracts/contracts/HumfiverseMilestoneEscrow.sol` | `89368accb75bcefa` | `0xBAEbC0f24C3528137B2A5DcC13E276E7c652a82A` |
+| HumfiverseMilestoneEscrow | `contracts/contracts/HumfiverseMilestoneEscrow.sol` | `89368accb75bcefa` | `0x0D5232579773e61b898e70866b2160b2B077aDb7` |
 
 Solidity 0.8.24, OpenZeppelin v5, non aggiornabili (niente proxy).
-Pagamenti in USDC di test (`0x1c7D…7238`). Test: **112 passati**. Token ed
+Pagamenti in USDC di test (`0x1c7D…7238`). Test: **123 passati**. Gli indirizzi sono quelli del redeploy del 2026-10-11 (technical §2.111), che ha portato sulla catena le correzioni del §2.110: le righe della tabella §1 marcate §2.110 descrivono i contratti in uso. Token ed
 escrow sono stati ridistribuiti il 2026-09-17 (fase 2) e di nuovo il
 2026-09-27 (technical §2.102) solo per le commissioni del §2.101 — 6% sulla
 vendita diretta, 1% sui versamenti di royalty — che da quel giorno sono in
@@ -31,6 +31,13 @@ vigore sulla catena; il resto del codice è identico. Le due campagne
 concluse prima (`honest-man-595`, `new-song-464`) restano leggibili sul
 **vecchio escrow** `0x16C8…721c`, che segue ancora le regole descritte nelle
 revisioni precedenti; i loro token, con gli stessi saldi, sono sul nuovo token.
+Con il redeploy del 2026-10-11 lo stesso vale per le quattro campagne
+dell'escrow `0xBAEb…a82A` (tre concluse al 100%, una annullata con i rimborsi
+già pagati): restano leggibili lì, con le regole precedenti al §2.110, e i loro
+token sono sul nuovo token con gli stessi saldi. Il token di quella annullata
+(`test-c-576`, rimossa con la procedura del §2.105) non è stato ricreato. Lo
+storico delle royalty già versate e riscosse (44,55 USDC di test su
+`test-878`) resta sul token precedente `0x3ad8…8cF9`; sul nuovo token parte da zero.
 
 **Wallet della piattaforma** (nomi da `CLAUDE.md`):
 - **Owner** `0xBA2a…245d`: Safe 2 su 3 (firmatari: Cesare, Co-founder, una
@@ -38,7 +45,8 @@ revisioni precedenti; i loro token, con gli stessi saldi, sono sul nuovo token.
   i firmatari.
 - **Founder** `0x142F…BfC6`: `operator` di token ed escrow e chiave del backend
   su Render. Può solo creare token, collegare l'audio, gestire gli studi e creare
-  campagne. Resta `owner()` del vecchio token e del vecchio escrow.
+  campagne. Dal §2.110: collega l'audio solo se non ce n'è già uno (o lo toglie),
+  non registra né rinomina studi, può solo sospenderne uno. Resta `owner()` del vecchio token e del vecchio escrow.
 - **Fees** `0xd156…7524`: `feeRecipient()` dei tre contratti.
 
 > Gli indirizzi cambiano a ogni redeploy. Prima di citare questo documento,
@@ -54,17 +62,19 @@ revisioni precedenti; i loro token, con gli stessi saldi, sono sul nuovo token.
 | `buy` | chiunque | Compra dal pool al prezzo fisso. 94% al wallet dell'artista, 6% trattenuto come commissione (§2.101) |
 | `releaseFromPool` | Owner (Safe 2 su 3) o contratto escrow | Consegna token del pool **senza pagamento** |
 | `setURI` | Owner | Cambia l'indirizzo dei metadati (nome, immagine, descrizione) |
-| `setTrackAudioUri` | Owner o operator | Cambia il link all'audio, anche dopo la vendita |
-| `depositRoyalties` | chiunque | Versa USDC come royalty di un token. L'1% è trattenuto come commissione di distribuzione (§2.101), il resto è diviso subito in parti uguali su tutti i token esistenti (pool compreso). Registra un riferimento al rendiconto (`statementRef`): dal §2.98 il sito vi scrive l'impronta SHA-256 del file del rendiconto |
+| `setTrackAudioUri` | Owner o operator | Cambia il link all'audio, anche dopo la vendita. **§2.110:** l'operator collega l'audio solo se non ce n'è uno, o lo toglie; sostituire un audio già collegato spetta all'Owner |
+| `depositRoyalties` | chiunque | Versa USDC come royalty di un token. L'1% è trattenuto come commissione di distribuzione (§2.101), il resto è diviso subito in parti uguali su tutti i token esistenti (pool compreso). **§2.110:** il versamento paga il periodo dal versamento precedente (o dal mint) ed è diviso in proporzione a token × tempo di possesso in quel periodo (C-12, C-16). Registra un riferimento al rendiconto (`statementRef`): dal §2.98 il sito vi scrive l'impronta SHA-256 del file del rendiconto |
 | `claimRoyalties` | chiunque, per qualsiasi possessore | Paga al possessore quanto hanno maturato i suoi token; chi chiama sceglie solo quando |
 | `claimPoolRoyalties` | chiunque | Paga la quota dei token invenduti al wallet che incassa del token (l'artista) |
-| `createCampaign` | Owner o operator | Apre una campagna escrow su un token non in vendita diretta e mai venduto. **Rifiuta** uno studio con lo stesso wallet dell'artista |
+| `createCampaign` | Owner o operator | Apre una campagna escrow su un token non in vendita diretta e mai venduto. **Rifiuta** uno studio con lo stesso wallet dell'artista. **§2.110:** l'artista deve essere il wallet che incassa del token (`payoutOf`), e un token ha al massimo una campagna |
 | `contribute` | chiunque | Paga in USDC. 2% trattenuto, 98% accreditato alla campagna, token consegnati subito |
 | `confirmMilestoneAsArtist` / `…AsStudio` | wallet artista / wallet studio | Quando entrambi hanno confermato e i fondi coprono la tranche, la paga meno il 3%. Il contratto rifiuta la conferma finché la milestone precedente non è pagata (§2.96) |
-| `cancelCampaign` | Owner | Blocca la campagna e apre i rimborsi. Registra un **motivo** (nessuno, contenuto illecito, diritti di terzi, garanzie false) e, per i motivi di legge, l'hash della decisione scritta. **Senza motivo** è rifiutato se tutte le tranche sono già pagate |
+| `cancelCampaign` | Owner | Blocca la campagna e apre i rimborsi. Registra un **motivo** (nessuno, contenuto illecito, diritti di terzi, garanzie false) e, per i motivi di legge, l'hash della decisione scritta. **Senza motivo** è rifiutato se tutte le tranche sono già pagate. **§2.110:** chiude anche il pool del token (`closePool`): dopo l'annullamento nessun token può più uscirne, Owner compreso |
 | `refund` | chi possiede i token | Restituisce i token, che vengono **bruciati**, in cambio della loro quota di `raccolto − rilasciato` al momento dell'annullamento. Il 2% resta trattenuto |
-| `burnForRefund` | solo il contratto escrow | Brucia i token restituiti con `refund`. Le royalty già maturate restano riscuotibili |
-| `registerStudio`, `setStudioActive`, `renameStudio` | Owner o operator | Gestisce l'elenco degli studi ammessi |
+| `burnForRefund` | solo il contratto escrow | Brucia i token restituiti con `refund`. Le royalty già maturate restano riscuotibili. **§2.110:** anche un escrow sostituito (`retiredEscrow`), così i rimborsi restano possibili dopo un nuovo collegamento |
+| `closePool` | contratto escrow (anche sostituito) | **§2.110.** Chiude il pool di un token alla cancellazione della sua campagna |
+| `revokeRetiredEscrow` | Owner | **§2.110.** Toglie a un escrow sostituito il potere di bruciare token |
+| `registerStudio`, `setStudioActive`, `renameStudio` | Owner o operator | Gestisce l'elenco degli studi ammessi. **§2.110:** registrare e rinominare spetta solo all'Owner, dopo una verifica fuori catena; l'operator può solo sospendere uno studio, non riattivarlo |
 | `list` / `buyListing` / `cancelListing` | chiunque | Rivendita tra utenti. 99% al venditore, 1% trattenuto |
 | `withdrawFees` | chiunque | Invia le commissioni accumulate al wallet Fees |
 | `setOperator`, `setFeeRecipient`, `setPayoutRecipient`, `setEscrowContract`, `transferOwnership`, `renounceOwnership` | Owner | Configurazione |
@@ -229,6 +239,17 @@ anche il caso delle campagne senza studio, e `honest-man-595` resta com'è.
 è stata ricreata. Aperto: le campagne senza studio, rilasciate dalla sola
 conferma dell'artista.
 
+**Risolto (2026-10-11, §2.110; sulla catena dallo stesso giorno, §2.111).**
+Il wallet diverso non bastava: l'artista poteva indicare come studio un secondo
+wallet suo. Ora gli studi si registrano solo dal Safe, dopo una **verifica fuori
+catena** di chi gestisce lo studio, e il backend non registra più lo studio
+indicato dall'artista: il wizard offre solo studi già verificati. La garanzia
+sta quindi nella verifica, non nel codice (il contratto non distingue due wallet
+della stessa persona): la procedura di verifica va scritta (07 B5-bis).
+**Decisione dell'utente (2026-10-11):** le campagne **senza studio** restano
+possibili e vanno **dichiarate**: lì ogni tranche si rilascia con la sola
+conferma dell'artista (04 §5.3, 06 §2.2, 08 A-5).
+
 ### C-4 · Alta · Nessuna regola "tutto o niente" e nessuna scadenza
 
 **Codice.** `contribute` accetta fondi finché la campagna è `ACTIVE`. `_tryRelease`
@@ -373,7 +394,7 @@ il Founder non firma). La chiave del backend è solo `operator`: crea token e
 campagne, gestisce gli studi e collega l'audio, ma non può annullare, consegnare
 token gratis né cambiare commissioni o destinatari. **Restano:** (a) l'operator è
 sempre online e può ancora creare token e campagne e **cambiare l'audio** di un
-token già venduto (C-10); (b) il vecchio token e il vecchio escrow restano di
+token già venduto (C-10; dal §2.110 solo collegarlo la prima volta o toglierlo); (b) il vecchio token e il vecchio escrow restano di
 proprietà del Founder; (c) chi custodisce cosa va ancora scritto (organizzazione,
 recupero della chiave di riserva).
 
@@ -388,6 +409,11 @@ artista on-chain non sono modificabili.
 o l'audio cambiati. Serve almeno una regola scritta, per esempio "l'audio si
 può collegare una volta sola", oppure un evento pubblico, che già esiste
 (`TrackAudioUriUpdated`), unito a una politica dichiarata.
+
+**Risolto in parte (2026-10-11, §2.110; sulla catena dallo stesso giorno, §2.111).**
+L'operator collega l'audio solo dove non ce n'è uno e può toglierlo (rimozione,
+§2.105); sostituire un audio già collegato richiede il Safe. Restano aperti
+`setURI` e i metadati serviti dal backend.
 
 ### C-11 · Media · Il 2% sui contributi non è mai rimborsabile
 
@@ -422,6 +448,12 @@ priorità sale ad Alta.**
 - **Perché conta.** Il token on-chain ora **dà un diritto economico**: una quota
   dei versamenti futuri. È l'elemento che mancava per leggerlo come strumento
   finanziario (01 §1; 07 A1, A2), anche se oggi circolano solo USDC di test.
+- **Aggiornato (2026-10-11, §2.110; sulla catena dallo stesso giorno, §2.111).** Il
+  versamento non è più diviso sui saldi del momento: paga il periodo dal
+  versamento precedente (o dal mint) e ognuno riceve in proporzione ai token
+  posseduti e al **tempo** per cui li ha tenuti in quel periodo. Chi compra poco
+  prima di un versamento ne riceve solo la parte di quel tempo; il resto va a
+  chi possedeva prima, pool (cioè artista) compreso. Conseguenza nuova in C-16.
 - **Punto di fiducia.** Il contratto non può sapere se un versamento corrisponde a
   quanto il brano ha davvero incassato: dipende da chi versa. Il riferimento al
   rendiconto è l'impronta SHA-256 del file (§2.98): il sito pubblica il file su
@@ -484,6 +516,26 @@ quanto viene trattenuto e quanto viene diviso
 
 **Proposta.** Nessuna modifica al codice. Portare 07 A13 all'avvocato insieme ad
 A12: sono la stessa attività vista da due lati.
+
+### C-16 · Media · Il momento del versamento sposta le quote
+
+*Nuovo, 2026-10-11 (§2.110). In vigore sulla catena dallo stesso giorno (§2.111).*
+
+**Codice.** `depositRoyalties` chiude il periodo aperto dall'ultimo versamento e
+lo divide in proporzione a token × tempo di possesso (`HumfiverseCatalogueToken.sol`,
+`_accrued`). Il periodo finisce **quando** si versa, non quando finisce il
+rendiconto.
+
+**Perché conta.** Chi versa (l'artista, o la Piattaforma per suo conto) sceglie
+il momento, e il momento decide chi partecipa: un versamento in ritardo si
+divide anche con chi ha comprato nel frattempo, uno molto anticipato pesa di più
+sui token ancora invenduti, la cui quota torna all'artista. Il contratto non può
+collegare il versamento al periodo del rendiconto.
+
+**Proposta.** Rendere obbligatorio per contratto il versamento entro un termine
+fisso dal rendiconto (08 A-8 punto 2, già previsto; nuovo punto 6) e dirlo
+all'investitore (04 §5.7, 06 §2.3-bis). Il modulo di versamento già invita a
+versare ogni rendiconto appena arriva.
 
 ### C-13 · Bassa · Dati personali scritti per sempre
 

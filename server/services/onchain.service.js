@@ -114,10 +114,20 @@ function describeToken(assetId, record, poolInfo) {
   };
 }
 
+/** §2.111: a row whose id has no supply on the configured token was minted
+ * on an earlier one and not carried over by the redeploy (Test C, taken
+ * down, §2.105). Its figures would read as zeros on a token that does not
+ * exist, linked to Etherscan as if it did. mintCatalogue never mints a
+ * supply of 0, so 0 means "not on this contract". */
+function existsOnCurrentToken(poolInfo) {
+  return poolInfo.totalSupply !== "0";
+}
+
 async function getTokenView(assetId) {
   const record = await findTokenWithChainFallback(assetId);
   if (!record) return { onchain: false };
-  return describeToken(assetId, record, await chain.getPoolInfo(record.token_id));
+  const poolInfo = await chain.getPoolInfo(record.token_id);
+  return existsOnCurrentToken(poolInfo) ? describeToken(assetId, record, poolInfo) : { onchain: false };
 }
 
 /** Many assets in one call, for the cards.
@@ -142,7 +152,8 @@ async function getTokenViews(assetIds) {
       try {
         const record = await onchainRepo.findTokenByAssetId(assetId);
         if (!record) return null;
-        return [assetId, describeToken(assetId, record, await chain.getPoolInfo(record.token_id))];
+        const poolInfo = await chain.getPoolInfo(record.token_id);
+        return [assetId, existsOnCurrentToken(poolInfo) ? describeToken(assetId, record, poolInfo) : { onchain: false }];
       } catch {
         // One unreadable asset must not fail the whole batch. Omitted,
         // so the client treats it as unknown and keeps its own counter.

@@ -48,11 +48,24 @@ module.exports = function registerEscrowRoutes(router) {
         sendJson(res, 400, { error: e.message });
       } else if (e.code === "already_created") {
         sendJson(res, 409, { error: "asset already has an escrow campaign", record: e.record });
+      } else if (e.code === "studio_unverified") {
+        sendJson(res, 400, { error: e.message, code: e.code });
       } else if (e.code === "no_token") {
         sendJson(res, 400, { error: e.message });
       } else {
         sendJson(res, 502, { error: "escrow campaign creation failed", detail: String(e.message || e) });
       }
+    }
+  });
+
+  /* §2.110: the studios a campaign may name — registered by the Owner Safe
+     after an off-chain check, and active. The wizard offers only these. */
+  router.get("/api/escrow/studios", async (req, res) => {
+    try {
+      const studios = (await escrowChain.listStudiosOnchain()).filter((s) => s.active);
+      sendJson(res, 200, { studios: studios.map(({ studioId, name, wallet }) => ({ studioId, name, wallet })) });
+    } catch (e) {
+      sendJson(res, 502, { error: "could not read the studio registry", detail: String(e.message || e) });
     }
   });
 

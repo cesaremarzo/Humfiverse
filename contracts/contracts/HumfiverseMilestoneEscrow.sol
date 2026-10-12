@@ -62,10 +62,18 @@ import "./HumfiverseCatalogueToken.sol";
 ///         buyer included, and nobody keeps both the money and the token.
 ///         There are no deadlines: a campaign ends by selling out, by
 ///         releasing every milestone, or by cancellation.
-/// @dev Campaigns and studios are created/registered by the platform
-///      (the owner or the operator, the backend's key), mirroring how HumfiverseCatalogueToken.mintCatalogue
+///         Studios are verified, not declared (§2.110): only the owner
+///         registers one, after checking off chain who runs it, because a
+///         studio the artist names is too often a second wallet of the
+///         artist's own — two confirmations from one person. A campaign
+///         with no studio stays possible, and there the artist's word alone
+///         releases each tranche; that is disclosed, not prevented.
+/// @dev Campaigns are created by the platform (the owner or the operator,
+///      the backend's key), mirroring how HumfiverseCatalogueToken.mintCatalogue
 ///      is triggered by the backend after a user completes the onboarding
-///      wizard, not called directly from an artist's own wallet.
+///      wizard, not called directly from an artist's own wallet. A campaign's
+///      artist must be its token's payout wallet, and a token has at most
+///      one campaign (§2.110).
 contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
@@ -148,9 +156,10 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     ///         tranches, fee included. What refunds are measured against.
     mapping(uint256 => uint256) public campaignReleased;
 
-    /// @notice The backend's key: may register and edit studios and create
-    ///         campaigns. It cannot cancel, change fees or move funds. Zero
-    ///         means only the owner can.
+    /// @notice The backend's key: may create campaigns and deactivate a
+    ///         studio. It cannot register, rename or reactivate a studio
+    ///         (§2.110), cancel, change fees or move funds. Zero means only
+    ///         the owner can.
     address public operator;
 
     /// @notice campaignId => the ground it was cancelled on.
@@ -186,6 +195,10 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     ///         the source of truth for the asset<->campaign link, not just
     ///         an off-chain index of it. 0 = no campaign for this asset id.
     mapping(string => uint256) public campaignIdByAssetId;
+    /// @notice tokenId => its campaign, 0 = none (§2.110). Refunds are
+    ///         shared over every token of the id that left the pool, so two
+    ///         campaigns on one token would pay each other's contributors.
+    mapping(uint256 => uint256) public campaignIdByTokenId;
 
     event StudioRegistered(uint256 indexed studioId, address indexed wallet, string name);
     event StudioActiveSet(uint256 indexed studioId, bool active);
@@ -221,17 +234,24 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         _;
     }
 
-    // --- studio registry (platform-curated for this pilot) ---
+    // --- studio registry (verified by the owner, §2.110) ---
 
-    function registerStudio(address wallet, string calldata name) external onlyOwnerOrOperator returns (uint256 studioId) {
+    /// @notice Owner-only: adds a studio once it has been checked off chain
+    ///         that `wallet` belongs to a real studio, run by someone other
+    ///         than the artists who will name it.
+    function registerStudio(address wallet, string calldata name) external onlyOwner returns (uint256 studioId) {
         require(wallet != address(0), "HumfiverseMilestoneEscrow: zero address");
         studioId = nextStudioId++;
         studios[studioId] = Studio({name: name, wallet: wallet, active: true});
         emit StudioRegistered(studioId, wallet, name);
     }
 
+    /// @notice The owner may switch a studio either way; the operator may
+    ///         only switch one off, the safe direction, so a doubt about a
+    ///         studio can stop new campaigns without waiting for the Safe.
     function setStudioActive(uint256 studioId, bool active) external onlyOwnerOrOperator {
         require(studios[studioId].wallet != address(0), "HumfiverseMilestoneEscrow: unknown studio");
+        require(!active || msg.sender == owner(), "HumfiverseMilestoneEscrow: only the owner activates a studio");
         studios[studioId].active = active;
         emit StudioActiveSet(studioId, active);
     }
@@ -242,8 +262,9 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     ///         not a way to silently rewrite history for an active dispute.
     ///         Every campaign already pointing at this studioId picks up
     ///         the new name immediately, since campaigns store a studioId,
-    ///         not a name.
-    function renameStudio(uint256 studioId, string calldata name) external onlyOwnerOrOperator {
+    ///         not a name. Owner-only, like registration: the name is part
+    ///         of what was verified.
+    function renameStudio(uint256 studioId, string calldata name) external onlyOwner {
         require(studios[studioId].wallet != address(0), "HumfiverseMilestoneEscrow: unknown studio");
         emit StudioRenamed(studioId, studios[studioId].name, name);
         studios[studioId].name = name;
@@ -271,6 +292,11 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         // creating the campaign — same order the frontend now awaits) so
         // contribute() below always has a real pool to release from.
         require(catalogueToken.totalSupplyOf(tokenId) > 0, "HumfiverseMilestoneEscrow: unknown token id");
+        require(campaignIdByTokenId[tokenId] == 0, "HumfiverseMilestoneEscrow: token already has a campaign");
+        // §2.110: the artist is whoever the token pays — the wallet that
+        // signed the launch — not a free argument the operator's key could
+        // point anywhere, e.g. at a campaign for someone else's fresh token.
+        require(artist == catalogueToken.payoutOf(tokenId), "HumfiverseMilestoneEscrow: artist is not the token's payout wallet");
         uint256 fundingGoal = catalogueToken.fundingOf(tokenId);
         require(fundingGoal > 0, "HumfiverseMilestoneEscrow: token is not for sale");
         // §2.81: the goal is every token's value, so every token must still be
@@ -309,6 +335,7 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
             assetId: assetId
         });
         campaignIdByAssetId[assetId] = campaignId;
+        campaignIdByTokenId[tokenId] = campaignId;
         campaignTokenId[campaignId] = tokenId;
         for (uint256 i = 0; i < milestoneNames.length; i++) {
             campaignMilestones[campaignId].push(
@@ -497,7 +524,9 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         cancelGroundOf[campaignId] = ground;
         refundPoolOf[campaignId] = c.raised - campaignReleased[campaignId];
         // Sold tokens: everything that left the pool, less anything burned.
+        // The pool closes here, so this count cannot grow under the refunds.
         refundTokensOf[campaignId] = catalogueToken.releasedOf(tokenId) - catalogueToken.burnedOf(tokenId);
+        catalogueToken.closePool(tokenId);
         emit CampaignCancelled(campaignId, ground, decisionHash, refundPoolOf[campaignId], refundTokensOf[campaignId]);
     }
 

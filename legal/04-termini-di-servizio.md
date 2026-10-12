@@ -1,6 +1,6 @@
 # Termini di Servizio: bozza
 
-*Bozza del 2026-09-15, commit `82a7a1b`; nota a §5.6 il 2026-09-28 (avviso e decisione solo a chi ha un'email, §2.105); §5.3 aggiornato il 2026-09-17 (ordine delle milestone); §5.7 il 2026-09-17 (chi versa le royalty e rendiconto, pubblicazione facoltativa, §2.98); §5.7 e §6 il 2026-09-17 (vendita diretta al 6%, 1% sulla distribuzione delle royalty, §2.101); §12 il 2026-09-17 (guida automatica, §2.100); §1 il 2026-10-07 (dominio humfiverse.com, §2.109). **Da far rivedere a un avvocato prima
+*Bozza del 2026-09-15, commit `82a7a1b`; §5.3 e §5.7 aggiornati il 2026-10-11 (studi verificati, royalty in proporzione al tempo di possesso, §2.110: in vigore sulla catena dal redeploy dello stesso giorno, §2.111); nota a §5.6 il 2026-09-28 (avviso e decisione solo a chi ha un'email, §2.105); §5.3 aggiornato il 2026-09-17 (ordine delle milestone); §5.7 il 2026-09-17 (chi versa le royalty e rendiconto, pubblicazione facoltativa, §2.98); §5.7 e §6 il 2026-09-17 (vendita diretta al 6%, 1% sulla distribuzione delle royalty, §2.101); §12 il 2026-09-17 (guida automatica, §2.100); §1 il 2026-10-07 (dominio humfiverse.com, §2.109). **Da far rivedere a un avvocato prima
 della pubblicazione.** Non è consulenza legale.*
 
 ## Note per chi usa questa bozza (da togliere prima di pubblicare)
@@ -124,8 +124,11 @@ soltanto:
 
 5.3. **Campagne di pre-produzione (escrow).** I contributi restano nel contratto
 escrow e vengono rilasciati a tranche quando sia l'artista sia lo studio
-confermano la milestone. Se la campagna non ha uno studio, basta la conferma
-dell'artista. Le milestone si confermano **nell'ordine fissato dall'artista alla
+confermano la milestone. Lo studio è scelto fra quelli **verificati** dalla
+Piattaforma, che ne controlla l'identità prima di registrarlo. Se la campagna
+non ha uno studio, **ogni tranche si rilascia con la sola conferma
+dell'artista**: in quel caso nessun terzo controlla che la milestone sia stata
+raggiunta, e la pagina della campagna lo dice. Le milestone si confermano **nell'ordine fissato dall'artista alla
 creazione della campagna**: una milestone non può essere pagata prima di quella
 precedente. Una tranche si rilascia appena i fondi raccolti coprono lei e quelle
 già pagate, **anche se l'obiettivo complessivo non è stato raggiunto**.
@@ -191,11 +194,16 @@ che l'artista deve risarcire.
 Noi non garantiamo che esista un compratore né un prezzo.
 
 5.7. **Royalty.** Chiunque può versare USDC come royalty di un token tramite il
-contratto. Ogni versamento è diviso subito in parti uguali su tutti i token
-esistenti in quel momento, compresi quelli non ancora venduti, la cui quota
-spetta all'artista, **al netto della commissione di distribuzione dell'1%**
-(§6). Ogni possessore riscuote la propria quota quando vuole;
-quanto maturato prima di una vendita resta a chi ha venduto. Un versamento non si
+contratto. Ogni versamento, **al netto della commissione di distribuzione
+dell'1%** (§6), paga il periodo trascorso dal versamento precedente (o dal
+lancio del token) ed è diviso fra chi ha posseduto i token in quel periodo, **in
+proporzione al numero di token e al tempo** per cui li ha tenuti, compresi i
+token non ancora venduti, la cui quota spetta all'artista. Chi compra poco prima
+di un versamento ne riceve solo la parte che corrisponde a quel tempo. Il
+periodo si chiude quando il versamento viene fatto: un versamento in ritardo è
+diviso anche con chi ha comprato nel frattempo. Ogni possessore riscuote la
+propria quota quando vuole; quanto maturato prima di una vendita resta a chi ha
+venduto. Un versamento non si
 può ritirare.
 
 5.7.1. **Chi versa e quando.** Le royalty sono versate dall'artista, che le

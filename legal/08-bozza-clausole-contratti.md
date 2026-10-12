@@ -1,6 +1,6 @@
 # Bozza di clausole: Accordo Artista, Accordo Investitore, accettazione
 
-*Bozza del 2026-09-15, commit `82a7a1b`; A-5 aggiornata il 2026-09-17 (ordine delle milestone); A-8 e C-12 nuove il 2026-09-17 (versamento delle royalty, §2.98); A-6 aggiornata il 2026-09-17 (vendita diretta al 6%, 1% sulle royalty, §2.101); note di implementazione ad A-1 e A-1-bis il 2026-09-28 (§2.105). **Da far rivedere a un avvocato.** Non
+*Bozza del 2026-09-15, commit `82a7a1b`; A-5 punto 1 e A-8 punti 5-6 aggiornati il 2026-10-11 (royalty in proporzione al tempo di possesso, studi verificati, §2.110); A-5 aggiornata il 2026-09-17 (ordine delle milestone); A-8 e C-12 nuove il 2026-09-17 (versamento delle royalty, §2.98); A-6 aggiornata il 2026-09-17 (vendita diretta al 6%, 1% sulle royalty, §2.101); note di implementazione ad A-1 e A-1-bis il 2026-09-28 (§2.105). **Da far rivedere a un avvocato.** Non
 è consulenza legale.*
 
 Traduce in testo contrattuale la decisione del 15 settembre 2026 (note legali
@@ -171,8 +171,10 @@ Sostituisce le clausole `manager-discretion`, `milestones` e `refund` e integra
 
 1. I contributi sono custoditi nel contratto escrow `[indirizzo]`. Ogni tranche è
    rilasciata dal contratto quando **l'Artista e lo Studio** confermano la
-   milestone dai rispettivi wallet. [Se la Campagna non ha uno Studio, basta la
-   conferma dell'Artista.]
+   milestone dai rispettivi wallet. Lo Studio è scelto fra quelli verificati e
+   registrati dalla Piattaforma. [Se la Campagna non ha uno Studio, ogni tranche
+   è rilasciata con la sola conferma dell'Artista, e nessun terzo verifica la
+   milestone.]
 2. Le tranche contrassegnate "Studio" sono pagate al wallet dello Studio; le
    altre al wallet dell'Artista.
 2-bis. Le milestone si rilasciano **nell'ordine stabilito dall'Artista alla
@@ -205,7 +207,8 @@ operazione. Su 10.000 USDC raccolti:
 | **All'Artista (e allo Studio)** | **9.400 USDC** | **9.506 USDC** |
 
 Sulle royalty: di ogni 1.000 USDC versati, 10 restano alla Piattaforma e 990
-sono divisi fra tutti i token esistenti. L'1% si applica all'intero versamento,
+sono divisi fra chi ha posseduto i token dal versamento precedente, in
+proporzione ai token e al tempo (A-8 punto 5). L'1% si applica all'intero versamento,
 **compresa la quota dei token invenduti**, che torna all'Artista.
 
 ### A-7 · Esclusiva `[V]`
@@ -243,8 +246,13 @@ terzi gli stessi proventi.
 4. Un versamento inferiore ai proventi del rendiconto, un rendiconto alterato o il
    mancato versamento nei termini del punto 2 sono inadempimento grave ai sensi
    della clausola A-3 **[verificare il rinvio]**.
-5. L'Artista prende atto che il contratto divide ogni versamento su tutti i token
-   esistenti, compresi quelli invenduti, la cui quota spetta a lui (04 §5.7).
+5. L'Artista prende atto che il contratto divide ogni versamento fra chi ha
+   posseduto i token dal versamento precedente, in proporzione ai token e al
+   tempo di possesso, compresi i token invenduti, la cui quota spetta a lui
+   (04 §5.7).
+6. L'Artista prende atto che il momento del versamento decide chi vi partecipa,
+   e si impegna a versare ogni rendiconto entro i termini del punto 2, senza
+   anticiparlo né ritardarlo per favorire sé o terzi (02 C-16).
 
 ---
 

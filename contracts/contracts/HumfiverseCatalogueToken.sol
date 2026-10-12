@@ -29,19 +29,26 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 ///         pool, whose share belongs to the token's payout wallet (the
 ///         artist kept that part of the income by not selling it). Holders
 ///         pull their share with claimRoyalties; nothing is pushed, so a
-///         wallet that cannot receive cannot block a deposit. The share
-///         follows the token: a transfer settles both sides first, so what
-///         a seller earned before the sale stays theirs and the buyer earns
-///         only from then on. There is no snapshot to take and no list of
-///         holders to walk, on chain or off.
+///         wallet that cannot receive cannot block a deposit.
+///
+///         A deposit pays for the time since the previous one (§2.110): each
+///         holder's share is the tokens they held multiplied by how long they
+///         held them in that window, over every outstanding token times the
+///         window's length. A buyer who arrives a minute before a deposit
+///         earns a minute's worth of it, not a full share — so buying the
+///         pool just ahead of a large deposit no longer takes the income the
+///         artist's unsold tokens earned all quarter. A seller keeps what its
+///         tokens earned while it held them. There is still no snapshot to
+///         take and no list of holders to walk: each account carries its
+///         own running total, settled on every transfer.
 /// @dev Each catalogue is one ERC-1155 token id. Supply per id is minted
 ///      once, entirely to address(this) (the pool). `releaseFromPool`
 ///      and `buy` are the only ways tokens leave the pool.
 ///
 ///      Roles (phase 2): `owner()` is meant to be a multisig and keeps
 ///      every power that moves value or rewires the contract; `operator`
-///      is the backend's key and can only mint a new catalogue and set its
-///      audio link. The owner can do both too.
+///      is the backend's key and can only mint a new catalogue, link its
+///      audio once and clear that link (§2.110). The owner can do all of it.
 contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
@@ -172,6 +179,20 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
     ///         setEscrowContract(escrowAddress)).
     address public escrowContract;
 
+    /// @notice Escrows that were linked before the current one (§2.110).
+    ///         They can no longer release tokens, but they can still burn
+    ///         them for a refund and close a cancelled campaign's pool, so
+    ///         relinking the token to a new escrow never strands the refunds
+    ///         of a campaign cancelled on the old one.
+    mapping(address => bool) public retiredEscrow;
+
+    /// @notice tokenId => no more tokens may leave the pool (§2.110). Set by
+    ///         the escrow when it cancels the token's campaign: refunds are
+    ///         shared over the tokens sold at that moment, and a token
+    ///         released afterwards — by anyone, the owner included — would
+    ///         claim a share that belongs to someone who paid.
+    mapping(uint256 => bool) public poolClosed;
+
     event CatalogueMinted(uint256 indexed tokenId, string slug, uint256 supply, uint256 pricePerToken, string title, string artist);
     event TokensReleased(uint256 indexed tokenId, address indexed to, uint256 amount);
     event TokensPurchased(uint256 indexed tokenId, address indexed buyer, uint256 amount, uint256 paid);
@@ -188,9 +209,11 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
     event RoyaltiesDeposited(uint256 indexed tokenId, address indexed depositor, uint256 distributed, bytes32 statementRef);
     event RoyaltyFeeRetained(uint256 indexed tokenId, address indexed depositor, uint256 fee);
     event RoyaltiesClaimed(uint256 indexed tokenId, address indexed holder, address indexed paidTo, uint256 amount);
+    event RetiredEscrowRevoked(address indexed escrow);
+    event PoolClosed(uint256 indexed tokenId);
 
-    /// @notice The backend's key: may mint a catalogue and set its audio
-    ///         link, nothing else. Zero means only the owner can.
+    /// @notice The backend's key: may mint a catalogue, link its audio once
+    ///         and clear that link, nothing else. Zero means only the owner can.
     address public operator;
 
     /// @notice tokenId => tokens destroyed by a refund (§2.92). Outstanding
@@ -198,20 +221,46 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
     ///         totalSupplyOf - burnedOf.
     mapping(uint256 => uint256) public burnedOf;
 
-    /// @dev Fixed-point scale of royaltyPerToken. Remainders are carried,
+    /// @dev Fixed-point scale of the royalty rates. Remainders are carried,
     ///      not dropped: per token id on deposit, per holder on claim, so
     ///      every base unit deposited is eventually claimable.
     uint256 private constant ROYALTY_PRECISION = 1e18;
-    /// @notice tokenId => royalties deposited per outstanding token since
-    ///         mint, times 1e18. Only ever grows.
+
+    /// @dev One closed window: the time between two deposits (or the mint
+    ///      and the first deposit). `rate` is what one token held for one
+    ///      second of it earned, times 1e18; `cumulative` is royaltyPerToken
+    ///      once it closed; `end` is the deposit's timestamp.
+    struct RoyaltyWindow {
+        uint256 rate;
+        uint256 cumulative;
+        uint64 end;
+    }
+    /// @dev One holder's running total for one token id. `partialSeconds`
+    ///      is tokens × seconds held in window `window`, not yet priced
+    ///      because that window was still open at `lastTime`.
+    struct RoyaltyAccount {
+        uint256 owedScaled;
+        uint256 partialSeconds;
+        uint64 lastTime;
+        uint32 window;
+    }
+
+    /// @notice tokenId => what one token held from mint through the last
+    ///         deposit earned, times 1e18. Only ever grows.
     mapping(uint256 => uint256) public royaltyPerToken;
+    /// @notice tokenId => deposits so far: the index of the open window.
+    mapping(uint256 => uint32) public royaltyWindowCount;
+    /// @notice tokenId => when the open window began (the last deposit, or the mint).
+    mapping(uint256 => uint64) public royaltyWindowStart;
+    mapping(uint256 => mapping(uint32 => RoyaltyWindow)) private royaltyWindows;
+    /// @dev tokenId => outstanding tokens × seconds in the open window, up to
+    ///      supplyCheckpoint. Outstanding supply moves only on mint and burn.
+    mapping(uint256 => uint256) private windowSupplySeconds;
+    mapping(uint256 => uint64) private supplyCheckpoint;
     /// @dev tokenId => the part of the last deposits smaller than one
-    ///      increment of royaltyPerToken, added to the next deposit.
+    ///      second's rate across the window, added to the next deposit.
     mapping(uint256 => uint256) private royaltyRemainder;
-    /// @dev tokenId => holder => royaltyPerToken at the holder's last settlement.
-    mapping(uint256 => mapping(address => uint256)) private royaltySettledAt;
-    /// @dev tokenId => holder => settled and unclaimed royalties, times 1e18.
-    mapping(uint256 => mapping(address => uint256)) private royaltyOwedScaled;
+    mapping(uint256 => mapping(address => RoyaltyAccount)) private royaltyAccounts;
     /// @notice tokenId => every royalty shared out for it, net of
     ///         ROYALTY_FEE_BPS — not what was deposited (§2.101). This is the
     ///         figure that makes `totalRoyaltiesDistributed -
@@ -250,9 +299,29 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
     /// @notice Owner-only: authorizes HumfiverseMilestoneEscrow (or unsets
     ///         it, passing address(0)) to call releaseFromPool — see the
     ///         escrowContract field above.
+    ///         The escrow it replaces is kept as retiredEscrow, so refunds of
+    ///         campaigns cancelled there still work (§2.110).
     function setEscrowContract(address next) external onlyOwner {
         emit EscrowContractUpdated(escrowContract, next);
+        if (escrowContract != address(0) && escrowContract != next) retiredEscrow[escrowContract] = true;
+        retiredEscrow[next] = false;
         escrowContract = next;
+    }
+
+    /// @notice Owner-only: takes refund powers away from a retired escrow —
+    ///         for an address linked by mistake, never for one with refunds
+    ///         still owed.
+    function revokeRetiredEscrow(address escrow) external onlyOwner {
+        retiredEscrow[escrow] = false;
+        emit RetiredEscrowRevoked(escrow);
+    }
+
+    modifier onlyAnyEscrow() {
+        require(
+            (msg.sender == escrowContract && escrowContract != address(0)) || retiredEscrow[msg.sender],
+            "HumfiverseCatalogueToken: not authorized"
+        );
+        _;
     }
 
     /// @notice Owner-only: sets (or, with address(0), removes) the operator.
@@ -307,6 +376,9 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
         catalogueSlug[tokenId] = text.slug;
         trackTitle[tokenId] = text.title;
         artistName[tokenId] = text.artist;
+        // The first royalty window opens now, with nothing yet outstanding.
+        royaltyWindowStart[tokenId] = uint64(block.timestamp);
+        supplyCheckpoint[tokenId] = uint64(block.timestamp);
         _mint(address(this), tokenId, supply, "");
         emit CatalogueMinted(tokenId, text.slug, supply, price, text.title, text.artist);
         emit CatalogueFunding(tokenId, fundingAmount, price, price * supply, payout, directSale);
@@ -388,18 +460,27 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
     }
 
     function _release(address to, uint256 tokenId, uint256 amount) private {
+        require(!poolClosed[tokenId], "HumfiverseCatalogueToken: pool closed");
         require(releasedOf[tokenId] + amount <= totalSupplyOf[tokenId], "HumfiverseCatalogueToken: exceeds supply");
         releasedOf[tokenId] += amount;
         _safeTransferFrom(address(this), to, tokenId, amount, "");
     }
 
-    /// @notice Owner-only: links tokenId to its uploaded track's IPFS URI —
-    ///         see trackAudioUri above. Requires the token to already be
-    ///         minted, same as this contract's other per-token setters
-    ///         implicitly assume (there's nothing to link audio to
-    ///         otherwise).
+    /// @notice Links tokenId to its uploaded track's IPFS URI — see
+    ///         trackAudioUri above. Requires the token to already be minted
+    ///         (there's nothing to link audio to otherwise).
+    ///
+    ///         The operator may link audio only where none is linked, and may
+    ///         always clear it (a takedown, §2.105). Replacing one track with
+    ///         another under holders who already bought it is the owner's
+    ///         alone (§2.110): with the operator's key on a server, a stolen
+    ///         key could otherwise swap every catalogue's audio at once.
     function setTrackAudioUri(uint256 tokenId, string calldata uri) external onlyOwnerOrOperator {
         require(totalSupplyOf[tokenId] > 0, "HumfiverseCatalogueToken: unknown token id");
+        require(
+            msg.sender == owner() || bytes(trackAudioUri[tokenId]).length == 0 || bytes(uri).length == 0,
+            "HumfiverseCatalogueToken: only the owner replaces linked audio"
+        );
         trackAudioUri[tokenId] = uri;
         emit TrackAudioUriUpdated(tokenId, uri);
     }
@@ -415,12 +496,21 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
     ///         from refund(), for the caller's own tokens, so no approval is
     ///         asked of the holder. Royalties the tokens earned before the
     ///         burn stay claimable.
-    function burnForRefund(address holder, uint256 tokenId, uint256 amount) external {
-        require(msg.sender == escrowContract && escrowContract != address(0), "HumfiverseCatalogueToken: not authorized");
+    ///         A retired escrow may still call this (§2.110).
+    function burnForRefund(address holder, uint256 tokenId, uint256 amount) external onlyAnyEscrow {
         require(amount > 0, "HumfiverseCatalogueToken: zero amount");
-        burnedOf[tokenId] += amount;
+        // Burn before counting it: the royalty bookkeeping in _update reads
+        // the outstanding supply as it was before this burn.
         _burn(holder, tokenId, amount);
+        burnedOf[tokenId] += amount;
         emit TokensBurned(tokenId, holder, amount);
+    }
+
+    /// @notice Escrow-only: stops any further token leaving `tokenId`'s
+    ///         pool, called when its campaign is cancelled (§2.110).
+    function closePool(uint256 tokenId) external onlyAnyEscrow {
+        poolClosed[tokenId] = true;
+        emit PoolClosed(tokenId);
     }
 
     /// @notice Tokens of `tokenId` that exist: minted less burned, pool included.
@@ -431,8 +521,11 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
     // --- royalties (§2.92) ---
 
     /// @notice Deposits `amount` of paymentToken as royalty income of
-    ///         `tokenId`, shared equally over every outstanding token at this
-    ///         moment. Callable by anyone — the royalty administrator, the
+    ///         `tokenId`, shared over the time since the previous deposit (or
+    ///         the mint): each holder by tokens × seconds held in that window
+    ///         (§2.110). Two deposits in the same second are refused, since
+    ///         the second would pay for a window no one held anything in.
+    ///         Callable by anyone — the royalty administrator, the
     ///         artist, the platform: it only gives money away, and the
     ///         contract cannot know whether the amount matches what the
     ///         catalogue really earned. `statementRef` ties the deposit to
@@ -447,8 +540,11 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
     ///         withdrawFees().
     function depositRoyalties(uint256 tokenId, uint256 amount, bytes32 statementRef) external nonReentrant {
         require(amount > 0, "HumfiverseCatalogueToken: zero amount");
-        uint256 outstanding = outstandingSupply(tokenId);
-        require(outstanding > 0, "HumfiverseCatalogueToken: no outstanding tokens");
+        require(totalSupplyOf[tokenId] > 0, "HumfiverseCatalogueToken: no outstanding tokens");
+        uint64 nowTs = uint64(block.timestamp);
+        uint256 supplySeconds =
+            windowSupplySeconds[tokenId] + outstandingSupply(tokenId) * (nowTs - supplyCheckpoint[tokenId]);
+        require(supplySeconds > 0, "HumfiverseCatalogueToken: nothing held since the last deposit");
 
         // Rounded down, so a deposit under a hundred base units pays no fee
         // and is shared whole; there is no amount above zero the fee can
@@ -458,9 +554,20 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
         accruedFees += fee;
         totalFeesCollected += fee;
 
+        // Close the open window at this rate. Every holder's tokens × seconds
+        // in it add up to supplySeconds exactly, so rate × supplySeconds is
+        // what all of them can ever claim from it — never more than deposited.
         uint256 scaled = distributed * ROYALTY_PRECISION + royaltyRemainder[tokenId];
-        royaltyPerToken[tokenId] += scaled / outstanding;
-        royaltyRemainder[tokenId] = scaled % outstanding;
+        uint256 rate = scaled / supplySeconds;
+        royaltyRemainder[tokenId] = scaled - rate * supplySeconds;
+        uint32 n = royaltyWindowCount[tokenId];
+        uint256 cumulative = royaltyPerToken[tokenId] + rate * (nowTs - royaltyWindowStart[tokenId]);
+        royaltyWindows[tokenId][n] = RoyaltyWindow({rate: rate, cumulative: cumulative, end: nowTs});
+        royaltyPerToken[tokenId] = cumulative;
+        royaltyWindowCount[tokenId] = n + 1;
+        royaltyWindowStart[tokenId] = nowTs;
+        windowSupplySeconds[tokenId] = 0;
+        supplyCheckpoint[tokenId] = nowTs;
         totalRoyaltiesDistributed[tokenId] += distributed;
 
         paymentToken.safeTransferFrom(msg.sender, address(this), amount);
@@ -468,10 +575,11 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
         emit RoyaltyFeeRetained(tokenId, msg.sender, fee);
     }
 
-    /// @notice Royalties of `tokenId` that `holder` can claim now, to the base unit.
+    /// @notice Royalties of `tokenId` that `holder` can claim now, to the base
+    ///         unit: what deposits so far paid for the time it held. Time held
+    ///         since the last deposit is paid by the next one.
     function claimableRoyalties(uint256 tokenId, address holder) public view returns (uint256) {
-        uint256 pending = balanceOf(holder, tokenId) * (royaltyPerToken[tokenId] - royaltySettledAt[tokenId][holder]);
-        return (royaltyOwedScaled[tokenId][holder] + pending) / ROYALTY_PRECISION;
+        return _accrued(tokenId, holder).owedScaled / ROYALTY_PRECISION;
     }
 
     /// @notice Pays `holder` everything it has earned on `tokenIds`.
@@ -504,27 +612,59 @@ contract HumfiverseCatalogueToken is ERC1155, Ownable, ERC1155Holder, Reentrancy
 
     function _takeRoyalties(uint256 tokenId, address holder) private returns (uint256 paid) {
         _settleRoyalties(tokenId, holder);
-        uint256 owed = royaltyOwedScaled[tokenId][holder];
-        paid = owed / ROYALTY_PRECISION;
-        royaltyOwedScaled[tokenId][holder] = owed % ROYALTY_PRECISION;
+        RoyaltyAccount storage a = royaltyAccounts[tokenId][holder];
+        paid = a.owedScaled / ROYALTY_PRECISION;
+        a.owedScaled = a.owedScaled % ROYALTY_PRECISION;
         totalRoyaltiesClaimed[tokenId] += paid;
     }
 
-    /// @dev Credits `account` with what its current balance earned since its
-    ///      last settlement. Must run before that balance changes.
-    function _settleRoyalties(uint256 tokenId, address account) private {
-        uint256 acc = royaltyPerToken[tokenId];
-        uint256 settledAt = royaltySettledAt[tokenId][account];
-        if (acc == settledAt) return;
+    /// @dev `account`'s running total brought up to now at its current
+    ///      balance, which has not changed since `lastTime`: the window it
+    ///      was last in is finished and priced if a deposit has closed it,
+    ///      every whole window after that is paid at royaltyPerToken's
+    ///      growth, and the open window's seconds are counted, unpriced.
+    function _accrued(uint256 tokenId, address account) private view returns (RoyaltyAccount memory a) {
+        a = royaltyAccounts[tokenId][account];
+        uint32 n = royaltyWindowCount[tokenId];
+        uint64 nowTs = uint64(block.timestamp);
+        if (a.lastTime == 0) {
+            // Never seen: it has held nothing until now.
+            a.window = n;
+            a.lastTime = nowTs;
+            return a;
+        }
         uint256 balance = balanceOf(account, tokenId);
-        if (balance > 0) royaltyOwedScaled[tokenId][account] += balance * (acc - settledAt);
-        royaltySettledAt[tokenId][account] = acc;
+        if (a.window < n) {
+            RoyaltyWindow storage w = royaltyWindows[tokenId][a.window];
+            a.owedScaled += (a.partialSeconds + balance * (w.end - a.lastTime)) * w.rate;
+            a.owedScaled += balance * (royaltyPerToken[tokenId] - w.cumulative);
+            a.partialSeconds = balance * (nowTs - royaltyWindowStart[tokenId]);
+            a.window = n;
+        } else {
+            a.partialSeconds += balance * (nowTs - a.lastTime);
+        }
+        a.lastTime = nowTs;
+    }
+
+    /// @dev Must run before `account`'s balance changes.
+    function _settleRoyalties(uint256 tokenId, address account) private {
+        royaltyAccounts[tokenId][account] = _accrued(tokenId, account);
+    }
+
+    /// @dev Outstanding tokens × seconds since the checkpoint, added to the
+    ///      open window. Must run before the outstanding supply changes.
+    function _accrueSupplySeconds(uint256 tokenId) private {
+        uint64 nowTs = uint64(block.timestamp);
+        windowSupplySeconds[tokenId] += outstandingSupply(tokenId) * (nowTs - supplyCheckpoint[tokenId]);
+        supplyCheckpoint[tokenId] = nowTs;
     }
 
     /// @dev Every mint, transfer and burn passes here: settle both sides at
-    ///      their old balances, then move the tokens.
+    ///      their old balances, and the supply's seconds on a mint or a
+    ///      burn, then move the tokens.
     function _update(address from, address to, uint256[] memory ids, uint256[] memory values) internal override {
         for (uint256 i = 0; i < ids.length; i++) {
+            if (from == address(0) || to == address(0)) _accrueSupplySeconds(ids[i]);
             if (from != address(0)) _settleRoyalties(ids[i], from);
             if (to != address(0)) _settleRoyalties(ids[i], to);
         }

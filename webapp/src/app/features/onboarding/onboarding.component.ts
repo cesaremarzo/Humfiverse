@@ -4,7 +4,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { IconComponent } from '../../shared/icon.component';
 import { StoreService } from '../../core/store.service';
 import { WalletService } from '../../core/wallet.service';
-import { ApiService } from '../../core/api.service';
+import { ApiService, EscrowStudio } from '../../core/api.service';
 import { ToastService } from '../../core/toast.service';
 import { AiDisclosure, DisclosureLevel, LaunchAuthorization } from '../../core/models';
 import { fmtUSD, fmtUSDExact } from '../../core/format.util';
@@ -17,8 +17,7 @@ import {
   GENRES,
   WIZARD_STEPS,
   WizardData,
-  freshWizardData,
-  isValidWalletAddress
+  freshWizardData
 } from './onboarding.model';
 import {
   milestoneTotalBps,
@@ -104,7 +103,36 @@ export class OnboardingComponent {
     private toast: ToastService,
     private translate: TranslateService,
     private router: Router
-  ) {}
+  ) {
+    this.loadStudios();
+  }
+
+  /** §2.110: the verified studios a campaign may name; null while loading. */
+  studios = signal<EscrowStudio[] | null>(null);
+  studiosFailed = signal(false);
+
+  async loadStudios(): Promise<void> {
+    this.studiosFailed.set(false);
+    try {
+      this.studios.set((await this.api.getEscrowStudios()).studios);
+    } catch {
+      this.studiosFailed.set(true);
+    }
+  }
+
+  /** Picks a verified studio for the preproduction campaign or the
+   * catalogue's extra campaign; its name comes from the registry with it. */
+  pickStudio(target: 'preprod' | 'catalogueCampaign', wallet: string): void {
+    const studio = this.studios()?.find((s) => s.wallet.toLowerCase() === wallet.toLowerCase());
+    const picked = { studioName: studio?.name ?? '', studioWallet: studio?.wallet ?? '' };
+    this.data.update((d) => ({ ...d, [target]: { ...d[target], ...picked } }));
+  }
+
+  /** A studio in the draft that is not in the verified list — e.g. one
+   * typed in before §2.110 — cannot be submitted; the backend refuses it. */
+  isVerifiedStudio(wallet: string): boolean {
+    return !!this.studios()?.some((s) => s.wallet.toLowerCase() === wallet.trim().toLowerCase());
+  }
 
   updateData(patch: Partial<WizardData>): void {
     this.data.update((d) => ({ ...d, ...patch }));
@@ -127,10 +155,6 @@ export class OnboardingComponent {
   updateCatalogueFunding(value: string): void {
     const n = Math.max(0, Math.round((Number(value) || 0) * 100) / 100);
     this.data.update((d) => ({ ...d, catalogue: { ...d.catalogue, funding: n } }));
-  }
-
-  updatePreprodTextField(field: 'studioName' | 'studioWallet', value: string): void {
-    this.data.update((d) => ({ ...d, preprod: { ...d.preprod, [field]: value } }));
   }
 
   /** Which split an editor row belongs to. */
@@ -228,13 +252,6 @@ export class OnboardingComponent {
   toggleCatalogueCampaign(enabled: boolean): void {
     this.data.update((d) => ({ ...d, catalogueCampaign: { ...d.catalogueCampaign, enabled } }));
   }
-  updateCatalogueCampaignTextField(field: 'studioName' | 'studioWallet', value: string): void {
-    this.data.update((d) => ({ ...d, catalogueCampaign: { ...d.catalogueCampaign, [field]: value } }));
-  }
-
-  /** Exposed as a member because the template calls it directly on both
-   * studio-wallet fields; the rule itself lives in onboarding.model.ts. */
-  isValidWalletAddress = isValidWalletAddress;
 
   setDisclosure(key: keyof AiDisclosure, value: DisclosureLevel): void {
     this.data.update((d) => ({ ...d, disclosure: { ...d.disclosure, [key]: value } }));
@@ -282,7 +299,7 @@ export class OnboardingComponent {
     if (key === 'source') {
       const d = this.data();
       const studio = d.model === 'preproduction' ? d.preprod.studioWallet : d.catalogueCampaign.enabled ? d.catalogueCampaign.studioWallet : '';
-      if (studio && this.studioIsArtist(studio)) return false;
+      if (studio && (this.studioIsArtist(studio) || !this.isVerifiedStudio(studio))) return false;
     }
     // The contract step is the one check that can't be a pure function: it
     // needs the clause list off the loaded template, not just the draft.
