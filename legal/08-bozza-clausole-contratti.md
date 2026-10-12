@@ -52,6 +52,12 @@ Sostituisce le clausole `manager-discretion`, `milestones` e `refund` e integra
 5. L'annullamento nei casi del comma 1 non costituisce inadempimento della
    Piattaforma o del Veicolo.
 
+> **Seconda firma (2026-10-12, technical §2.115).** La decisione scritta da un
+> firmatario del Safe è solo una proposta: ha effetto (la pagina viene nascosta e
+> si prepara la transazione per il Safe) solo quando un **secondo firmatario
+> diverso** la conferma. Fino ad allora si può archiviare. Le decisioni registrate
+> prima di questa regola restano valide.
+>
 > **Nota di implementazione (2026-09-28, technical §2.105).** Commi 2 e 3 sono nel
 > codice (`/admin/takedown`): l'avviso va all'**email verificata** dell'artista (il
 > wallet non si può "avvisare": viene solo indicato), il termine è un'impostazione

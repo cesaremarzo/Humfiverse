@@ -53,7 +53,8 @@ export interface TakedownEvent {
 /** A takedown case as the admin page sees it: the backend's fold of its events. */
 export interface TakedownCase {
   assetId?: string;
-  stage: 'none' | 'dismissed' | 'noticed' | 'decided' | 'removed';
+  /** 'proposed': a decision written by one Safe signer, awaiting a second. */
+  stage: 'none' | 'dismissed' | 'noticed' | 'proposed' | 'decided' | 'removed';
   ground?: TakedownGround;
   evidenceType?: 'notice' | 'authority_order' | 'court_decision' | null;
   evidenceRef?: string | null;
@@ -65,6 +66,7 @@ export interface TakedownCase {
   noticeEmail?: { outcome: string; detail: Record<string, unknown> } | null;
   replies?: { at: string; by: string; text: string }[];
   decision?: { at: string; by: string; text: string; document: string; decisionHash: string } | null;
+  confirmation?: { at: string; by: string } | null;
   hidden?: boolean;
   hiddenAt?: string | null;
   cancel?: ({ outcome: string } & Record<string, unknown>) | null;
