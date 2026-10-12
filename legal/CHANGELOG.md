@@ -3,6 +3,20 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-10-12 · termini di lancio conservati per le campagne solo escrow (technical §2.112)
+
+Il server crea ora la campagna escrow nella stessa richiesta del conio del token,
+e per le campagne vendute solo tramite escrow conserva il contenuto firmato del
+lancio (asset, titolo, nome artista, wallet, token, raccolta, studio, milestone)
+nella nuova tabella `escrow_launches`. Serve a far firmare di nuovo all'artista
+gli stessi termini, dalla sua dashboard, se la campagna non è stata creata.
+
+- **05 §3**, riga "Autorizzazione di lancio": prima diceva che non era salvata
+  nel database. Ora: la firma no, il contenuto sì, solo per le campagne escrow;
+  durata da definire **[verificare]**, nessuna cancellazione automatica.
+- Nessun cambiamento ai contratti, alle commissioni o ai poteri del Founder:
+  la creazione della campagna usa lo stesso controllo della firma di prima.
+
 ## 2026-10-11 · redeploy: le correzioni dell'audit sono sulla catena (technical §2.111)
 
 Token `0xe26C2FC4A77e26cc1A4404DD5DA63ae8761dF997` ed escrow `0x0D5232579773e61b898e70866b2160b2B077aDb7`, proprietà al Safe. Tolte da 01, 02, 04, 06 e dal

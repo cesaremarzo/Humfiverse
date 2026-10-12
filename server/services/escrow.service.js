@@ -129,4 +129,21 @@ async function rememberCampaign(assetId, info) {
   });
 }
 
-module.exports = { createCampaign, listCampaigns, rememberCampaign };
+/** §2.112: this artist's escrow-only tokens that were minted but have no
+ * campaign — the server tried in the mint request and failed (studio
+ * suspended, RPC error). Each comes with the launch terms it was minted
+ * under, minus the timestamp, for the artist to sign again. */
+async function listMissingCampaigns(wallet) {
+  const launches = await escrowRepo.listLaunchesByArtist(wallet);
+  const missing = [];
+  for (const launch of launches) {
+    if (await escrowRepo.hasCampaign(launch.assetId)) continue;
+    if (!(await onchainService.findTokenWithChainFallback(launch.assetId))) continue;
+    if (await escrowChain.getCampaignInfoByAssetId(launch.assetId)) continue;
+    const { issuedAt, ...terms } = launch;
+    missing.push(terms);
+  }
+  return missing;
+}
+
+module.exports = { createCampaign, listCampaigns, rememberCampaign, listMissingCampaigns };
