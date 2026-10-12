@@ -228,6 +228,15 @@ async function initSchema() {
   } catch {
     /* column already exists — fine */
   }
+  // B-4: an acceptance names the wallet that signed it, the asset, and the
+  // exact text (sha256), with the launch signature that proves it.
+  for (const col of ["artist_wallet TEXT", "asset_id TEXT", "template_sha256 TEXT", "launch_signature TEXT"]) {
+    try {
+      await db.exec(`ALTER TABLE contract_acceptances ADD COLUMN ${col};`);
+    } catch {
+      /* column already exists — fine */
+    }
+  }
   // Same reason: indexer_state predates the lease column.
   try {
     await db.exec("ALTER TABLE indexer_state ADD COLUMN locked_until INTEGER NOT NULL DEFAULT 0;");

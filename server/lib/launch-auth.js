@@ -48,7 +48,7 @@ function address(value, field, { optional = false } = {}) {
 
 /** The fields a launch commits to, in a fixed shape. `issuedAt` is set by
  * the server when the message is requested. */
-function normalizePayload(p, { issuedAt } = {}) {
+function normalizePayload(p, { issuedAt, contract } = {}) {
   if (!p || typeof p !== "object") throw codedError("invalid", "launch payload is required");
   const supply = Number(p.supply);
   if (!Number.isSafeInteger(supply) || supply <= 0) throw codedError("invalid", "supply must be a whole number above 0");
@@ -107,6 +107,10 @@ function normalizePayload(p, { issuedAt } = {}) {
     milestones,
     raiseDeadline,
     minRaiseBps,
+    // The artist agreement on screen when the launch was signed — stamped by
+    // the server, like issuedAt, never taken from the client's word.
+    contractVersion: text(contract?.version ?? p.contractVersion, "contractVersion", { optional: true }),
+    contractSha256: text(contract?.sha256 ?? p.contractSha256, "contractSha256", { optional: true }),
     issuedAt: new Date(stamp).toISOString()
   };
 }
@@ -128,6 +132,7 @@ function buildLaunchMessage(payload) {
     `Studio: ${payload.studioName || "none"}${payload.studioWallet ? ` (${payload.studioWallet})` : ""}`,
     `Milestones: ${milestones}`,
     ...(payload.directSale ? [] : [`Raise: at least ${payload.minRaiseBps / 100}% by ${new Date(payload.raiseDeadline * 1000).toISOString()}, or every holder is refunded`]),
+    ...(payload.contractSha256 ? [`Artist agreement: ${payload.contractVersion} (sha256 ${payload.contractSha256})`] : []),
     `Issued: ${payload.issuedAt}`
   ].join("\n");
 }
@@ -138,7 +143,11 @@ function buildLaunchMessage(payload) {
 const MAX_RAISE_SECONDS = 365 * 24 * 60 * 60;
 
 function prepareLaunch(rawPayload) {
-  const payload = normalizePayload(rawPayload, { issuedAt: new Date().toISOString() });
+  const { CONTRACT_TEMPLATE, CONTRACT_TEMPLATE_SHA256 } = require("../contract-template");
+  const payload = normalizePayload(rawPayload, {
+    issuedAt: new Date().toISOString(),
+    contract: { version: CONTRACT_TEMPLATE.version, sha256: CONTRACT_TEMPLATE_SHA256 }
+  });
   // Checked only when signing starts: a later check of the same signature
   // (e.g. completing a campaign, §2.112) is the contract's to refuse.
   if (!payload.directSale) {

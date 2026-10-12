@@ -542,6 +542,9 @@ export interface LaunchPayload {
   /** §2.114: escrow campaigns only — unix seconds and bps of the goal. */
   raiseDeadline?: number;
   minRaiseBps?: number;
+  /** B-4: stamped by the server — the artist agreement this launch accepts. */
+  contractVersion?: string;
+  contractSha256?: string;
   issuedAt: string;
 }
 

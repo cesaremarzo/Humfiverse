@@ -5,8 +5,10 @@
    return a receipt; neither is connected to a real registry, a real
    identity provider, or a real signature. */
 
-const { CONTRACT_TEMPLATE } = require("../contract-template");
+const crypto = require("crypto");
+const { CONTRACT_TEMPLATE, CONTRACT_TEMPLATE_SHA256 } = require("../contract-template");
 const complianceRepo = require("../data/compliance.repo");
+const { verifyLaunch } = require("../lib/launch-auth");
 const { fakeTxHash } = require("../lib/receipts");
 
 const VESSATORIA_CLAUSE_IDS = CONTRACT_TEMPLATE.clauses.filter(c => c.vessatoria).map(c => c.id);
@@ -25,18 +27,32 @@ function validateContractAcceptance(body) {
   return missing;
 }
 
+/* B-4: the acceptance is tied to the launch the artist wallet signed, which
+   names this exact template (version and sha256). The receipt is a hash of
+   what was recorded — wallet, asset, text, signature, time — not a random
+   value, so anyone holding the record can recompute it. */
 async function recordContractAcceptance(body) {
-  const receiptHash = fakeTxHash();
+  const launch = verifyLaunch(body.launch);
+  if (launch.contractVersion !== CONTRACT_TEMPLATE.version || launch.contractSha256 !== CONTRACT_TEMPLATE_SHA256) {
+    throw Object.assign(new Error("the signed launch names a different version of the artist agreement; sign the launch again"), { code: "unauthorized" });
+  }
   const acceptedAt = new Date().toISOString();
+  const receiptHash = "0x" + crypto.createHash("sha256")
+    .update([launch.artistWallet, launch.assetId, CONTRACT_TEMPLATE.version, CONTRACT_TEMPLATE_SHA256, body.launch.signature, acceptedAt].join("|"))
+    .digest("hex");
   await complianceRepo.insertContractAcceptance({
     templateVersion: CONTRACT_TEMPLATE.version,
-    artistName: body.artistName || "",
-    trackTitle: body.trackTitle || "",
+    artistName: launch.artistName,
+    trackTitle: launch.title,
     vessatoriaAccepted: body.vessatoriaAccepted || {},
     receiptHash,
-    acceptedAt
+    acceptedAt,
+    artistWallet: launch.artistWallet,
+    assetId: launch.assetId,
+    templateSha256: CONTRACT_TEMPLATE_SHA256,
+    launchSignature: body.launch.signature
   });
-  return { receiptHash, acceptedAt, templateVersion: CONTRACT_TEMPLATE.version };
+  return { receiptHash, acceptedAt, templateVersion: CONTRACT_TEMPLATE.version, templateSha256: CONTRACT_TEMPLATE_SHA256 };
 }
 
 /* MiFID II Art. 25(3) appropriateness assessment (execution-only regime):

@@ -2,10 +2,11 @@
   "name": "humfiverse-server",
   "version": "0.1.0",
   "private": true,
-  "description": "Mock backend for the Humfiverse frontend prototype (libSQL-backed via @libsql/client — a local file by default, a real Turso database in production; see db.js). Only other dependency is ethers, for the Base Sepolia on-chain integration.",
+  "description": "Mock backend for the Humfiverse frontend prototype (libSQL-backed via @libsql/client \u2014 a local file by default, a real Turso database in production; see db.js). Only other dependency is ethers, for the Base Sepolia on-chain integration.",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test test/*.test.js"
   },
   "engines": {
     "node": ">=22.5.0"

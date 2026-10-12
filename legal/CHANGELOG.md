@@ -3,6 +3,14 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-10-12 · accettazione del contratto artista legata al wallet
+
+L'accettazione del contratto artista si registra solo con l'autorizzazione di
+lancio firmata dal wallet dell'artista, che ora contiene versione e SHA-256 del
+testo (inseriti dal server). Si salvano wallet, asset, impronta e firma; il
+`receipt_hash` è l'hash di quanto registrato. 05 §3 (dati trattati), 08 C-4 in
+parte e C-5 per l'artista, 03 T-9 in parte.
+
 ## 2026-10-12 · W-17 applicata al whitepaper
 
 Su richiesta dell'utente, cap. 8: i rimborsi seguono i token (anche dopo una

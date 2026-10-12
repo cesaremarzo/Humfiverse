@@ -2887,3 +2887,19 @@ bundle `main-YGZTSVPR.js`, contratto artista v0.5-draft, Night Swim e le campagn
 precedenti lette come legacy dai loro escrow, endpoint di lettura tutti 200. Le
 nuove campagne vanno sul nuovo escrow con scadenza e soglia. Script
 `redeployEscrowRaise.js` cancellato (una tantum, come da REPO_MAP).
+
+## 2026-10-12 — accettazione del contratto legata al wallet (B-4), test del backend
+
+Mentre la prova dal vivo di scadenza e soglia aspettava la scadenza:
+- **B-4 risolto per l'artista:** il server inserisce versione e SHA-256 del
+  contratto artista nei termini di lancio ("Artist agreement: v0.5-draft (sha256
+  …)"); `POST /api/contract-acceptance` accetta solo con quella firma e salva
+  wallet, asset, impronta e firma; `receipt_hash` = hash di quanto registrato.
+  `GET /api/contract-template` restituisce anche `sha256`. Legale: 05, 08 C-4/C-5,
+  03 T-9.
+- **Primi test automatici del backend:** `cd server && npm test` (node:test, 10
+  test su `launch-auth`).
+- Commento su Haiku corretto in `server/.env.example`.
+- **Non fatto:** ritiro commissioni dai vecchi escrow (transazione bloccata dai
+  permessi: va lanciata da Cesare); togliere `NONE` dall'escrow (da decidere: è
+  l'unica uscita per una campagna abbandonata dopo la soglia).

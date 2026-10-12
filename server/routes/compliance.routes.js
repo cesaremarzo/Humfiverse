@@ -4,14 +4,14 @@
    registry or identity provider — see services/compliance.service.js. */
 
 const { sendJson, readBody } = require("../lib/http");
-const { CONTRACT_TEMPLATE } = require("../contract-template");
+const { CONTRACT_TEMPLATE, CONTRACT_TEMPLATE_SHA256 } = require("../contract-template");
 const compliance = require("../services/compliance.service");
 const { verifyAction, kycDigest } = require("../lib/signed-action");
 const registration = require("../services/registration.service");
 
 module.exports = function registerComplianceRoutes(router) {
   router.get("/api/contract-template", (req, res) => {
-    sendJson(res, 200, CONTRACT_TEMPLATE);
+    sendJson(res, 200, { ...CONTRACT_TEMPLATE, sha256: CONTRACT_TEMPLATE_SHA256 });
   });
 
   router.post("/api/contract-acceptance", async (req, res) => {
@@ -24,7 +24,8 @@ module.exports = function registerComplianceRoutes(router) {
       }
       sendJson(res, 200, await compliance.recordContractAcceptance(body));
     } catch (e) {
-      sendJson(res, 400, { error: "invalid request body" });
+      if (e.code === "unauthorized") sendJson(res, 401, { error: e.message });
+      else sendJson(res, 400, { error: "invalid request body" });
     }
   });
 
