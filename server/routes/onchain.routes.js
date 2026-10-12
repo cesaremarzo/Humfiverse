@@ -26,6 +26,7 @@ const pinata = require("../pinata");
 const onchainService = require("../services/onchain.service");
 const escrowChain = require("../chainEscrow");
 const escrow = require("../services/escrow.service");
+const escrowRepo = require("../data/escrow.repo");
 const { verifyLaunch, requireMatch } = require("../lib/launch-auth");
 const registration = require("../services/registration.service");
 
@@ -90,13 +91,17 @@ module.exports = function registerOnchainRoutes(router) {
         sendJson(res, 503, { error: "on-chain minting is disabled on this server (no operator key configured)" });
         return;
       }
+      const escrowOnly = !launch.directSale && launch.studioWallet && launch.milestones.length;
       const result = await onchainService.mintAsset(body.assetId, body.slug, body.supply, body.fundingUsdc, body.title, body.artist, body.payoutWallet, body.directSale);
+      // Kept only once the token exists, so a refused mint can't overwrite
+      // the terms of an asset someone else already launched.
+      if (escrowOnly) await escrowRepo.saveLaunch(launch).catch((e) => console.warn("could not keep launch terms", launch.assetId, e.message));
       // §2.112: a launch sold only through its escrow gets its campaign here,
       // in the same request, from the studio and milestones the artist signed.
       // It used to be a second request from the browser after this one, so a
       // tab closed in between left a token with no campaign and no way to buy
       // it. The handler runs to the end even if the client has gone.
-      if (!launch.directSale && launch.studioWallet && launch.milestones.length && escrowChain.writeEnabled()) {
+      if (escrowOnly && escrowChain.writeEnabled()) {
         try {
           result.escrow = await escrow.createCampaign(launch.assetId, launch.artistWallet, launch.studioName, launch.studioWallet, launch.milestones);
         } catch (e) {

@@ -1,3 +1,18 @@
+<ng-template #missingBlock>
+  @for (m of missing(); track m.assetId) {
+    <div class="card" style="border-left: 3px solid var(--warning); margin-bottom: 16px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+      <app-icon name="alert"></app-icon>
+      <div style="flex: 1 1 260px;">
+        <h3 style="margin: 0 0 4px;">{{ 'artistDash.missingTitle' | translate: { title: m.title } }}</h3>
+        <p style="margin: 0;">{{ 'artistDash.missingBody' | translate }}</p>
+        <p style="margin: 4px 0 0; color: var(--text-muted);">{{ 'artistDash.missingTerms' | translate: { studio: m.studioName, count: m.milestones.length } }}</p>
+      </div>
+      <button class="btn btn-primary" [disabled]="completing() !== null" (click)="completeCampaign(m)">
+        <app-icon name="checkCircle"></app-icon> {{ (completing() === m.assetId ? 'artistDash.completing' : 'artistDash.completeCampaign') | translate }}
+      </button>
+    </div>
+  }
+</ng-template>
 @if (!wallet.state().address) {
   <div class="page-head"><div><span class="page-kicker">{{ 'artistDash.kicker' | translate }}</span><h1>{{ 'artistDash.title' | translate }}</h1></div></div>
   <div class="empty-state card">
@@ -10,6 +25,7 @@
   </div>
 } @else if (!myCampaigns().length) {
   <div class="page-head"><div><span class="page-kicker">{{ 'artistDash.kicker' | translate }}</span><h1>{{ 'artistDash.title' | translate }}</h1></div></div>
+  <ng-container *ngTemplateOutlet="missingBlock"></ng-container>
   <div class="empty-state card">
     <app-icon name="music"></app-icon>
     <h3>{{ 'artistDash.emptyTitle' | translate }}</h3>
@@ -20,6 +36,7 @@
     <div><span class="page-kicker">{{ 'artistDash.kicker' | translate }}</span><h1>{{ 'artistDash.title' | translate }}</h1></div>
     <a class="btn btn-primary" routerLink="/artist/onboarding"><app-icon name="sparkles"></app-icon> {{ 'artistDash.newCampaign' | translate }}</a>
   </div>
+  <ng-container *ngTemplateOutlet="missingBlock"></ng-container>
   <div class="stat-grid">
     <div class="card stat-tile"><div class="label">{{ 'artistDash.activeCampaigns' | translate }}</div><div class="value">{{ myCampaigns().length }}</div></div>
     <div class="card stat-tile"><div class="label">{{ 'artistDash.totalRaised' | translate }}</div><div class="value">{{ store.onchainInfoLoading() ? '—' : totalRaisedShort() }}</div></div>

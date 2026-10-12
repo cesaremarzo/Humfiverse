@@ -59,7 +59,23 @@ async function deleteCampaignByAssetId(assetId) {
   return result.changes > 0;
 }
 
+/* §2.112: the launch an escrow-only token was minted under — studio and
+   milestones as the artist signed them — so a campaign that failed to be
+   created can be completed later with a fresh signature over the same terms. */
+async function saveLaunch(payload) {
+  await db.prepare(
+    "INSERT OR REPLACE INTO escrow_launches (asset_id, artist_wallet, payload, created_at) VALUES (?, ?, ?, ?)"
+  ).run(payload.assetId, payload.artistWallet.toLowerCase(), JSON.stringify(payload), new Date().toISOString());
+}
+
+async function listLaunchesByArtist(wallet) {
+  const rows = await db.prepare("SELECT payload FROM escrow_launches WHERE artist_wallet = ? ORDER BY created_at").all(String(wallet).toLowerCase());
+  return rows.map((r) => JSON.parse(r.payload));
+}
+
 module.exports = {
+  saveLaunch,
+  listLaunchesByArtist,
   findStudioByWalletAndName,
   upsertStudio,
   clearStudios,

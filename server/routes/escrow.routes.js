@@ -69,6 +69,20 @@ module.exports = function registerEscrowRoutes(router) {
     }
   });
 
+  /* §2.112: an artist's escrow-only tokens left without a campaign, with the
+     terms to sign again. */
+  router.get("/api/escrow/missing/:wallet", async (req, res, { params }) => {
+    if (!/^0x[a-fA-F0-9]{40}$/.test(params.wallet)) {
+      sendJson(res, 400, { error: "wallet is not an address" });
+      return;
+    }
+    try {
+      sendJson(res, 200, { missing: await escrow.listMissingCampaigns(params.wallet) });
+    } catch (e) {
+      sendJson(res, 502, { error: "could not check for missing campaigns", detail: String(e.message || e) });
+    }
+  });
+
   router.get("/api/escrow/campaigns", async (req, res) => {
     try {
       sendJson(res, 200, { campaigns: await escrow.listCampaigns() });

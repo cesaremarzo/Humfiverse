@@ -2815,3 +2815,23 @@ lo stesso. `legal/check.sh` pulito.
 **Resta:** se il server prova e fallisce (studio sospeso, errore RPC) il token resta
 senza campagna; per ripararlo serve una nuova firma dell'artista e la UI non la
 chiede ancora.
+
+## 2026-10-12 — pulsante "Completa la campagna" nella dashboard artista (§2.112)
+
+Seguito del fix sopra, su richiesta di Cesare. Se il server prova a creare la
+campagna dopo il conio e fallisce (studio sospeso, errore RPC), l'artista ora la
+vede nella sua dashboard con il pulsante **Completa la campagna**: firma di nuovo
+gli stessi termini e la campagna viene creata con lo stesso controllo della firma.
+
+- Il conio conserva i termini firmati (non la firma) nella nuova tabella
+  `escrow_launches`, solo per le campagne escrow e solo a token creato.
+- `GET /api/escrow/missing/:wallet` elenca i token di quel wallet senza campagna
+  (controllato sul contratto).
+- Testi in 9 lingue (`artistDash.missing*`, `artistDash.complete*`).
+- Provato sul fork: studio sospeso dal Safe impersonato → mint con
+  `escrowError` → scheda in dashboard (Chrome headless, wallet demo artista) →
+  clic, una firma, campagna creata, scheda sparita.
+- Legale: 05 §3 corretto (prima diceva che l'autorizzazione non era salvata);
+  durata di conservazione da definire.
+- In produzione oggi nessun token è senza campagna (Test B è vendita diretta);
+  i token coniati prima di questa modifica non hanno termini salvati.

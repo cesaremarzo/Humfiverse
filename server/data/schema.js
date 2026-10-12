@@ -52,6 +52,12 @@ async function initSchema() {
       tx_hash TEXT,
       created_at TEXT
     );
+    CREATE TABLE IF NOT EXISTS escrow_launches (
+      asset_id TEXT PRIMARY KEY,
+      artist_wallet TEXT NOT NULL,
+      payload TEXT NOT NULL,
+      created_at TEXT
+    );
     CREATE TABLE IF NOT EXISTS takedown_events (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       asset_id TEXT NOT NULL,

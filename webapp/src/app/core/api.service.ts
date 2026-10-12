@@ -276,6 +276,12 @@ export class ApiService {
     return firstValueFrom(this.http.post<EscrowCampaignCreateResult>(`${this.base}/api/escrow/campaign`, payload));
   }
 
+  /** §2.112: this artist's escrow-only tokens minted without a campaign,
+   * each with the launch terms to sign again. */
+  getMissingEscrowCampaigns(wallet: string): Promise<{ missing: Omit<LaunchPayload, 'issuedAt'>[] }> {
+    return firstValueFrom(this.http.get<{ missing: Omit<LaunchPayload, 'issuedAt'>[] }>(`${this.base}/api/escrow/missing/${encodeURIComponent(wallet)}`));
+  }
+
   /** Admin (read-only, §2.27): every milestone-escrow campaign and its
    * dual sign-off state. Humfiverse has no confirm action to take here
    * anymore — release requires the artist's and the studio's own wallets,
