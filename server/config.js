@@ -46,7 +46,9 @@ const EMAIL_DEV_LOG = process.env.EMAIL_DEV_LOG === "1";
    is the platform-wide ceiling on answered questions per rolling 24 hours,
    the last line of defence for the bill (per-IP caps are in the service). */
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || "";
-const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || "claude-opus-5";
+// Claude Haiku 5.5 by the user's choice (12 Oct 2026): a FAQ answered from a
+// fixed brief is what the small model is for, at a fraction of the cost.
+const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || "claude-haiku-5-5";
 const ASSISTANT_DAILY_CAP = Number(process.env.ASSISTANT_DAILY_CAP || 300);
 
 /* §2.105 — the takedown procedure. The artist's reply period is a setting

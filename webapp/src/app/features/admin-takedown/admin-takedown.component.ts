@@ -154,6 +154,8 @@ export class AdminTakedownComponent {
   recordReply(): Promise<void> { return this.run('reply', { text: this.replyText.trim() }).then(() => { this.replyText = ''; }); }
   dismiss(): Promise<void> { return this.run('dismiss', { reason: this.dismissReason.trim() }); }
   decide(): Promise<void> { return this.run('decide', { text: this.decisionText.trim() }); }
+  /** A second Safe signer puts the decision in force (hides the content). */
+  confirmDecision(): Promise<void> { return this.run('confirm', {}); }
   complete(): Promise<void> {
     const c = this.selectedCase();
     const needsTx = !!this.safeTx() || (c?.cancel?.outcome === 'failed');

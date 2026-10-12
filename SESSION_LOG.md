@@ -2903,3 +2903,12 @@ Mentre la prova dal vivo di scadenza e soglia aspettava la scadenza:
 - **Non fatto:** ritiro commissioni dai vecchi escrow (transazione bloccata dai
   permessi: va lanciata da Cesare); togliere `NONE` dall'escrow (da decidere: è
   l'unica uscita per una campagna abbandonata dopo la soglia).
+
+## 2026-10-12 — seconda firma, whitepaper, guida con Haiku (§2.115)
+
+Decisioni di Cesare: (1) motivo "abbandono" al posto di NONE nell'escrow — codice
+su branch separato, si unisce col prossimo redeploy; (2) applicare W-16…W-20 al
+whitepaper — fatto (cap. 2, 3, 4, 6, 9); (3) guida con Haiku — default
+`claude-haiku-5-5`, manca `ANTHROPIC_API_KEY` su Render; (4) seconda firma sulla
+decisione di annullamento — fatta (step `confirm`, stage `proposed`), 6 test.
+Ritiro commissioni dai vecchi escrow: bloccato dai permessi, comando a Cesare.

@@ -3,6 +3,23 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-10-12 · seconda firma sulla decisione di annullamento (technical §2.115)
+
+Decisione dell'utente: la decisione di annullamento richiede la conferma di un
+secondo firmatario del Safe prima di nascondere la pagina. 08 A-1, nota aggiunta.
+La guida usa ora Claude Haiku 5.5 di default (stesso fornitore, Anthropic: 05
+invariato).
+
+## 2026-10-12 · W-16, W-18, W-19, W-20 applicate al whitepaper
+
+Su richiesta dell'utente. Cap. 2: rimborsi ai possessori dei token, il contratto
+registra motivo e hash della decisione, 6% sulla vendita diretta, 1% sulle
+royalty. Cap. 3: nuova sezione sul pagamento delle royalty (chi versa, impronta
+del rendiconto, 1%, ripartizione per tempo di possesso, cosa il contratto non
+verifica). Cap. 4: le cinque commissioni e il Safe al posto dell'operatore.
+Cap. 6: poteri del proprietario a 2 firme su 3 e seconda firma sulla decisione di
+annullamento. Cap. 9: 130 test.
+
 ## 2026-10-12 · accettazione del contratto artista legata al wallet
 
 L'accettazione del contratto artista si registra solo con l'autorizzazione di
