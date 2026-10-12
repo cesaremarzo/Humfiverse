@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { IconComponent } from '../../shared/icon.component';
 import { CampaignCardComponent } from '../../shared/campaign-card.component';
+import { PayoutWalletComponent } from '../../shared/payout-wallet.component';
 import { StoreService } from '../../core/store.service';
 import { WalletService } from '../../core/wallet.service';
 import { ApiService } from '../../core/api.service';
@@ -15,7 +16,7 @@ import { fundingRaisedFor } from '../../core/onchain-progress.util';
 @Component({
   selector: 'app-artist-dashboard',
   standalone: true,
-  imports: [NgTemplateOutlet, RouterLink, TranslatePipe, IconComponent, CampaignCardComponent],
+  imports: [NgTemplateOutlet, RouterLink, TranslatePipe, IconComponent, CampaignCardComponent, PayoutWalletComponent],
   templateUrl: './artist-dashboard.component.html'
 })
 export class ArtistDashboardComponent {

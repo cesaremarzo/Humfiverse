@@ -377,6 +377,9 @@ export type OnchainInfo =
        * (§2.43). Source of truth is the contract itself, not this API
        * response. */
       audioUri: string;
+      /** The token's payout wallet on chain — since §2.117 the artist can
+       * move it, so it is who the asset belongs to. */
+      payoutWallet?: string | null;
     };
 
 export interface OnchainMintResult {

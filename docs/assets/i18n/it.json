@@ -796,5 +796,20 @@
   "detail.removedRefund": "Se possiedi i suoi token, l'eventuale rimborso che ti spetta si richiede dal tuo portafoglio:",
   "takedown.ground.unlawful_content": "contenuto illecito",
   "takedown.ground.third_party_rights": "violazione di diritti di terzi",
-  "takedown.ground.false_warranties": "dichiarazioni dell'artista non veritiere"
+  "takedown.ground.false_warranties": "dichiarazioni dell'artista non veritiere",
+  "payout.title": "Wallet di incasso",
+  "payout.intro": "Il wallet che riceve vendite e royalty di questo brano. Puoi spostarlo solo tu: proponi qui un nuovo wallet, poi collega il nuovo wallet e accetta. Nessuno, Humfiverse compresa, può dirottarlo: per questo una chiave persa non si recupera.",
+  "payout.current": "Attuale: {{wallet}}",
+  "payout.pending": "In attesa che {{wallet}} accetti",
+  "payout.newLabel": "Indirizzo del nuovo wallet (0x…)",
+  "payout.propose": "Proponi",
+  "payout.cancel": "Ritira la proposta",
+  "payout.incomingItem": "«{{title}}»: sei stato proposto come wallet di incasso.",
+  "payout.accept": "Accetta",
+  "payout.working": "In attesa del wallet…",
+  "payout.invalid": "Inserisci un indirizzo valido, diverso da quello attuale.",
+  "payout.proposed": "Proposta inviata. Collega il nuovo wallet e accetta.",
+  "payout.accepted": "Questo wallet ora riceve gli incassi del brano.",
+  "payout.failed": "La transazione non è andata a buon fine.",
+  "payout.campaignNote": "Si sposta anche la campagna in corso: il wallet chiederà una seconda firma."
 }

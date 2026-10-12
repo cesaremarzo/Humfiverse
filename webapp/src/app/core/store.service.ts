@@ -209,6 +209,9 @@ export class StoreService {
    * them, and guessing from the display name would be worse than saying
    * so. */
   campaignOwner(assetId: string): string | null {
+    // §2.117: the payout wallet on chain first — the artist can move it.
+    const onchain = this.onchainFor(assetId);
+    if (onchain?.onchain && onchain.payoutWallet) return onchain.payoutWallet.toLowerCase();
     const stored = this.assetById(assetId)?.artistWallet;
     if (stored) return stored.toLowerCase();
     const escrow = this.escrowFor(assetId);

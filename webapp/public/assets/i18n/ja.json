@@ -796,5 +796,20 @@
   "detail.removedRefund": "トークンを保有している場合、受け取るべき返金はポートフォリオから請求できます：",
   "takedown.ground.unlawful_content": "違法なコンテンツ",
   "takedown.ground.third_party_rights": "第三者の権利の侵害",
-  "takedown.ground.false_warranties": "アーティストによる虚偽の表明"
+  "takedown.ground.false_warranties": "アーティストによる虚偽の表明",
+  "payout.title": "受取ウォレット",
+  "payout.intro": "この楽曲の売上とロイヤリティを受け取るウォレットです。変更できるのはあなただけです。ここで新しいウォレットを提案し、新しいウォレットを接続して承認してください。Humfiverse を含め誰もリダイレクトできないため、紛失した鍵は復元できません。",
+  "payout.current": "現在：{{wallet}}",
+  "payout.pending": "{{wallet}} の承認待ち",
+  "payout.newLabel": "新しいウォレットのアドレス（0x…）",
+  "payout.propose": "提案する",
+  "payout.cancel": "提案を取り下げる",
+  "payout.incomingItem": "「{{title}}」：あなたが受取ウォレットとして提案されました。",
+  "payout.accept": "承認する",
+  "payout.working": "ウォレットを待っています…",
+  "payout.invalid": "現在のものとは異なる有効なアドレスを入力してください。",
+  "payout.proposed": "提案を送信しました。新しいウォレットを接続して承認してください。",
+  "payout.accepted": "このウォレットが楽曲の受取先になりました。",
+  "payout.failed": "トランザクションが完了しませんでした。",
+  "payout.campaignNote": "進行中のキャンペーンも移行します。ウォレットが2回目の署名を求めます。"
 }

@@ -1,0 +1,1 @@
+import{K as d}from"./chunk-IsePTTiR.js";async function m(e,a){return d(await e({method:`eth_estimateGas`,params:[a]}))}export{m as t};

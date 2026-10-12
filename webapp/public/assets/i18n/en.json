@@ -796,5 +796,20 @@
   "detail.removedRefund": "If you hold its tokens, any refund due to you is claimed from your portfolio:",
   "takedown.ground.unlawful_content": "unlawful content",
   "takedown.ground.third_party_rights": "infringement of third-party rights",
-  "takedown.ground.false_warranties": "false artist warranties"
+  "takedown.ground.false_warranties": "false artist warranties",
+  "payout.title": "Payout wallet",
+  "payout.intro": "The wallet that receives this track's sales and royalties. Only you can move it: propose a new wallet here, then connect the new wallet and accept. Nobody — Humfiverse included — can redirect it, so a lost key cannot be recovered.",
+  "payout.current": "Current: {{wallet}}",
+  "payout.pending": "Waiting for {{wallet}} to accept",
+  "payout.newLabel": "New wallet address (0x…)",
+  "payout.propose": "Propose",
+  "payout.cancel": "Withdraw proposal",
+  "payout.incomingItem": "“{{title}}”: you have been proposed as the payout wallet.",
+  "payout.accept": "Accept",
+  "payout.working": "Waiting for the wallet…",
+  "payout.invalid": "Enter a valid wallet address, different from the current one.",
+  "payout.proposed": "Proposal sent. Connect the new wallet and accept it.",
+  "payout.accepted": "This wallet now receives the track's payouts.",
+  "payout.failed": "The transaction did not go through.",
+  "payout.campaignNote": "The running campaign moves too: your wallet will ask for a second signature."
 }

@@ -796,5 +796,20 @@
   "detail.removedRefund": "إذا كنت تملك رموزها، فاطلب أي استرداد مستحق لك من محفظتك:",
   "takedown.ground.unlawful_content": "محتوى غير قانوني",
   "takedown.ground.third_party_rights": "انتهاك حقوق الغير",
-  "takedown.ground.false_warranties": "إقرارات كاذبة من الفنان"
+  "takedown.ground.false_warranties": "إقرارات كاذبة من الفنان",
+  "payout.title": "محفظة التحصيل",
+  "payout.intro": "المحفظة التي تتلقى مبيعات هذا العمل وعوائده. أنت وحدك من يستطيع تغييرها: اقترح محفظة جديدة هنا، ثم اربط المحفظة الجديدة ووافق. لا يستطيع أحد، بما في ذلك Humfiverse، تحويلها، لذا لا يمكن استعادة مفتاح مفقود.",
+  "payout.current": "الحالية: {{wallet}}",
+  "payout.pending": "بانتظار موافقة {{wallet}}",
+  "payout.newLabel": "عنوان المحفظة الجديدة (0x…)",
+  "payout.propose": "اقتراح",
+  "payout.cancel": "سحب الاقتراح",
+  "payout.incomingItem": "«{{title}}»: تم اقتراحك كمحفظة تحصيل.",
+  "payout.accept": "موافقة",
+  "payout.working": "بانتظار المحفظة…",
+  "payout.invalid": "أدخل عنوانًا صالحًا يختلف عن العنوان الحالي.",
+  "payout.proposed": "تم إرسال الاقتراح. اربط المحفظة الجديدة ووافق.",
+  "payout.accepted": "هذه المحفظة تتلقى الآن مدفوعات العمل.",
+  "payout.failed": "لم تكتمل المعاملة.",
+  "payout.campaignNote": "تنتقل الحملة الجارية أيضًا: ستطلب المحفظة توقيعًا ثانيًا."
 }
