@@ -796,5 +796,20 @@
   "detail.removedRefund": "如果您持有其代币，可在您的投资组合中申请应得的退款：",
   "takedown.ground.unlawful_content": "违法内容",
   "takedown.ground.third_party_rights": "侵犯第三方权利",
-  "takedown.ground.false_warranties": "艺术家的虚假保证"
+  "takedown.ground.false_warranties": "艺术家的虚假保证",
+  "payout.title": "收款钱包",
+  "payout.intro": "接收本曲目销售收入和版税的钱包。只有你可以更改：在此提议新钱包，然后连接新钱包并接受。任何人（包括 Humfiverse）都无法将其改向，因此丢失的私钥无法找回。",
+  "payout.current": "当前：{{wallet}}",
+  "payout.pending": "等待 {{wallet}} 接受",
+  "payout.newLabel": "新钱包地址（0x…）",
+  "payout.propose": "提议",
+  "payout.cancel": "撤回提议",
+  "payout.incomingItem": "“{{title}}”：你被提议为收款钱包。",
+  "payout.accept": "接受",
+  "payout.working": "正在等待钱包…",
+  "payout.invalid": "请输入一个有效地址，且不同于当前地址。",
+  "payout.proposed": "提议已发送。请连接新钱包并接受。",
+  "payout.accepted": "此钱包现在接收该曲目的收款。",
+  "payout.failed": "交易未能完成。",
+  "payout.campaignNote": "进行中的活动也会一并转移：钱包会要求第二次签名。"
 }

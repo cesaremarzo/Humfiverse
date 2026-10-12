@@ -98,6 +98,13 @@ function mintingEnabled() {
   return writeContract !== null;
 }
 
+/** The token's payout wallet on chain, or null if none or unreadable. Since
+ * §2.117 the artist can move it, so it is the live answer to "whose asset". */
+async function getPayoutOf(tokenId) {
+  const payout = await withRetry(() => readContract.payoutOf(tokenId)).catch(() => null);
+  return payout && payout !== ethers.ZeroAddress ? payout.toLowerCase() : null;
+}
+
 async function getPoolInfo(tokenId) {
   const toUsdc = await toUsdcFor(readContract);
   const [poolBalance, totalSupply, released, price, title, artist, audioUri, payout, directSale] = await Promise.all([
@@ -339,6 +346,7 @@ module.exports = {
   getBalance,
   mintingEnabled,
   getPoolInfo,
+  getPayoutOf,
   mintCatalogueOnchain,
   releaseFromPoolOnchain,
   setTrackAudioUriOnchain,

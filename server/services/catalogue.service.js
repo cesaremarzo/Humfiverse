@@ -11,6 +11,8 @@
    (stripRoyaltyHistory). */
 
 const escrowChain = require("../chainEscrow");
+const chain = require("../chain");
+const onchainRepo = require("../data/onchain.repo");
 const catalogueRepo = require("../data/catalogue.repo");
 
 const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
@@ -60,6 +62,13 @@ async function stripRoyaltyHistory(asset) {
  * an asset created before that, the artist of its escrow campaign. null
  * when neither exists. */
 async function ownerWalletOf(asset) {
+  // §2.117: the token's payout wallet first — the artist can move it on
+  // chain, and the asset follows. The stored launch wallet is the fallback.
+  const token = await onchainRepo.findTokenByAssetId(asset.id).catch(() => null);
+  if (token) {
+    const payout = await chain.getPayoutOf(token.token_id);
+    if (payout) return payout;
+  }
   if (asset.artistWallet) return String(asset.artistWallet).toLowerCase();
   const escrow = await escrowChain.getCampaignInfoByAssetId(asset.id).catch(() => null);
   return escrow?.artist ? String(escrow.artist).toLowerCase() : null;

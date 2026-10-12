@@ -48,3 +48,8 @@
     }
   </div>
 }
+
+<!-- §2.117: move the payout wallet (or accept one offered to this wallet) -->
+@if (wallet.state().address) {
+  <app-payout-wallet></app-payout-wallet>
+}

@@ -796,5 +796,20 @@
   "detail.removedRefund": "Si vous détenez ses jetons, le remboursement éventuel qui vous revient se demande depuis votre portefeuille :",
   "takedown.ground.unlawful_content": "contenu illicite",
   "takedown.ground.third_party_rights": "atteinte aux droits de tiers",
-  "takedown.ground.false_warranties": "déclarations inexactes de l'artiste"
+  "takedown.ground.false_warranties": "déclarations inexactes de l'artiste",
+  "payout.title": "Wallet d'encaissement",
+  "payout.intro": "Le wallet qui reçoit les ventes et les redevances de ce titre. Vous seul pouvez le changer : proposez ici un nouveau wallet, puis connectez ce nouveau wallet et acceptez. Personne, Humfiverse compris, ne peut le détourner : une clé perdue ne peut donc pas être récupérée.",
+  "payout.current": "Actuel : {{wallet}}",
+  "payout.pending": "En attente de l'acceptation de {{wallet}}",
+  "payout.newLabel": "Adresse du nouveau wallet (0x…)",
+  "payout.propose": "Proposer",
+  "payout.cancel": "Retirer la proposition",
+  "payout.incomingItem": "« {{title}} » : vous avez été proposé comme wallet d'encaissement.",
+  "payout.accept": "Accepter",
+  "payout.working": "En attente du wallet…",
+  "payout.invalid": "Saisissez une adresse valide, différente de l'actuelle.",
+  "payout.proposed": "Proposition envoyée. Connectez le nouveau wallet et acceptez.",
+  "payout.accepted": "Ce wallet reçoit désormais les encaissements du titre.",
+  "payout.failed": "La transaction n'a pas abouti.",
+  "payout.campaignNote": "La campagne en cours suit aussi : votre wallet demandera une seconde signature."
 }

@@ -169,6 +169,19 @@ const ESCROW_V2_ABI = [
 ];
 /* Royalties on the token (§2.92). Deposit and both claims are open to any
    wallet; a claim only ever pays the holder, or the artist for the pool. */
+/* §2.117 */
+const PAYOUT_ABI = [
+  'function payoutOf(uint256) view returns (address)',
+  'function pendingPayoutOf(uint256) view returns (address)',
+  'function proposePayout(uint256 tokenId, address next)',
+  'function acceptPayout(uint256 tokenId)'
+];
+const ESCROW_ARTIST_ABI = [
+  'function campaigns(uint256) view returns (address artist, uint256 studioId, uint256 fundingGoal, uint256 raised, uint8 status, uint256 releasedBps, string assetId)',
+  'function pendingArtistOf(uint256) view returns (address)',
+  'function proposeArtist(uint256 campaignId, address next)',
+  'function acceptArtist(uint256 campaignId)'
+];
 const ROYALTY_ABI = [
   'function depositRoyalties(uint256 tokenId, uint256 amount, bytes32 statementRef) external',
   'function claimRoyalties(address holder, uint256[] tokenIds) external',
@@ -507,6 +520,50 @@ export class WalletService {
   async refundTokensOnchain(params: { contractAddress: string; campaignId: number; tokens: bigint }): Promise<{ txHash: string; explorerUrl: string }> {
     const contract = await this.signerFor(params.contractAddress, ESCROW_V2_ABI);
     const tx = await contract['refund'](params.campaignId, params.tokens);
+    const receipt = await tx.wait();
+    if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
+    return { txHash: tx.hash, explorerUrl: `${EXPLORER_BASE}/tx/${tx.hash}` };
+  }
+
+  /* §2.117: the artist moves their own payout wallet, in two steps — the
+     current wallet proposes, the new one accepts — on the token and, for a
+     campaign still running, on the escrow. Nobody else can. */
+
+  /** Payout and pending payout of a token, and of its escrow campaign if given. */
+  async readPayoutState(tokenContract: string, tokenId: number, escrow?: { address: string; campaignId: number }):
+    Promise<{ payout: string; pendingPayout: string | null; artist: string | null; pendingArtist: string | null }> {
+    const token = new ethers.Contract(tokenContract, PAYOUT_ABI, this.reader());
+    const [payout, pending] = await Promise.all([token['payoutOf'](tokenId), token['pendingPayoutOf'](tokenId).catch(() => ethers.ZeroAddress)]);
+    let artist: string | null = null;
+    let pendingArtist: string | null = null;
+    if (escrow) {
+      const e = new ethers.Contract(escrow.address, ESCROW_ARTIST_ABI, this.reader());
+      const [c, p] = await Promise.all([e['campaigns'](escrow.campaignId), e['pendingArtistOf'](escrow.campaignId).catch(() => ethers.ZeroAddress)]);
+      artist = String(c.artist).toLowerCase();
+      pendingArtist = p === ethers.ZeroAddress ? null : String(p).toLowerCase();
+    }
+    return { payout: String(payout).toLowerCase(), pendingPayout: pending === ethers.ZeroAddress ? null : String(pending).toLowerCase(), artist, pendingArtist };
+  }
+
+  async proposePayout(tokenContract: string, tokenId: number, next: string): Promise<{ txHash: string; explorerUrl: string }> {
+    return this.sendTx(tokenContract, PAYOUT_ABI, 'proposePayout', [tokenId, next]);
+  }
+
+  async acceptPayout(tokenContract: string, tokenId: number): Promise<{ txHash: string; explorerUrl: string }> {
+    return this.sendTx(tokenContract, PAYOUT_ABI, 'acceptPayout', [tokenId]);
+  }
+
+  async proposeArtist(escrow: string, campaignId: number, next: string): Promise<{ txHash: string; explorerUrl: string }> {
+    return this.sendTx(escrow, ESCROW_ARTIST_ABI, 'proposeArtist', [campaignId, next]);
+  }
+
+  async acceptArtist(escrow: string, campaignId: number): Promise<{ txHash: string; explorerUrl: string }> {
+    return this.sendTx(escrow, ESCROW_ARTIST_ABI, 'acceptArtist', [campaignId]);
+  }
+
+  private async sendTx(address: string, abi: string[], fn: string, args: unknown[]): Promise<{ txHash: string; explorerUrl: string }> {
+    const contract = await this.signerFor(address, abi);
+    const tx = await contract[fn](...args);
     const receipt = await tx.wait();
     if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
     return { txHash: tx.hash, explorerUrl: `${EXPLORER_BASE}/tx/${tx.hash}` };

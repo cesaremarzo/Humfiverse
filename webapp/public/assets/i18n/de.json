@@ -796,5 +796,20 @@
   "detail.removedRefund": "Wenn du ihre Token hältst, forderst du eine dir zustehende Erstattung in deinem Portfolio an:",
   "takedown.ground.unlawful_content": "rechtswidriger Inhalt",
   "takedown.ground.third_party_rights": "Verletzung von Rechten Dritter",
-  "takedown.ground.false_warranties": "unwahre Zusicherungen des Künstlers"
+  "takedown.ground.false_warranties": "unwahre Zusicherungen des Künstlers",
+  "payout.title": "Auszahlungs-Wallet",
+  "payout.intro": "Das Wallet, das Verkäufe und Tantiemen dieses Titels erhält. Nur du kannst es ändern: Schlage hier ein neues Wallet vor, verbinde dann das neue Wallet und bestätige. Niemand, auch Humfiverse nicht, kann es umleiten – ein verlorener Schlüssel lässt sich daher nicht wiederherstellen.",
+  "payout.current": "Aktuell: {{wallet}}",
+  "payout.pending": "Warte auf die Bestätigung von {{wallet}}",
+  "payout.newLabel": "Adresse des neuen Wallets (0x…)",
+  "payout.propose": "Vorschlagen",
+  "payout.cancel": "Vorschlag zurückziehen",
+  "payout.incomingItem": "„{{title}}“: Du wurdest als Auszahlungs-Wallet vorgeschlagen.",
+  "payout.accept": "Annehmen",
+  "payout.working": "Warte auf das Wallet…",
+  "payout.invalid": "Gib eine gültige Adresse ein, die sich von der aktuellen unterscheidet.",
+  "payout.proposed": "Vorschlag gesendet. Verbinde das neue Wallet und nimm an.",
+  "payout.accepted": "Dieses Wallet erhält jetzt die Auszahlungen des Titels.",
+  "payout.failed": "Die Transaktion ist nicht durchgegangen.",
+  "payout.campaignNote": "Die laufende Kampagne zieht mit um: Dein Wallet fragt nach einer zweiten Signatur."
 }

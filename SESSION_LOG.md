@@ -2952,3 +2952,14 @@ tutti gli asset con possessori, completando prima Night Swim.
   `CHAIN_ESCROW_LEGACY_ADDRESS` (quattro escrow).
 - **Incidente:** durante un controllo del `.env` locale sono state stampate in
   chiaro nella sessione la chiave del Founder e la chiave Alchemy. Da ruotare.
+
+## 2026-10-13 — rotazione della chiave operatore (in corso); cambio wallet dall'interfaccia (§2.118)
+
+- **Rotazione chiave Founder:** nuovo operatore `0x591596df3c82603d18d6960aEd57609E837e3B77`,
+  chiave scritta solo nei `.env` locali (mai a schermo); 2 ETH trasferiti dal
+  vecchio Founder. File per il Safe: `~/Desktop/safe-rotate-operator.json`
+  (`setOperator` su token ed escrow). Poi `CHAIN_OPERATOR_PRIVATE_KEY` su Render.
+  La vecchia chiave è ancora in `contracts/.env` come `OLD_DEPLOYER_PRIVATE_KEY`
+  per spostare gli ETH rimasti: da togliere dopo. Alchemy: nuova chiave da creare.
+- **Cambio wallet dell'artista dall'interfaccia** (§2.118): sezione nella
+  dashboard; proprietario = `payoutOf` on-chain. Provato su fork.

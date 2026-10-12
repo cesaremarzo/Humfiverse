@@ -796,5 +796,20 @@
   "detail.removedRefund": "Si tienes sus tokens, el reembolso que te corresponda se solicita desde tu cartera:",
   "takedown.ground.unlawful_content": "contenido ilícito",
   "takedown.ground.third_party_rights": "infracción de derechos de terceros",
-  "takedown.ground.false_warranties": "declaraciones falsas del artista"
+  "takedown.ground.false_warranties": "declaraciones falsas del artista",
+  "payout.title": "Wallet de cobro",
+  "payout.intro": "El wallet que recibe las ventas y regalías de este tema. Solo tú puedes cambiarlo: propón aquí un nuevo wallet, luego conecta el nuevo wallet y acepta. Nadie, ni siquiera Humfiverse, puede desviarlo, así que una clave perdida no se puede recuperar.",
+  "payout.current": "Actual: {{wallet}}",
+  "payout.pending": "Esperando a que {{wallet}} acepte",
+  "payout.newLabel": "Dirección del nuevo wallet (0x…)",
+  "payout.propose": "Proponer",
+  "payout.cancel": "Retirar la propuesta",
+  "payout.incomingItem": "«{{title}}»: te han propuesto como wallet de cobro.",
+  "payout.accept": "Aceptar",
+  "payout.working": "Esperando al wallet…",
+  "payout.invalid": "Introduce una dirección válida, distinta de la actual.",
+  "payout.proposed": "Propuesta enviada. Conecta el nuevo wallet y acéptala.",
+  "payout.accepted": "Este wallet recibe ahora los cobros del tema.",
+  "payout.failed": "La transacción no se completó.",
+  "payout.campaignNote": "También se traslada la campaña en curso: tu wallet pedirá una segunda firma."
 }
