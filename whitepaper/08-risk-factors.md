@@ -27,12 +27,12 @@ Specific to Humfiverse's actual design and stage — not generic boilerplate. Re
 - **Milestone deadlock is possible by design.** If the artist and studio genuinely disagree about a milestone, the money stays in the escrow with no automatic way to resolve it — a deliberate tradeoff against giving Humfiverse override power (see [Governance](06-governance.md)).
 - **A minimum, not all-or-nothing.** Each campaign must raise the minimum the artist set by its deadline, or it fails and refunds holders (less the 2% fee). Above the minimum, a partly funded campaign can pay out its first tranches and stay open indefinitely.
 - **A campaign without a studio is released by the artist alone.**
-- **Refunds follow contributions, not tokens, on today's contracts.** Resale buyers of a cancelled campaign's tokens receive nothing until the planned contract change.
+- **Refunds follow tokens.** After a cancellation or a failed raise, whoever holds the tokens hands them back to be burned and receives their share — resale buyers included.
 
 ## Platform powers
 
 - **The operator can release pool tokens without payment.** Until this power is restricted, it could dilute existing holders' share, or leave a campaign unable to sell its full supply.
-- **The operator can cancel a campaign** on stated legal grounds. Contributors are then refunded only the unreleased part, less the 2% fee; recovering released tranches from the artist is a legal claim, not an on-chain guarantee.
+- **The platform's multisig owner can cancel a campaign** on stated legal grounds. Token holders are then refunded only the unreleased part, less the 2% fee; recovering released tranches from the artist is a legal claim, not an on-chain guarantee.
 - **One key controls the operator role today.** If it were compromised, everything that role can do could be done by someone else.
 - **Token metadata and the linked audio can be changed** by the operator after tokens are sold.
 

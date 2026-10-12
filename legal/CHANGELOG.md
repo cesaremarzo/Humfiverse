@@ -3,6 +3,12 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-10-12 · W-17 applicata al whitepaper
+
+Su richiesta dell'utente, cap. 8: i rimborsi seguono i token (anche dopo una
+raccolta fallita), non i contributi; ad annullare è il Safe 2 su 3, non
+l'operatore. 03 W-17 segnata ✅.
+
 ## 2026-10-12 · W-21 applicata al whitepaper
 
 Su richiesta dell'utente: cap. 2 punto 2 e cap. 8 non dicono più "no deadline",
