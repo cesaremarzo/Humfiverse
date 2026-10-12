@@ -2963,3 +2963,16 @@ tutti gli asset con possessori, completando prima Night Swim.
   per spostare gli ETH rimasti: da togliere dopo. Alchemy: nuova chiave da creare.
 - **Cambio wallet dell'artista dall'interfaccia** (§2.118): sezione nella
   dashboard; proprietario = `payoutOf` on-chain. Provato su fork.
+
+## 2026-10-13 — chiave del Founder sostituita
+
+La vecchia chiave (`0x142F…6BfC6`) era comparsa in chiaro in una sessione. Nuovo
+operatore `0x591596df3c82603d18d6960aEd57609E837e3B77`: chiave generata e scritta
+solo nei `.env` locali, `setOperator` eseguito dal Safe su token ed escrow,
+`CHAIN_OPERATOR_PRIVATE_KEY` aggiornata su Render — verificato con un conio di
+prova in produzione (token 10, `operator-check`, firmato dal nuovo operatore).
+La vecchia chiave: ETH spostati, proprietà del token `0xb456…` e dell'escrow
+`0x16C8…` passate al Safe, chiave tolta dal `.env`. **Resta:** il Safe deve
+eseguire `~/Desktop/safe-remove-old-operator.json` (setOperator(0) sui 4 contratti
+ritirati) e va sostituita la chiave Alchemy. `CLAUDE.md` e `known-wallets.ts`
+aggiornati.
