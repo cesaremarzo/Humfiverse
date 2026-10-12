@@ -124,7 +124,8 @@ const TOKEN_SUPPLY_ABI = ["function releasedOf(uint256) view returns (uint256)",
 const ABIS = { 1: ABI_V1, 2: ABI_V2, 3: ABI_V3 };
 
 /** The contract's cancellation grounds, in enum order (§2.92). */
-const CANCEL_GROUNDS = ["none", "unlawful_content", "third_party_rights", "false_warranties"];
+// §2.116 adds "abandoned" (index 4) on the escrow after that redeploy.
+const CANCEL_GROUNDS = ["none", "unlawful_content", "third_party_rights", "false_warranties", "abandoned"];
 
 const provider = new ethers.JsonRpcProvider(RPC_URL, CHAIN_ID);
 const operatorWallet = process.env.CHAIN_OPERATOR_PRIVATE_KEY ? new ethers.Wallet(process.env.CHAIN_OPERATOR_PRIVATE_KEY, provider) : null;

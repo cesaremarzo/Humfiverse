@@ -287,7 +287,7 @@ export interface BackendData {
  * GET /api/price-history/:assetId. Amounts are USDC base units. On a day
  * with no trade, `priceUsdc` is the last day's and `traded` is false. */
 /** Why a campaign was cancelled — HumfiverseMilestoneEscrow.CancelGround. */
-export type CancelGround = 'none' | 'unlawful_content' | 'third_party_rights' | 'false_warranties';
+export type CancelGround = 'none' | 'unlawful_content' | 'third_party_rights' | 'false_warranties' | 'abandoned';
 
 /** One RoyaltiesDeposited on the token, as recorded from its receipt. */
 export interface RoyaltyDeposit {
