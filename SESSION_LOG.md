@@ -2692,3 +2692,56 @@ sono calcolati su `humfiverse-demo.mp4` (2:40, non 3:00).
 
 **Aperti:** upload dei due video e submission entro 13 ott 08:59; ascoltare
 USDC nel pitch; reinserire il co-founder quando Cesare lo decide.
+
+## 2026-10-12 — hackathon: nuova demo con voce AI, stato on-chain, banner YouTube
+
+**Nuova demo (2:33)** in `~/Desktop/humfiverse-demo2/` (fuori git). File finale
+`humfiverse-demo.mp4`, solo voce `demo-voce.mp4`. Voce AI Kokoro (af_heart)
+che spiega solo come funziona la piattaforma, una funzione per sezione, con
+audio e video sincronizzati frase per frase. La vecchia demo con la voce di
+Cesare è intatta in `~/Desktop/humfiverse-demo/`.
+- `script.json`: sezioni 01-intro, 01b-signin, 02-launch, 03-fund, 04-release,
+  05-royalties, 06-resale, 07-trust, 08-close; ogni sezione è una lista di
+  [etichetta, frase].
+- `tts.py` → `audio/<sez>.wav` + `.json` con l'inizio di ogni frase. Correzioni
+  di pronuncia sui fonemi: "already live" (verbo, `laɪv`), USDC lettera per
+  lettera (`jˌuːɛsdˌiːsˈiː`). Serve un python con numpy (venv), non quello di sistema.
+- Registrazione: `~/Desktop/humfiverse-demo/tools/d2.mjs <scena>` (intro, signin,
+  launch, fund, artist-confirm, studio-confirm, deposit, claim, resale,
+  trust con `HEADFUL=1`, close); `pace.mjs` aspetta i tempi della voce
+  (`p.at(etichetta)`), `rec.mjs` scrive `scenes/<nome>.marks.json`.
+  `ASSET=night-swim-414`; `DRYRUN=1` rifiuta solo le transazioni.
+- Montaggio: `assemble.py <sez> <shot…>` riallinea il video alla voce marca per
+  marca → `parts/<sez>.mp4`; concat con `parts.txt`; musica
+  `music/compose.py` + sidechain.
+- Descrizione YouTube: `humfiverse-demo2/youtube-description.txt` (capitoli
+  0:00…2:21; "Resale" dura 9 s, se YouTube scarta i capitoli unirlo al successivo).
+
+**Stato on-chain creato sui nuovi contratti (Sepolia)** — token `0xe26C…F997`,
+escrow `0x0D52…aDb7`, marketplace `0x7555…1585`:
+- Bluehouse Studio registrato via Safe (Owner): studio id 1, wallet `0xDB01…32b3`.
+- Night Swim (`night-swim-414`, token id 8, campagna escrow 1), lanciata dal
+  wallet demo artista; il fan `0xa35B…943B` ha comprato 5/5; milestone 1
+  confermata da artista e studio e rilasciata. Cover caricata.
+- Golden Hour: l'artista ha depositato 1,50 USDC di royalty con estratto conto
+  fittizio; il fan ha riscosso ≈ $1,48.
+- Il fan ha messo in vendita 2 token Northern Lights a $1,20.
+- Render: i log con `UNCONFIGURED_NAME` erano vecchi (22:11Z), risolti dal PR #89
+  (`CHAIN_ESCROW_LEGACY_ADDRESS` come lista separata da virgole).
+
+**Pitch:** descrizione YouTube migliorata in
+`humfiverse-pitch/youtube-description-v2.txt` (accanto alla v1 dell'altra
+sessione). Attenzione: la voce dice "a hundred and fifteen tests", la v2
+scrive "120+" (≈123 `it(` contati su main, suite non lanciata).
+
+**Canale YouTube:** scritta la descrizione del canale (in chat, inglese, senza
+parole da investimento). **Banner** 2560×1440 in
+`humfiverse-youtube-banner.png` (radice del repo, non tracciato) con sorgente
+`humfiverse-youtube-banner.html` (stile header X: pentagrammi viola→verde,
+marchio a nove barre, Geist; testo nella zona sicura 1546×423). Rigenerare con
+Chrome headless `--window-size=2560,1440 --screenshot`.
+
+**Aperti:** upload e submission entro 13 ott 08:59; allineare il numero dei test
+tra voce del pitch e descrizione; la copia su `dev/petru` non ha né la demo2 né
+il pitch nuovo; opzionale: ~25 s liberi sotto i 3:00 della demo per mostrare il
+rimborso di una campagna annullata.
