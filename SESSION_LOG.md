@@ -2661,3 +2661,34 @@ percorsi relativi non sono stati rieseguiti dopo la modifica.
   privata tra coinventori per la domanda di brevetto 102026000010150; restano i
   dati di Cesare da completare, il foro e la possibile clausola 2.8 sui nuovi
   debitori (cessioni/fusioni).
+
+## 2026-10-12 — hackathon: pitch tagliato a 1:55, descrizioni YouTube
+
+**Pitch ridotto sotto i 2:00** (il form Colosseum dice pitch max 2 min). In
+`~/Desktop/humfiverse-pitch/` (fuori git):
+- `script.json` riscritto più corto, stesse 7 scene. Tolti: Meeka/eIDAS a voce,
+  "$2 miliardi" a voce (resta sulla slide), studio/mixing/mastering, "Fans were
+  willing to pay", "adaptation, not a rebuild". PledgeMusic a voce: "owing
+  artists millions" (la slide tiene la stima $1–3M con fonte).
+- **Co-founder tolto** su richiesta di Cesare, da voce e slide 01 (per ora).
+- **USDC:** scritto senza punti (i punti venivano spezzati come fine frase →
+  pause); pronuncia fissata sui fonemi in `tts.py`/`tts2.py`
+  (`ˈʌsdk` → `jˌuːɛsdˌiːsˈiː`). Da confermare all'ascolto:
+  `check/usdc-snippet.m4a`.
+- Slide ritimate sui tempi delle frasi (`audio/NN.json`), registrate con
+  `~/Desktop/humfiverse-demo/tools/pc3.mjs` (+ `pc4.mjs` per la 01).
+- **`build.sh`** rimonta tutto: parti in `parts2/` (03 = filmato sito
+  accelerato 1,13x, 05 = filmato con overlay tagliato), concat, musica
+  `demo/music/score.wav` sotto la voce, loudnorm −16. Attenzione zsh: una riga
+  `> file` da sola lancia `cat` e si blocca — usare `: > file`.
+- Versione precedente (2:49) in `humfiverse-pitch/pre-2min/`. La copia su
+  `dev/petru` è vecchia.
+
+**Descrizioni YouTube** scritte (inglese, capitoli con tempi, link sito/GitHub/
+Telegram, riga "testnet only, no offer"): salvate in
+`~/Desktop/humfiverse-pitch/youtube-description.txt` e
+`~/Desktop/humfiverse-demo/youtube-description.txt`. I capitoli della demo
+sono calcolati su `humfiverse-demo.mp4` (2:40, non 3:00).
+
+**Aperti:** upload dei due video e submission entro 13 ott 08:59; ascoltare
+USDC nel pitch; reinserire il co-founder quando Cesare lo decide.
