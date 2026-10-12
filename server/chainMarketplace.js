@@ -24,12 +24,10 @@ const RPC_URL = process.env.CHAIN_RPC_URL || "https://ethereum-sepolia-rpc.publi
 const MARKETPLACE_ADDRESS = process.env.CHAIN_MARKETPLACE_ADDRESS || "";
 const EXPLORER_BASE = "https://sepolia.etherscan.io";
 
-const ABI = [
-  "function list(address token, uint256 tokenId, uint256 amount, uint256 pricePerToken) returns (uint256)",
+const COMMON_ABI = [
   "function cancelListing(uint256 listingId)",
   "function buyListing(uint256 listingId, uint256 amount)",
   "function paymentToken() view returns (address)",
-  "function getListing(uint256 listingId) view returns (tuple(address seller, address token, uint256 tokenId, uint256 amount, uint256 pricePerToken, bool active))",
   "function feeRecipient() view returns (address)",
   "function PLATFORM_FEE_BPS() view returns (uint256)",
   // §2.71: the fee is 1% of the payment, accrued here until withdrawn.
@@ -38,8 +36,45 @@ const ABI = [
   "function totalFeesCollected() view returns (uint256)"
 ];
 
+/* Up to §2.116: any ERC-1155 per listing, no expiry. */
+const ABI_V1 = [
+  ...COMMON_ABI,
+  "function list(address token, uint256 tokenId, uint256 amount, uint256 pricePerToken) returns (uint256)",
+  "function getListing(uint256 listingId) view returns (tuple(address seller, address token, uint256 tokenId, uint256 amount, uint256 pricePerToken, bool active))"
+];
+/* §2.117: the Humfiverse token only, fixed at deployment, and every listing
+   expires within 30 days. */
+const ABI_V2 = [
+  ...COMMON_ABI,
+  "function token() view returns (address)",
+  "function MAX_LISTING_PERIOD() view returns (uint256)",
+  "function list(uint256 tokenId, uint256 amount, uint256 pricePerToken, uint256 expiresAt) returns (uint256)",
+  "function getListing(uint256 listingId) view returns (tuple(address seller, uint256 tokenId, uint256 amount, uint256 pricePerToken, uint256 expiresAt, bool active))"
+];
+const ABI = ABI_V2;
+
 const provider = new ethers.JsonRpcProvider(RPC_URL);
-const readContract = MARKETPLACE_ADDRESS ? new ethers.Contract(MARKETPLACE_ADDRESS, ABI, provider) : null;
+const readContract = MARKETPLACE_ADDRESS ? new ethers.Contract(MARKETPLACE_ADDRESS, ABI_V2, provider) : null;
+const readContractV1 = MARKETPLACE_ADDRESS ? new ethers.Contract(MARKETPLACE_ADDRESS, ABI_V1, provider) : null;
+
+/** The token address of a §2.117 marketplace, or null for the earlier one
+ * (no token() function). Cached: bytecode never changes. An RPC failure is
+ * rethrown, never read as "old contract". */
+let tokenPromise = null;
+function fixedToken() {
+  if (!readContract) return Promise.resolve(null);
+  if (!tokenPromise) {
+    tokenPromise = withRetry(() => readContract.token()).then(
+      (a) => a,
+      (err) => {
+        if (err.code === "CALL_EXCEPTION" || err.code === "BAD_DATA") return null;
+        tokenPromise = null;
+        throw err;
+      }
+    );
+  }
+  return tokenPromise;
+}
 
 /** False until CHAIN_MARKETPLACE_ADDRESS is set. The resale board then
  * reports itself as unavailable rather than falling back to anything —
@@ -54,15 +89,20 @@ function marketplaceEnabled() {
  * the moment its last token sells, without this server tracking anything. */
 async function getListing(listingId) {
   if (!readContract) return null;
-  const raw = await withRetry(() => readContract.getListing(listingId));
+  const token = await fixedToken();
+  const raw = await withRetry(() => (token ? readContract : readContractV1).getListing(listingId));
   if (raw.seller === ethers.ZeroAddress || !raw.active || raw.amount === 0n) return null;
+  // §2.117: an expired listing cannot be bought; it leaves the board.
+  const expiresAt = token ? Number(raw.expiresAt) : null;
+  if (expiresAt !== null && expiresAt * 1000 < Date.now()) return null;
   return {
     listingId: Number(listingId),
     seller: raw.seller.toLowerCase(),
-    tokenContract: raw.token,
+    tokenContract: token || raw.token,
     tokenId: Number(raw.tokenId),
     qty: Number(raw.amount),
     pricePerTokenUsdc: (await toUsdcFor(readContract))(raw.pricePerToken).toString(),
+    expiresAt,
     active: raw.active
   };
 }
@@ -98,6 +138,11 @@ async function getFeeState() {
 async function verifyListingMatches(listingId, tokenId) {
   const listing = await getListing(listingId);
   if (!listing) return null;
+  // The token id alone was not enough on the earlier marketplace, which took
+  // any ERC-1155: a listing of another contract's token with the same id
+  // passed. It must be the Humfiverse token (§2.117).
+  const humfiverseToken = (process.env.CHAIN_CONTRACT_ADDRESS || "0x471DE935a7538D67F0E231aaf2768f5C4EB42431").toLowerCase();
+  if (String(listing.tokenContract).toLowerCase() !== humfiverseToken) return null;
   return listing.tokenId === Number(tokenId) ? listing : null;
 }
 

@@ -32,6 +32,7 @@ describe("HumfiverseMilestoneEscrow", function () {
   // CancelGround
   const NO_GROUND = 0;
   const UNLAWFUL_CONTENT = 1;
+  const ABANDONED = 4;
   const DECISION = ethers.id("decision record #1");
 
   // §2.72: 2% of every contribution, 3% of every released tranche, and
@@ -565,7 +566,7 @@ describe("HumfiverseMilestoneEscrow", function () {
       await escrow.connect(contributor2).contribute(campaignId, ethers.parseUnits("0.2", 6));
       await escrow.connect(artist).confirmMilestoneAsArtist(campaignId, 0);
       await escrow.connect(studioWallet).confirmMilestoneAsStudio(campaignId, 0);
-      await escrow.cancelCampaign(campaignId, NO_GROUND, ethers.ZeroHash);
+      await escrow.cancelCampaign(campaignId, UNLAWFUL_CONTENT, DECISION);
 
       await escrow.connect(contributor1).refund(campaignId, 300);
       await escrow.connect(contributor2).refund(campaignId, 200);
@@ -586,7 +587,7 @@ describe("HumfiverseMilestoneEscrow", function () {
       await escrow.connect(contributor1).contribute(campaignId, GOAL / 2n);
       await escrow.connect(artist).confirmMilestoneAsArtist(campaignId, 0);
       await escrow.connect(studioWallet).confirmMilestoneAsStudio(campaignId, 0);
-      await escrow.cancelCampaign(campaignId, NO_GROUND, ethers.ZeroHash);
+      await escrow.cancelCampaign(campaignId, UNLAWFUL_CONTENT, DECISION);
       await escrow.connect(contributor1).refund(campaignId, 500);
 
       // The second campaign's credited funds are all still here, plus fees.
@@ -631,9 +632,9 @@ describe("HumfiverseMilestoneEscrow", function () {
       await releaseMilestone(ctx, 0); // 20% before things stall
 
       const pool = TARGET - gross(ARTIST_BPS);
-      await expect(escrow.cancelCampaign(campaignId, NO_GROUND, ethers.ZeroHash))
+      await expect(escrow.cancelCampaign(campaignId, UNLAWFUL_CONTENT, DECISION))
         .to.emit(escrow, "CampaignCancelled")
-        .withArgs(campaignId, NO_GROUND, ethers.ZeroHash, pool, 1000n);
+        .withArgs(campaignId, UNLAWFUL_CONTENT, DECISION, pool, 1000n);
       expect(await escrow.refundQuote(campaignId, 600)).to.equal((pool * 600n) / 1000n);
 
       const before = await usdc.balanceOf(contributor1.address);
@@ -650,7 +651,7 @@ describe("HumfiverseMilestoneEscrow", function () {
       const { escrow, token, campaignId, contributor1, other } = await campaignFixture();
       await escrow.connect(contributor1).contribute(campaignId, ethers.parseUnits("0.1", 6)); // 100 tokens
       await token.connect(contributor1).safeTransferFrom(contributor1.address, other.address, TOKEN_ID, 40, "0x");
-      await escrow.cancelCampaign(campaignId, NO_GROUND, ethers.ZeroHash);
+      await escrow.cancelCampaign(campaignId, UNLAWFUL_CONTENT, DECISION);
 
       const pool = credited(ethers.parseUnits("0.1", 6));
       const before = await usdc.balanceOf(other.address);
@@ -673,7 +674,7 @@ describe("HumfiverseMilestoneEscrow", function () {
       // 98,000 units over 300 tokens: a share that does not divide evenly.
       await token.connect(contributor1).safeTransferFrom(contributor1.address, contributor2.address, TOKEN_ID, 7, "0x");
       await token.connect(contributor1).safeTransferFrom(contributor1.address, other.address, TOKEN_ID, 3, "0x");
-      await escrow.cancelCampaign(campaignId, NO_GROUND, ethers.ZeroHash);
+      await escrow.cancelCampaign(campaignId, UNLAWFUL_CONTENT, DECISION);
       expect(await escrow.refundPoolOf(campaignId)).to.equal(98_000n);
 
       await escrow.connect(contributor2).refund(campaignId, 5);
@@ -693,7 +694,7 @@ describe("HumfiverseMilestoneEscrow", function () {
       await token.connect(other).depositRoyalties(TOKEN_ID, 1_000n, ethers.ZeroHash);
       const earned = await token.claimableRoyalties(TOKEN_ID, contributor1.address);
       expect(earned > 0n).to.equal(true);
-      await escrow.cancelCampaign(campaignId, NO_GROUND, ethers.ZeroHash);
+      await escrow.cancelCampaign(campaignId, UNLAWFUL_CONTENT, DECISION);
       await escrow.connect(contributor1).refund(campaignId, GOAL / TOKEN_PRICE);
 
       // §2.110: the next deposit still pays for the time the tokens were held
@@ -710,7 +711,7 @@ describe("HumfiverseMilestoneEscrow", function () {
     it("closes the pool on cancellation, so a token released afterwards cannot take a refund (§2.110)", async function () {
       const { escrow, token, campaignId, contributor1, owner } = await campaignFixture();
       await escrow.connect(contributor1).contribute(campaignId, TOKEN_PRICE * 100n);
-      await escrow.cancelCampaign(campaignId, NO_GROUND, ethers.ZeroHash);
+      await escrow.cancelCampaign(campaignId, UNLAWFUL_CONTENT, DECISION);
       expect(await token.poolClosed(TOKEN_ID)).to.equal(true);
       await expect(token.releaseFromPool(owner.address, TOKEN_ID, 10)).to.be.revertedWith("HumfiverseCatalogueToken: pool closed");
       await escrow.connect(contributor1).refund(campaignId, 100);
@@ -720,7 +721,7 @@ describe("HumfiverseMilestoneEscrow", function () {
     it("still refunds a campaign cancelled on an escrow the token has since been relinked away from (§2.110)", async function () {
       const { escrow, token, campaignId, contributor1, other } = await campaignFixture();
       await escrow.connect(contributor1).contribute(campaignId, TOKEN_PRICE * 100n);
-      await escrow.cancelCampaign(campaignId, NO_GROUND, ethers.ZeroHash);
+      await escrow.cancelCampaign(campaignId, UNLAWFUL_CONTENT, DECISION);
       await token.setEscrowContract(other.address); // e.g. a new escrow deployed
       const before = await usdc.balanceOf(contributor1.address);
       await escrow.connect(contributor1).refund(campaignId, 100);
@@ -732,7 +733,7 @@ describe("HumfiverseMilestoneEscrow", function () {
       await escrow.connect(contributor1).contribute(campaignId, ethers.parseUnits("0.1", 6));
       await expect(escrow.connect(contributor1).refund(campaignId, 100)).to.be.revertedWith("HumfiverseMilestoneEscrow: not refundable");
       expect(await escrow.refundQuote(campaignId, 100)).to.equal(0n);
-      await escrow.cancelCampaign(campaignId, NO_GROUND, ethers.ZeroHash);
+      await escrow.cancelCampaign(campaignId, UNLAWFUL_CONTENT, DECISION);
       await expect(escrow.connect(contributor1).refund(campaignId, 0)).to.be.revertedWith("HumfiverseMilestoneEscrow: zero tokens");
     });
 
@@ -747,19 +748,16 @@ describe("HumfiverseMilestoneEscrow", function () {
       const ctx = await campaignFixture();
       const { escrow, campaignId, contributor1, artist } = ctx;
       await escrow.connect(contributor1).contribute(campaignId, GOAL);
-      await escrow.cancelCampaign(campaignId, NO_GROUND, ethers.ZeroHash);
+      await escrow.cancelCampaign(campaignId, UNLAWFUL_CONTENT, DECISION);
       await expect(escrow.connect(contributor1).contribute(campaignId, TOKEN_PRICE)).to.be.revertedWith("HumfiverseMilestoneEscrow: not active");
       await expect(escrow.connect(artist).confirmMilestoneAsArtist(campaignId, 0)).to.be.revertedWith("HumfiverseMilestoneEscrow: not active");
     });
 
-    it("cannot cancel a fully released campaign without a legal ground (§2.86)", async function () {
-      const ctx = await campaignFixture();
-      const { escrow, campaignId, contributor1 } = ctx;
+    it("never cancels without a ground (§2.116): NONE is refused, even with something unreleased", async function () {
+      const { escrow, campaignId, contributor1 } = await campaignFixture();
       await escrow.connect(contributor1).contribute(campaignId, GOAL);
-      for (let i = 0; i < 4; i++) await releaseMilestone(ctx, i);
-      await expect(escrow.cancelCampaign(campaignId, NO_GROUND, ethers.ZeroHash)).to.be.revertedWith(
-        "HumfiverseMilestoneEscrow: fully released, needs a legal ground"
-      );
+      await expect(escrow.cancelCampaign(campaignId, NO_GROUND, DECISION)).to.be.revertedWith("HumfiverseMilestoneEscrow: a cancellation needs a ground");
+      await expect(escrow.cancelCampaign(campaignId, NO_GROUND, ethers.ZeroHash)).to.be.revertedWith("HumfiverseMilestoneEscrow: a cancellation needs a ground");
     });
 
     it("cancels a fully released campaign on a legal ground with its decision hash, with nothing to refund", async function () {
@@ -768,7 +766,7 @@ describe("HumfiverseMilestoneEscrow", function () {
       await escrow.connect(contributor1).contribute(campaignId, GOAL);
       for (let i = 0; i < 4; i++) await releaseMilestone(ctx, i);
       await expect(escrow.cancelCampaign(campaignId, UNLAWFUL_CONTENT, ethers.ZeroHash)).to.be.revertedWith(
-        "HumfiverseMilestoneEscrow: legal ground needs a decision hash"
+        "HumfiverseMilestoneEscrow: a cancellation needs a decision hash"
       );
       await expect(escrow.cancelCampaign(campaignId, UNLAWFUL_CONTENT, DECISION))
         .to.emit(escrow, "CampaignCancelled")
@@ -780,15 +778,15 @@ describe("HumfiverseMilestoneEscrow", function () {
 
     it("refuses to cancel an unknown campaign or one already cancelled", async function () {
       const { escrow, campaignId } = await campaignFixture();
-      await expect(escrow.cancelCampaign(999, NO_GROUND, ethers.ZeroHash)).to.be.revertedWith("HumfiverseMilestoneEscrow: unknown campaign");
-      await escrow.cancelCampaign(campaignId, NO_GROUND, ethers.ZeroHash);
-      await expect(escrow.cancelCampaign(campaignId, NO_GROUND, ethers.ZeroHash)).to.be.revertedWith("HumfiverseMilestoneEscrow: not active");
+      await expect(escrow.cancelCampaign(999, UNLAWFUL_CONTENT, DECISION)).to.be.revertedWith("HumfiverseMilestoneEscrow: unknown campaign");
+      await escrow.cancelCampaign(campaignId, UNLAWFUL_CONTENT, DECISION);
+      await expect(escrow.cancelCampaign(campaignId, UNLAWFUL_CONTENT, DECISION)).to.be.revertedWith("HumfiverseMilestoneEscrow: not active");
     });
 
     it("only the owner can cancel a campaign — not the operator", async function () {
       const { escrow, campaignId, other } = await campaignFixture();
       await escrow.setOperator(other.address);
-      await expect(escrow.connect(other).cancelCampaign(campaignId, NO_GROUND, ethers.ZeroHash)).to.be.revertedWithCustomError(
+      await expect(escrow.connect(other).cancelCampaign(campaignId, UNLAWFUL_CONTENT, DECISION)).to.be.revertedWithCustomError(
         escrow,
         "OwnableUnauthorizedAccount"
       );
@@ -888,7 +886,7 @@ describe("HumfiverseMilestoneEscrow", function () {
       expect(await escrow.raiseFailed(campaignId)).to.equal(true);
       await expect(escrow.connect(contributor1).contribute(campaignId, pct(30))).to.be.revertedWith("HumfiverseMilestoneEscrow: raise failed");
       await expect(escrow.connect(artist).confirmMilestoneAsArtist(campaignId, 0)).to.be.revertedWith("HumfiverseMilestoneEscrow: raise failed");
-      await expect(escrow.cancelCampaign(campaignId, NO_GROUND, ethers.ZeroHash)).to.be.revertedWith("HumfiverseMilestoneEscrow: raise failed, refunds are open");
+      await expect(escrow.cancelCampaign(campaignId, UNLAWFUL_CONTENT, DECISION)).to.be.revertedWith("HumfiverseMilestoneEscrow: raise failed, refunds are open");
     });
 
     it("the first refund settles a failed raise and every holder gets back what they paid less the 2% fee", async function () {
@@ -929,6 +927,84 @@ describe("HumfiverseMilestoneEscrow", function () {
       await time.increaseTo(deadline + 1);
       expect(await escrow.raiseFailed(campaignId)).to.equal(true);
       expect(await escrow.refundQuote(campaignId, 1)).to.equal(0n);
+    });
+  });
+
+  describe("abandonment instead of a groundless cancellation (§2.116)", function () {
+    const DAY = 86_400;
+    async function releaseMilestone(ctx, i) {
+      await ctx.escrow.connect(ctx.artist).confirmMilestoneAsArtist(ctx.campaignId, i);
+      await ctx.escrow.connect(ctx.studioWallet).confirmMilestoneAsStudio(ctx.campaignId, i);
+    }
+    it("needs the minimum reached: below it the raise deadline decides", async function () {
+      const ctx = await deployFixture();
+      const { escrow, artist, studioWallet } = ctx;
+      await escrow.registerStudio(studioWallet.address, "S");
+      await escrow.createCampaign(artist.address, 1, "abandon-a", TOKEN_ID, ["a", "b"], [5_000, 5_000], [0, 1], (await time.latest()) + 30 * DAY, 5_000);
+      await escrow.connect(ctx.contributor1).contribute(1, GOAL / 10n);
+      await time.increase(200 * DAY);
+      await expect(escrow.cancelCampaign(1, ABANDONED, DECISION)).to.be.revertedWith("HumfiverseMilestoneEscrow: raise failed, refunds are open");
+    });
+
+    it("needs ABANDON_AFTER without progress, counted from the minimum and then from each release", async function () {
+      const ctx = await campaignFixture();
+      const { escrow, campaignId, contributor1 } = ctx;
+      await escrow.connect(contributor1).contribute(campaignId, GOAL);
+      await time.increase(179 * DAY);
+      await expect(escrow.cancelCampaign(campaignId, ABANDONED, DECISION)).to.be.revertedWith("HumfiverseMilestoneEscrow: not abandoned yet");
+      await releaseMilestone(ctx, 0); // progress: the clock starts again
+      await time.increase(179 * DAY);
+      await expect(escrow.cancelCampaign(campaignId, ABANDONED, DECISION)).to.be.revertedWith("HumfiverseMilestoneEscrow: not abandoned yet");
+      await time.increase(2 * DAY);
+      await expect(escrow.cancelCampaign(campaignId, ABANDONED, ethers.ZeroHash)).to.be.revertedWith("HumfiverseMilestoneEscrow: a cancellation needs a decision hash");
+      await expect(escrow.cancelCampaign(campaignId, ABANDONED, DECISION)).to.emit(escrow, "CampaignCancelled");
+      expect(await escrow.cancelGroundOf(campaignId)).to.equal(ABANDONED);
+      // The unreleased 80% goes back to holders.
+      expect(await escrow.refundPoolOf(campaignId)).to.equal(credited(GOAL) - gross(ARTIST_BPS));
+    });
+
+    it("cannot abandon a fully released campaign", async function () {
+      const ctx = await campaignFixture();
+      const { escrow, campaignId, contributor1 } = ctx;
+      await escrow.connect(contributor1).contribute(campaignId, GOAL);
+      for (let i = 0; i < 4; i++) await releaseMilestone(ctx, i);
+      await time.increase(200 * DAY);
+      await expect(escrow.cancelCampaign(campaignId, ABANDONED, DECISION)).to.be.revertedWith("HumfiverseMilestoneEscrow: fully released, nothing abandoned");
+    });
+  });
+
+  describe("the artist moves the campaign to a new wallet (§2.117)", function () {
+    it("only the artist proposes; the new wallet accepts once it is the token's payout wallet", async function () {
+      const { escrow, token, campaignId, artist, other, owner } = await campaignFixture();
+      await expect(escrow.connect(owner).proposeArtist(campaignId, other.address)).to.be.revertedWith("HumfiverseMilestoneEscrow: not this campaign's artist");
+      await escrow.connect(artist).proposeArtist(campaignId, other.address);
+      await expect(escrow.connect(other).acceptArtist(campaignId)).to.be.revertedWith("HumfiverseMilestoneEscrow: move the token's payout first");
+      await token.connect(artist).proposePayout(TOKEN_ID, other.address);
+      await token.connect(other).acceptPayout(TOKEN_ID);
+      await expect(escrow.connect(other).acceptArtist(campaignId)).to.emit(escrow, "ArtistChanged").withArgs(campaignId, artist.address, other.address);
+      expect((await escrow.campaigns(campaignId)).artist).to.equal(other.address);
+    });
+
+    it("after the change the new wallet confirms and is paid; the old one cannot confirm", async function () {
+      const { escrow, token, campaignId, artist, other, studioWallet, contributor1 } = await campaignFixture();
+      await escrow.connect(contributor1).contribute(campaignId, GOAL);
+      await token.connect(artist).proposePayout(TOKEN_ID, other.address);
+      await token.connect(other).acceptPayout(TOKEN_ID);
+      await escrow.connect(artist).proposeArtist(campaignId, other.address);
+      await escrow.connect(other).acceptArtist(campaignId);
+      await expect(escrow.connect(artist).confirmMilestoneAsArtist(campaignId, 0)).to.be.revertedWith("HumfiverseMilestoneEscrow: not this campaign's artist");
+      const before = await usdc.balanceOf(other.address);
+      await escrow.connect(other).confirmMilestoneAsArtist(campaignId, 0);
+      await escrow.connect(studioWallet).confirmMilestoneAsStudio(campaignId, 0);
+      expect((await usdc.balanceOf(other.address)) - before).to.equal(net(ARTIST_BPS));
+    });
+
+    it("the new artist wallet cannot be the studio's", async function () {
+      const { escrow, token, campaignId, artist, studioWallet } = await campaignFixture();
+      await token.connect(artist).proposePayout(TOKEN_ID, studioWallet.address);
+      await token.connect(studioWallet).acceptPayout(TOKEN_ID);
+      await escrow.connect(artist).proposeArtist(campaignId, studioWallet.address);
+      await expect(escrow.connect(studioWallet).acceptArtist(campaignId)).to.be.revertedWith("HumfiverseMilestoneEscrow: studio wallet is the artist");
     });
   });
 });

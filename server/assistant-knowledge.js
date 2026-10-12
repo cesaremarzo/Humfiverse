@@ -93,15 +93,20 @@ PRE-PRODUCTION CAMPAIGNS
   it — and every holder can take back what they paid, less the 2% fee. Once
   the minimum is in, the deadline no longer matters: the campaign ends when
   it sells out, releases everything, or is cancelled.
-- The platform can cancel a campaign, and commits to doing so only on stated
-  legal grounds: unlawful content, infringement of someone else's rights, or
-  false artist warranties — after notifying the artist and giving 5 days to
-  respond, except where the law requires immediate removal. Cancelling stops
+- The platform can cancel a campaign, and the contract accepts it only with a
+  stated ground and the hash of the written decision (§2.116): unlawful
+  content, infringement of someone else's rights, false artist warranties, or
+  a project abandoned — nothing released for 180 days after its minimum was
+  raised. The artist is notified first and given 5 days to respond, except
+  where the law requires immediate removal; the decision needs two signers. Cancelling stops
   further releases and refunds the part not yet released, pro rata. The 2%
   contribution fee is not refunded. Money already released stays with
   whoever received it; investors keep their claims against the artist.
 - Refunds follow the tokens: whoever holds them when claiming hands them back
   to be burned and gets their share, resale buyers included.
+- An artist can move their payout wallet themselves, in two steps (the
+  current wallet proposes, the new one accepts); nobody else can redirect it.
+- Resale listings expire after at most 30 days and must be renewed.
 
 ROYALTIES
 - Royalty money does not arrive on chain by itself. Someone has to confirm a

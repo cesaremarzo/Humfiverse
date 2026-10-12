@@ -124,6 +124,18 @@ const MARKETPLACE_ABI = [
   'function buyListing(uint256 listingId, uint256 amount) external',
   'event Listed(uint256 indexed listingId, address indexed seller, address indexed token, uint256 tokenId, uint256 amount, uint256 pricePerToken)'
 ];
+/* §2.117: the marketplace trades the Humfiverse token only (no token
+   argument) and every listing carries an expiry, at most 30 days out. */
+const MARKETPLACE_V2_ABI = [
+  'function token() view returns (address)',
+  'function list(uint256 tokenId, uint256 amount, uint256 pricePerToken, uint256 expiresAt) external returns (uint256)',
+  'function cancelListing(uint256 listingId) external',
+  'function buyListing(uint256 listingId, uint256 amount) external',
+  'event Listed(uint256 indexed listingId, address indexed seller, uint256 indexed tokenId, uint256 amount, uint256 pricePerToken, uint256 expiresAt)'
+];
+/** A listing's life: the contract's maximum, less a margin for the time the
+ * transaction takes to be mined. */
+const LISTING_LIFETIME_S = 30 * 86_400 - 600;
 const CONTRIBUTE_ABI = ['function contribute(uint256 campaignId, uint256 amount) external'];
 /* §2.73: payments are in USDC. Each paying contract names its own token, so
    the address is read from the contract being paid, never configured here. */
@@ -621,8 +633,19 @@ export class WalletService {
    * Listed event, which is what the backend then indexes. */
   async listOnMarketplace(params: { marketplace: string; tokenContract: string; tokenId: number; qty: number; pricePerTokenUsdc: string }):
     Promise<{ listingId: number; txHash: string; explorerUrl: string }> {
-    const contract = await this.signerFor(params.marketplace, MARKETPLACE_ABI);
-    const tx = await contract['list'](params.tokenContract, params.tokenId, params.qty, BigInt(params.pricePerTokenUsdc));
+    // §2.117: the new marketplace has token() and takes an expiry; the
+    // earlier one takes the token address per listing.
+    let v2 = false;
+    try {
+      await new ethers.Contract(params.marketplace, MARKETPLACE_V2_ABI, this.reader())['token']();
+      v2 = true;
+    } catch {
+      /* the earlier marketplace */
+    }
+    const contract = await this.signerFor(params.marketplace, v2 ? MARKETPLACE_V2_ABI : MARKETPLACE_ABI);
+    const tx = v2
+      ? await contract['list'](params.tokenId, params.qty, BigInt(params.pricePerTokenUsdc), BigInt(Math.floor(Date.now() / 1000) + LISTING_LIFETIME_S))
+      : await contract['list'](params.tokenContract, params.tokenId, params.qty, BigInt(params.pricePerTokenUsdc));
     const receipt = await tx.wait();
     if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
 

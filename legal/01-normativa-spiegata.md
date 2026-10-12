@@ -175,8 +175,9 @@ chiave del backend ha solo quelli di routine (02, C-9):
   apre i rimborsi. Per decisione (note legali §7.10) questo potere resta, ma va
   limitato per contratto a motivi di legge: contenuti illeciti o violazione di
   diritti di terzi. Così diventa un atto di conformità, non una scelta di
-  investimento. Il contratto di fase 2 registra motivo e hash della decisione, ma
-  accetta ancora l'annullamento senza motivo finché resta una tranche da pagare;
+  investimento. Il contratto registra motivo e hash della decisione e, dall'ottavo
+  redeploy (§2.116), rifiuta l'annullamento senza motivo; il quarto motivo,
+  l'abbandono, vale solo dopo 180 giorni senza progressi a soglia raggiunta;
 - `registerStudio` / `setStudioActive` / `renameStudio`: sceglie quali studi sono
   ammessi. Dal §2.110 registrare e rinominare spettano solo al Safe, dopo una
   verifica di chi gestisce lo studio: è una scelta della Piattaforma, da
@@ -208,9 +209,9 @@ compratori terzi con regole fisse, esegue lo scambio e **trattiene l'1%**. Le
 note §7.8 dicevano che il mercato secondario sarebbe stato solo *simulato*: oggi
 invece è un contratto reale (commit §2.59). È la domanda A4 del file 07.
 
-Il contratto accetta inoltre **qualsiasi** indirizzo ERC-1155 (`list(address
-token, ...)`), non solo i token Humfiverse. Chiunque potrebbe mettere in vendita
-sul marketplace Humfiverse un token qualunque.
+~~Il contratto accetta inoltre **qualsiasi** indirizzo ERC-1155.~~ Dal §2.117 il
+marketplace tratta solo il token Humfiverse, fissato al deploy, e ogni annuncio
+scade entro 30 giorni.
 
 ## 6. Antiriciclaggio (AML/KYC)
 

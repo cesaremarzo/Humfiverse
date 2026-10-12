@@ -118,9 +118,10 @@ soltanto:
 > Nota per l'avvocato: 5.2(a) descrive un potere che il team intende limitare
 > (file 02, C-1). Dichiararlo qui è la scelta onesta finché esiste. 5.2(b) è un
 > potere mantenuto per decisione (note legali §7.10), limitato ai motivi del
-> §5.6. Il contratto registra motivo e hash della decisione, ma accetta ancora un
-> annullamento senza motivo finché resta una tranche da pagare: il limite ai soli
-> motivi di legge è contrattuale (file 02, C-2).
+> §5.6. Il contratto registra motivo e hash della decisione e, dall'ottavo
+> redeploy (§2.116), rifiuta l'annullamento senza motivo. Ai motivi di legge si
+> aggiunge l'abbandono (soglia raggiunta, tranche da pagare, 180 giorni senza
+> progressi), da aggiungere al §5.6 (file 02, C-2).
 
 5.3. **Campagne di pre-produzione (escrow).** I contributi restano nel contratto
 escrow e vengono rilasciati a tranche quando sia l'artista sia lo studio

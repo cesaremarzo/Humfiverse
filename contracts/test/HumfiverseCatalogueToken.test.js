@@ -618,4 +618,51 @@ describe("HumfiverseCatalogueToken", function () {
       await expect(token.connect(buyer).buy(MIDNIGHT_STATIC_ID, 1)).to.be.revertedWith("HumfiverseCatalogueToken: pool closed");
     });
   });
+
+  describe("the artist moves their own payout wallet (§2.117)", function () {
+    async function payoutFixture() {
+      const ctx = await deployFixture();
+      const [, buyer, other] = await ethers.getSigners();
+      const [owner] = await ethers.getSigners();
+      const artist = (await ethers.getSigners())[5];
+      const next = (await ethers.getSigners())[6];
+      await ctx.token.mintCatalogue(MIDNIGHT_STATIC_ID, ["midnight-static", "Test Track", "Test Artist"], MIDNIGHT_STATIC_SUPPLY, BigInt(MIDNIGHT_STATIC_SUPPLY) * PRICE_PER_TOKEN, artist.address, true);
+      return { ...ctx, owner, buyer, other, artist, next };
+    }
+
+    it("takes two steps: the current wallet proposes, the new one accepts", async function () {
+      const { token, artist, next } = await payoutFixture();
+      await expect(token.connect(artist).proposePayout(MIDNIGHT_STATIC_ID, next.address)).to.emit(token, "PayoutProposed");
+      expect(await token.payoutOf(MIDNIGHT_STATIC_ID)).to.equal(artist.address);
+      await expect(token.connect(next).acceptPayout(MIDNIGHT_STATIC_ID)).to.emit(token, "PayoutChanged").withArgs(MIDNIGHT_STATIC_ID, artist.address, next.address);
+      expect(await token.payoutOf(MIDNIGHT_STATIC_ID)).to.equal(next.address);
+      expect(await token.pendingPayoutOf(MIDNIGHT_STATIC_ID)).to.equal(ethers.ZeroAddress);
+    });
+
+    it("nobody else can move it — not the owner, not another wallet — and only the proposed wallet accepts", async function () {
+      const { token, owner, other, artist, next } = await payoutFixture();
+      await expect(token.connect(owner).proposePayout(MIDNIGHT_STATIC_ID, other.address)).to.be.revertedWith("HumfiverseCatalogueToken: not the payout wallet");
+      await token.connect(artist).proposePayout(MIDNIGHT_STATIC_ID, next.address);
+      await expect(token.connect(other).acceptPayout(MIDNIGHT_STATIC_ID)).to.be.revertedWith("HumfiverseCatalogueToken: not the proposed payout wallet");
+      await expect(token.connect(owner).acceptPayout(MIDNIGHT_STATIC_ID)).to.be.revertedWith("HumfiverseCatalogueToken: not the proposed payout wallet");
+    });
+
+    it("a proposal can be withdrawn with address(0)", async function () {
+      const { token, artist, next } = await payoutFixture();
+      await token.connect(artist).proposePayout(MIDNIGHT_STATIC_ID, next.address);
+      await token.connect(artist).proposePayout(MIDNIGHT_STATIC_ID, ethers.ZeroAddress);
+      await expect(token.connect(next).acceptPayout(MIDNIGHT_STATIC_ID)).to.be.revertedWith("HumfiverseCatalogueToken: not the proposed payout wallet");
+    });
+
+    it("sales after the change pay the new wallet", async function () {
+      const { token, buyer, artist, next } = await payoutFixture();
+      await token.connect(artist).proposePayout(MIDNIGHT_STATIC_ID, next.address);
+      await token.connect(next).acceptPayout(MIDNIGHT_STATIC_ID);
+      const before = await usdc.balanceOf(next.address);
+      const artistBefore = await usdc.balanceOf(artist.address);
+      await token.connect(buyer).buy(MIDNIGHT_STATIC_ID, 10);
+      expect(await usdc.balanceOf(next.address)).to.be.gt(before);
+      expect(await usdc.balanceOf(artist.address)).to.equal(artistBefore);
+    });
+  });
 });

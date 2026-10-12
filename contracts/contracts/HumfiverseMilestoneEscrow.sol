@@ -93,13 +93,18 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         CANCELLED,
         FAILED // §2.114: past its raise deadline below its minimum, settled
     }
-    /// @notice Why a campaign was cancelled. NONE is allowed only while some
-    ///         milestone is unreleased; the others need a decision hash.
+    /// @notice Why a campaign was cancelled. Every cancellation names a
+    ///         ground and the hash of the written decision (§2.116): NONE is
+    ///         kept only so the existing numbers stay put, and is refused.
+    ///         ABANDONED is the way out for a project that stopped after its
+    ///         minimum was raised, and only once nothing has moved for
+    ///         ABANDON_AFTER.
     enum CancelGround {
         NONE,
         UNLAWFUL_CONTENT,
         THIRD_PARTY_RIGHTS,
-        FALSE_WARRANTIES
+        FALSE_WARRANTIES,
+        ABANDONED
     }
 
     struct Milestone {
@@ -192,6 +197,19 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     /// @notice Longest raise period a campaign may set.
     uint256 public constant MAX_RAISE_PERIOD = 365 days;
 
+    /// @notice §2.116: how long a campaign must go without progress — its
+    ///         minimum reached or a tranche released — before it can be
+    ///         cancelled as abandoned.
+    uint256 public constant ABANDON_AFTER = 180 days;
+    /// @notice campaignId => when the campaign last made progress: the moment
+    ///         its minimum was reached, then each release. 0 before the minimum.
+    mapping(uint256 => uint256) public lastProgressAt;
+    /// @notice campaignId => an artist wallet proposed by the current one and
+    ///         not yet accepted (§2.117). It must already be the token's payout
+    ///         wallet when it accepts, so the campaign and the token never pay
+    ///         two different wallets.
+    mapping(uint256 => address) public pendingArtistOf;
+
     uint256 private nextCampaignId = 1;
     uint256 private nextStudioId = 1;
 
@@ -232,6 +250,8 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     event Refunded(uint256 indexed campaignId, address indexed holder, uint256 tokensBurned, uint256 amount);
     event RaiseTermsSet(uint256 indexed campaignId, uint64 raiseDeadline, uint256 minRaise);
     event CampaignFailed(uint256 indexed campaignId, uint256 refundPool, uint256 refundTokens);
+    event ArtistProposed(uint256 indexed campaignId, address indexed current, address indexed next);
+    event ArtistChanged(uint256 indexed campaignId, address indexed previous, address indexed next);
     event OperatorUpdated(address indexed previous, address indexed next);
     event ContributionFeeRetained(uint256 indexed campaignId, address indexed contributor, uint256 fee);
     event PlatformFeeRetained(uint256 indexed campaignId, uint256 indexed milestoneIndex, uint256 fee);
@@ -377,6 +397,30 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         emit RaiseTermsSet(campaignId, raiseDeadline, minRaiseOf[campaignId]);
     }
 
+    /// @notice The campaign's artist proposes a new wallet (§2.117);
+    ///         address(0) withdraws a proposal. Nobody else can move it.
+    function proposeArtist(uint256 campaignId, address next) external {
+        Campaign storage c = campaigns[campaignId];
+        require(c.artist != address(0) && msg.sender == c.artist, "HumfiverseMilestoneEscrow: not this campaign's artist");
+        require(next != c.artist, "HumfiverseMilestoneEscrow: already the artist");
+        pendingArtistOf[campaignId] = next;
+        emit ArtistProposed(campaignId, c.artist, next);
+    }
+
+    /// @notice The proposed wallet becomes the artist — confirming milestones
+    ///         and receiving the artist's tranches — once it is the token's
+    ///         payout wallet too, and is not the studio.
+    function acceptArtist(uint256 campaignId) external {
+        Campaign storage c = campaigns[campaignId];
+        require(msg.sender != address(0) && msg.sender == pendingArtistOf[campaignId], "HumfiverseMilestoneEscrow: not the proposed artist");
+        require(msg.sender == catalogueToken.payoutOf(campaignTokenId[campaignId]), "HumfiverseMilestoneEscrow: move the token's payout first");
+        if (c.studioId != 0) require(studios[c.studioId].wallet != msg.sender, "HumfiverseMilestoneEscrow: studio wallet is the artist");
+        address previous = c.artist;
+        c.artist = msg.sender;
+        delete pendingArtistOf[campaignId];
+        emit ArtistChanged(campaignId, previous, msg.sender);
+    }
+
     /// @notice §2.114: the minimum is in. It stays in: `raised` never falls.
     function minRaiseReached(uint256 campaignId) public view returns (bool) {
         return campaigns[campaignId].raised >= minRaiseOf[campaignId];
@@ -419,7 +463,9 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
 
         uint256 fee = (amount * CONTRIBUTION_FEE_BPS) / 10_000;
         uint256 credited = amount - fee;
+        bool wasBelowMinimum = !minRaiseReached(campaignId);
         c.raised += credited;
+        if (wasBelowMinimum && minRaiseReached(campaignId)) lastProgressAt[campaignId] = block.timestamp;
         contributions[campaignId][msg.sender] += credited;
         accruedFees += fee;
         totalFeesCollected += fee;
@@ -523,6 +569,7 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
 
         m.released = true;
         c.releasedBps += m.bps;
+        lastProgressAt[campaignId] = block.timestamp;
         campaignReleased[campaignId] += amount;
         accruedFees += fee;
         totalFeesCollected += fee;
@@ -553,12 +600,12 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     }
 
     /// @notice Owner-only: stops contributions and releases, and opens
-    ///         refunds of whatever was not released. Without a legal ground a
-    ///         fully released campaign cannot be cancelled: there is nothing
-    ///         left to refund, and cancelling would only mark a delivered
-    ///         project as failed (§2.86). With a ground it can, for the
-    ///         takedown that goes with it; `decisionHash` is the hash of the
-    ///         written, reasoned decision kept off chain.
+    ///         refunds of whatever was not released. Always on a ground, with
+    ///         `decisionHash`, the hash of the written, reasoned decision kept
+    ///         off chain (§2.116). The three legal grounds work at any time,
+    ///         a fully released campaign included, for the takedown that goes
+    ///         with them. ABANDONED needs the minimum reached, something still
+    ///         unreleased, and ABANDON_AFTER without progress.
     function cancelCampaign(uint256 campaignId, CancelGround ground, bytes32 decisionHash) external onlyOwner {
         Campaign storage c = campaigns[campaignId];
         require(c.artist != address(0), "HumfiverseMilestoneEscrow: unknown campaign");
@@ -566,10 +613,12 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         // §2.114: a failed raise refunds by rule; a cancellation would only
         // relabel it as someone's decision.
         require(!raiseFailed(campaignId), "HumfiverseMilestoneEscrow: raise failed, refunds are open");
-        if (ground == CancelGround.NONE) {
-            require(c.releasedBps < 10_000, "HumfiverseMilestoneEscrow: fully released, needs a legal ground");
-        } else {
-            require(decisionHash != bytes32(0), "HumfiverseMilestoneEscrow: legal ground needs a decision hash");
+        require(ground != CancelGround.NONE, "HumfiverseMilestoneEscrow: a cancellation needs a ground");
+        require(decisionHash != bytes32(0), "HumfiverseMilestoneEscrow: a cancellation needs a decision hash");
+        if (ground == CancelGround.ABANDONED) {
+            require(minRaiseReached(campaignId), "HumfiverseMilestoneEscrow: below the minimum the deadline decides");
+            require(c.releasedBps < 10_000, "HumfiverseMilestoneEscrow: fully released, nothing abandoned");
+            require(block.timestamp >= lastProgressAt[campaignId] + ABANDON_AFTER, "HumfiverseMilestoneEscrow: not abandoned yet");
         }
 
         uint256 tokenId = campaignTokenId[campaignId];

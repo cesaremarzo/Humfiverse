@@ -3,6 +3,23 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-10-12 · ottavo redeploy: abbandono al posto di NONE, marketplace, wallet dell'artista (technical §2.116-§2.117)
+
+Token `0x471DE935a7538D67F0E231aaf2768f5C4EB42431`, escrow
+`0xcEb91B21020B6e32643dFD9d596e848c303c7553`, marketplace
+`0xC684B23492659b224635A5A7C475F50fcADc2E03`, tutti del Safe. Riconiati i 7 asset
+con possessori, con gli stessi saldi.
+
+- **02 C-2:** il contratto rifiuta l'annullamento senza motivo; nuovo motivo
+  abbandono (soglia raggiunta, tranche da pagare, 180 giorni senza progressi).
+- **02 C-7** risolto in parte: solo il token Humfiverse, annunci con scadenza
+  entro 30 giorni. **C-8:** il wallet dell'artista lo sposta solo l'artista, in
+  due passi (non risolve il punto del veicolo).
+- **Template v0.6-draft:** motivo (d) abbandono nella clausola `cancellation`.
+  **08 A-1** comma 1 (d). **01, 04** allineati.
+- **03 W-22** nuova (whitepaper: motivi, annunci, wallet), **non applicata**.
+- Test contratti: 143.
+
 ## 2026-10-12 · seconda firma sulla decisione di annullamento (technical §2.115)
 
 Decisione dell'utente: la decisione di annullamento richiede la conferma di un

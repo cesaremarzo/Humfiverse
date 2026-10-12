@@ -1,5 +1,6 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
+const { time } = require("@nomicfoundation/hardhat-network-helpers");
 
 describe("HumfiverseMarketplace", function () {
   let usdc;
@@ -18,6 +19,9 @@ describe("HumfiverseMarketplace", function () {
   const SUPPLY = 4000;
   const PRICE_PER_TOKEN = ethers.parseUnits("0.001", 6);
 
+  // §2.117: every listing expires, at most 30 days out.
+  const expiry = async (days = 7) => (await time.latest()) + days * 86_400;
+
   async function deployFixture() {
     const [deployer, seller, buyer, other, feeRecipient] = await ethers.getSigners();
 
@@ -30,7 +34,7 @@ describe("HumfiverseMarketplace", function () {
     await token.releaseFromPool(seller.address, TOKEN_ID, 500);
 
     const MarketplaceFactory = await ethers.getContractFactory("HumfiverseMarketplace");
-    const marketplace = await MarketplaceFactory.deploy(await usdc.getAddress(), feeRecipient.address);
+    const marketplace = await MarketplaceFactory.deploy(await token.getAddress(), await usdc.getAddress(), feeRecipient.address);
     await marketplace.waitForDeployment();
     await fundSigners([await marketplace.getAddress()]);
 
@@ -41,7 +45,7 @@ describe("HumfiverseMarketplace", function () {
     const ctx = await deployFixture();
     const { token, marketplace, seller } = ctx;
     await token.connect(seller).setApprovalForAll(await marketplace.getAddress(), true);
-    const tx = await marketplace.connect(seller).list(await token.getAddress(), TOKEN_ID, 200, PRICE_PER_TOKEN);
+    const tx = await marketplace.connect(seller).list(TOKEN_ID, 200, PRICE_PER_TOKEN, await expiry());
     const receipt = await tx.wait();
     const listedEvent = receipt.logs
       .map((l) => { try { return marketplace.interface.parseLog(l); } catch { return null; } })
@@ -66,7 +70,7 @@ describe("HumfiverseMarketplace", function () {
   it("refuses to list without prior approval", async function () {
     const { token, marketplace, seller } = await deployFixture();
     await expect(
-      marketplace.connect(seller).list(await token.getAddress(), TOKEN_ID, 100, PRICE_PER_TOKEN)
+      marketplace.connect(seller).list(TOKEN_ID, 100, PRICE_PER_TOKEN, await expiry())
     ).to.be.revertedWith("HumfiverseMarketplace: marketplace not approved");
   });
 
@@ -74,7 +78,7 @@ describe("HumfiverseMarketplace", function () {
     const { token, marketplace, seller } = await deployFixture();
     await token.connect(seller).setApprovalForAll(await marketplace.getAddress(), true);
     await expect(
-      marketplace.connect(seller).list(await token.getAddress(), TOKEN_ID, 501, PRICE_PER_TOKEN)
+      marketplace.connect(seller).list(TOKEN_ID, 501, PRICE_PER_TOKEN, await expiry())
     ).to.be.revertedWith("HumfiverseMarketplace: insufficient balance");
   });
 
@@ -118,7 +122,7 @@ describe("HumfiverseMarketplace", function () {
   it("rounds the fee down to the wei", async function () {
     const { token, marketplace, seller, buyer } = await deployFixture();
     await token.connect(seller).setApprovalForAll(await marketplace.getAddress(), true);
-    await marketplace.connect(seller).list(await token.getAddress(), TOKEN_ID, 10, 199n); // 199 wei each
+    await marketplace.connect(seller).list(TOKEN_ID, 10, 199n, await expiry()); // 199 wei each
     const listingId = 1n;
 
     await marketplace.connect(buyer).buyListing(listingId, 1);
@@ -215,5 +219,31 @@ describe("HumfiverseMarketplace", function () {
     // releaseFromPool (the only path for a first purchase) has no fee concept at all.
     await token.releaseFromPool(buyer.address, TOKEN_ID, 300);
     expect(await token.balanceOf(buyer.address, TOKEN_ID)).to.equal(300);
+  });
+
+  describe("one token, and listings that expire (§2.117)", function () {
+    it("trades only the Humfiverse token it was deployed with", async function () {
+      const { token, marketplace } = await deployFixture();
+      expect(await marketplace.token()).to.equal(await token.getAddress());
+      expect(marketplace.interface.getFunction("list").inputs.map((i) => i.name)).to.not.include("token");
+    });
+
+    it("refuses an expiry in the past or more than 30 days out", async function () {
+      const { token, marketplace, seller } = await deployFixture();
+      await token.connect(seller).setApprovalForAll(await marketplace.getAddress(), true);
+      const now = await time.latest();
+      await expect(marketplace.connect(seller).list(TOKEN_ID, 10, PRICE_PER_TOKEN, now)).to.be.revertedWith("HumfiverseMarketplace: expiry must be in the future");
+      await expect(marketplace.connect(seller).list(TOKEN_ID, 10, PRICE_PER_TOKEN, now + 31 * 86_400)).to.be.revertedWith("HumfiverseMarketplace: expiry too far");
+    });
+
+    it("an expired listing cannot be bought, even once the seller holds the tokens again", async function () {
+      const { token, marketplace, seller, buyer, other, listingId } = await listFixture();
+      // The seller moves the tokens away and later gets them back: the old
+      // listing would have come back to life at its old price.
+      await token.connect(seller).safeTransferFrom(seller.address, other.address, TOKEN_ID, 500, "0x");
+      await time.increase(8 * 86_400);
+      await token.connect(other).safeTransferFrom(other.address, seller.address, TOKEN_ID, 500, "0x");
+      await expect(marketplace.connect(buyer).buyListing(listingId, 10)).to.be.revertedWith("HumfiverseMarketplace: listing expired");
+    });
   });
 });

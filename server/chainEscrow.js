@@ -21,8 +21,8 @@ const RPC_URL = process.env.CHAIN_RPC_URL || "https://ethereum-sepolia-rpc.publi
 // again in §2.43 alongside the token (an immutable reference, so any token
 // redeploy forces an escrow redeploy too). See chain.js's CONTRACT_ADDRESS.
 // Redeployed in §2.71 (fee), §2.72 (with the token), §2.73 (USDC), §2.79 (goal from the token) §2.81 (escrow-only tokens), §2.96 (phase 2) and §2.102 (with the token, for its fees).
-const ESCROW_ADDRESS = process.env.CHAIN_ESCROW_ADDRESS || "0x613c1e658930562a655C0883667034AB92146C16";
-const ESCROW_DEPLOY_BLOCK = Number(process.env.CHAIN_ESCROW_DEPLOY_BLOCK || 11900419);
+const ESCROW_ADDRESS = process.env.CHAIN_ESCROW_ADDRESS || "0xcEb91B21020B6e32643dFD9d596e848c303c7553";
+const ESCROW_DEPLOY_BLOCK = Number(process.env.CHAIN_ESCROW_DEPLOY_BLOCK || 11901543);
 // §2.71: the escrow this one replaced, read-only. A campaign that finished
 // there (Guns: funded, every tranche released) cannot be recreated on the
 // new contract without reading as unfunded and unreleased, so it is left
@@ -124,7 +124,8 @@ const TOKEN_SUPPLY_ABI = ["function releasedOf(uint256) view returns (uint256)",
 const ABIS = { 1: ABI_V1, 2: ABI_V2, 3: ABI_V3 };
 
 /** The contract's cancellation grounds, in enum order (§2.92). */
-const CANCEL_GROUNDS = ["none", "unlawful_content", "third_party_rights", "false_warranties"];
+// §2.116 adds "abandoned" (index 4) on the escrow after that redeploy.
+const CANCEL_GROUNDS = ["none", "unlawful_content", "third_party_rights", "false_warranties", "abandoned"];
 
 const provider = new ethers.JsonRpcProvider(RPC_URL, CHAIN_ID);
 const operatorWallet = process.env.CHAIN_OPERATOR_PRIVATE_KEY ? new ethers.Wallet(process.env.CHAIN_OPERATOR_PRIVATE_KEY, provider) : null;
