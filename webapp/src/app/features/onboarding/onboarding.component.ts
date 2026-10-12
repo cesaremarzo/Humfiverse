@@ -475,14 +475,15 @@ export class OnboardingComponent {
       }
     }
 
-    if (this.store.backendAvailable()) {
+    if (this.store.backendAvailable() && launch) {
       try {
         const receipt = await this.api.submitContractAcceptance({
           artistName: d.artistName,
           trackTitle: d.title,
           templateVersion: this.store.contractTemplate().version,
           generalAccepted: d.contract.generalAccepted,
-          vessatoriaAccepted: d.contract.vessatoriaAccepted
+          vessatoriaAccepted: d.contract.vessatoriaAccepted,
+          launch
         });
         this.toast.show(this.translate.instant('toast.contractAccepted', { receipt: receipt.receiptHash.slice(0, 10) + '…' }), 'checkCircle');
       } catch (err) {

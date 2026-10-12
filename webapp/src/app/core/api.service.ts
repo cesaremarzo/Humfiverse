@@ -70,6 +70,8 @@ export class ApiService {
     templateVersion: string;
     generalAccepted: boolean;
     vessatoriaAccepted: Record<string, boolean>;
+    /** B-4: the signed launch, which names the agreement's version and sha256. */
+    launch: LaunchAuthorization;
   }): Promise<ContractAcceptanceResult> {
     return firstValueFrom(this.http.post<ContractAcceptanceResult>(`${this.base}/api/contract-acceptance`, payload));
   }

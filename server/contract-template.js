@@ -227,4 +227,9 @@ const CONTRACT_TEMPLATE = {
   ]
 };
 
-module.exports = { CONTRACT_TEMPLATE };
+/* SHA-256 of the template exactly as GET /api/contract-template serves it:
+   the artist signs it in the launch authorization, so an acceptance names
+   the text that was on screen, not just a version label (B-4). */
+const CONTRACT_TEMPLATE_SHA256 = require("crypto").createHash("sha256").update(JSON.stringify(CONTRACT_TEMPLATE)).digest("hex");
+
+module.exports = { CONTRACT_TEMPLATE, CONTRACT_TEMPLATE_SHA256 };
