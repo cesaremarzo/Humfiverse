@@ -2789,3 +2789,29 @@ classici, ma sei modi di piegare le regole. Corretti nella **PR #89, mergiata**
 - Procedura di verifica studi da scrivere (07 B5-bis); Analog Sun non è registrato
   sul nuovo escrow (wallet = artista di Honest Man).
 - Commissioni rimaste sul vecchio escrow `0xBAEb…` (`withdrawFees`, chiunque può chiamarla).
+
+## 2026-10-12 — submission dell'hackathon completata
+
+Cesare ha completato la submission al Colosseum Crypto World's Fair (video demo e
+pitch caricati) prima della scadenza del 13 ott 08:59. Chiusi gli aperti
+dell'hackathon delle voci precedenti (upload, submission). Restano solo come
+rifiniture eventuali: numero dei test tra voce del pitch e descrizione, co-founder
+nella slide 01.
+
+## 2026-10-12 — bug del wizard: token senza campagna se la scheda si chiude (§2.112)
+
+Il bug aperto dalla sessione demo: chiudendo la scheda dopo il mint e prima della
+campagna, restava un token solo-escrow senza campagna, quindi impossibile da
+finanziare. Il sito **non** lo riprendeva alla riapertura (la firma del lancio
+vive solo nella scheda e scade in 30 minuti).
+
+**Fix:** `POST /api/onchain/mint` crea anche la campagna escrow, nella stessa
+richiesta, dai campi firmati (studio, milestone). Il server finisce il lavoro anche
+se il client se ne va. Il wizard legge `escrow`/`escrowError` dalla risposta e fa
+la vecchia chiamata solo se il server è ancora quello vecchio (409 = già creata).
+Provato su un fork di Sepolia: richiesta interrotta dopo 300 ms, campagna creata
+lo stesso. `legal/check.sh` pulito.
+
+**Resta:** se il server prova e fallisce (studio sospeso, errore RPC) il token resta
+senza campagna; per ripararlo serve una nuova firma dell'artista e la UI non la
+chiede ancora.

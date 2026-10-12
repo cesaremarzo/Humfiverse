@@ -24,6 +24,8 @@ const { sendJson, readBody, readRawBody } = require("../lib/http");
 const chain = require("../chain");
 const pinata = require("../pinata");
 const onchainService = require("../services/onchain.service");
+const escrowChain = require("../chainEscrow");
+const escrow = require("../services/escrow.service");
 const { verifyLaunch, requireMatch } = require("../lib/launch-auth");
 const registration = require("../services/registration.service");
 
@@ -89,6 +91,19 @@ module.exports = function registerOnchainRoutes(router) {
         return;
       }
       const result = await onchainService.mintAsset(body.assetId, body.slug, body.supply, body.fundingUsdc, body.title, body.artist, body.payoutWallet, body.directSale);
+      // §2.112: a launch sold only through its escrow gets its campaign here,
+      // in the same request, from the studio and milestones the artist signed.
+      // It used to be a second request from the browser after this one, so a
+      // tab closed in between left a token with no campaign and no way to buy
+      // it. The handler runs to the end even if the client has gone.
+      if (!launch.directSale && launch.studioWallet && launch.milestones.length && escrowChain.writeEnabled()) {
+        try {
+          result.escrow = await escrow.createCampaign(launch.assetId, launch.artistWallet, launch.studioName, launch.studioWallet, launch.milestones);
+        } catch (e) {
+          console.warn("escrow campaign after mint failed", launch.assetId, e.message);
+          result.escrowError = { code: e.code || "failed", message: String(e.message || e) };
+        }
+      }
       sendJson(res, 200, result);
     } catch (e) {
       if (e.code === "invalid") {

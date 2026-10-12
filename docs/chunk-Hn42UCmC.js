@@ -1,1 +1,0 @@
-import{ml as je}from"./chunk-B8UE091X.js";function c(t){return je(...t)}export{c as t};
