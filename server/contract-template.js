@@ -33,7 +33,7 @@
 */
 
 const CONTRACT_TEMPLATE = {
-  version: "v0.3-draft",
+  version: "v0.4-draft",
   title: {
     it: "Accordo di Cessione Royalty e Escrow a Milestone",
     en: "Royalty Assignment & Milestone Escrow Agreement",
@@ -90,26 +90,30 @@ const CONTRACT_TEMPLATE = {
       }
     },
     {
-      id: "manager-discretion",
+      // Was "manager-discretion": an SPV Manager with sole discretion to
+      // confirm or suspend milestones — the power the escrow removed (§2.27).
+      // Only the artist and the studio confirm on chain; the Owner Safe can
+      // only cancel. Text from legal/08 A-1 (§2.113).
+      id: "cancellation",
       vessatoria: true,
       vessatoriaCategory: {
-        it: "facoltà di sospendere l'esecuzione del contratto",
-        en: "right to suspend performance of the contract",
-        es: "facultad de suspender la ejecución del contrato",
-        fr: "faculté de suspendre l'exécution du contrat",
-        de: "Recht zur Aussetzung der Vertragserfüllung"
+        it: "facoltà di recedere dal contratto",
+        en: "right to withdraw from the contract",
+        es: "facultad de desistir del contrato",
+        fr: "faculté de résilier le contrat",
+        de: "Recht zur Beendigung des Vertrags"
       },
       i18n: {
-        it: { title: "Potere di conferma e sospensione dell'SPV Manager",
-          body: "L'SPV Manager ha la facoltà discrezionale di confermare o meno il raggiungimento di una milestone e, in caso di dubbio, di sospendere il rilascio della tranche corrispondente fino a chiarimento. Tale sospensione non costituisce inadempimento della SPV." },
-        en: { title: "SPV Manager's confirmation and suspension power",
-          body: "The SPV Manager has sole discretion to confirm or not confirm that a milestone has been reached and, in case of doubt, to suspend release of the corresponding tranche pending clarification. Such a suspension does not constitute a breach by the SPV." },
-        es: { title: "Facultad de confirmación y suspensión del SPV Manager",
-          body: "El SPV Manager tiene la facultad discrecional de confirmar o no el cumplimiento de un hito y, en caso de duda, de suspender la liberación del tramo correspondiente hasta su aclaración. Dicha suspensión no constituye un incumplimiento por parte de la SPV." },
-        fr: { title: "Pouvoir de confirmation et de suspension du SPV Manager",
-          body: "Le SPV Manager dispose du pouvoir discrétionnaire de confirmer ou non l'atteinte d'un jalon et, en cas de doute, de suspendre le versement de la tranche correspondante jusqu'à clarification. Cette suspension ne constitue pas un manquement de la SPV." },
-        de: { title: "Bestätigungs- und Aussetzungsbefugnis des SPV Managers",
-          body: "Der SPV Manager hat das alleinige Ermessen, das Erreichen eines Meilensteins zu bestätigen oder nicht, und kann im Zweifelsfall die Freigabe der entsprechenden Tranche bis zur Klärung aussetzen. Eine solche Aussetzung stellt keine Vertragsverletzung der SPV dar." }
+        it: { title: "Conferma delle milestone e annullamento della campagna",
+          body: "Le milestone sono confermate esclusivamente dall'Artista e dallo Studio, ciascuno con il proprio wallet, sul contratto di escrow: la tranche si rilascia quando entrambi hanno confermato. La Piattaforma non ha il potere di confermare, rilasciare o sospendere una tranche. Può soltanto annullare la Campagna, anche dopo il rilascio di una o più tranche, ed esclusivamente se: (a) il Brano o i materiali hanno contenuto illecito; (b) violano diritti di terzi, come risulta da una segnalazione circostanziata del titolare dei diritti, da un provvedimento di un'autorità o da una decisione giudiziaria; (c) una dichiarazione o garanzia dell'Artista risulta falsa o inesatta. Prima dell'annullamento la Piattaforma comunica all'Artista i motivi e gli concede 5 giorni per presentare osservazioni o rimuovere la violazione, salvo che la legge o un'autorità impongano la rimozione immediata. La decisione è scritta, motivata e datata, ed è comunicata all'Artista e agli Investitori. Con l'annullamento gli importi non ancora rilasciati sono rimborsati ai possessori dei token. L'annullamento in questi casi non costituisce inadempimento della Piattaforma o della SPV." },
+        en: { title: "Milestone confirmation and campaign cancellation",
+          body: "Milestones are confirmed only by the Artist and the Studio, each with their own wallet, on the escrow contract: a tranche is released once both have confirmed. The Platform has no power to confirm, release or suspend a tranche. It may only cancel the Campaign, including after one or more tranches have been released, and only if: (a) the Track or its materials have unlawful content; (b) they infringe third-party rights, as shown by a substantiated notice from the rights holder, an order of an authority or a court decision; (c) a representation or warranty of the Artist proves false or inaccurate. Before cancelling, the Platform tells the Artist the reasons and gives 5 days to respond or remove the infringement, unless the law or an authority requires immediate removal. The decision is written, reasoned and dated, and is communicated to the Artist and the Investors. On cancellation, amounts not yet released are refunded to the token holders. Cancellation in these cases is not a breach by the Platform or the SPV." },
+        es: { title: "Confirmación de los hitos y cancelación de la campaña",
+          body: "Los hitos los confirman únicamente el Artista y el Estudio, cada uno con su propio wallet, en el contrato de garantía en depósito: el tramo se libera cuando ambos han confirmado. La Plataforma no tiene facultad para confirmar, liberar o suspender un tramo. Solo puede cancelar la Campaña, incluso después de la liberación de uno o más tramos, y únicamente si: (a) el Tema o los materiales tienen contenido ilícito; (b) vulneran derechos de terceros, según resulte de una notificación fundamentada del titular de los derechos, de una resolución de una autoridad o de una decisión judicial; (c) una declaración o garantía del Artista resulta falsa o inexacta. Antes de la cancelación, la Plataforma comunica al Artista los motivos y le concede 5 días para presentar observaciones o eliminar la infracción, salvo que la ley o una autoridad impongan la retirada inmediata. La decisión es escrita, motivada y fechada, y se comunica al Artista y a los Inversores. Con la cancelación, los importes aún no liberados se reembolsan a los titulares de los tokens. La cancelación en estos casos no constituye un incumplimiento de la Plataforma ni de la SPV." },
+        fr: { title: "Confirmation des jalons et annulation de la campagne",
+          body: "Les jalons sont confirmés exclusivement par l'Artiste et par le Studio, chacun avec son propre wallet, sur le contrat de séquestre : la tranche est versée lorsque les deux ont confirmé. La Plateforme n'a pas le pouvoir de confirmer, de verser ou de suspendre une tranche. Elle peut seulement annuler la Campagne, y compris après le versement d'une ou plusieurs tranches, et uniquement si : (a) le Titre ou les supports ont un contenu illicite ; (b) ils portent atteinte aux droits de tiers, tel qu'il ressort d'une notification circonstanciée du titulaire des droits, d'une décision d'une autorité ou d'une décision judiciaire ; (c) une déclaration ou garantie de l'Artiste s'avère fausse ou inexacte. Avant l'annulation, la Plateforme communique à l'Artiste les motifs et lui accorde 5 jours pour présenter ses observations ou faire cesser l'atteinte, sauf si la loi ou une autorité impose un retrait immédiat. La décision est écrite, motivée et datée, et elle est communiquée à l'Artiste et aux Investisseurs. En cas d'annulation, les montants non encore versés sont remboursés aux détenteurs de tokens. L'annulation dans ces cas ne constitue pas un manquement de la Plateforme ou de la SPV." },
+        de: { title: "Bestätigung der Meilensteine und Annullierung der Kampagne",
+          body: "Meilensteine werden ausschließlich vom Künstler und vom Studio bestätigt, jeweils mit ihrem eigenen Wallet, auf dem Treuhandvertrag: Die Tranche wird freigegeben, sobald beide bestätigt haben. Die Plattform hat keine Befugnis, eine Tranche zu bestätigen, freizugeben oder auszusetzen. Sie kann die Kampagne nur annullieren, auch nach der Freigabe einer oder mehrerer Tranchen, und ausschließlich wenn: (a) der Titel oder die Materialien rechtswidrige Inhalte haben; (b) sie Rechte Dritter verletzen, wie sich aus einer begründeten Meldung des Rechteinhabers, einer behördlichen Anordnung oder einer gerichtlichen Entscheidung ergibt; (c) eine Zusicherung oder Gewährleistung des Künstlers sich als falsch oder unzutreffend erweist. Vor der Annullierung teilt die Plattform dem Künstler die Gründe mit und gewährt ihm 5 Tage, um Stellung zu nehmen oder die Verletzung zu beseitigen, es sei denn, das Gesetz oder eine Behörde verlangen die sofortige Entfernung. Die Entscheidung ist schriftlich, begründet und datiert und wird dem Künstler und den Investoren mitgeteilt. Mit der Annullierung werden die noch nicht freigegebenen Beträge an die Token-Inhaber zurückerstattet. Die Annullierung in diesen Fällen stellt keine Vertragsverletzung der Plattform oder der SPV dar." }
       }
     },
     {

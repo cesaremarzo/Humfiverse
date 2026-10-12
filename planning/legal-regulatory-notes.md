@@ -159,9 +159,9 @@ Still open for counsel: C2 (who pursues the artist), C5 (studio that received tr
 
 *Corrections due in the current template* (`server/contract-template.js`, mirrored in `webapp/src/app/core/mock-data/contract-template.json`, `v0.3-draft`, all nine languages):
 - `refund` still promises refunds "if the funding goal is not reached, or a milestone is not delivered on time" — neither exists on chain, and deadlines are out by decision (technical doc §2.86). It should say that unreleased amounts are refunded pro rata when a campaign is cancelled.
-- `manager-discretion` still gives the SPV Manager "sole discretion to confirm or not confirm that a milestone has been reached", a power removed in technical doc §2.27. Release now needs the artist's and the studio's own confirmations.
+- ~~`manager-discretion` still gives the SPV Manager "sole discretion to confirm or not confirm that a milestone has been reached"~~ — done 12 Oct 2026 (technical §2.113): replaced by `cancellation` (legal/08 A-1), template `v0.4-draft`.
 - The new cancellation, warranty, indemnity and recourse clauses above.
-- Bump the version to `v0.4-draft` so acceptances recorded under `v0.3-draft` stay distinguishable.
+- ~~Bump the version to `v0.4-draft`~~ — done with the clause above; acceptances recorded under `v0.3-draft` stay distinguishable.
 
 ---
 *Research compiled from public sources current as of August 2026 (see chat for source list). Not legal advice — this project should not proceed to any investor-facing offering or token sale without qualified securities/fintech counsel review specific to the chosen jurisdictions.*
