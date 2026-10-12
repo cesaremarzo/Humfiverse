@@ -2920,3 +2920,15 @@ petru): i loro branch restano, tutti già su main tranne `dev/petru` (1 commit,
 pushato). Loghi, avatar, header X e banner YouTube spostati in `brand/`
 (tracciati, con README). In `.gitignore`: `.angular/`, il PDF del regolamento
 dell'hackathon e `humfiverse-demo:audio/`.
+
+## 2026-10-12 — primi test del frontend; bozza della procedura di verifica studi
+
+- **Test del frontend:** `cd webapp && npx ng test --watch=false` (Vitest via
+  `@angular/build:unit-test`, già configurato ma senza test). 18 test su quote
+  delle milestone, 4,94% su una campagna completa, prezzo per token, scadenza e
+  soglia (§2.114), commissioni e conversioni USDC. Esclusi dal build del sito.
+- **`planning/procedura-verifica-studi.md`** (bozza da approvare): richiesta dallo
+  studio, controlli C1–C6 (registro imprese, lavori con crediti, persona di
+  riferimento, firma del wallet, indipendenza dagli artisti, nome), due
+  firmatari, poi `registerStudio` dal Safe; sospensione dal Founder,
+  riattivazione solo dal Safe. Analog Sun non passerebbe C5.
