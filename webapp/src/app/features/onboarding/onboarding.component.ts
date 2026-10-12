@@ -34,7 +34,9 @@ import {
   draftAssetId,
   draftRaiseTotal,
   draftSupply,
-  raiseTerms
+  raiseTerms,
+  raiseRuleOnChain,
+  RAISE_MAX_DAYS
 } from './campaign-draft.util';
 
 type MilestoneKind = 'preprod' | 'catalogue';
@@ -245,6 +247,21 @@ export class OnboardingComponent {
     return milestoneTotalBps(this.data()[this.milestoneKey(kind)]) / 100;
   }
 
+  /* --- §2.114: the raise deadline and minimum of an escrow campaign --- */
+
+  /** The date input's bounds: tomorrow to a year from today, minus a day of margin. */
+  readonly raiseDeadlineMin = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
+  readonly raiseDeadlineMax = new Date(Date.now() + (RAISE_MAX_DAYS - 1) * 86_400_000).toISOString().slice(0, 10);
+
+  raiseRuleValid = computed(() => raiseRuleOnChain(this.data().raiseRule) !== null);
+  /** The minimum in dollars of the goal, as the artist will read it. */
+  minRaiseUsd = computed(() => (this.raise().effectiveUsd * (Number(this.data().raiseRule.minPercent) || 0)) / 100);
+
+  updateRaiseRule(field: 'deadline' | 'minPercent', value: string): void {
+    const rule = this.data().raiseRule;
+    this.updateData({ raiseRule: field === 'deadline' ? { ...rule, deadline: value } : { ...rule, minPercent: Number(value) } });
+  }
+
   milestonesValid(kind: MilestoneKind): boolean {
     return milestonesValid(this.data()[this.milestoneKey(kind)]);
   }
@@ -319,6 +336,7 @@ export class OnboardingComponent {
       else if (this.stepKey() === 'source' && !this.raise().valid) msg = 'wizRaise.invalid';
       else if (this.stepKey() === 'source' && d.model === 'preproduction' && !this.milestonesValid('preprod')) msg = 'wizMilestones.invalid';
       else if (this.stepKey() === 'source' && d.model === 'catalogue' && d.catalogueCampaign.enabled && !this.milestonesValid('catalogue')) msg = 'wizMilestones.invalid';
+      else if (this.stepKey() === 'source' && (d.model === 'preproduction' || d.catalogueCampaign.enabled) && !this.raiseRuleValid()) msg = 'wizRaiseRule.invalid';
       this.toast.show(this.translate.instant(msg), 'alert');
       return;
     }
@@ -406,6 +424,13 @@ export class OnboardingComponent {
     const directSale = !(isPre || d.catalogueCampaign.enabled);
     const escrowStudio = isPre ? d.preprod : d.catalogueCampaign.enabled ? d.catalogueCampaign : null;
     const escrowMilestones = isPre ? d.preprodMilestones : d.catalogueCampaign.enabled ? d.catalogueMilestones : [];
+    // §2.114: signed with the rest, and only for an escrow campaign.
+    const raiseRule = directSale ? null : raiseRuleOnChain(d.raiseRule);
+    if (!directSale && !raiseRule) {
+      this.toast.show(this.translate.instant('wizRaiseRule.invalid'), 'alert');
+      this.submitting.set(false);
+      return;
+    }
 
     if (escrowStudio && this.studioIsArtist(escrowStudio.studioWallet)) {
       this.toast.show(this.translate.instant('wizSource.studioIsArtist'), 'alert');
@@ -431,7 +456,8 @@ export class OnboardingComponent {
           directSale,
           studioName: escrowStudio?.studioName ?? '',
           studioWallet: escrowStudio?.studioWallet ?? '',
-          milestones: escrowMilestones.map((m) => ({ name: m.name, bps: m.bps, payee: m.payee }))
+          milestones: escrowMilestones.map((m) => ({ name: m.name, bps: m.bps, payee: m.payee })),
+          ...(raiseRule ?? {})
         });
         launch = { payload: prepared.payload, signature: await this.wallet.signMessage(prepared.message) };
       } catch (err) {

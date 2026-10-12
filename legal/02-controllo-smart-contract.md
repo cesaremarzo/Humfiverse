@@ -1,6 +1,6 @@
 # Controllo degli smart contract e del backend, dal punto di vista legale
 
-*Revisione del 2026-09-17, dopo il redeploy di fase 2 (technical §2.92, §2.95-§2.97); C-12 aggiornato per il rendiconto come file (§2.98, commit `fd7f822`); C-2 aggiornato il 2026-09-28 per la procedura di annullamento (§2.105); tabella §1, C-3, C-9, C-10, C-12 e nuovo C-16 aggiornati il 2026-10-11 per le correzioni dell'audit dei contratti (§2.110), sulla catena dal redeploy dello stesso giorno (technical §2.111). Non è un audit di sicurezza e non
+*C-4 e C-2 aggiornati il 2026-10-12 (scadenza e soglia minima, §2.114). Revisione del 2026-09-17, dopo il redeploy di fase 2 (technical §2.92, §2.95-§2.97); C-12 aggiornato per il rendiconto come file (§2.98, commit `fd7f822`); C-2 aggiornato il 2026-09-28 per la procedura di annullamento (§2.105); tabella §1, C-3, C-9, C-10, C-12 e nuovo C-16 aggiornati il 2026-10-11 per le correzioni dell'audit dei contratti (§2.110), sulla catena dal redeploy dello stesso giorno (technical §2.111). Non è un audit di sicurezza e non
 è consulenza legale.*
 
 ## Cosa è e cosa non è questo controllo
@@ -20,10 +20,10 @@
 |---|---|---|---|
 | HumfiverseCatalogueToken | `contracts/contracts/HumfiverseCatalogueToken.sol` | `e6bf460971bae796` | `0xe26C2FC4A77e26cc1A4404DD5DA63ae8761dF997` |
 | HumfiverseMarketplace | `contracts/contracts/HumfiverseMarketplace.sol` | `2e6e2985317c70a8` | `0x755500dEB66169fC605Be8Aa25ACBdAd791F1585` |
-| HumfiverseMilestoneEscrow | `contracts/contracts/HumfiverseMilestoneEscrow.sol` | `89368accb75bcefa` | `0x0D5232579773e61b898e70866b2160b2B077aDb7` |
+| HumfiverseMilestoneEscrow | `contracts/contracts/HumfiverseMilestoneEscrow.sol` | `4e9a8d426220c880` | `0x613c1e658930562a655C0883667034AB92146C16` |
 
 Solidity 0.8.24, OpenZeppelin v5, non aggiornabili (niente proxy).
-Pagamenti in USDC di test (`0x1c7D…7238`). Test: **123 passati**. Gli indirizzi sono quelli del redeploy del 2026-10-11 (technical §2.111), che ha portato sulla catena le correzioni del §2.110: le righe della tabella §1 marcate §2.110 descrivono i contratti in uso. Token ed
+Pagamenti in USDC di test (`0x1c7D…7238`). Test: **130 passati**. L'escrow è quello del settimo redeploy, 2026-10-12 (technical §2.114: scadenza e soglia minima, C-4), con il precedente `0x0D5232579773e61b898e70866b2160b2B077aDb7` in sola lettura; token e marketplace sono quelli del redeploy del 2026-10-11 (technical §2.111), che ha portato sulla catena le correzioni del §2.110: le righe della tabella §1 marcate §2.110 descrivono i contratti in uso. Token ed
 escrow sono stati ridistribuiti il 2026-09-17 (fase 2) e di nuovo il
 2026-09-27 (technical §2.102) solo per le commissioni del §2.101 — 6% sulla
 vendita diretta, 1% sui versamenti di royalty — che da quel giorno sono in
@@ -129,7 +129,9 @@ annullamento non sono contati nel rimborso, quindi i rimborsi diventerebbero
 ### C-2 · Alta · Il Founder può cancellare una campagna in qualunque momento
 
 **Codice.** `cancelCampaign` (righe 425-430): solo `onlyOwner` e `ACTIVE`.
-Nessuna condizione su scadenza, obiettivo mancato o disaccordo.
+Nessuna condizione su scadenza, obiettivo mancato o disaccordo. *(Dal §2.114 una
+raccolta fallita si rimborsa per regola, senza annullamento; e una campagna
+fallita non si può più annullare.)*
 
 **Cosa dicono i documenti.** Whitepaper, cap. 6: *"No arbitration, no timeout,
 no one who can override it"*. Whitepaper, cap. 2 e 8: se artista e studio non
@@ -285,6 +287,23 @@ campo `deadline` può sparire al prossimo redeploy.
 
 **Aggiornamento (2026-09-17, §2.97).** Il campo `deadline` non esiste più nel
 contratto di fase 2. Le conseguenze legali sopra restano da gestire nei testi.
+
+**Decisione cambiata (2026-10-12, technical §2.114): soglia minima e scadenza.**
+**In buona parte risolto** nel codice; diventa effettivo con il settimo redeploy
+(solo escrow). Ogni nuova campagna ha una **scadenza della raccolta** e una
+**soglia minima**, scelte dall'artista nel wizard, firmate nell'autorizzazione
+di lancio e scritte nel contratto (`raiseDeadlineOf`, `minRaiseOf`):
+- nessuna tranche si rilascia prima che la soglia sia raggiunta (`_tryRelease`);
+- se la scadenza passa sotto la soglia, la campagna è **fallita per regola**
+  (`raiseFailed`): niente contributi, conferme o annullamento; il primo rimborso
+  la chiude (stato `FAILED`) e apre i rimborsi per tutti i possessori, pari a
+  quanto versato meno il 2%. Nessuno ha il potere di dichiararla fallita;
+- raggiunta la soglia, la scadenza non conta più: la campagna resta aperta come
+  prima, finché vende tutto, rilascia tutto o viene annullata.
+Limiti: scadenza tra un'ora e un anno, soglia tra 0,01% e 100% dell'obiettivo
+netto (`fundingTargetOf`). Le campagne già create sugli escrow precedenti restano
+senza scadenza. **Resta aperto:** dopo la soglia una campagna può ancora restare
+aperta senza limiti e pagare le tranche coperte; va detto con chiarezza (B3).
 
 ### C-5 · Alta · I rimborsi vanno a chi ha contribuito, non a chi possiede i token
 

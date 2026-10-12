@@ -1,6 +1,6 @@
 # Avvertenze e scheda rischi: bozza
 
-*Bozza del 2026-10-11 per §2.2, §2.3-bis e §3 (studi verificati, royalty in proporzione al tempo di possesso, §2.110: in vigore sulla catena dal redeploy dello stesso giorno, §2.111); prima 2026-09-17, commit `fd7f822` + §2.101 (§2.1 vendita diretta al 6%, §2.3-bis commissione sulle royalty), prima `94ae18f` (§2.4 storico prezzi) e `82a7a1b`. **Da far rivedere a un avvocato.** Non
+*§2.2 e §3 aggiornati il 2026-10-12 (scadenza e soglia minima, §2.114). Bozza del 2026-10-11 per §2.2, §2.3-bis e §3 (studi verificati, royalty in proporzione al tempo di possesso, §2.110: in vigore sulla catena dal redeploy dello stesso giorno, §2.111); prima 2026-09-17, commit `fd7f822` + §2.101 (§2.1 vendita diretta al 6%, §2.3-bis commissione sulle royalty), prima `94ae18f` (§2.4 storico prezzi) e `82a7a1b`. **Da far rivedere a un avvocato.** Non
 è consulenza legale.*
 
 Testi pronti da inserire nel sito, in italiano e in inglese. Sono pensati per il
@@ -56,9 +56,11 @@ pagine non esistono.*
 >   artista e uno studio verificato dalla piattaforma confermano le milestone.
 >   **[Se la campagna non ha uno studio: ogni tranche si rilascia con la sola
 >   conferma dell'artista, e nessun terzo controlla la milestone.]**
-> - **La campagna non ha scadenza.** Le prime tranche possono essere pagate
->   anche se l'obiettivo non viene raggiunto, e non esiste un rimborso
->   automatico.
+> - **Scadenza e soglia minima.** Se entro la data indicata la campagna non
+>   raccoglie la soglia minima, fallisce e puoi recuperare quanto hai versato
+>   meno il 2%. Raggiunta la soglia, la campagna resta aperta senza scadenza e
+>   le tranche si pagano man mano che i fondi le coprono, anche se l'obiettivo
+>   pieno non viene mai raggiunto.
 > - Il 2% del contributo è la commissione della piattaforma e **non viene
 >   restituito, neanche se la campagna è annullata**.
 > - La piattaforma può **annullare la campagna** se contiene contenuti illeciti
@@ -77,8 +79,10 @@ pagine non esistono.*
 >   artist and a studio verified by the platform confirm each milestone. **[If
 >   the campaign has no studio: each tranche is released on the artist's
 >   confirmation alone, and no third party checks the milestone.]**
-> - **The campaign has no deadline.** Early tranches can be paid even if the
->   goal is never reached, and there is no automatic refund.
+> - **Deadline and minimum.** If the campaign does not raise its minimum by the
+>   date shown, it fails and you can reclaim what you paid, less 2%. Once the
+>   minimum is in, the campaign stays open with no deadline and tranches are
+>   paid as funds cover them, even if the full goal is never reached.
 > - 2% of your contribution is the platform fee and is **not returned, even if
 >   the campaign is cancelled**.
 > - The platform can **cancel the campaign** if it contains unlawful content or
@@ -173,8 +177,10 @@ Testo in inglese, come il whitepaper.
   link it the first time or remove it (from the next contract deploy, §2.110).
 
 **Campaign mechanics**
-- **Campaigns have no deadline and no all-or-nothing rule.** A partly funded
-  campaign can pay out its first tranches and stay open indefinitely.
+- **A minimum, not all-or-nothing.** Each campaign must raise the minimum the
+  artist set by its deadline, or it fails and refunds holders (less the 2% fee).
+  Above the minimum, a partly funded campaign can pay out its first tranches and
+  stay open indefinitely.
 - **A campaign without a studio is released by the artist alone.** With a
   studio, the studio is one the platform verified; the check is made off
   chain, and the contract cannot tell two wallets of one person apart.

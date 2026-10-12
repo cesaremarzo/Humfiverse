@@ -33,7 +33,7 @@
 */
 
 const CONTRACT_TEMPLATE = {
-  version: "v0.4-draft",
+  version: "v0.5-draft",
   title: {
     it: "Accordo di Cessione Royalty e Escrow a Milestone",
     en: "Royalty Assignment & Milestone Escrow Agreement",
@@ -77,16 +77,16 @@ const CONTRACT_TEMPLATE = {
       id: "milestones",
       vessatoria: false,
       i18n: {
-        it: { title: "Piano milestone e calendario di rilascio delle tranche",
-          body: "I fondi raccolti sono custoditi in un conto di escrow a milestone. Ogni tranche è rilasciata all'Artista solo al raggiungimento della milestone corrispondente, secondo il calendario indicato nella pagina della campagna." },
-        en: { title: "Milestone plan and tranche release schedule",
-          body: "Funds raised are held in a milestone escrow account. Each tranche is released to the Artist only when the corresponding milestone is reached, according to the schedule shown on the campaign page." },
-        es: { title: "Plan de hitos y calendario de liberación de tramos",
-          body: "Los fondos recaudados se mantienen en una cuenta de garantía en depósito por hitos. Cada tramo se libera al Artista solo cuando se alcanza el hito correspondiente, según el calendario indicado en la página de la campaña." },
-        fr: { title: "Plan de jalons et calendrier de libération des tranches",
-          body: "Les fonds collectés sont conservés sur un compte séquestre par jalons. Chaque tranche n'est versée à l'Artiste qu'une fois le jalon correspondant atteint, selon le calendrier indiqué sur la page de la campagne." },
-        de: { title: "Meilensteinplan und Freigabeplan der Tranchen",
-          body: "Die eingesammelten Mittel werden auf einem Meilenstein-Treuhandkonto verwahrt. Jede Tranche wird dem Künstler erst freigegeben, wenn der entsprechende Meilenstein erreicht ist, gemäß dem auf der Kampagnenseite angegebenen Zeitplan." }
+        it: { title: "Piano milestone e rilascio delle tranche",
+          body: "I fondi raccolti sono custoditi nel contratto di escrow della campagna. Ogni tranche è rilasciata, al netto della commissione del 3% della Piattaforma, all'Artista o allo Studio secondo quanto indicato per ciascuna milestone nella pagina della campagna, solo quando l'Artista e lo Studio hanno entrambi confermato quella milestone, nell'ordine stabilito, e solo dopo che la campagna ha raccolto la soglia minima prevista dalla clausola sui rimborsi. In una campagna senza Studio basta la conferma dell'Artista." },
+        en: { title: "Milestone plan and tranche release",
+          body: "Funds raised are held in the campaign's escrow contract. Each tranche is released, less the Platform's 3% fee, to the Artist or to the Studio as indicated for each milestone on the campaign page, only once the Artist and the Studio have both confirmed that milestone, in the order set, and only after the campaign has raised the minimum set out in the refund clause. In a campaign without a Studio, the Artist's confirmation is enough." },
+        es: { title: "Plan de hitos y liberación de los tramos",
+          body: "Los fondos recaudados se custodian en el contrato de depósito en garantía de la campaña. Cada tramo se libera, descontada la comisión del 3% de la Plataforma, al Artista o al Estudio según lo indicado para cada hito en la página de la campaña, solo cuando el Artista y el Estudio han confirmado ambos ese hito, en el orden establecido, y solo después de que la campaña haya recaudado el mínimo previsto en la cláusula de reembolso. En una campaña sin Estudio basta la confirmación del Artista." },
+        fr: { title: "Plan de jalons et versement des tranches",
+          body: "Les fonds collectés sont conservés dans le contrat de séquestre de la campagne. Chaque tranche est versée, déduction faite de la commission de 3 % de la Plateforme, à l'Artiste ou au Studio selon ce qui est indiqué pour chaque jalon sur la page de la campagne, uniquement lorsque l'Artiste et le Studio ont tous deux confirmé ce jalon, dans l'ordre fixé, et uniquement après que la campagne a collecté le minimum prévu par la clause de remboursement. Dans une campagne sans Studio, la confirmation de l'Artiste suffit." },
+        de: { title: "Meilensteinplan und Freigabe der Tranchen",
+          body: "Die eingesammelten Mittel werden im Treuhandvertrag der Kampagne verwahrt. Jede Tranche wird, abzüglich der Gebühr der Plattform von 3 %, an den Künstler oder an das Studio freigegeben, wie für jeden Meilenstein auf der Kampagnenseite angegeben, erst wenn der Künstler und das Studio diesen Meilenstein beide bestätigt haben, in der festgelegten Reihenfolge, und erst nachdem die Kampagne den in der Erstattungsklausel vorgesehenen Mindestbetrag eingesammelt hat. Bei einer Kampagne ohne Studio genügt die Bestätigung des Künstlers." }
       }
     },
     {
@@ -127,16 +127,16 @@ const CONTRACT_TEMPLATE = {
         de: "Verwirkungsklauseln zulasten des Künstlers"
       },
       i18n: {
-        it: { title: "Formula di rimborso pro-rata e decadenza sulle tranche non rilasciate",
-          body: "In caso di mancato raggiungimento dell'obiettivo di raccolta o mancata consegna di una milestone entro i termini, gli importi non ancora rilasciati come tranche sono restituiti pro-rata ai token holder secondo la formula: importo rimborsabile = totale raccolto − Σ(tranche già rilasciate per milestone confermate). L'Artista non ha diritto a percepire le tranche relative a milestone non raggiunte." },
-        en: { title: "Pro-rata refund formula and forfeiture of unreleased tranches",
-          body: "If the funding goal is not reached, or a milestone is not delivered on time, amounts not yet released as tranches are refunded pro-rata to token holders using the formula: refundable amount = total raised − Σ(tranches already released for confirmed milestones). The Artist has no right to the tranches tied to milestones that were not reached." },
-        es: { title: "Fórmula de reembolso prorrateado y caducidad de los tramos no liberados",
-          body: "Si no se alcanza el objetivo de financiación o no se cumple un hito dentro del plazo, los importes aún no liberados como tramos se reembolsan de forma prorrateada a los titulares de tokens según la fórmula: importe reembolsable = total recaudado − Σ(tramos ya liberados por hitos confirmados). El Artista no tiene derecho a los tramos correspondientes a hitos no alcanzados." },
-        fr: { title: "Formule de remboursement au prorata et déchéance des tranches non versées",
-          body: "En cas de non-atteinte de l'objectif de financement ou de non-livraison d'un jalon dans les délais, les montants non encore versés en tranches sont remboursés au prorata aux détenteurs de tokens selon la formule : montant remboursable = total collecté − Σ(tranches déjà versées pour les jalons confirmés). L'Artiste n'a aucun droit sur les tranches liées à des jalons non atteints." },
-        de: { title: "Pro-rata-Rückerstattungsformel und Verfall nicht freigegebener Tranchen",
-          body: "Wird das Finanzierungsziel nicht erreicht oder ein Meilenstein nicht fristgerecht geliefert, werden noch nicht als Tranchen freigegebene Beträge anteilig an die Token-Inhaber zurückerstattet, nach der Formel: erstattungsfähiger Betrag = Gesamtsumme − Σ(bereits für bestätigte Meilensteine freigegebene Tranchen). Der Künstler hat keinen Anspruch auf Tranchen, die an nicht erreichte Meilensteine geknüpft sind." }
+        it: { title: "Soglia minima, scadenza della raccolta e rimborsi",
+          body: "Ogni campagna ha una scadenza e una soglia minima di raccolta, scelte dall'Artista al lancio e registrate nel contratto di escrow. Finché la soglia non è raggiunta nessuna tranche è rilasciata. Se alla scadenza la soglia non è raggiunta, la campagna fallisce automaticamente, senza decisione di nessuno, e ogni possessore di token può restituirli in cambio della propria quota di quanto raccolto. Raggiunta la soglia, la scadenza non ha più effetto. Se la campagna è annullata secondo la clausola di annullamento, i possessori ricevono pro-rata gli importi non ancora rilasciati. In entrambi i casi la commissione del 2% sui contributi non è rimborsata. L'Artista non ha diritto alle tranche non rilasciate." },
+        en: { title: "Minimum raise, raise deadline and refunds",
+          body: "Each campaign has a raise deadline and a minimum raise, chosen by the Artist at launch and recorded in the escrow contract. Until the minimum is reached, no tranche is released. If the minimum is not reached by the deadline, the campaign fails automatically, without anyone's decision, and every token holder may return their tokens for their share of what was raised. Once the minimum is reached, the deadline has no further effect. If the campaign is cancelled under the cancellation clause, holders receive the amounts not yet released, pro rata. In both cases the 2% contribution fee is not refunded. The Artist has no right to unreleased tranches." },
+        es: { title: "Mínimo de recaudación, plazo y reembolsos",
+          body: "Cada campaña tiene un plazo y un mínimo de recaudación, elegidos por el Artista en el lanzamiento y registrados en el contrato de depósito en garantía. Hasta alcanzar el mínimo no se libera ningún tramo. Si el mínimo no se alcanza en el plazo, la campaña fracasa automáticamente, sin decisión de nadie, y cada titular de tokens puede devolverlos a cambio de su parte de lo recaudado. Una vez alcanzado el mínimo, el plazo deja de tener efecto. Si la campaña se cancela conforme a la cláusula de cancelación, los titulares reciben a prorrata los importes aún no liberados. En ambos casos la comisión del 2% sobre las aportaciones no se reembolsa. El Artista no tiene derecho a los tramos no liberados." },
+        fr: { title: "Collecte minimale, échéance et remboursements",
+          body: "Chaque campagne a une échéance et un minimum de collecte, choisis par l'Artiste au lancement et enregistrés dans le contrat de séquestre. Tant que le minimum n'est pas atteint, aucune tranche n'est versée. Si le minimum n'est pas atteint à l'échéance, la campagne échoue automatiquement, sans décision de quiconque, et chaque détenteur de tokens peut les restituer contre sa part de ce qui a été collecté. Une fois le minimum atteint, l'échéance n'a plus d'effet. Si la campagne est annulée en vertu de la clause d'annulation, les détenteurs reçoivent au prorata les montants non encore versés. Dans les deux cas, la commission de 2 % sur les contributions n'est pas remboursée. L'Artiste n'a aucun droit sur les tranches non versées." },
+        de: { title: "Mindestbetrag, Finanzierungsfrist und Erstattungen",
+          body: "Jede Kampagne hat eine Finanzierungsfrist und einen Mindestbetrag, die der Künstler beim Start wählt und die im Treuhandvertrag festgehalten werden. Bis der Mindestbetrag erreicht ist, wird keine Tranche freigegeben. Wird der Mindestbetrag bis zur Frist nicht erreicht, scheitert die Kampagne automatisch, ohne Entscheidung von irgendjemandem, und jeder Token-Inhaber kann seine Token gegen seinen Anteil am Eingesammelten zurückgeben. Ist der Mindestbetrag erreicht, hat die Frist keine Wirkung mehr. Wird die Kampagne nach der Annullierungsklausel annulliert, erhalten die Inhaber anteilig die noch nicht freigegebenen Beträge. In beiden Fällen wird die Gebühr von 2 % auf die Beiträge nicht erstattet. Der Künstler hat keinen Anspruch auf nicht freigegebene Tranchen." }
       }
     },
     {

@@ -3,6 +3,27 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+## 2026-10-12 · scadenza e soglia minima della raccolta (technical §2.114)
+
+**Decisione cambiata** rispetto al 15 settembre (§2.86, "niente scadenze"). Ogni
+nuova campagna ha una scadenza e una soglia minima scelte dall'artista: sotto la
+soglia nessuna tranche; se alla scadenza manca la soglia, la campagna fallisce
+per regola e i possessori recuperano quanto versato meno il 2%. Nessuno decide il
+fallimento: lo applica il contratto al primo rimborso. In vigore con il settimo
+redeploy (solo escrow).
+
+- **02** C-4 in buona parte risolto; C-2 annotato (una campagna fallita non si
+  annulla).
+- **03** T-2 e T-3 risolti (template v0.5-draft); nuova **W-21** per il whitepaper
+  (cap. 2 e cap. 8 dicono ancora "no deadline"), **non applicata**.
+- **07 B3** riscritta: ora chiede se la soglia libera basta o serve un minimo
+  fisso, se la campagna senza fine dopo la soglia è accettabile, e se il 2% su
+  una raccolta fallita regge.
+- **01, 04 §5.3-5.4, 06 (IT/EN e §3), 08 A-2 e B-1, 09** allineati.
+- Guida (`assistant-knowledge.js`): scadenza e soglia; tolta la frase superata sui
+  rimborsi a chi ha contribuito (dal §2.92 seguono i token).
+- Test contratti: 130.
+
 ## 2026-10-12 · governance e clausola di annullamento (technical §2.113)
 
 Il contratto artista diceva l'opposto del codice: la clausola `manager-discretion`

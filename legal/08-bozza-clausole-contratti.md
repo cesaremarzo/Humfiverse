@@ -1,6 +1,6 @@
 # Bozza di clausole: Accordo Artista, Accordo Investitore, accettazione
 
-*Bozza del 2026-09-15, commit `82a7a1b`; A-5 punto 1 e A-8 punti 5-6 aggiornati il 2026-10-11 (royalty in proporzione al tempo di possesso, studi verificati, §2.110); A-5 aggiornata il 2026-09-17 (ordine delle milestone); A-8 e C-12 nuove il 2026-09-17 (versamento delle royalty, §2.98); A-6 aggiornata il 2026-09-17 (vendita diretta al 6%, 1% sulle royalty, §2.101); note di implementazione ad A-1 e A-1-bis il 2026-09-28 (§2.105); A-1 riportata nel template il 2026-10-12 (§2.113). **Da far rivedere a un avvocato.** Non
+*A-2 punto 5 e B-1 (b) aggiornati il 2026-10-12 (scadenza e soglia minima, §2.114). Bozza del 2026-09-15, commit `82a7a1b`; A-5 punto 1 e A-8 punti 5-6 aggiornati il 2026-10-11 (royalty in proporzione al tempo di possesso, studi verificati, §2.110); A-5 aggiornata il 2026-09-17 (ordine delle milestone); A-8 e C-12 nuove il 2026-09-17 (versamento delle royalty, §2.98); A-6 aggiornata il 2026-09-17 (vendita diretta al 6%, 1% sulle royalty, §2.101); note di implementazione ad A-1 e A-1-bis il 2026-09-28 (§2.105); A-1 riportata nel template il 2026-10-12 (§2.113). **Da far rivedere a un avvocato.** Non
 è consulenza legale.*
 
 Traduce in testo contrattuale la decisione del 15 settembre 2026 (note legali
@@ -116,10 +116,14 @@ Sostituisce le clausole `manager-discretion`, `milestones` e `refund` e integra
    l'intero importo raccolto. [Da decidere, domanda C9: cosa rappresentano da quel
    momento i token della Campagna, se possono ancora essere rivenduti e come
    vanno indicati nel portafoglio.]
-5. L'Artista riconosce che le campagne **non hanno scadenza**, che una tranche
-   può essere rilasciata appena i fondi raccolti la coprono anche se l'obiettivo
-   non è raggiunto, e che il mancato raggiungimento dell'obiettivo non dà di per
-   sé luogo a rimborsi.
+5. L'Artista sceglie al lancio una **scadenza** e una **soglia minima** di
+   raccolta (§2.114). Prima della soglia nessuna tranche è rilasciata. Se alla
+   scadenza la soglia non è raggiunta, la Campagna fallisce automaticamente e i
+   possessori dei token sono rimborsati di quanto versato, meno il 2%. Raggiunta
+   la soglia, una tranche può essere rilasciata appena i fondi la coprono anche se
+   l'obiettivo pieno non è raggiunto, e il mancato raggiungimento dell'obiettivo
+   pieno non dà di per sé luogo a rimborsi. *(Riportato nella clausola `refund`
+   del template v0.5-draft.)*
 
 ### A-3 · Restituzione delle tranche e risarcimento `[V]`
 *Nuova (§7.10).*
@@ -265,8 +269,10 @@ Oggi non esiste. È accettato alla registrazione insieme ai Termini di Servizio
 
 L'Investitore dichiara di aver letto e compreso che:
 (a) nel prototipo i token non hanno valore e non danno diritto a royalty;
-(b) le campagne non hanno scadenza e le tranche possono essere rilasciate con una
-raccolta parziale;
+(b) ogni Campagna ha una scadenza e una soglia minima: se la soglia non è
+raggiunta entro la scadenza la Campagna fallisce e i possessori sono rimborsati
+meno il 2%; raggiunta la soglia, la Campagna non ha più scadenza e le tranche
+possono essere rilasciate con una raccolta parziale;
 (c) il 2% sui contributi resta alla Piattaforma in ogni caso, anche se la Campagna è
 annullata, e può essere richiesto all'Artista come parte del danno;
 (d) la Piattaforma può annullare una Campagna solo nei casi della clausola A-1

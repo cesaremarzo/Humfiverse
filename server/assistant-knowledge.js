@@ -87,8 +87,12 @@ PRE-PRODUCTION CAMPAIGNS
   confirm the milestone themselves. A campaign with no studio is released on
   the artist's confirmation alone. If they disagree the money stays in the
   escrow — there is no arbitration, on purpose.
-- Campaigns have no deadline. One ends when it sells out, releases
-  everything, or is cancelled.
+- Every campaign has a raise deadline and a minimum, set by the artist and
+  fixed on chain (§2.114). No tranche is paid until the minimum is raised. If
+  the deadline passes below it, the campaign fails by rule — nobody decides
+  it — and every holder can take back what they paid, less the 2% fee. Once
+  the minimum is in, the deadline no longer matters: the campaign ends when
+  it sells out, releases everything, or is cancelled.
 - The platform can cancel a campaign, and commits to doing so only on stated
   legal grounds: unlawful content, infringement of someone else's rights, or
   false artist warranties — after notifying the artist and giving 5 days to
@@ -96,9 +100,8 @@ PRE-PRODUCTION CAMPAIGNS
   further releases and refunds the part not yet released, pro rata. The 2%
   contribution fee is not refunded. Money already released stays with
   whoever received it; investors keep their claims against the artist.
-- Today's escrow refunds the wallets that contributed, not whoever holds the
-  tokens at cancellation, so tokens bought on resale carry no refund right
-  until the next contract version.
+- Refunds follow the tokens: whoever holds them when claiming hands them back
+  to be burned and gets their share, resale buyers included.
 
 ROYALTIES
 - Royalty money does not arrive on chain by itself. Someone has to confirm a

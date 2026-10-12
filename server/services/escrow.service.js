@@ -17,7 +17,7 @@ const onchainService = require("./onchain.service");
  * because a studio the artist names can be a second wallet of the artist's
  * own, and then both confirmations of every milestone come from one
  * person. The wizard offers only these studios. */
-async function createCampaign(assetId, artistAddress, studioName, studioWallet, milestones) {
+async function createCampaign(assetId, artistAddress, studioName, studioWallet, milestones, raiseDeadline, minRaiseBps) {
   // §2.89: artist and studio must be two wallets, or the dual confirmation
   // of every milestone (§2.27) is one wallet confirming twice.
   if (String(artistAddress).toLowerCase() === String(studioWallet).toLowerCase()) {
@@ -43,7 +43,7 @@ async function createCampaign(assetId, artistAddress, studioName, studioWallet, 
   const names = milestones.map((m) => m.name);
   const bps = milestones.map((m) => m.bps);
   const payees = milestones.map((m) => (m.payee === "studio" ? 1 : 0));
-  const created = await escrowChain.createCampaignOnchain(artistAddress, studioId, assetId, onchainRecord.token_id, names, bps, payees);
+  const created = await escrowChain.createCampaignOnchain(artistAddress, studioId, assetId, onchainRecord.token_id, names, bps, payees, raiseDeadline, minRaiseBps);
 
   await escrowRepo.insertCampaign({
     campaignId: created.campaignId,

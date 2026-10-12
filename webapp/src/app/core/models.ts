@@ -432,7 +432,14 @@ export type EscrowCampaignInfo =
       raised: string;
       /** null on a phase 2 escrow, which has no deadlines (§2.92). */
       deadline: number | null;
-      status: 'active' | 'cancelled';
+      /** §2.114: 'failed' once a campaign is past its raise deadline below
+       * its minimum — refundable like a cancelled one, by rule. */
+      status: 'active' | 'cancelled' | 'failed';
+      /** §2.114: unix seconds and USDC base units (net of the 2% fee, like
+       * `raised`); null on escrows before §2.114. */
+      raiseDeadline?: number | null;
+      minRaiseUsdc?: string | null;
+      minRaiseReached?: boolean | null;
       /** §2.92: refunds per token held (burning them) and cancellation
        * grounds. Absent or false on the escrow deployed before phase 2. */
       phase2?: boolean;
@@ -532,6 +539,9 @@ export interface LaunchPayload {
   studioName: string;
   studioWallet: string;
   milestones: { name: string; bps: number; payee: 'artist' | 'studio' }[];
+  /** §2.114: escrow campaigns only — unix seconds and bps of the goal. */
+  raiseDeadline?: number;
+  minRaiseBps?: number;
   issuedAt: string;
 }
 

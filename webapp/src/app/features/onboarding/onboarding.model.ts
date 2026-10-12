@@ -34,6 +34,10 @@ export interface WizardData {
    * must total exactly 100% — the escrow contract refuses anything else. */
   preprodMilestones: MilestoneTemplate[];
   catalogueMilestones: MilestoneTemplate[];
+  /** §2.114: an escrow campaign's raise rule — the date (YYYY-MM-DD, the
+   * end of that day in UTC) by which at least `minPercent` of the goal must
+   * be raised, or every holder is refunded. Until then no tranche is paid. */
+  raiseRule: { deadline: string; minPercent: number };
   disclosure: AiDisclosure;
   contract: { generalAccepted: boolean; vessatoriaAccepted: Record<string, boolean> };
   ack: boolean;
@@ -88,10 +92,16 @@ export function freshWizardData(): WizardData {
     preprodMilestones: PREPRODUCTION_MILESTONES.map((m) => ({ ...m })),
     catalogueMilestones: CATALOGUE_EXTRA_MILESTONES.map((m) => ({ ...m })),
     catalogueMarketingStages: null,
+    raiseRule: { deadline: defaultRaiseDeadline(), minPercent: 50 },
     disclosure: { vocals: 'human', instrumentation: 'human', composition: 'human', postProduction: 'human', lyrics: 'human' },
     contract: { generalAccepted: false, vessatoriaAccepted: {} },
     ack: false
   };
+}
+
+/** §2.114: sixty days from today, as YYYY-MM-DD. */
+export function defaultRaiseDeadline(now = Date.now()): string {
+  return new Date(now + 60 * 86_400_000).toISOString().slice(0, 10);
 }
 
 /** Checked before letting the wizard advance past the studio step, because
