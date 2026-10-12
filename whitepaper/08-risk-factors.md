@@ -25,7 +25,7 @@ Specific to Humfiverse's actual design and stage — not generic boilerplate. Re
 ## Operational
 
 - **Milestone deadlock is possible by design.** If the artist and studio genuinely disagree about a milestone, the money stays in the escrow with no automatic way to resolve it — a deliberate tradeoff against giving Humfiverse override power (see [Governance](06-governance.md)).
-- **Campaigns have no deadline and no all-or-nothing rule.** A partly funded campaign can pay out its first tranches and stay open indefinitely.
+- **A minimum, not all-or-nothing.** Each campaign must raise the minimum the artist set by its deadline, or it fails and refunds holders (less the 2% fee). Above the minimum, a partly funded campaign can pay out its first tranches and stay open indefinitely.
 - **A campaign without a studio is released by the artist alone.**
 - **Refunds follow contributions, not tokens, on today's contracts.** Resale buyers of a cancelled campaign's tokens receive nothing until the planned contract change.
 
