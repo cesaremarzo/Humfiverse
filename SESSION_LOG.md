@@ -2872,6 +2872,9 @@ scadenza non conta più.
   guida; template v0.5-draft (risolti T-2 e T-3); legale aggiornato (B3 riscritta).
 - Provato su un fork: deploy con lo script, Safe impersonato, lancio, contributo al
   10%, scadenza superata, rimborso 0,98 USDC; wizard cliccato in Chrome headless.
-- **Redeploy da fare** (solo escrow): `contracts/scripts/redeployEscrowRaise.js`,
-  poi il Safe firma `setEscrowContract`, poi merge, poi le variabili su Render.
-  Night Swim (20% rilasciato) resta sul vecchio escrow, che entra nella lista legacy.
+- **Escrow deployato** il 12 ott: `0x613c1e658930562a655C0883667034AB92146C16`
+  (blocco 11900419, verificato, owner Safe, Bluehouse = studio 1). Mancano: firma
+  del Safe su `setEscrowContract` (file `~/Desktop/safe-link-escrow.json`), merge
+  della PR, poi su Render `CHAIN_ESCROW_ADDRESS`, `CHAIN_ESCROW_DEPLOY_BLOCK=11900419`,
+  `CHAIN_ESCROW_LEGACY_ADDRESS` con `0x0D52…aDb7` in testa. Night Swim resta sul
+  vecchio escrow (legacy). Lo script `redeployEscrowRaise.js` va cancellato dopo.

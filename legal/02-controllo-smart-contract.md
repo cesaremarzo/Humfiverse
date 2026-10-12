@@ -20,10 +20,10 @@
 |---|---|---|---|
 | HumfiverseCatalogueToken | `contracts/contracts/HumfiverseCatalogueToken.sol` | `e6bf460971bae796` | `0xe26C2FC4A77e26cc1A4404DD5DA63ae8761dF997` |
 | HumfiverseMarketplace | `contracts/contracts/HumfiverseMarketplace.sol` | `2e6e2985317c70a8` | `0x755500dEB66169fC605Be8Aa25ACBdAd791F1585` |
-| HumfiverseMilestoneEscrow | `contracts/contracts/HumfiverseMilestoneEscrow.sol` | `89368accb75bcefa` | `0x0D5232579773e61b898e70866b2160b2B077aDb7` |
+| HumfiverseMilestoneEscrow | `contracts/contracts/HumfiverseMilestoneEscrow.sol` | `4e9a8d426220c880` | `0x613c1e658930562a655C0883667034AB92146C16` |
 
 Solidity 0.8.24, OpenZeppelin v5, non aggiornabili (niente proxy).
-Pagamenti in USDC di test (`0x1c7D…7238`). Test: **123 passati**. Gli indirizzi sono quelli del redeploy del 2026-10-11 (technical §2.111), che ha portato sulla catena le correzioni del §2.110: le righe della tabella §1 marcate §2.110 descrivono i contratti in uso. Token ed
+Pagamenti in USDC di test (`0x1c7D…7238`). Test: **130 passati**. L'escrow è quello del settimo redeploy, 2026-10-12 (technical §2.114: scadenza e soglia minima, C-4), con il precedente `0x0D5232579773e61b898e70866b2160b2B077aDb7` in sola lettura; token e marketplace sono quelli del redeploy del 2026-10-11 (technical §2.111), che ha portato sulla catena le correzioni del §2.110: le righe della tabella §1 marcate §2.110 descrivono i contratti in uso. Token ed
 escrow sono stati ridistribuiti il 2026-09-17 (fase 2) e di nuovo il
 2026-09-27 (technical §2.102) solo per le commissioni del §2.101 — 6% sulla
 vendita diretta, 1% sui versamenti di royalty — che da quel giorno sono in
