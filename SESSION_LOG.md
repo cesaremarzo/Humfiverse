@@ -2745,3 +2745,47 @@ Chrome headless `--window-size=2560,1440 --screenshot`.
 tra voce del pitch e descrizione; la copia su `dev/petru` non ha né la demo2 né
 il pitch nuovo; opzionale: ~25 s liberi sotto i 3:00 della demo per mostrare il
 rimborso di una campagna annullata.
+
+## 2026-10-11/12 — audit di sicurezza dei contratti, correzioni, sesto redeploy
+
+**Audit** dei tre contratti ("sei l'esperto di cybersecurity"): niente exploit
+classici, ma sei modi di piegare le regole. Corretti nella **PR #89, mergiata**
+(technical §2.110), 123 test:
+1. studi registrati/rinominati **solo dal Safe** dopo verifica fuori catena; il
+   Founder può solo sospenderli; il wizard mostra un menu degli studi verificati
+   (`GET /api/escrow/studios`), niente più campi nome/wallet;
+2. l'artista di una campagna deve essere il `payoutOf` del token;
+3. una sola campagna per token;
+4. `cancelCampaign` chiude il pool (`closePool`);
+5. l'escrow sostituito resta `retiredEscrow`: può bruciare per i rimborsi, non rilasciare;
+6. **royalty pesate sul tempo**: ogni versamento paga il periodo dal versamento
+   precedente per token × secondi. Conseguenza: versare ogni rendiconto subito
+   (legal 02 C-16). Campagne senza studio: tenute e dichiarate (scelta di Cesare).
+- **Punto 7 (poteri custodiali del Safe) parcheggiato** come tema legale/marketing.
+- Debolezze minori aperte (8–13: marketplace, payoutOf immutabile…) solo nel
+  file privato `.claude/legal-private/backend-sicurezza.md`, non nel repo pubblico.
+- Nuova domanda all'avvocato **07 B5-bis**: come verificare gli studi.
+
+**Redeploy (§2.111), live dal 12 ott:**
+- Token `0xe26C2FC4A77e26cc1A4404DD5DA63ae8761dF997` (blocco 11894451), escrow
+  `0x0D5232579773e61b898e70866b2160b2B077aDb7` (11894452), verificati, owner Safe.
+- Prima: Northern Lights e Golden Hour completate al 100% con i wallet demo.
+- `CHAIN_ESCROW_LEGACY_ADDRESS` ora è una **lista** (`0xBAEb…a82A,0x16C8…721c`):
+  6 campagne vecchie in sola lettura. Test C non riconiata (riga con supply 0 →
+  `onchain: false`). Storico royalty ripartito da zero.
+- Lezione: su Render le variabili vanno cambiate **dopo** il merge del codice
+  che le sa leggere — impostate prima, il vecchio backend è andato in crash
+  (lista letta come nome ENS) finché la PR non è entrata.
+- Bluehouse Studio registrato dal Safe (studio 1) per la demo.
+- Stato creato dalla sessione demo: Night Swim (token 8, campagna 1, 20%
+  rilasciato), 1,50 USDC di royalty su Golden Hour riscosse, 2 Northern Lights
+  in vendita a 1,20 $.
+
+**Aperti:**
+- Possibile bug wizard: se la scheda si chiude dopo il mint e prima della
+  creazione della campagna, resta un token senza campagna (la sessione demo l'ha
+  recuperata con `POST /api/escrow/campaign`). Da verificare se il sito lo
+  riprende alla riapertura.
+- Procedura di verifica studi da scrivere (07 B5-bis); Analog Sun non è registrato
+  sul nuovo escrow (wallet = artista di Honest Man).
+- Commissioni rimaste sul vecchio escrow `0xBAEb…` (`withdrawFees`, chiunque può chiamarla).
