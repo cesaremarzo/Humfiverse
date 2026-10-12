@@ -2472,6 +2472,83 @@ dell'hash sparito dopo l'annullamento). `legal/` aggiornato (02 C-2, 04 §5.6, 0
 *(Aggiornato in serata: il vecchio bottone di `/admin/escrow` è stato tolto e
 Test C ha ora un caso chiuso — vedi sotto.)*
 
+## 2026-09-29 — restyling "finanza" su `main` (PR #80, §2.106–2.108)
+
+Richiesta: "sei il graphic designer", grafica più pulita e da sito di finanza, font
+meno "Claude" e più DeFi, esperienza più ricca. **Online** su GitHub Pages con
+`main-HED4HSR7.js` (merge `56e5466`), API di produzione verificate.
+
+- **§2.106:** Geist + Geist Mono (Google Fonts, stesso fornitore di prima) dietro
+  `--font-sans/--font-display/--font-mono`, nessun componente nomina più un font.
+  Palette fredda, un solo viola, verde/rosso per lo stato, superfici piene (niente
+  vetro, testo sfumato, bordi luminosi). Marketplace: riepilogo di mercato (somme
+  degli stessi calcoli delle card, trattini finché la catena non risponde), vista
+  griglia/tabella ricordata in `localStorage` `hv.marketView` (aggiunta a legal/05
+  §6), ordinamento, skeleton. Topbar: pillola Sepolia, "Connect wallet" primario.
+  Nuove chiavi `market.*` in 9 lingue.
+- **§2.107:** sfondo "troppo confusionario" → tolti monete, vinile, candele,
+  spettro, etichette, grana.
+- **§2.108:** poi "troppo scarno" → due pentagrammi a nastro nel gradiente
+  viola→verde della linea del prezzo; più tenui nelle pagine interne. Gli è piaciuto.
+
+**Come ho lavorato:** un'altra sessione modificava il checkout principale in
+contemporanea, quindi tutto è stato fatto nel worktree
+`.claude/worktrees/finance-design` (branch `design/finance`, pushato su
+`dev/cesare`). Netlify fa anteprime solo per `dev/cesare` e `dev/vincenzo`, non
+per altri branch. Il controllo dei permessi blocca `gh pr merge` fatto da Claude:
+il merge l'ha lanciato Cesare con `!`.
+
+**Da sapere:** il `dev/cesare` locale nel checkout principale è indietro rispetto
+a `origin` — `git pull` prima di lavorare. Il worktree `finance-design` si può
+rimuovere (`git worktree remove .claude/worktrees/finance-design`). 
+`webapp/art-src/og-cover.html` (anteprima dei link condivisi) usa ancora
+Fraunces/IBM Plex: da rifare con Geist.
+
+## 2026-09-29 — stima dei costi e EBITDA per valutazione (il "contabile")
+
+Solo analisi, nessun codice. Richiesta: stimare tutti i costi di Humfiverse e
+l'EBITDA che servirebbe per valutazioni da 100 k€ a 2 mld€. Ordini di
+grandezza, **non verificati** con commercialista o consulente regolamentare.
+
+**Ricavi = solo commissioni** (`legal/10` §2: il lordo non entra in bilancio).
+Take rate medio ≈ **5% del volume primario** (6% vendita diretta, 2% + 3% escrow,
+1% rivendite e royalty quasi irrilevanti). In fase 1 con ECSP/SIM partner il
+netto scende a ~2,5–3,5%.
+
+**Costi per fase:**
+- Fase 0 (oggi, testnet): ~0,5–1 k€/anno (piani gratuiti + guida Claude 5–45 $/mese).
+- Fase 1 (Malta + pilota via soggetto autorizzato): una tantum **50–160 k€**
+  (costituzione, fiscalisti MT+IT 5–15 k, parere regolamentare 15–50 k, **audit
+  contratti 15–60 k**, legale 5–15 k, ERC-3643/KYC 5–20 k); ricorrenti
+  **80–250 k€/anno** (società 3–8 k, sostanza 5–15 k, stipendi fondatori 50–120 k,
+  KYC 3–12 k, infra 1–4 k, gas 0,5–3 k su L2 vs 5–30 k su L1, D&O/cyber 2–8 k,
+  legale 5–20 k, acquisizione artisti 5–30 k).
+- Fase 2 (licenza ECSP propria): **0,5–1,5 M€/anno** + 50–150 k€ per la domanda.
+- Fase 3 (CASP MiCA / MTF): **3–15 M€/anno**.
+
+**Valutazione → EBITDA → volume** (ricavi = EBITDA + costi; volume = ricavi / take):
+
+| Valutazione | Multiplo | EBITDA | Costi | Ricavi | Take | Volume/anno |
+|---|---|---|---|---|---|---|
+| 100 k€ | 3× | 33 k€ | 120 k€ | 153 k€ | 3% | 5,1 M€ |
+| 200 k€ | 3× | 67 k€ | 120 k€ | 187 k€ | 3% | 6,2 M€ |
+| 400 k€ | 3,5× | 114 k€ | 150 k€ | 264 k€ | 3% | 8,8 M€ |
+| 2 M€ | 5× | 400 k€ | 400 k€ | 800 k€ | 5% | 16 M€ |
+| 20 M€ | 9× | 2,2 M€ | 2,2 M€ | 4,4 M€ | 5,5% | 80 M€ |
+| 200 M€ | 15× | 13 M€ | 11 M€ | 24 M€ | 5,5% | 440 M€ |
+| 2 mld€ | 20× | 100 M€ | 60 M€ | 160 M€ | 5,5% | 2,9 mld€ |
+
+**Conclusioni:** break-even ~4 M€ di volume con partner (2–3 M€ con licenza
+propria); il take rate pesa più dei costi (3% → 5% riduce il volume necessario
+del ~40%, argomento economico per la fase 2); sotto i 20 M€ un round valuta su
+ricavi/crescita, non EBITDA; oltre i 200 M€ il limite è la domanda del mercato;
+Malta cambia la cassa, non l'EBITDA (35% pagato subito, 6/7 rimborsato ~1 anno
+dopo: ~120 k€ fermi su 400 k€ di utile); L1 vs L2 in mainnet è una voce di bilancio.
+
+**Aperti:** multipli da verificare su comparabili; tariffe MFSA per ECSP;
+commissione del partner di fase 1 (decide se il netto è 2% o 3,5%). Offerta non
+ancora raccolta: pagina con ipotesi modificabili e tabella che si ricalcola.
+
 ## 2026-09-29 (sera) — primo caso vero della procedura: Test C chiuso; stato per la prossima sessione
 
 **Fatto, tutto in `main` e verificato live** (ultimo bundle `main-NTYEQYHU.js`):
@@ -2514,3 +2591,227 @@ altrui non approvato.
 intervallo dei versamenti di royalty per token (`legal/08` C-12); motivo `NONE` da
 togliere dal contratto al prossimo redeploy; whitepaper W-16…W-20 su ordine di
 Cesare; domanda 07 H5 all'avvocato.
+
+## 2026-10-07 — logo in alto a sinistra porta alla pagina iniziale (PR #87)
+
+Bug: il logo della topbar puntava a `/marketplace`, quindi dal marketplace il
+clic non faceva nulla. Ora `routerLink="/"` (landing «sono un artista / sono un
+investitore»); tolta la tagline accanto al nome (restano marchio + «Humfiverse»),
+rimosse le due regole `.brand-tag` da `styles.css`. La chiave i18n
+`brand.tagline` resta nei file di lingua, non più usata.
+
+Fatto in un worktree da `origin/main` (`../hv-brand`, branch
+`dev/cesare-brand`, `node_modules` linkato dal checkout principale), docs/
+ricostruito, PR #87 unita il 7 ott. Bundle atteso: `main-YIK4QWYO.js` (poi
+superato dalla PR #88). Verifica sul sito live non fatta: il polling di
+humfiverse.com è stato bloccato dai permessi. Il codice del logo è
+confermato su `main` (merge in `dev/cesare` dell'11 ott).
+
+**Aperto:** l'utente ha parlato di «alcuni bug», ha nominato solo questo.
+Chiedere quali sono gli altri. Il worktree `../hv-brand` si può rimuovere
+(`git worktree remove ../hv-brand`).
+
+## 2026-10-11 — hackathon Colosseum: dominio, email, social, demo e pitch; handoff a Petru
+
+**Hackathon:** Colosseum Crypto World's Fair, scadenza **12 ott 2026 23:59 PT
+(13 ott 08:59 in Italia)**. Richiesti: video demo ≤ 3 min su YouTube/Loom/Vimeo
+("show the live product, not a slide deck") e video pitch. Cesare carica la
+submission come team leader.
+
+**Fatto in questa sessione:**
+- **Dominio humfiverse.com:** Cloudflare DNS (solo DNS) → GitHub Pages, CNAME in
+  `webapp/public`, baseHref `/` (PR #86, merged). Email @humfiverse.com: in
+  entrata Cloudflare Email Routing, in uscita Brevo SMTP + DKIM, un solo SPF
+  (vedi memoria `humfiverse-domain-email`).
+- **Social:** header e bio per X; canale Telegram t.me/humfiverse con messaggio
+  fissato.
+- **Fix PR #88 (merged, verificato live):** `listCampaigns` in
+  `server/services/escrow.service.js` legge 3 campagne alla volta con retry su
+  errori di throttling Alchemy (prima: 502 su `/admin/escrow`); stato vuoto
+  nascosto quando c'è errore.
+- **Video demo (3:00)** in `~/Desktop/humfiverse-demo/`: voce di Cesare
+  (`audio/01–07.m4a`), registrato sul sito live con un registratore CDP
+  (`tools/`) e un wallet EIP-6963 iniettato che firma in Node con chiavi testnet
+  (`tools/demo-wallets.json`, mai in git). Mostra il flusso vero on-chain sulla
+  campagna `golden-hour-538` (artista "Lena Marsh", fittizia, visibile sul
+  marketplace di produzione): lancio campagna → fan finanzia in USDC → artista e
+  studio confermano → fondi rilasciati → dashboard `/admin/escrow` → Etherscan.
+  Musica originale sintetizzata (`music/compose.py`). File finale
+  `humfiverse-demo.mp4`; Cesare lo carica su YouTube (non in elenco).
+- **Video pitch (2:30)** in `~/Desktop/humfiverse-pitch/`: voce AI Kokoro
+  (`tts.py`, voce af_heart) con correzioni di pronuncia sui fonemi
+  (HUM-fiverse, e-THE-reum, "lives on-chain" come verbo; "European Union
+  Intellectual Property Office" per esteso). Slide HTML in `cards/`.
+- **Handoff a Petru:** nuovo branch **`dev/petru`** (da `origin/main`, già
+  pushato) con `hackathon/HANDOFF.md` (contesto, regole del branch, come rifare
+  pitch e demo, testo della narrazione) e i sorgenti di demo e pitch, percorsi
+  resi relativi; `.gitignore` esclude chiavi e media. Copia sul Desktop:
+  `HANDOFF-Petru.md`. Petru lavora solo su `dev/petru` in `hackathon/`.
+
+**Da mandare a Petru in privato:** `demo-wallets.json`, `CHAIN_RPC_URL`, gli mp4
+e le cartelle `scenes/`/`parts/`, il link YouTube della demo. Gli script con i
+percorsi relativi non sono stati rieseguiti dopo la modifica.
+
+**Aperti:**
+- Pitch scena 01: manca la riga sul co-founder.
+- Sito: il testo "Governance" (`detail.governanceProse`) descrive un voto
+  consultivo; il template di contratto dice che lo SPV Manager decide da solo
+  sulle milestone (in conflitto con la doppia conferma). Segnalati, non toccati.
+- Fuori repo (cartella `~/Desktop/Brevetto su credenziali uniche/`): scrittura
+  privata tra coinventori per la domanda di brevetto 102026000010150; restano i
+  dati di Cesare da completare, il foro e la possibile clausola 2.8 sui nuovi
+  debitori (cessioni/fusioni).
+
+## 2026-10-12 — hackathon: pitch tagliato a 1:55, descrizioni YouTube
+
+**Pitch ridotto sotto i 2:00** (il form Colosseum dice pitch max 2 min). In
+`~/Desktop/humfiverse-pitch/` (fuori git):
+- `script.json` riscritto più corto, stesse 7 scene. Tolti: Meeka/eIDAS a voce,
+  "$2 miliardi" a voce (resta sulla slide), studio/mixing/mastering, "Fans were
+  willing to pay", "adaptation, not a rebuild". PledgeMusic a voce: "owing
+  artists millions" (la slide tiene la stima $1–3M con fonte).
+- **Co-founder tolto** su richiesta di Cesare, da voce e slide 01 (per ora).
+- **USDC:** scritto senza punti (i punti venivano spezzati come fine frase →
+  pause); pronuncia fissata sui fonemi in `tts.py`/`tts2.py`
+  (`ˈʌsdk` → `jˌuːɛsdˌiːsˈiː`). Da confermare all'ascolto:
+  `check/usdc-snippet.m4a`.
+- Slide ritimate sui tempi delle frasi (`audio/NN.json`), registrate con
+  `~/Desktop/humfiverse-demo/tools/pc3.mjs` (+ `pc4.mjs` per la 01).
+- **`build.sh`** rimonta tutto: parti in `parts2/` (03 = filmato sito
+  accelerato 1,13x, 05 = filmato con overlay tagliato), concat, musica
+  `demo/music/score.wav` sotto la voce, loudnorm −16. Attenzione zsh: una riga
+  `> file` da sola lancia `cat` e si blocca — usare `: > file`.
+- Versione precedente (2:49) in `humfiverse-pitch/pre-2min/`. La copia su
+  `dev/petru` è vecchia.
+
+**Descrizioni YouTube** scritte (inglese, capitoli con tempi, link sito/GitHub/
+Telegram, riga "testnet only, no offer"): salvate in
+`~/Desktop/humfiverse-pitch/youtube-description.txt` e
+`~/Desktop/humfiverse-demo/youtube-description.txt`. I capitoli della demo
+sono calcolati su `humfiverse-demo.mp4` (2:40, non 3:00).
+
+**Aperti:** upload dei due video e submission entro 13 ott 08:59; ascoltare
+USDC nel pitch; reinserire il co-founder quando Cesare lo decide.
+
+## 2026-10-12 — hackathon: nuova demo con voce AI, stato on-chain, banner YouTube
+
+**Nuova demo (2:33)** in `~/Desktop/humfiverse-demo2/` (fuori git). File finale
+`humfiverse-demo.mp4`, solo voce `demo-voce.mp4`. Voce AI Kokoro (af_heart)
+che spiega solo come funziona la piattaforma, una funzione per sezione, con
+audio e video sincronizzati frase per frase. La vecchia demo con la voce di
+Cesare è intatta in `~/Desktop/humfiverse-demo/`.
+- `script.json`: sezioni 01-intro, 01b-signin, 02-launch, 03-fund, 04-release,
+  05-royalties, 06-resale, 07-trust, 08-close; ogni sezione è una lista di
+  [etichetta, frase].
+- `tts.py` → `audio/<sez>.wav` + `.json` con l'inizio di ogni frase. Correzioni
+  di pronuncia sui fonemi: "already live" (verbo, `laɪv`), USDC lettera per
+  lettera (`jˌuːɛsdˌiːsˈiː`). Serve un python con numpy (venv), non quello di sistema.
+- Registrazione: `~/Desktop/humfiverse-demo/tools/d2.mjs <scena>` (intro, signin,
+  launch, fund, artist-confirm, studio-confirm, deposit, claim, resale,
+  trust con `HEADFUL=1`, close); `pace.mjs` aspetta i tempi della voce
+  (`p.at(etichetta)`), `rec.mjs` scrive `scenes/<nome>.marks.json`.
+  `ASSET=night-swim-414`; `DRYRUN=1` rifiuta solo le transazioni.
+- Montaggio: `assemble.py <sez> <shot…>` riallinea il video alla voce marca per
+  marca → `parts/<sez>.mp4`; concat con `parts.txt`; musica
+  `music/compose.py` + sidechain.
+- Descrizione YouTube: `humfiverse-demo2/youtube-description.txt` (capitoli
+  0:00…2:21; "Resale" dura 9 s, se YouTube scarta i capitoli unirlo al successivo).
+
+**Stato on-chain creato sui nuovi contratti (Sepolia)** — token `0xe26C…F997`,
+escrow `0x0D52…aDb7`, marketplace `0x7555…1585`:
+- Bluehouse Studio registrato via Safe (Owner): studio id 1, wallet `0xDB01…32b3`.
+- Night Swim (`night-swim-414`, token id 8, campagna escrow 1), lanciata dal
+  wallet demo artista; il fan `0xa35B…943B` ha comprato 5/5; milestone 1
+  confermata da artista e studio e rilasciata. Cover caricata.
+- Golden Hour: l'artista ha depositato 1,50 USDC di royalty con estratto conto
+  fittizio; il fan ha riscosso ≈ $1,48.
+- Il fan ha messo in vendita 2 token Northern Lights a $1,20.
+- Render: i log con `UNCONFIGURED_NAME` erano vecchi (22:11Z), risolti dal PR #89
+  (`CHAIN_ESCROW_LEGACY_ADDRESS` come lista separata da virgole).
+
+**Pitch:** descrizione YouTube migliorata in
+`humfiverse-pitch/youtube-description-v2.txt` (accanto alla v1 dell'altra
+sessione). Attenzione: la voce dice "a hundred and fifteen tests", la v2
+scrive "120+" (≈123 `it(` contati su main, suite non lanciata).
+
+**Canale YouTube:** scritta la descrizione del canale (in chat, inglese, senza
+parole da investimento). **Banner** 2560×1440 in
+`humfiverse-youtube-banner.png` (radice del repo, non tracciato) con sorgente
+`humfiverse-youtube-banner.html` (stile header X: pentagrammi viola→verde,
+marchio a nove barre, Geist; testo nella zona sicura 1546×423). Rigenerare con
+Chrome headless `--window-size=2560,1440 --screenshot`.
+
+**Aperti:** upload e submission entro 13 ott 08:59; allineare il numero dei test
+tra voce del pitch e descrizione; la copia su `dev/petru` non ha né la demo2 né
+il pitch nuovo; opzionale: ~25 s liberi sotto i 3:00 della demo per mostrare il
+rimborso di una campagna annullata.
+
+## 2026-10-11/12 — audit di sicurezza dei contratti, correzioni, sesto redeploy
+
+**Audit** dei tre contratti ("sei l'esperto di cybersecurity"): niente exploit
+classici, ma sei modi di piegare le regole. Corretti nella **PR #89, mergiata**
+(technical §2.110), 123 test:
+1. studi registrati/rinominati **solo dal Safe** dopo verifica fuori catena; il
+   Founder può solo sospenderli; il wizard mostra un menu degli studi verificati
+   (`GET /api/escrow/studios`), niente più campi nome/wallet;
+2. l'artista di una campagna deve essere il `payoutOf` del token;
+3. una sola campagna per token;
+4. `cancelCampaign` chiude il pool (`closePool`);
+5. l'escrow sostituito resta `retiredEscrow`: può bruciare per i rimborsi, non rilasciare;
+6. **royalty pesate sul tempo**: ogni versamento paga il periodo dal versamento
+   precedente per token × secondi. Conseguenza: versare ogni rendiconto subito
+   (legal 02 C-16). Campagne senza studio: tenute e dichiarate (scelta di Cesare).
+- **Punto 7 (poteri custodiali del Safe) parcheggiato** come tema legale/marketing.
+- Debolezze minori aperte (8–13: marketplace, payoutOf immutabile…) solo nel
+  file privato `.claude/legal-private/backend-sicurezza.md`, non nel repo pubblico.
+- Nuova domanda all'avvocato **07 B5-bis**: come verificare gli studi.
+
+**Redeploy (§2.111), live dal 12 ott:**
+- Token `0xe26C2FC4A77e26cc1A4404DD5DA63ae8761dF997` (blocco 11894451), escrow
+  `0x0D5232579773e61b898e70866b2160b2B077aDb7` (11894452), verificati, owner Safe.
+- Prima: Northern Lights e Golden Hour completate al 100% con i wallet demo.
+- `CHAIN_ESCROW_LEGACY_ADDRESS` ora è una **lista** (`0xBAEb…a82A,0x16C8…721c`):
+  6 campagne vecchie in sola lettura. Test C non riconiata (riga con supply 0 →
+  `onchain: false`). Storico royalty ripartito da zero.
+- Lezione: su Render le variabili vanno cambiate **dopo** il merge del codice
+  che le sa leggere — impostate prima, il vecchio backend è andato in crash
+  (lista letta come nome ENS) finché la PR non è entrata.
+- Bluehouse Studio registrato dal Safe (studio 1) per la demo.
+- Stato creato dalla sessione demo: Night Swim (token 8, campagna 1, 20%
+  rilasciato), 1,50 USDC di royalty su Golden Hour riscosse, 2 Northern Lights
+  in vendita a 1,20 $.
+
+**Aperti:**
+- Possibile bug wizard: se la scheda si chiude dopo il mint e prima della
+  creazione della campagna, resta un token senza campagna (la sessione demo l'ha
+  recuperata con `POST /api/escrow/campaign`). Da verificare se il sito lo
+  riprende alla riapertura.
+- Procedura di verifica studi da scrivere (07 B5-bis); Analog Sun non è registrato
+  sul nuovo escrow (wallet = artista di Honest Man).
+- Commissioni rimaste sul vecchio escrow `0xBAEb…` (`withdrawFees`, chiunque può chiamarla).
+
+## 2026-10-12 — submission dell'hackathon completata
+
+Cesare ha completato la submission al Colosseum Crypto World's Fair (video demo e
+pitch caricati) prima della scadenza del 13 ott 08:59. Chiusi gli aperti
+dell'hackathon delle voci precedenti (upload, submission). Restano solo come
+rifiniture eventuali: numero dei test tra voce del pitch e descrizione, co-founder
+nella slide 01.
+
+## 2026-10-12 — bug del wizard: token senza campagna se la scheda si chiude (§2.112)
+
+Il bug aperto dalla sessione demo: chiudendo la scheda dopo il mint e prima della
+campagna, restava un token solo-escrow senza campagna, quindi impossibile da
+finanziare. Il sito **non** lo riprendeva alla riapertura (la firma del lancio
+vive solo nella scheda e scade in 30 minuti).
+
+**Fix:** `POST /api/onchain/mint` crea anche la campagna escrow, nella stessa
+richiesta, dai campi firmati (studio, milestone). Il server finisce il lavoro anche
+se il client se ne va. Il wizard legge `escrow`/`escrowError` dalla risposta e fa
+la vecchia chiamata solo se il server è ancora quello vecchio (409 = già creata).
+Provato su un fork di Sepolia: richiesta interrotta dopo 300 ms, campagna creata
+lo stesso. `legal/check.sh` pulito.
+
+**Resta:** se il server prova e fallisce (studio sospeso, errore RPC) il token resta
+senza campagna; per ripararlo serve una nuova firma dell'artista e la UI non la
+chiede ancora.

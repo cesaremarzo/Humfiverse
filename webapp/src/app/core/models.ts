@@ -382,6 +382,11 @@ export interface OnchainMintResult {
   txHash: string;
   contractAddress: string;
   explorerUrl: string;
+  /** §2.112: set when the launch is escrow-only and the server created its
+   * campaign in the same request as the mint; `escrowError` when it tried
+   * and failed. Neither on a direct-sale launch. */
+  escrow?: EscrowCampaignCreateResult;
+  escrowError?: { code: string; message: string };
 }
 
 /** A single tranche of a preproduction campaign's milestone escrow — see

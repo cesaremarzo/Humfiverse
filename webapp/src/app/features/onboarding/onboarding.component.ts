@@ -6,7 +6,7 @@ import { StoreService } from '../../core/store.service';
 import { WalletService } from '../../core/wallet.service';
 import { ApiService, EscrowStudio } from '../../core/api.service';
 import { ToastService } from '../../core/toast.service';
-import { AiDisclosure, DisclosureLevel, LaunchAuthorization } from '../../core/models';
+import { AiDisclosure, DisclosureLevel, LaunchAuthorization, OnchainMintResult } from '../../core/models';
 import { fmtUSD, fmtUSDExact } from '../../core/format.util';
 import { usdToUsdc } from '../../core/usdc.util';
 import { clauseCategory, clauseText, contractLegalBasisNote, vessatoriaClauseIds } from '../../core/contract-text.util';
@@ -513,6 +513,7 @@ export class OnboardingComponent {
       // reached the chain before the mint transaction had confirmed, campaign
       // creation would revert.
       let mintedTokenId: number | null = null;
+      let mintResult: OnchainMintResult | null = null;
       try {
         const result = await this.api.mintOnchainToken({
           assetId: id,
@@ -526,6 +527,7 @@ export class OnboardingComponent {
           launch
         });
         mintedTokenId = result.tokenId;
+        mintResult = result;
         this.toast.show(this.translate.instant('toast.onchainMinted', { tokenId: result.tokenId }), 'checkCircle');
         // The marketplace only lists chain-verified assets (§2.14) — add
         // this one to that set now rather than waiting for a reload,
@@ -535,6 +537,41 @@ export class OnboardingComponent {
       } catch (err) {
         console.warn('On-chain mint did not happen (campaign was still created normally).', err);
         this.toast.show(this.translate.instant('toast.onchainMintFailed'), 'alert');
+      }
+
+      // The milestone escrow (§2.15) of a preproduction campaign, or of a
+      // catalogue whose funding the artist ties to milestones (§2.79): the
+      // same dual artist+studio confirmation gates every tranche (§2.27).
+      // §2.112: the server now creates it in the mint request itself, so a
+      // tab closed after the mint no longer leaves a token with no campaign.
+      // The call here is only for a server that predates that (Render
+      // redeploys a few minutes after the frontend); a 409 means it exists.
+      if (escrowStudio && mintedTokenId !== null) {
+        if (mintResult?.escrow) {
+          this.toast.show(this.translate.instant('toast.escrowCreated'), 'checkCircle');
+        } else if (mintResult?.escrowError) {
+          console.warn('Escrow campaign creation did not happen (campaign was still created normally).', mintResult.escrowError);
+          this.toast.show(this.translate.instant('toast.escrowCreateFailed'), 'alert');
+        } else {
+          try {
+            await this.api.createEscrowCampaign({
+              assetId: id,
+              artistAddress: owner,
+              studioName: escrowStudio.studioName,
+              studioWallet: escrowStudio.studioWallet,
+              milestones: escrowMilestones,
+              launch
+            });
+            this.toast.show(this.translate.instant('toast.escrowCreated'), 'checkCircle');
+          } catch (err) {
+            if ((err as { status?: number })?.status === 409) {
+              this.toast.show(this.translate.instant('toast.escrowCreated'), 'checkCircle');
+            } else {
+              console.warn('Escrow campaign creation did not happen (campaign was still created normally).', err);
+              this.toast.show(this.translate.instant('toast.escrowCreateFailed'), 'alert');
+            }
+          }
+        }
       }
 
       // Links the real audio file to the just-minted token (§2.43) — needs
@@ -593,48 +630,6 @@ export class OnboardingComponent {
         }
       }
 
-      // Preproduction campaigns also get a real milestone escrow (§2.15) —
-      // needs the artist's own wallet connected, since that's where every
-      // non-studio milestone tranche pays out to, and needs the mint above
-      // to have actually succeeded (§2.42 — see the comment there). Best-
-      // effort: the campaign still exists without it, just without escrow
-      // protection until an artist wallet is set up. Awaited for the same
-      // reason as the audio upload above.
-      if (isPre && mintedTokenId !== null) {
-        try {
-          await this.api.createEscrowCampaign({
-            assetId: id,
-            artistAddress: owner,
-            studioName: d.preprod.studioName,
-            studioWallet: d.preprod.studioWallet,
-            milestones: d.preprodMilestones,
-            launch
-          });
-          this.toast.show(this.translate.instant('toast.escrowCreated'), 'checkCircle');
-        } catch (err) {
-          console.warn('Escrow campaign creation did not happen (campaign was still created normally).', err);
-          this.toast.show(this.translate.instant('toast.escrowCreateFailed'), 'alert');
-        }
-      } else if (!isPre && d.catalogueCampaign.enabled && mintedTokenId !== null) {
-        // Catalogue-kind, when the artist ties the release of the funding to
-        // milestones (§2.79): the whole raise goes through the escrow, whose
-        // goal the contract takes from this token's price times supply. The
-        // same dual artist+studio confirmation gates every tranche (§2.27).
-        try {
-          await this.api.createEscrowCampaign({
-            assetId: id,
-            artistAddress: owner,
-            studioName: d.catalogueCampaign.studioName,
-            studioWallet: d.catalogueCampaign.studioWallet,
-            milestones: d.catalogueMilestones,
-            launch
-          });
-          this.toast.show(this.translate.instant('toast.escrowCreated'), 'checkCircle');
-        } catch (err) {
-          console.warn('Optional campaign creation did not happen (catalogue was still created normally).', err);
-          this.toast.show(this.translate.instant('toast.escrowCreateFailed'), 'alert');
-        }
-      }
     }
 
     this.submitting.set(false);
