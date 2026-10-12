@@ -21,6 +21,7 @@ const STEPS = {
   reply: takedown.reply,
   dismiss: takedown.dismiss,
   decide: takedown.decide,
+  confirm: takedown.confirm,
   complete: takedown.complete
 };
 

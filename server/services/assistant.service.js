@@ -29,13 +29,13 @@ const REQUEST_TIMEOUT_MS = 60_000;
    effort at "low": a question about how a page works does not need a long
    deliberation, and the latency of one would be felt in a chat bubble.
 
-   `effort` is not a universal parameter: the small and older models reject
-   the whole request with a 400 rather than ignore it, so a deployment that
-   sets ANTHROPIC_MODEL to one of them (a reasonable thing to do — this is a
-   FAQ widget, not a reasoning task) must not have it sent. */
+   `effort` is not a universal parameter: older models reject the whole
+   request with a 400 rather than ignore it, so a deployment that sets
+   ANTHROPIC_MODEL to one of them must not have it sent. Claude Haiku 5.5,
+   the default, takes it (its own default is "medium"). */
 const MAX_OUTPUT_TOKENS = 1200;
 const EFFORT = "low";
-const EFFORT_UNSUPPORTED = /^claude-(haiku|sonnet-4-5|sonnet-3|opus-4-1|opus-4-20|3-)/;
+const EFFORT_UNSUPPORTED = /^claude-(haiku-4|haiku-3|sonnet-4-5|sonnet-3|opus-4-1|opus-4-20|3-)/;
 
 function supportsEffort(model) {
   return !EFFORT_UNSUPPORTED.test(String(model || ""));

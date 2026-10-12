@@ -2736,7 +2736,7 @@ scrive "120+" (≈123 `it(` contati su main, suite non lanciata).
 
 **Canale YouTube:** scritta la descrizione del canale (in chat, inglese, senza
 parole da investimento). **Banner** 2560×1440 in
-`humfiverse-youtube-banner.png` (radice del repo, non tracciato) con sorgente
+`humfiverse-youtube-banner.png` (radice del repo, non tracciato — dal 12 ott in `brand/`, tracciato) con sorgente
 `humfiverse-youtube-banner.html` (stile header X: pentagrammi viola→verde,
 marchio a nove barre, Geist; testo nella zona sicura 1546×423). Rigenerare con
 Chrome headless `--window-size=2560,1440 --screenshot`.
@@ -2887,3 +2887,48 @@ bundle `main-YGZTSVPR.js`, contratto artista v0.5-draft, Night Swim e le campagn
 precedenti lette come legacy dai loro escrow, endpoint di lettura tutti 200. Le
 nuove campagne vanno sul nuovo escrow con scadenza e soglia. Script
 `redeployEscrowRaise.js` cancellato (una tantum, come da REPO_MAP).
+
+## 2026-10-12 — accettazione del contratto legata al wallet (B-4), test del backend
+
+Mentre la prova dal vivo di scadenza e soglia aspettava la scadenza:
+- **B-4 risolto per l'artista:** il server inserisce versione e SHA-256 del
+  contratto artista nei termini di lancio ("Artist agreement: v0.5-draft (sha256
+  …)"); `POST /api/contract-acceptance` accetta solo con quella firma e salva
+  wallet, asset, impronta e firma; `receipt_hash` = hash di quanto registrato.
+  `GET /api/contract-template` restituisce anche `sha256`. Legale: 05, 08 C-4/C-5,
+  03 T-9.
+- **Primi test automatici del backend:** `cd server && npm test` (node:test, 10
+  test su `launch-auth`).
+- Commento su Haiku corretto in `server/.env.example`.
+- **Non fatto:** ritiro commissioni dai vecchi escrow (transazione bloccata dai
+  permessi: va lanciata da Cesare); togliere `NONE` dall'escrow (da decidere: è
+  l'unica uscita per una campagna abbandonata dopo la soglia).
+
+## 2026-10-12 — seconda firma, whitepaper, guida con Haiku (§2.115)
+
+Decisioni di Cesare: (1) motivo "abbandono" al posto di NONE nell'escrow — codice
+su branch separato, si unisce col prossimo redeploy; (2) applicare W-16…W-20 al
+whitepaper — fatto (cap. 2, 3, 4, 6, 9); (3) guida con Haiku — default
+`claude-haiku-5-5`, manca `ANTHROPIC_API_KEY` su Render; (4) seconda firma sulla
+decisione di annullamento — fatta (step `confirm`, stage `proposed`), 6 test.
+Ritiro commissioni dai vecchi escrow: bloccato dai permessi, comando a Cesare.
+
+## 2026-10-12 — pulizia del repo
+
+Rimossi i 5 worktree vecchi (audit, domain, finance-design, legal-benchmark,
+petru): i loro branch restano, tutti già su main tranne `dev/petru` (1 commit,
+pushato). Loghi, avatar, header X e banner YouTube spostati in `brand/`
+(tracciati, con README). In `.gitignore`: `.angular/`, il PDF del regolamento
+dell'hackathon e `humfiverse-demo:audio/`.
+
+## 2026-10-12 — primi test del frontend; bozza della procedura di verifica studi
+
+- **Test del frontend:** `cd webapp && npx ng test --watch=false` (Vitest via
+  `@angular/build:unit-test`, già configurato ma senza test). 18 test su quote
+  delle milestone, 4,94% su una campagna completa, prezzo per token, scadenza e
+  soglia (§2.114), commissioni e conversioni USDC. Esclusi dal build del sito.
+- **`planning/procedura-verifica-studi.md`** (bozza da approvare): richiesta dallo
+  studio, controlli C1–C6 (registro imprese, lavori con crediti, persona di
+  riferimento, firma del wallet, indipendenza dagli artisti, nome), due
+  firmatari, poi `registerStudio` dal Safe; sospensione dal Founder,
+  riattivazione solo dal Safe. Analog Sun non passerebbe C5.

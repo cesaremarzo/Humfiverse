@@ -44,7 +44,7 @@
     <div class="card panel" style="margin-bottom:20px;">
       <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;">
         <h3 class="panel-title" style="margin:0;">{{ c.assetId }}</h3>
-        <span class="chip" [class.chip-good]="c.stage === 'removed'" [class.chip-warning]="c.stage === 'noticed' || c.stage === 'decided'">{{ c.stage }}</span>
+        <span class="chip" [class.chip-good]="c.stage === 'removed'" [class.chip-warning]="c.stage === 'noticed' || c.stage === 'proposed' || c.stage === 'decided'">{{ c.stage }}</span>
       </div>
 
       <!-- 1. Notice -->
@@ -103,7 +103,7 @@
           <p style="font-size:13px; color:var(--text-secondary);">The reply period runs until {{ c.replyDeadline }}; the decision can be taken after it.</p>
         }
         <div class="field"><label>Decision, written and reasoned (goes to the artist and the holders)</label><textarea rows="5" [(ngModel)]="decisionText" maxlength="8000"></textarea></div>
-        <button class="btn btn-primary" [disabled]="busy() || !deadlinePassed() || !decisionText.trim()" (click)="decide()">{{ busy() === 'decide' ? 'Signing…' : 'Sign decision (hides the content)' }}</button>
+        <button class="btn btn-primary" [disabled]="busy() || !deadlinePassed() || !decisionText.trim()" (click)="decide()">{{ busy() === 'decide' ? 'Signing…' : 'Propose decision (a second signer confirms it)' }}</button>
 
         <div style="margin-top:16px;" class="field"><label>Or close the case without removal</label><input type="text" [(ngModel)]="dismissReason" maxlength="2000" placeholder="e.g. the artist removed the violation"></div>
         <button class="btn btn-secondary btn-sm" [disabled]="busy() || !dismissReason.trim()" (click)="dismiss()">Sign and dismiss</button>
@@ -114,6 +114,20 @@
         <h4 style="margin-top:20px;">Decision</h4>
         <p style="font-size:12.5px;">SHA-256 <span class="mono">{{ d.decisionHash }}</span> <button class="btn btn-ghost btn-sm" (click)="copy(d.decisionHash)">Copy</button> <button class="btn btn-ghost btn-sm" (click)="downloadDecision()">Download .txt</button></p>
         <pre style="white-space:pre-wrap; font-size:12px; background:var(--surface-2, rgba(0,0,0,.04)); padding:12px; border-radius:8px; max-height:280px; overflow:auto;">{{ d.document }}</pre>
+      }
+
+      @if (c.stage === 'proposed' && c.decision; as d) {
+        <div class="risk-item" style="margin-top:12px;">
+          <div>
+            <strong>Awaiting a second signer.</strong> Proposed by <span class="mono">{{ d.by }}</span> on {{ d.at }}. It takes effect — the content is hidden and the Safe transaction is prepared — only once a <em>different</em> signer of the owner Safe confirms it. Until then it can still be dismissed.
+          </div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:10px;" [disabled]="busy()" (click)="confirmDecision()">{{ busy() === 'confirm' ? 'Signing…' : 'Confirm decision as second signer (hides the content)' }}</button>
+        <div class="field" style="margin-top:12px;"><label>Or dismiss it (reason)</label><input [(ngModel)]="dismissReason" maxlength="2000"></div>
+        <button class="btn btn-ghost" [disabled]="busy() || !dismissReason.trim()" (click)="dismiss()">Dismiss</button>
+      }
+      @if (c.confirmation; as cf) {
+        <p style="font-size:12.5px;">Confirmed by <span class="mono">{{ cf.by }}</span> on {{ cf.at }}.</p>
       }
 
       @if (c.stage === 'decided') {

@@ -10,8 +10,9 @@ const db = require("../db");
 async function insertContractAcceptance(row) {
   await db.prepare(`
     INSERT INTO contract_acceptances
-      (template_version, artist_name, track_title, general_accepted, vessatoria_accepted, receipt_hash, accepted_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+      (template_version, artist_name, track_title, general_accepted, vessatoria_accepted, receipt_hash, accepted_at,
+       artist_wallet, asset_id, template_sha256, launch_signature)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     row.templateVersion,
     row.artistName,
@@ -19,7 +20,11 @@ async function insertContractAcceptance(row) {
     1,
     JSON.stringify(row.vessatoriaAccepted),
     row.receiptHash,
-    row.acceptedAt
+    row.acceptedAt,
+    row.artistWallet,
+    row.assetId,
+    row.templateSha256,
+    row.launchSignature
   );
 }
 

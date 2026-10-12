@@ -52,6 +52,12 @@ Sostituisce le clausole `manager-discretion`, `milestones` e `refund` e integra
 5. L'annullamento nei casi del comma 1 non costituisce inadempimento della
    Piattaforma o del Veicolo.
 
+> **Seconda firma (2026-10-12, technical §2.115).** La decisione scritta da un
+> firmatario del Safe è solo una proposta: ha effetto (la pagina viene nascosta e
+> si prepara la transazione per il Safe) solo quando un **secondo firmatario
+> diverso** la conferma. Fino ad allora si può archiviare. Le decisioni registrate
+> prima di questa regola restano valide.
+>
 > **Nota di implementazione (2026-09-28, technical §2.105).** Commi 2 e 3 sono nel
 > codice (`/admin/takedown`): l'avviso va all'**email verificata** dell'artista (il
 > wallet non si può "avvisare": viene solo indicato), il termine è un'impostazione
@@ -319,8 +325,8 @@ aver scorso tutto il testo.
 | C-1 | Testo completo visibile in una finestra scorrevole; **spunta "Accetto" attiva solo dopo l'ultima riga** | Decisione dell'utente. Prova che il testo è stato visualizzato |
 | C-2 | **Spunte separate per ogni clausola `[V]`**, oltre all'accettazione generale, anche queste dopo lo scorrimento | Art. 1341, comma 2, c.c. Il meccanismo esiste già nel wizard artista (§7.6) |
 | C-3 | Elenco dei titoli delle clausole `[V]` richiamati accanto alle spunte, non solo "accetto le clausole vessatorie" | La giurisprudenza italiana chiede un richiamo specifico **[verificare]** |
-| C-4 | **Registrare:** versione del template, lingua, data e ora (server), account (id thirdweb o email) e wallet, elenco delle spunte, **hash SHA-256 del testo mostrato**, IP | Senza questi dati l'accettazione non si dimostra. Oggi `contract_acceptances` non salva il wallet né l'hash del testo |
-| C-5 | **Firma del wallet** (EIP-4361, "Sign-In with Ethereum") su un messaggio che contiene versione e hash | Collega l'accettazione al wallet che incassa o investe. Oggi `receipt_hash` è casuale. **Base già presente per l'artista** (technical §2.88): il wallet firma un'autorizzazione di lancio con wallet che incassa, token, importo, studio e milestone. Per farla valere anche come prova dell'accettazione basta aggiungere al testo firmato la versione del template e l'hash del testo accettato |
+| C-4 | **Registrare:** versione del template, lingua, data e ora (server), account (id thirdweb o email) e wallet, elenco delle spunte, **hash SHA-256 del testo mostrato**, IP | Senza questi dati l'accettazione non si dimostra. Oggi `contract_acceptances` non salva il wallet né l'hash del testo **In parte implementato (2026-10-12):** si registrano versione, hash SHA-256 del testo servito, wallet, asset, firma del lancio, data e ora; mancano lingua, account e IP. |
+| C-5 | **Firma del wallet** (EIP-4361, "Sign-In with Ethereum") su un messaggio che contiene versione e hash | Collega l'accettazione al wallet che incassa o investe. Oggi `receipt_hash` è casuale. **Base già presente per l'artista** (technical §2.88): il wallet firma un'autorizzazione di lancio con wallet che incassa, token, importo, studio e milestone. Per farla valere anche come prova dell'accettazione basta aggiungere al testo firmato la versione del template e l'hash del testo accettato **Implementato per l'artista (2026-10-12):** l'autorizzazione di lancio firmata contiene la riga "Artist agreement: versione (sha256 …)", inserita dal server; l'accettazione si registra solo con quella firma e il `receipt_hash` è l'hash di quanto registrato, non più casuale. Per l'investitore resta da fare. |
 | C-6 | Copia scaricabile o inviata per email di quanto accettato | Obblighi informativi verso i consumatori; prova per l'utente |
 | C-7 | **Nuova versione = nuova accettazione** al primo accesso successivo; le campagne già aperte restano regolate dalla versione accettata alla loro creazione | Evita di cambiare le regole a chi ha già partecipato, come per le commissioni `constant` |
 | C-8 | Controllo lato server: niente acquisto, contributo o creazione di campagna senza accettazione valida registrata | Come già fa `validateContractAcceptance`. Resta il limite on-chain (02, C-6) |

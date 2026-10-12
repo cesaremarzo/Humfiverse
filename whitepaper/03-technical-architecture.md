@@ -19,6 +19,12 @@ Minting a token and writing an escrow contract are both well-understood. The gen
 
 Royalty money doesn't arrive on-chain by itself. A streaming platform or collecting society pays into a normal bank account, and someone has to confirm that payment happened and record it on-chain before token holders can be paid. Today, that confirmation is done by a single trusted party — Humfiverse or a royalty administrator — not by a decentralized network. This document says that plainly rather than overselling how "trustless" the system is: the *distribution* of confirmed royalty income is automated and verifiable; the *confirmation itself* still depends on trusting who's allowed to make it. Moving toward a shared, harder-to-fake confirmation process — starting with more than one party having to sign off — is a planned next step, not something already built.
 
+## How royalties are paid out
+
+The token contract itself pays royalties to holders. Whoever pays income in — the artist, or the platform on the artist's behalf; the contract accepts a deposit from anyone — sends the USDC together with the SHA-256 fingerprint of the royalty statement it pays out, and may publish that statement so anyone can check the fingerprint. The platform keeps 1% of each deposit for running the distribution. The rest pays for the period since the previous deposit, shared in proportion to how many tokens each wallet held and for how long; the share of tokens still unsold goes to the artist. Each holder claims their own share whenever they choose, and royalties already earned stay claimable even after the tokens are sold or handed back for a refund.
+
+Two things the contract cannot do: check that a deposit matches what the track really earned, and oblige anyone to deposit at all. Both rest on whoever deposits and on the statement they name.
+
 ## What the database is for
 
 Humfiverse's backend keeps an ordinary database that mirrors on-chain data for speed — which catalogues exist, current balances, campaign status. It's a cache, not a source of truth: every number in it can be re-derived from the blockchain itself, and the app is built to rebuild that cache automatically if it's ever found to be wrong or wiped. Nothing an investor should rely on lives only in this database.

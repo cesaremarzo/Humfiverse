@@ -75,6 +75,11 @@ function fold(events) {
   const notice = current.find((e) => e.step === "notice" && e.outcome === "ok");
   if (!notice) return { stage: events.length ? "dismissed" : "none", events };
   const decision = current.find((e) => e.step === "decide" && e.outcome === "ok");
+  // A decision takes effect once a second signer of the Safe confirms it.
+  // Decisions recorded before that rule (they lack `requiresConfirmation`)
+  // stand as they were taken.
+  const confirmation = current.find((e) => e.step === "confirm" && e.outcome === "ok");
+  const confirmed = Boolean(decision && (!decision.payload.requiresConfirmation || confirmation));
   const okSteps = (step) => current.filter((e) => e.step === step && e.outcome === "ok");
   const last = (step) => [...current].reverse().find((e) => e.step === step);
   const cancel = last("cancel");
@@ -85,12 +90,12 @@ function fold(events) {
   const emailFailed = [...new Set(current.filter((e) => e.step === "decision-email" && e.outcome === "failed" && !emailed.has(e.payload.wallet)).map((e) => e.payload.wallet))];
   const complete = last("complete");
   const done = Boolean(
-    decision && cancel && cancel.outcome !== "failed" && audio && audio.outcome !== "failed" && complete &&
+    confirmed && cancel && cancel.outcome !== "failed" && audio && audio.outcome !== "failed" && complete &&
       unpinFailed.length === 0 && emailFailed.length === 0
   );
   const p = notice.payload;
   return {
-    stage: done ? "removed" : decision ? "decided" : "noticed",
+    stage: done ? "removed" : confirmed ? "decided" : decision ? "proposed" : "noticed",
     ground: p.ground,
     evidenceType: p.evidenceType || null,
     evidenceRef: p.evidenceRef || null,
@@ -102,8 +107,9 @@ function fold(events) {
     noticeEmail: last("notice-email") ? { outcome: last("notice-email").outcome, detail: last("notice-email").payload } : null,
     replies: current.filter((e) => e.step === "reply").map((e) => ({ at: e.at, by: e.actor, text: e.payload.text })),
     decision: decision ? { at: decision.at, by: decision.actor, text: decision.payload.text, document: decision.payload.document, decisionHash: decision.payload.decisionHash } : null,
-    hidden: Boolean(decision || p.urgent),
-    hiddenAt: decision ? decision.at : p.urgent ? notice.at : null,
+    confirmation: confirmation ? { at: confirmation.at, by: confirmation.actor } : null,
+    hidden: Boolean(confirmed || p.urgent),
+    hiddenAt: confirmed ? (confirmation ? confirmation.at : decision.at) : p.urgent ? notice.at : null,
     cancel: cancel ? { outcome: cancel.outcome, ...cancel.payload } : null,
     unpinned: [...unpinned],
     unpinFailed,
@@ -335,7 +341,7 @@ async function dismiss(assetId, body) {
   const actor = await authorize(body, assetId, "dismiss");
   payload.reason = text(payload.reason, "reason", 2000);
   const state = await caseOf(assetId);
-  if (state.stage !== "noticed") throw codedError("conflict", "only a case awaiting its decision can be dismissed");
+  if (state.stage !== "noticed" && state.stage !== "proposed") throw codedError("conflict", "only a case awaiting its decision, or a decision not yet confirmed, can be dismissed");
   await repo.append({ assetId, step: "dismiss", outcome: "ok", actor, payload });
   return caseOf(assetId);
 }
@@ -429,15 +435,31 @@ async function decide(assetId, body) {
   const at = new Date().toISOString();
   const document = decisionDocument(ctx, state, payload.text, actor, at);
   const decisionHash = "0x" + require("crypto").createHash("sha256").update(document, "utf8").digest("hex");
-  await repo.append({ assetId, step: "decide", outcome: "ok", actor, payload: { text: payload.text, document, decisionHash } });
+  // Proposed, not yet in force: a second signer confirms it (confirm below).
+  await repo.append({ assetId, step: "decide", outcome: "ok", actor, payload: { text: payload.text, document, decisionHash, requiresConfirmation: true } });
+  return { case: await caseOf(assetId), safeTransaction: null };
+}
+
+/** A second signer of the owner Safe, not the one who wrote the decision,
+ * confirms it. Only then is the content hidden and the Safe transaction
+ * offered — one signer alone can no longer take a page down. */
+async function confirm(assetId, body) {
+  const actor = await authorize(body, assetId, "confirm");
+  const state = await caseOf(assetId);
+  if (state.stage !== "proposed") throw codedError("conflict", "there is no decision awaiting confirmation");
+  if (state.decision.by && state.decision.by.toLowerCase() === actor.toLowerCase()) {
+    throw codedError("forbidden", "the decision must be confirmed by a different signer of the Safe");
+  }
+  await repo.append({ assetId, step: "confirm", outcome: "ok", actor, payload: { decisionHash: state.decision.decisionHash } });
   if (!state.urgent) await repo.append({ assetId, step: "hide", outcome: "ok", actor, payload: { reason: "decision" } });
-  return { case: await caseOf(assetId), safeTransaction: safeTransaction(ctx, GROUNDS.indexOf(state.ground) + 1, decisionHash) };
+  const ctx = await contextOf(assetId);
+  return { case: await caseOf(assetId), safeTransaction: safeTransaction(ctx, GROUNDS.indexOf(state.ground) + 1, state.decision.decisionHash) };
 }
 
 /** The Safe transaction again, for a decision already taken. */
 async function safeTransactionFor(assetId) {
   const state = await caseOf(assetId);
-  if (!state.decision) return null;
+  if (!state.decision || state.stage === "proposed") return null;
   const ctx = await contextOf(assetId);
   return safeTransaction(ctx, GROUNDS.indexOf(state.ground) + 1, state.decision.decisionHash);
 }
@@ -574,8 +596,11 @@ module.exports = {
   reply,
   dismiss,
   decide,
+  confirm,
   safeTransactionFor,
   complete,
   listCases,
-  txBuilderChecksum
+  txBuilderChecksum,
+  // For tests: the pure fold of a case's events into its state.
+  _fold: fold
 };
