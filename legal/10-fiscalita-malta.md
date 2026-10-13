@@ -4,6 +4,10 @@
 operare da lì**, con l'obiettivo di arrivare a un'imposizione effettiva del 5%
 sugli utili tramite il rimborso dei 6/7.*
 
+*Aggiornato il 2026-10-13 dopo una chiamata con un transfer manager: Malta
+confermata, Stati Uniti (Wyoming) esclusi perché l'autorizzazione va a un ente
+costituito nell'UE. Vedi §5.4.*
+
 > **Non è consulenza fiscale.** Come tutta questa cartella, l'ha scritta un
 > assistente AI. Le aliquote, le soglie e i termini qui sotto vengono da fonti
 > pubbliche consultate il 2026-09-22 e sono segnati **[verificare]** dove non
@@ -420,6 +424,40 @@ Lussemburgo e un regolatore da scegliere.
 - **Una società, non un domicilio.** Tutto il §4 si riassume così: se non vi
   trasferite davvero, non solo non ottenete il 5%, ma vi esponete a una
   contestazione di esterovestizione che costa più di quanto avreste risparmiato.
+
+### 5.4 Perché non gli Stati Uniti (chiamata del 2026-10-13)
+
+Un consulente aveva proposto di costituire Humfiverse in **Wyoming**. In una
+chiamata del 2026-10-13 un transfer manager, che seguirebbe la costituzione a
+Malta, ha escluso questa strada: **l'autorizzazione per operare deve essere
+concessa a un ente costituito nell'UE**, e una società americana non può
+riceverla. Ha confermato anche il meccanismo fiscale della §1: imposta al 35%
+sugli utili della società e rimborso di 30 punti (i 6/7) al socio, quindi il 5%
+effettivo.
+
+Non ha detto di quale autorizzazione si tratti. Il vincolo vale per entrambe
+quelle in gioco:
+
+- **CASP (MiCA):** il prestatore deve avere la **sede legale in uno Stato
+  membro** in cui svolge almeno parte dei servizi, la **sede di direzione
+  effettiva nell'UE** e **almeno un amministratore residente nell'UE**
+  (Reg. (UE) 2023/1114, art. 59) **[verificare]**.
+- **ECSP (crowdfunding):** l'autorizzazione è riservata a una **persona
+  giuridica stabilita nell'UE** (Reg. (UE) 2020/1503, art. 12) **[verificare]**.
+
+**Cosa ne segue:**
+
+- Il Wyoming, o qualunque società fuori dall'UE, non è un'alternativa a Malta
+  ma, al massimo, una holding sopra di essa. Una holding extra-UE riaprirebbe i
+  problemi italiani della §4 (CFC, dividendi) e non porta nulla
+  all'autorizzazione: non va presa in considerazione senza il commercialista.
+- MiCA chiede la **sede di direzione effettiva nell'UE**, e l'Italia è UE:
+  il vincolo regolamentare da solo non obbliga a gestire da Malta. Lo fa il
+  fisco (§4.1, §4.4): se la direzione effettiva è in Italia la società diventa
+  italiana. I due requisiti vanno soddisfatti insieme, ed è Malta che li
+  soddisfa entrambi.
+- La domanda **A15** (file 07) resta aperta, ma con una strada in meno: la
+  società che chiede l'autorizzazione è la Malta Ltd (o un veicolo UE, §5.1).
 
 ---
 
