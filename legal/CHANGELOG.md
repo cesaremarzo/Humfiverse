@@ -4,6 +4,19 @@ Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
 
+## 2026-10-13 · Malta confermata, Wyoming escluso (file 10 §5.4)
+
+Chiamata dell'utente con un transfer manager per costituire la società a Malta.
+Due punti: l'autorizzazione (CASP o ECSP, non specificato) va per forza a un
+ente costituito nell'UE, quindi la società in Wyoming proposta da un consulente
+è esclusa; il regime fiscale è il 35% con rimborso di 30 punti, cioè il 5% della
+§1. Nessun codice toccato.
+
+- **10** nuova §5.4: il vincolo UE di MiCA art. 59 ed ECSPR art. 12
+  **[verificare]**, perché una holding extra-UE non aiuta, e il legame tra sede
+  di direzione effettiva e sostanza (§4.4).
+- **07 A15**: aggiornamento con le due domande che restano per l'avvocato.
+
 ## 2026-10-13 · W-22 completata (cap. 3)
 
 Su richiesta dell'utente: la scheda dell'escrow nel cap. 3 diceva che la

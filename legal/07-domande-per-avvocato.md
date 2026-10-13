@@ -132,7 +132,13 @@ Lussemburgo (CSSF) e Italia (CONSOB).*
   maltese deve dichiarare **un'attività principale**, e la piattaforma ne fa
   quattro (vendita primaria, escrow a milestone, distribuzione royalty, mercato
   secondario). Quale si dichiara, e quella scelta condiziona l'autorizzazione?
-  *(10 §3, §5.1, §5.2)*
+  **Aggiornamento 2026-10-13:** un transfer manager ha confermato che
+  l'autorizzazione va a un ente costituito nell'UE, quindi una società in
+  Wyoming (proposta da un consulente) è esclusa. Da confermare con l'avvocato:
+  quale autorizzazione serve per prima (CASP, ECSP o entrambe) e se la sede di
+  direzione effettiva richiesta da MiCA (art. 59) è compatibile con l'assetto
+  «uno a Malta, uno in Italia» (L5, L5-bis).
+  *(10 §3, §5.1, §5.2, §5.4)*
 - **A14** 🟠 *Nuova, 2026-09-17.* Dal §2.100 il sito ha una **guida
   automatica**: risposte scritte da noi e, dove è configurata una chiave API,
   risposte generate da Claude a partire da un'istruzione di sistema
