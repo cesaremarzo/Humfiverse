@@ -4,6 +4,12 @@ Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
 
+## 2026-10-13 · W-22 completata (cap. 3)
+
+Su richiesta dell'utente: la scheda dell'escrow nel cap. 3 diceva che la
+piattaforma annulla *"on stated legal grounds"*, escludendo l'abbandono; ora
+*"on a stated ground"*. 03 W-22 aggiornata.
+
 ## 2026-10-13 · W-22 applicata al whitepaper
 
 Su richiesta dell'utente: cap. 2 e 6 elencano il quarto motivo (abbandono) e
