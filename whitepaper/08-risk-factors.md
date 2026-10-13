@@ -28,11 +28,13 @@ Specific to Humfiverse's actual design and stage — not generic boilerplate. Re
 - **A minimum, not all-or-nothing.** Each campaign must raise the minimum the artist set by its deadline, or it fails and refunds holders (less the 2% fee). Above the minimum, a partly funded campaign can pay out its first tranches and stay open indefinitely.
 - **A campaign without a studio is released by the artist alone.**
 - **Refunds follow tokens.** After a cancellation or a failed raise, whoever holds the tokens hands them back to be burned and receives their share — resale buyers included.
+- **Only the artist can move their payout wallet.** It takes two steps, from the current wallet and the new one, and nobody else — the platform included — can redirect it. An artist who loses the key of their payout wallet cannot have it recovered.
+- **Resale listings expire** after at most 30 days and have to be renewed.
 
 ## Platform powers
 
-- **The operator can release pool tokens without payment.** Until this power is restricted, it could dilute existing holders' share, or leave a campaign unable to sell its full supply.
-- **The platform's multisig owner can cancel a campaign** on stated legal grounds. Token holders are then refunded only the unreleased part, less the 2% fee; recovering released tranches from the artist is a legal claim, not an on-chain guarantee.
+- **The platform's multisig owner can release pool tokens without payment.** Until this power is restricted, it could dilute existing holders' share, or leave a campaign unable to sell its full supply.
+- **The platform's multisig owner can cancel a campaign** on a stated ground — the three legal ones, or a project abandoned for 180 days after its minimum. Token holders are then refunded only the unreleased part, less the 2% fee; recovering released tranches from the artist is a legal claim, not an on-chain guarantee.
 - **One key controls the operator role today.** If it were compromised, everything that role can do could be done by someone else.
 - **Token metadata and the linked audio can be changed** by the operator after tokens are sold.
 

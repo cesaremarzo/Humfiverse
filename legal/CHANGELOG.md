@@ -3,6 +3,14 @@
 Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
+
+## 2026-10-13 · W-22 applicata al whitepaper
+
+Su richiesta dell'utente: cap. 2 e 6 elencano il quarto motivo (abbandono) e
+dicono che il contratto rifiuta l'annullamento senza motivo; cap. 3 descrive il
+marketplace limitato al token Humfiverse con annunci a scadenza (e 143 test);
+cap. 8 aggiunge i rischi sul wallet dell'artista e sugli annunci, e attribuisce
+al Safe il rilascio gratuito dal pool. 03 W-22 segnata ✅.
 ## 2026-10-12 · ottavo redeploy: abbandono al posto di NONE, marketplace, wallet dell'artista (technical §2.116-§2.117)
 
 Token `0x471DE935a7538D67F0E231aaf2768f5C4EB42431`, escrow
