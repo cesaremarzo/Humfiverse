@@ -23,6 +23,15 @@ const { ethers } = require("ethers");
 const LAUNCH_WINDOW_MS = 30 * 60 * 1000;
 const CLOCK_SKEW_MS = 2 * 60 * 1000;
 
+/** §2.119, in the escrow's MilestoneKind order. */
+const MILESTONE_KINDS = ["standard", "advance", "release"];
+/** What the artist reads for each kind in the signed text; nothing for a
+ * standard milestone, so older signatures still match. */
+const KIND_LINES = {
+  advance: " | advance: paid as soon as the raise covers it, no confirmation",
+  release: " | release: confirmed by artist and studio, with the published track's link"
+};
+
 function codedError(code, message) {
   return Object.assign(new Error(message), { code });
 }
@@ -67,7 +76,14 @@ function normalizePayload(p, { issuedAt, contract } = {}) {
         if (!Number.isInteger(bps) || bps < 0 || bps > 10_000) throw codedError("invalid", `milestone ${i + 1} bps is out of range`);
         const payee = m?.payee === "studio" ? "studio" : m?.payee === "artist" ? "artist" : null;
         if (!payee) throw codedError("invalid", `milestone ${i + 1} payee must be artist or studio`);
-        return { name: text(m?.name, `milestone ${i + 1} name`), bps, payee };
+        // §2.119: how the milestone is released. Absent means standard, so a
+        // launch signed before kinds existed still rebuilds the same text.
+        const kind = m?.kind === undefined || m?.kind === null || m?.kind === "" ? "standard" : m.kind;
+        if (!MILESTONE_KINDS.includes(kind)) throw codedError("invalid", `milestone ${i + 1} kind must be standard, advance or release`);
+        if (kind === "advance" && (i !== 0 || payee !== "artist")) {
+          throw codedError("invalid", "only the first milestone can be an advance, paid to the artist");
+        }
+        return { name: text(m?.name, `milestone ${i + 1} name`), bps, payee, kind };
       })
     : [];
 
@@ -117,7 +133,7 @@ function normalizePayload(p, { issuedAt, contract } = {}) {
 
 function buildLaunchMessage(payload) {
   const milestones = payload.milestones.length
-    ? payload.milestones.map((m) => `${m.name} | ${m.bps} bps | ${m.payee}`).join("; ")
+    ? payload.milestones.map((m) => `${m.name} | ${m.bps} bps | ${m.payee}${KIND_LINES[m.kind] ?? ""}`).join("; ")
     : "none";
   return [
     "Humfiverse — authorize this campaign launch",

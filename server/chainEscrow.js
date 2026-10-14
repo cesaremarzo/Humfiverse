@@ -21,8 +21,8 @@ const RPC_URL = process.env.CHAIN_RPC_URL || "https://ethereum-sepolia-rpc.publi
 // again in §2.43 alongside the token (an immutable reference, so any token
 // redeploy forces an escrow redeploy too). See chain.js's CONTRACT_ADDRESS.
 // Redeployed in §2.71 (fee), §2.72 (with the token), §2.73 (USDC), §2.79 (goal from the token) §2.81 (escrow-only tokens), §2.96 (phase 2) and §2.102 (with the token, for its fees).
-const ESCROW_ADDRESS = process.env.CHAIN_ESCROW_ADDRESS || "0xcEb91B21020B6e32643dFD9d596e848c303c7553";
-const ESCROW_DEPLOY_BLOCK = Number(process.env.CHAIN_ESCROW_DEPLOY_BLOCK || 11901543);
+const ESCROW_ADDRESS = process.env.CHAIN_ESCROW_ADDRESS || "0xCB57c80fD7ADBBFAADF9938A23D8DACBEfF186e5";
+const ESCROW_DEPLOY_BLOCK = Number(process.env.CHAIN_ESCROW_DEPLOY_BLOCK || 11913978);
 // §2.71: the escrow this one replaced, read-only. A campaign that finished
 // there (Guns: funded, every tranche released) cannot be recreated on the
 // new contract without reading as unfunded and unreleased, so it is left
@@ -120,8 +120,18 @@ const ABI_V3 = [
   "function raiseFailed(uint256) view returns (bool)",
   "function catalogueToken() view returns (address)"
 ];
+/* §2.119: milestones carry a kind (standard, advance, release) and a release
+   carries the published track's link, set by the artist's confirmation. */
+const ABI_V4 = [
+  ...ABI_V3.filter((f) => !f.startsWith("function createCampaign(") && !f.startsWith("function getMilestones(")),
+  "function createCampaign(address artist, uint256 studioId, string assetId, uint256 tokenId, string[] milestoneNames, uint16[] milestoneBps, uint8[] milestonePayees, uint8[] milestoneKinds, uint64 raiseDeadline, uint16 minRaiseBps) returns (uint256)",
+  "function getMilestones(uint256 campaignId) view returns (tuple(string name, uint16 bps, uint8 payee, bool released, uint8 kind, string link)[])",
+  "function confirmReleaseAsArtist(uint256 campaignId, uint256 milestoneIndex, string link)"
+];
+/** §2.119, in the escrow's MilestoneKind order. */
+const MILESTONE_KINDS = ["standard", "advance", "release"];
 const TOKEN_SUPPLY_ABI = ["function releasedOf(uint256) view returns (uint256)", "function burnedOf(uint256) view returns (uint256)"];
-const ABIS = { 1: ABI_V1, 2: ABI_V2, 3: ABI_V3 };
+const ABIS = { 1: ABI_V1, 2: ABI_V2, 3: ABI_V3, 4: ABI_V4 };
 
 /** The contract's cancellation grounds, in enum order (§2.92). */
 // §2.116 adds "abandoned" (index 4) on the escrow after that redeploy.
@@ -139,7 +149,7 @@ const versionPromises = new Map();
 function escrowVersion(address) {
   const key = address.toLowerCase();
   if (!versionPromises.has(key)) {
-    const probe = new ethers.Contract(address, ABI_V3, provider);
+    const probe = new ethers.Contract(address, ABI_V4, provider);
     // A revert or undecodable data means the function isn't there.
     const has = (call) =>
       withRetry(call).then(
@@ -152,6 +162,16 @@ function escrowVersion(address) {
     versionPromises.set(
       key,
       (async () => {
+        // §2.119: a missing function reverts with no data; the new escrow
+        // answers this call (campaign 0 has no milestones) with a reason.
+        const hasRelease = await withRetry(() => probe.confirmReleaseAsArtist.staticCall(0, 0, "x")).then(
+          () => true,
+          (err) => {
+            if (err.code === "CALL_EXCEPTION" || err.code === "BAD_DATA") return !!err.data && err.data !== "0x";
+            throw err;
+          }
+        );
+        if (hasRelease) return 4;
         if (await has(() => probe.raiseFailed(0))) return 3;
         if (await has(() => probe.refundQuote(0, 0))) return 2;
         return 1;
@@ -292,11 +312,18 @@ async function renameStudioOnchain(studioId, name) {
  * one, and 0 there has always meant "none". §2.114 brought back a raise
  * deadline (unix seconds) and a minimum (bps of the target); an older escrow
  * ignores them. */
-async function createCampaignOnchain(artist, studioId, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees, raiseDeadline, minRaiseBps) {
+async function createCampaignOnchain(artist, studioId, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees, milestoneKinds, raiseDeadline, minRaiseBps) {
   const writeContract = await writerFor(ESCROW_ADDRESS);
   const version = await escrowVersion(ESCROW_ADDRESS);
+  // §2.119: an older escrow has no kinds; it would release an advance only
+  // on both confirmations, so refuse rather than create something else.
+  if (version < 4 && milestoneKinds.some((k) => k !== 0)) {
+    throw Object.assign(new Error("this escrow does not support advance or release milestones"), { code: "invalid" });
+  }
   const tx = await withRetry(() =>
-    version === 3
+    version === 4
+      ? writeContract.createCampaign(artist, studioId, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees, milestoneKinds, raiseDeadline, minRaiseBps)
+      : version === 3
       ? writeContract.createCampaign(artist, studioId, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees, raiseDeadline, minRaiseBps)
       : version === 2
         ? writeContract.createCampaign(artist, studioId, assetId, tokenId, milestoneNames, milestoneBps, milestonePayees)
@@ -347,6 +374,9 @@ async function getCampaignInfo(campaignId, address = ESCROW_ADDRESS) {
       bps: Number(m.bps),
       payee: Number(m.payee) === 1 ? "studio" : "artist",
       released: m.released,
+      // §2.119: absent before the kinds existed — every milestone was standard.
+      kind: version >= 4 ? MILESTONE_KINDS[Number(m.kind)] ?? "standard" : "standard",
+      link: version >= 4 && m.link ? m.link : null,
       amountUsdc: toUsdc(amount).toString(),
       feeUsdc: toUsdc(fee).toString(),
       payoutUsdc: toUsdc(amount - fee).toString(),
@@ -455,6 +485,7 @@ async function listRecentlyCreatedCampaignAssetIdsFromChain() {
 
 module.exports = {
   CANCEL_GROUNDS,
+  MILESTONE_KINDS,
   escrowVersion,
   writeEnabled,
   getFeeState,

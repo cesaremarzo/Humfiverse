@@ -1,6 +1,6 @@
 # Avvertenze e scheda rischi: bozza
 
-*§2.2 e §3 aggiornati il 2026-10-12 (scadenza e soglia minima, §2.114). Bozza del 2026-10-11 per §2.2, §2.3-bis e §3 (studi verificati, royalty in proporzione al tempo di possesso, §2.110: in vigore sulla catena dal redeploy dello stesso giorno, §2.111); prima 2026-09-17, commit `fd7f822` + §2.101 (§2.1 vendita diretta al 6%, §2.3-bis commissione sulle royalty), prima `94ae18f` (§2.4 storico prezzi) e `82a7a1b`. **Da far rivedere a un avvocato.** Non
+*§2.2 aggiornato il 2026-10-14 (anticipo, §2.119). §2.2 e §3 aggiornati il 2026-10-12 (scadenza e soglia minima, §2.114). Bozza del 2026-10-11 per §2.2, §2.3-bis e §3 (studi verificati, royalty in proporzione al tempo di possesso, §2.110: in vigore sulla catena dal redeploy dello stesso giorno, §2.111); prima 2026-09-17, commit `fd7f822` + §2.101 (§2.1 vendita diretta al 6%, §2.3-bis commissione sulle royalty), prima `94ae18f` (§2.4 storico prezzi) e `82a7a1b`. **Da far rivedere a un avvocato.** Non
 è consulenza legale.*
 
 Testi pronti da inserire nel sito, in italiano e in inglese. Sono pensati per il
@@ -56,6 +56,10 @@ pagine non esistono.*
 >   artista e uno studio verificato dalla piattaforma confermano le milestone.
 >   **[Se la campagna non ha uno studio: ogni tranche si rilascia con la sola
 >   conferma dell'artista, e nessun terzo controlla la milestone.]**
+> - **[Se la campagna ha un anticipo: il X% della raccolta va all'artista appena
+>   i fondi lo coprono, senza nessuna conferma. Quella parte non è protetta
+>   dalla doppia conferma e, se la campagna viene annullata, non ti viene
+>   rimborsata.]**
 > - **Scadenza e soglia minima.** Se entro la data indicata la campagna non
 >   raccoglie la soglia minima, fallisce e puoi recuperare quanto hai versato
 >   meno il 2%. Raggiunta la soglia, la campagna resta aperta senza scadenza e
@@ -79,6 +83,9 @@ pagine non esistono.*
 >   artist and a studio verified by the platform confirm each milestone. **[If
 >   the campaign has no studio: each tranche is released on the artist's
 >   confirmation alone, and no third party checks the milestone.]**
+> - **[If the campaign has an advance: X% of the raise goes to the artist as
+>   soon as funds cover it, with no confirmation. That part is not protected by
+>   the double confirmation and is not refunded if the campaign is cancelled.]**
 > - **Deadline and minimum.** If the campaign does not raise its minimum by the
 >   date shown, it fails and you can reclaim what you paid, less 2%. Once the
 >   minimum is in, the campaign stays open with no deadline and tranches are

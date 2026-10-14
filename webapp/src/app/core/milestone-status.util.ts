@@ -36,6 +36,8 @@ export function milestonesWithOnchainStatus(
   return escrow.milestones.map((m) => ({
     name: m.name,
     trancheAmount: usdcToUsd(m.amountUsdc),
-    status: m.released ? 'done' : m.artistConfirmed || m.studioConfirmed ? 'active' : 'pending'
+    status: m.released ? 'done' : m.artistConfirmed || m.studioConfirmed ? 'active' : 'pending',
+    kind: m.kind ?? 'standard',
+    link: m.link ?? null
   }));
 }

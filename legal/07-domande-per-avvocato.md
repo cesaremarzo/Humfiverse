@@ -1,6 +1,6 @@
 # Domande per l'avvocato
 
-*B3 riscritta il 2026-10-12 (decisione cambiata: scadenza e soglia minima, §2.114). Revisione del 2026-10-11 (B5 decisa, nuova B5-bis: verifica degli studi, §2.110). Prima 2026-09-28 (H5: decisione di annullamento agli investitori). Prima 2026-09-22 (A15, L4-L9: società maltese, file 10). Prima 2026-09-17, commit `fd7f822` + §2.101 (A13: commissione sulla distribuzione delle royalty; A12, I4: versamento delle royalty), prima `94ae18f` (A4: storico prezzi) e `27d8d5f` + §2.100 (A14, F4, H4: guida automatica).*
+*B9 nuova il 2026-10-14 (anticipo, §2.119). B3 riscritta il 2026-10-12 (decisione cambiata: scadenza e soglia minima, §2.114). Revisione del 2026-10-11 (B5 decisa, nuova B5-bis: verifica degli studi, §2.110). Prima 2026-09-28 (H5: decisione di annullamento agli investitori). Prima 2026-09-22 (A15, L4-L9: società maltese, file 10). Prima 2026-09-17, commit `fd7f822` + §2.101 (A13: commissione sulla distribuzione delle royalty; A12, I4: versamento delle royalty), prima `94ae18f` (A4: storico prezzi) e `27d8d5f` + §2.100 (A14, F4, H4: guida automatica).*
 
 Le domande vengono dai file 01-03 e dalle decisioni già prese (note legali §7,
 §7.10; technical-architecture §2.86). Sostituiscono e ampliano l'elenco del §6
@@ -204,6 +204,16 @@ Lussemburgo (CSSF) e Italia (CONSOB).*
   stesso titolare su altre piattaforme e le sue offerte esenti da prospetto?
   E come si lega all'aggregazione per la soglia del prospetto (A7,
   01 §2, note §7.1.1): le due risposte vanno date insieme. *(01 §3, B1, B6)*
+
+- **B9** 🟠 *Nuova, 2026-10-14 (§2.119).* **Decisione dell'utente:** l'artista
+  può rendere la prima tranche un **anticipo**, pagato appena la raccolta lo
+  copre e la soglia minima è raggiunta, **senza conferme e senza tetto** alla
+  percentuale. Domande: (a) un anticipo senza tetto è compatibile con l'ECSPR e
+  con la tutela del consumatore, se dichiarato con la sua percentuale prima del
+  contributo? (b) Serve un tetto, e quale? (c) Pagare all'artista senza verifica
+  della produzione cambia la lettura del modello (prestito all'artista invece
+  di finanziamento di un progetto, B1) o quella AIFMD (A8)? *(02 C-17, 08 A-5
+  punto 1-bis)*
 
 ## Gruppo C · Annullamento delle campagne e rivalsa verso l'artista
 *Stesso avvocato del gruppo A, più un avvocato civilista o contrattualista per

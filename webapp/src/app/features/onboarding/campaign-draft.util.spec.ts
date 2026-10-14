@@ -5,6 +5,8 @@
    split the contract does not enforce. Run with `npm test`. */
 
 import {
+  escrowMilestonesFor,
+  CATALOGUE_EXTRA_MILESTONES,
   PREPRODUCTION_MILESTONES,
   milestoneTotalBps,
   milestonesValid,
@@ -115,5 +117,25 @@ describe('asset ids', () => {
   it('are a lowercase slug of the title with a three-digit suffix', () => {
     expect(draftAssetId('Night Swim!')).toMatch(/^night-swim-\d{3}$/);
     expect(draftAssetId('')).toMatch(/^untitled-\d{3}$/);
+  });
+});
+
+describe('milestone kinds (§2.119)', () => {
+  it('makes the last preproduction stage the release, with or without the saved kind', () => {
+    const kinds = escrowMilestonesFor(PREPRODUCTION_MILESTONES, true).map((m) => m.kind);
+    expect(kinds).toEqual(['standard', 'standard', 'standard', 'release']);
+    const oldDraft = PREPRODUCTION_MILESTONES.map(({ kind, ...m }) => m);
+    expect(escrowMilestonesFor(oldDraft, true)[3].kind).toBe('release');
+  });
+
+  it('keeps an advance only first and paid to the artist', () => {
+    const withAdvance = PREPRODUCTION_MILESTONES.map((m, i) => (i === 0 ? { ...m, kind: 'advance' as const } : m));
+    expect(escrowMilestonesFor(withAdvance, true)[0].kind).toBe('advance');
+    const misplaced = PREPRODUCTION_MILESTONES.map((m, i) => (i === 1 ? { ...m, kind: 'advance' as const } : m));
+    expect(escrowMilestonesFor(misplaced, true)[1].kind).toBe('standard');
+  });
+
+  it('leaves a catalogue campaign standard unless asked', () => {
+    expect(escrowMilestonesFor(CATALOGUE_EXTRA_MILESTONES, false).map((m) => m.kind)).toEqual(['standard', 'standard']);
   });
 });

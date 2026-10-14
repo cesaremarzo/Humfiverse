@@ -43,7 +43,9 @@ async function createCampaign(assetId, artistAddress, studioName, studioWallet, 
   const names = milestones.map((m) => m.name);
   const bps = milestones.map((m) => m.bps);
   const payees = milestones.map((m) => (m.payee === "studio" ? 1 : 0));
-  const created = await escrowChain.createCampaignOnchain(artistAddress, studioId, assetId, onchainRecord.token_id, names, bps, payees, raiseDeadline, minRaiseBps);
+  // §2.119: standard / advance / release, in the escrow's enum order.
+  const kinds = milestones.map((m) => Math.max(0, escrowChain.MILESTONE_KINDS.indexOf(m.kind || "standard")));
+  const created = await escrowChain.createCampaignOnchain(artistAddress, studioId, assetId, onchainRecord.token_id, names, bps, payees, kinds, raiseDeadline, minRaiseBps);
 
   await escrowRepo.insertCampaign({
     campaignId: created.campaignId,

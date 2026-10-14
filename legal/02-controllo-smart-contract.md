@@ -1,6 +1,6 @@
 # Controllo degli smart contract e del backend, dal punto di vista legale
 
-*C-4 e C-2 aggiornati il 2026-10-12 (scadenza e soglia minima, §2.114). Revisione del 2026-09-17, dopo il redeploy di fase 2 (technical §2.92, §2.95-§2.97); C-12 aggiornato per il rendiconto come file (§2.98, commit `fd7f822`); C-2 aggiornato il 2026-09-28 per la procedura di annullamento (§2.105); tabella §1, C-3, C-9, C-10, C-12 e nuovo C-16 aggiornati il 2026-10-11 per le correzioni dell'audit dei contratti (§2.110), sulla catena dal redeploy dello stesso giorno (technical §2.111). Non è un audit di sicurezza e non
+*Tabella §1, C-3 e nuovo C-17 aggiornati il 2026-10-14 (tipi di milestone: anticipo e uscita con link, §2.119; escrow del nono redeploy). C-4 e C-2 aggiornati il 2026-10-12 (scadenza e soglia minima, §2.114). Revisione del 2026-09-17, dopo il redeploy di fase 2 (technical §2.92, §2.95-§2.97); C-12 aggiornato per il rendiconto come file (§2.98, commit `fd7f822`); C-2 aggiornato il 2026-09-28 per la procedura di annullamento (§2.105); tabella §1, C-3, C-9, C-10, C-12 e nuovo C-16 aggiornati il 2026-10-11 per le correzioni dell'audit dei contratti (§2.110), sulla catena dal redeploy dello stesso giorno (technical §2.111). Non è un audit di sicurezza e non
 è consulenza legale.*
 
 ## Cosa è e cosa non è questo controllo
@@ -20,10 +20,10 @@
 |---|---|---|---|
 | HumfiverseCatalogueToken | `contracts/contracts/HumfiverseCatalogueToken.sol` | `fdf39ce48153417e` | `0x471DE935a7538D67F0E231aaf2768f5C4EB42431` |
 | HumfiverseMarketplace | `contracts/contracts/HumfiverseMarketplace.sol` | `e2eb57f242d07868` | `0xC684B23492659b224635A5A7C475F50fcADc2E03` |
-| HumfiverseMilestoneEscrow | `contracts/contracts/HumfiverseMilestoneEscrow.sol` | `c3c95c37f9270d8b` | `0xcEb91B21020B6e32643dFD9d596e848c303c7553` |
+| HumfiverseMilestoneEscrow | `contracts/contracts/HumfiverseMilestoneEscrow.sol` | `192b2b9467d8df14` | `0xCB57c80fD7ADBBFAADF9938A23D8DACBEfF186e5` (nono redeploy, 2026-10-14, §2.119; prima `0xcEb91B21020B6e32643dFD9d596e848c303c7553`, senza campagne) |
 
 Solidity 0.8.24, OpenZeppelin v5, non aggiornabili (niente proxy).
-Pagamenti in USDC di test (`0x1c7D…7238`). Test: **143 passati**. I tre contratti sono quelli dell'ottavo redeploy, 2026-10-12 (technical §2.117: marketplace limitato al token Humfiverse con annunci a scadenza, wallet dell'artista modificabile solo dall'artista, annullamento sempre motivato con il nuovo motivo "abbandono"), di proprietà del Safe; gli escrow precedenti restano in sola lettura. Token ed
+Pagamenti in USDC di test (`0x1c7D…7238`). Test: **149 passati** (2026-10-14, §2.119). I tre contratti sono quelli dell'ottavo redeploy, 2026-10-12 (technical §2.117: marketplace limitato al token Humfiverse con annunci a scadenza, wallet dell'artista modificabile solo dall'artista, annullamento sempre motivato con il nuovo motivo "abbandono"), di proprietà del Safe; gli escrow precedenti restano in sola lettura. Token ed
 escrow sono stati ridistribuiti il 2026-09-17 (fase 2) e di nuovo il
 2026-09-27 (technical §2.102) solo per le commissioni del §2.101 — 6% sulla
 vendita diretta, 1% sui versamenti di royalty — che da quel giorno sono in
@@ -66,9 +66,9 @@ storico delle royalty già versate e riscosse (44,55 USDC di test su
 | `depositRoyalties` | chiunque | Versa USDC come royalty di un token. L'1% è trattenuto come commissione di distribuzione (§2.101), il resto è diviso subito in parti uguali su tutti i token esistenti (pool compreso). **§2.110:** il versamento paga il periodo dal versamento precedente (o dal mint) ed è diviso in proporzione a token × tempo di possesso in quel periodo (C-12, C-16). Registra un riferimento al rendiconto (`statementRef`): dal §2.98 il sito vi scrive l'impronta SHA-256 del file del rendiconto |
 | `claimRoyalties` | chiunque, per qualsiasi possessore | Paga al possessore quanto hanno maturato i suoi token; chi chiama sceglie solo quando |
 | `claimPoolRoyalties` | chiunque | Paga la quota dei token invenduti al wallet che incassa del token (l'artista) |
-| `createCampaign` | Owner o operator | Apre una campagna escrow su un token non in vendita diretta e mai venduto. **Rifiuta** uno studio con lo stesso wallet dell'artista. **§2.110:** l'artista deve essere il wallet che incassa del token (`payoutOf`), e un token ha al massimo una campagna **§2.117:** l'artista di una campagna può passarla a un nuovo wallet (`proposeArtist` / `acceptArtist`), solo se il nuovo wallet è già quello che incassa del token e non è lo studio. |
+| `createCampaign` | Owner o operator | Apre una campagna escrow su un token non in vendita diretta e mai venduto. **Rifiuta** uno studio con lo stesso wallet dell'artista. **§2.110:** l'artista deve essere il wallet che incassa del token (`payoutOf`), e un token ha al massimo una campagna **§2.117:** l'artista di una campagna può passarla a un nuovo wallet (`proposeArtist` / `acceptArtist`), solo se il nuovo wallet è già quello che incassa del token e non è lo studio. **§2.119:** ogni milestone ha un tipo (`STANDARD`, `ADVANCE`, `RELEASE`); `ADVANCE` solo per la prima, pagata all'artista, **senza tetto** sulla percentuale. |
 | `contribute` | chiunque | Paga in USDC. 2% trattenuto, 98% accreditato alla campagna, token consegnati subito |
-| `confirmMilestoneAsArtist` / `…AsStudio` | wallet artista / wallet studio | Quando entrambi hanno confermato e i fondi coprono la tranche, la paga meno il 3%. Il contratto rifiuta la conferma finché la milestone precedente non è pagata (§2.96) |
+| `confirmMilestoneAsArtist` / `…AsStudio` | wallet artista / wallet studio | Quando entrambi hanno confermato e i fondi coprono la tranche, la paga meno il 3%. Il contratto rifiuta la conferma finché la milestone precedente non è pagata (§2.96). **§2.119:** un **anticipo** non si conferma: lo paga `contribute` appena la raccolta lo copre e la soglia minima è raggiunta. Una milestone di **uscita** si conferma dall'artista con `confirmReleaseAsArtist`, che registra sulla catena il link al brano pubblicato, e dallo studio come sempre |
 | `cancelCampaign` | Owner | Blocca la campagna e apre i rimborsi. Registra un **motivo** (nessuno, contenuto illecito, diritti di terzi, garanzie false) e, per i motivi di legge, l'hash della decisione scritta. **Senza motivo** è rifiutato se tutte le tranche sono già pagate. **§2.110:** chiude anche il pool del token (`closePool`): dopo l'annullamento nessun token può più uscirne, Owner compreso **Dall'ottavo redeploy (§2.116-§2.117):** il motivo `NONE` è rifiutato e ogni annullamento richiede motivo e hash della decisione; nuovo motivo `ABANDONED` (abbandono), solo a soglia raggiunta, con tranche ancora da pagare e 180 giorni senza progressi. |
 | `refund` | chi possiede i token | Restituisce i token, che vengono **bruciati**, in cambio della loro quota di `raccolto − rilasciato` al momento dell'annullamento. Il 2% resta trattenuto |
 | `burnForRefund` | solo il contratto escrow | Brucia i token restituiti con `refund`. Le royalty già maturate restano riscuotibili. **§2.110:** anche un escrow sostituito (`retiredEscrow`), così i rimborsi restano possibili dopo un nuovo collegamento |
@@ -253,6 +253,9 @@ della stessa persona): la procedura di verifica va scritta (07 B5-bis).
 **Decisione dell'utente (2026-10-11):** le campagne **senza studio** restano
 possibili e vanno **dichiarate**: lì ogni tranche si rilascia con la sola
 conferma dell'artista (04 §5.3, 06 §2.2, 08 A-5).
+
+**Eccezione voluta (2026-10-14, §2.119).** Se l'artista lo sceglie, la prima
+tranche è un **anticipo** e non passa da nessuna conferma: vedi C-17.
 
 ### C-4 · Alta · Nessuna regola "tutto o niente" e nessuna scadenza
 
@@ -578,6 +581,31 @@ identificativo, e il nome solo nel database, cancellabile.
 **Decisione (2026-09-17).** Titolo e artista **restano scritti on-chain** anche
 nel contratto di fase 2. Il rischio va quindi gestito nei testi: avvisare
 l'artista prima del lancio (informativa, 05 §2) e suggerire un nome d'arte.
+
+### C-17 · Media · L'anticipo si paga senza conferme e senza tetto
+
+**Codice.** `createCampaign` accetta `MilestoneKind.ADVANCE` solo sulla prima
+milestone e solo se pagata all'artista. `contribute` la rilascia appena i fondi
+raccolti la coprono e la soglia minima è raggiunta, senza conferma né
+dell'artista né dello studio (§2.119). Il contratto **non limita** la sua
+percentuale: un artista può mettere il 100% della raccolta nell'anticipo.
+
+**Decisione dell'utente (2026-10-14).** L'anticipo è facoltativo, lo sceglie
+l'artista alla creazione, e non ha tetto. Motivo: la conferma dello studio su
+una tappa come "raccolta raggiunta" non attestava nulla che il contratto non
+sapesse già. La tappa di uscita resta con la doppia conferma, e l'artista deve
+allegare il link al brano pubblicato.
+
+**Perché conta.** La tutela della doppia conferma vale solo per la parte non
+anticipata. Con un anticipo alto la campagna somiglia a un finanziamento
+all'artista senza controllo sulla produzione: chi contribuisce deve saperlo
+prima di pagare, e la parte già anticipata non si rimborsa in caso di
+annullamento (si recupera solo come credito verso l'artista, C-2).
+
+**Proposta.** Dichiararlo in modo evidente nella pagina della campagna e nelle
+avvertenze (06 §2.2), indicando la percentuale. Chiedere all'avvocato se un
+anticipo senza tetto è compatibile con l'ECSPR e con la tutela del consumatore,
+e se cambia la lettura AIFMD (07 B9). Valutare un tetto se l'avvocato lo chiede.
 
 ### C-14 · Bassa · Commenti interni superati
 
