@@ -533,9 +533,9 @@
   "footer.studioLink": "Pour les studios",
   "studio.kicker": "Pour les studios",
   "studio.title": "Confirmer un jalon de production",
-  "studio.intro": "Si un artiste vous a désigné comme son studio sur Humfiverse, connectez le portefeuille qu'il a enregistré pour vous afin de voir les campagnes liées et de confirmer les jalons au fur et à mesure qu'ils sont réellement atteints.",
-  "studio.notRegisteredTitle": "Ce portefeuille n'est pas enregistré comme studio",
-  "studio.notRegisteredBody": "Les studios ne s'inscrivent pas eux-mêmes — c'est l'artiste qui vous enregistre en saisissant votre nom et l'adresse de votre portefeuille lors de la création d'une campagne de préproduction. Demandez à l'artiste de confirmer qu'il a utilisé exactement cette adresse.",
+  "studio.intro": "Si vous êtes un studio vérifié désigné dans une campagne, connectez le wallet du studio pour voir ces campagnes et confirmer les jalons à mesure qu'ils sont réellement atteints.",
+  "studio.notRegisteredTitle": "Aucune campagne ne désigne ce wallet comme studio",
+  "studio.notRegisteredBody": "Les studios ne s'inscrivent pas eux-mêmes, et les artistes ne peuvent pas non plus les enregistrer : Humfiverse vérifie le studio, son multisig (Safe) enregistre le wallet du studio, puis les artistes le choisissent dans la liste des studios vérifiés. Si vous avez été vérifié, assurez-vous d'avoir connecté exactement le wallet que vous nous avez donné ; sinon, demandez la vérification ci-dessus.",
   "studio.campaignsHeading": "Campagnes pour lesquelles vous êtes le studio",
   "studio.noCampaigns": "Aucune campagne trouvée pour ce portefeuille pour l'instant.",
   "studio.confirmBtn": "Confirmer le jalon",
@@ -820,5 +820,12 @@
   "studio.releaseLinkHint": "L'artiste confirme cette étape avec le lien du titre publié : vérifiez-le avant de confirmer.",
   "wizMilestones.advanceLabel": "Verser « {{name}} » comme avance",
   "wizMilestones.advanceHint": "Elle vous parvient dès que la collecte la couvre, sans confirmation du studio. Les investisseurs la voient indiquée comme avance. Sinon, le studio confirme aussi cette tranche.",
-  "wizMilestones.releaseHint": "« {{name}} » est confirmée par vous et par le studio, et vous ajoutez le lien du titre publié, qui reste enregistré sur la chaîne."
+  "wizMilestones.releaseHint": "« {{name}} » est confirmée par vous et par le studio, et vous ajoutez le lien du titre publié, qui reste enregistré sur la chaîne.",
+  "footer.contact": "Nous contacter",
+  "contact.subjectStudio": "Demande de vérification de studio",
+  "contact.subjectArtist": "Demande d'artiste",
+  "forArtists.contact": "Parlez-nous",
+  "studio.joinTitle": "Vous voulez travailler sur Humfiverse en tant que studio ?",
+  "studio.joinBody": "Les studios sont vérifiés avant qu'un artiste puisse les désigner dans une campagne : nous vérifions qui gère le studio et ses crédits, puis le multisig de la plateforme (Safe) enregistre le wallet du studio. Écrivez-nous pour commencer.",
+  "studio.joinBtn": "Demander la vérification"
 }

@@ -1,0 +1,1 @@
+function e(o,n,r){return JSON.stringify(o,(f,t)=>{let i=typeof t==`bigint`?t.toString():t;return typeof n==`function`?n(f,i):i},r)}export{e as t};

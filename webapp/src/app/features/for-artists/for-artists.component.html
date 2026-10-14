@@ -6,6 +6,7 @@
     <div class="hero-actions">
       <a class="btn btn-primary btn-lg" routerLink="/artist/onboarding"><app-icon name="sparkles"></app-icon> {{ 'forArtists.startCampaign' | translate }}</a>
       <a class="btn btn-secondary btn-lg" routerLink="/artist/dashboard">{{ 'forArtists.viewCampaigns' | translate }}</a>
+      <a class="btn btn-ghost btn-lg" [href]="contactHref('contact.subjectArtist' | translate)"><app-icon name="mail"></app-icon> {{ 'forArtists.contact' | translate }}</a>
     </div>
   </div>
 
