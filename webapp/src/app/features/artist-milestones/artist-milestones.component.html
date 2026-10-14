@@ -57,7 +57,10 @@
             <tbody>
               @for (m of c.milestones; track m.index) {
                 <tr>
-                  <td>{{ m.name }}</td>
+                  <td>{{ m.name }}
+                    @if (m.kind === 'advance') {<div style="font-size:11px; color:var(--text-secondary);">{{ 'milestone.advance' | translate }}</div>}
+                    @if (m.link) {<div style="font-size:12px;"><a [href]="m.link" target="_blank" rel="noopener noreferrer">{{ 'milestone.publishedTrack' | translate }}</a></div>}
+                  </td>
                   <td>{{ m.payee === 'studio' ? (c.studio?.name || 'Studio') : 'Artist' }}</td>
                   <td class="cell-num mono">{{ fmt(usdcToUsd(m.payoutUsdc ?? m.amountUsdc)) }}@if (m.feeUsdc && m.feeUsdc !== '0') {<div style="font-size:11px; color:var(--text-secondary);">of {{ fmt(usdcToUsd(m.amountUsdc)) }} · {{ (c.milestoneFeeBps ?? 0) / 100 }}% fee {{ fmt(usdcToUsd(m.feeUsdc)) }}</div>}</td>
                   <td>
@@ -70,10 +73,18 @@
                     }
                   </td>
                   <td style="text-align:right;">
-                    @if (!m.released && !waitingOnPrevious(c, m) && canConfirm(c.raised, m) && !m.artistConfirmed) {
+                    @if (m.kind !== 'advance' && !m.released && !waitingOnPrevious(c, m) && canConfirm(c.raised, m) && !m.artistConfirmed) {
+                      @if (m.kind === 'release') {
+                        <input class="mono" style="width:100%; min-width:200px; margin-bottom:6px;" type="url"
+                          [id]="'release-link-' + c.campaignId + '-' + m.index"
+                          [placeholder]="'artistMilestones.releaseLinkLabel' | translate"
+                          [attr.aria-label]="'artistMilestones.releaseLinkLabel' | translate"
+                          [(ngModel)]="links[c.campaignId + '-' + m.index]">
+                        <div style="font-size:11px; color:var(--text-secondary); margin-bottom:6px; text-align:left;">{{ 'artistMilestones.releaseLinkHint' | translate }}</div>
+                      }
                       <button
                         class="btn btn-primary btn-sm"
-                        [disabled]="confirming() === (c.campaignId + '-' + m.index)"
+                        [disabled]="confirming() === (c.campaignId + '-' + m.index) || (m.kind === 'release' && !validLink(links[c.campaignId + '-' + m.index]))"
                         (click)="confirm(c, m.index)">
                         {{ (confirming() === (c.campaignId + '-' + m.index) ? 'artistMilestones.confirming' : 'artistMilestones.confirmBtn') | translate }}
                       </button>

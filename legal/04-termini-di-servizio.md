@@ -1,6 +1,6 @@
 # Termini di Servizio: bozza
 
-*§5.3 e §5.4 aggiornati il 2026-10-12 (scadenza e soglia minima, §2.114). Bozza del 2026-09-15, commit `82a7a1b`; §5.3 e §5.7 aggiornati il 2026-10-11 (studi verificati, royalty in proporzione al tempo di possesso, §2.110: in vigore sulla catena dal redeploy dello stesso giorno, §2.111); nota a §5.6 il 2026-09-28 (avviso e decisione solo a chi ha un'email, §2.105); §5.3 aggiornato il 2026-09-17 (ordine delle milestone); §5.7 il 2026-09-17 (chi versa le royalty e rendiconto, pubblicazione facoltativa, §2.98); §5.7 e §6 il 2026-09-17 (vendita diretta al 6%, 1% sulla distribuzione delle royalty, §2.101); §12 il 2026-09-17 (guida automatica, §2.100); §1 il 2026-10-07 (dominio humfiverse.com, §2.109). **Da far rivedere a un avvocato prima
+*§5.3 aggiornato il 2026-10-14 (anticipo e link all'uscita, §2.119). §5.3 e §5.4 aggiornati il 2026-10-12 (scadenza e soglia minima, §2.114). Bozza del 2026-09-15, commit `82a7a1b`; §5.3 e §5.7 aggiornati il 2026-10-11 (studi verificati, royalty in proporzione al tempo di possesso, §2.110: in vigore sulla catena dal redeploy dello stesso giorno, §2.111); nota a §5.6 il 2026-09-28 (avviso e decisione solo a chi ha un'email, §2.105); §5.3 aggiornato il 2026-09-17 (ordine delle milestone); §5.7 il 2026-09-17 (chi versa le royalty e rendiconto, pubblicazione facoltativa, §2.98); §5.7 e §6 il 2026-09-17 (vendita diretta al 6%, 1% sulla distribuzione delle royalty, §2.101); §12 il 2026-09-17 (guida automatica, §2.100); §1 il 2026-10-07 (dominio humfiverse.com, §2.109). **Da far rivedere a un avvocato prima
 della pubblicazione.** Non è consulenza legale.*
 
 ## Note per chi usa questa bozza (da togliere prima di pubblicare)
@@ -129,7 +129,12 @@ confermano la milestone. Lo studio è scelto fra quelli **verificati** dalla
 Piattaforma, che ne controlla l'identità prima di registrarlo. Se la campagna
 non ha uno studio, **ogni tranche si rilascia con la sola conferma
 dell'artista**: in quel caso nessun terzo controlla che la milestone sia stata
-raggiunta, e la pagina della campagna lo dice. Le milestone si confermano **nell'ordine fissato dall'artista alla
+raggiunta, e la pagina della campagna lo dice. **Anticipo** (dal 2026-10-14,
+§2.119): se l'artista lo sceglie, la **prima tranche** è un anticipo e gli viene
+pagata **appena i fondi raccolti la coprono e la soglia minima è raggiunta,
+senza alcuna conferma**; la pagina della campagna lo indica con la sua
+percentuale. La milestone di **uscita del brano** è confermata dall'artista, con
+il link al brano pubblicato che resta registrato sulla blockchain, e dallo studio. Le milestone si confermano **nell'ordine fissato dall'artista alla
 creazione della campagna**: una milestone non può essere pagata prima di quella
 precedente. Una tranche si rilascia appena i fondi raccolti coprono lei e quelle
 già pagate, **anche se l'obiettivo complessivo non è stato raggiunto**.

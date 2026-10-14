@@ -190,7 +190,8 @@ const ROYALTY_ABI = [
 ];
 const CONFIRM_MILESTONE_ABI = [
   'function confirmMilestoneAsArtist(uint256 campaignId, uint256 milestoneIndex) external',
-  'function confirmMilestoneAsStudio(uint256 campaignId, uint256 milestoneIndex) external'
+  'function confirmMilestoneAsStudio(uint256 campaignId, uint256 milestoneIndex) external',
+  'function confirmReleaseAsArtist(uint256 campaignId, uint256 milestoneIndex, string link) external'
 ];
 
 /** The user's wallet, from either of two sources (§2.83): an in-app wallet
@@ -790,7 +791,7 @@ export class WalletService {
    * confirming a milestone was genuinely met. A tranche only releases once
    * both this and confirmMilestoneAsStudio (below) have been called for the
    * same milestone; Humfiverse has no equivalent function of its own. */
-  async confirmMilestoneAsArtist(params: { contractAddress: string; campaignId: number; milestoneIndex: number }): Promise<{ txHash: string; explorerUrl: string }> {
+  async confirmMilestoneAsArtist(params: { contractAddress: string; campaignId: number; milestoneIndex: number; link?: string }): Promise<{ txHash: string; explorerUrl: string }> {
     if (!this.eip1193()) throw new Error('no-wallet');
     const switched = await this.ensureSepolia();
     if (!switched) throw new Error('wrong-network');
@@ -799,7 +800,10 @@ export class WalletService {
     const signer = await provider.getSigner();
     const contract = new ethers.Contract(params.contractAddress, CONFIRM_MILESTONE_ABI, signer);
 
-    const tx = await contract['confirmMilestoneAsArtist'](params.campaignId, params.milestoneIndex);
+    // §2.119: a release milestone is confirmed with the published track's link.
+    const tx = params.link
+      ? await contract['confirmReleaseAsArtist'](params.campaignId, params.milestoneIndex, params.link)
+      : await contract['confirmMilestoneAsArtist'](params.campaignId, params.milestoneIndex);
     const receipt = await tx.wait();
     if (!receipt || receipt.status !== 1) throw new Error('tx-failed');
 

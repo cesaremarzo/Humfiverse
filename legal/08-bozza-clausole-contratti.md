@@ -1,6 +1,6 @@
 # Bozza di clausole: Accordo Artista, Accordo Investitore, accettazione
 
-*A-2 punto 5 e B-1 (b) aggiornati il 2026-10-12 (scadenza e soglia minima, §2.114). Bozza del 2026-09-15, commit `82a7a1b`; A-5 punto 1 e A-8 punti 5-6 aggiornati il 2026-10-11 (royalty in proporzione al tempo di possesso, studi verificati, §2.110); A-5 aggiornata il 2026-09-17 (ordine delle milestone); A-8 e C-12 nuove il 2026-09-17 (versamento delle royalty, §2.98); A-6 aggiornata il 2026-09-17 (vendita diretta al 6%, 1% sulle royalty, §2.101); note di implementazione ad A-1 e A-1-bis il 2026-09-28 (§2.105); A-1 riportata nel template il 2026-10-12 (§2.113). **Da far rivedere a un avvocato.** Non
+*A-5 punti 1-bis e 3-bis aggiunti il 2026-10-14 (anticipo e link all'uscita, §2.119). A-2 punto 5 e B-1 (b) aggiornati il 2026-10-12 (scadenza e soglia minima, §2.114). Bozza del 2026-09-15, commit `82a7a1b`; A-5 punto 1 e A-8 punti 5-6 aggiornati il 2026-10-11 (royalty in proporzione al tempo di possesso, studi verificati, §2.110); A-5 aggiornata il 2026-09-17 (ordine delle milestone); A-8 e C-12 nuove il 2026-09-17 (versamento delle royalty, §2.98); A-6 aggiornata il 2026-09-17 (vendita diretta al 6%, 1% sulle royalty, §2.101); note di implementazione ad A-1 e A-1-bis il 2026-09-28 (§2.105); A-1 riportata nel template il 2026-10-12 (§2.113). **Da far rivedere a un avvocato.** Non
 è consulenza legale.*
 
 Traduce in testo contrattuale la decisione del 15 settembre 2026 (note legali
@@ -189,6 +189,12 @@ Sostituisce le clausole `manager-discretion`, `milestones` e `refund` e integra
    registrati dalla Piattaforma. [Se la Campagna non ha uno Studio, ogni tranche
    è rilasciata con la sola conferma dell'Artista, e nessun terzo verifica la
    milestone.]
+1-bis. [Se l'Artista lo sceglie alla creazione della Campagna, la prima
+   milestone è un **anticipo**: è rilasciata all'Artista appena i fondi
+   raccolti la coprono e la soglia minima è raggiunta, senza conferma
+   dell'Artista né dello Studio. L'Artista riconosce che l'anticipo non è
+   soggetto ad alcuna verifica della produzione e risponde del suo impiego ai
+   sensi della clausola A-3.]
 2. Le tranche contrassegnate "Studio" sono pagate al wallet dello Studio; le
    altre al wallet dell'Artista.
 2-bis. Le milestone si rilasciano **nell'ordine stabilito dall'Artista alla
@@ -197,6 +203,10 @@ Sostituisce le clausole `manager-discretion`, `milestones` e `refund` e integra
 3. L'Artista si impegna a confermare una milestone solo quando è effettivamente
    raggiunta. Una conferma falsa è una violazione delle garanzie della clausola
    A-4.
+3-bis. La milestone di uscita del brano è confermata dall'Artista indicando il
+   link al brano pubblicato, che resta registrato nel contratto escrow, e dallo
+   Studio. Un link che non porta al brano oggetto della Campagna è una conferma
+   falsa ai sensi del punto 3.
 4. Se Artista e Studio non confermano, i fondi restano nel contratto escrow
    finché la Campagna non si completa o non viene annullata.
 

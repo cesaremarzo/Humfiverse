@@ -23,10 +23,18 @@ export interface AssetDocument {
   date: string;
 }
 
+/** §2.119: how the escrow releases a milestone. `advance` is paid to the
+ * artist as soon as the raise covers it, with no confirmation; `release`
+ * needs both confirmations and the published track's link. */
+export type MilestoneKindName = 'standard' | 'advance' | 'release';
+
 export interface Milestone {
   name: string;
   trancheAmount: number;
   status: 'active' | 'pending' | 'done';
+  kind?: MilestoneKindName;
+  /** §2.119: a release milestone's published track, once the artist names it. */
+  link?: string | null;
 }
 
 /** §2.105: the takedown grounds of legal/08 A-1 §1, as the backend names them. */
@@ -417,6 +425,9 @@ export interface EscrowMilestone {
    * they're only ever set by the artist's/studio's own wallet transaction. */
   artistConfirmed: boolean;
   studioConfirmed: boolean;
+  /** §2.119: absent from a backend or escrow older than the kinds. */
+  kind?: MilestoneKindName;
+  link?: string | null;
 }
 
 /** Live on-chain state for a preproduction asset's milestone escrow
@@ -543,7 +554,7 @@ export interface LaunchPayload {
   directSale: boolean;
   studioName: string;
   studioWallet: string;
-  milestones: { name: string; bps: number; payee: 'artist' | 'studio' }[];
+  milestones: { name: string; bps: number; payee: 'artist' | 'studio'; kind?: MilestoneKindName }[];
   /** §2.114: escrow campaigns only — unix seconds and bps of the goal. */
   raiseDeadline?: number;
   minRaiseBps?: number;

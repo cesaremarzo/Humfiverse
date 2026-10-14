@@ -75,6 +75,12 @@ import "./HumfiverseCatalogueToken.sol";
 ///         artist's own — two confirmations from one person. A campaign
 ///         with no studio stays possible, and there the artist's word alone
 ///         releases each tranche; that is disclosed, not prevented.
+///         Milestone kinds (§2.119): the artist may make the first milestone
+///         an ADVANCE, paid to the artist as soon as the raise covers it, with
+///         no confirmation — the contract already knows the money is in, so a
+///         studio signature there attested nothing. A RELEASE milestone (the
+///         track is out) still needs both confirmations, and the artist's
+///         carries a link to the published track, kept on chain.
 /// @dev Campaigns are created by the platform (the owner or the operator,
 ///      the backend's key), mirroring how HumfiverseCatalogueToken.mintCatalogue
 ///      is triggered by the backend after a user completes the onboarding
@@ -107,11 +113,23 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         ABANDONED
     }
 
+    /// @notice §2.119. STANDARD: artist and studio confirm. ADVANCE: first
+    ///         milestone only, paid to the artist, released by the raise
+    ///         alone. RELEASE: artist and studio confirm, and the artist's
+    ///         confirmation names the published track.
+    enum MilestoneKind {
+        STANDARD,
+        ADVANCE,
+        RELEASE
+    }
+
     struct Milestone {
         string name;
         uint16 bps; // share of fundingGoal this tranche represents, out of 10,000
         Payee payee;
         bool released;
+        MilestoneKind kind;
+        string link; // RELEASE: the published track, set by the artist's confirmation
     }
 
     struct Campaign {
@@ -246,6 +264,7 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     event MilestoneConfirmedByArtist(uint256 indexed campaignId, uint256 indexed milestoneIndex);
     event MilestoneConfirmedByStudio(uint256 indexed campaignId, uint256 indexed milestoneIndex);
     event MilestoneConfirmed(uint256 indexed campaignId, uint256 indexed milestoneIndex, address indexed payee, uint256 amount);
+    event ReleaseLinkSet(uint256 indexed campaignId, uint256 indexed milestoneIndex, string link);
     event CampaignCancelled(uint256 indexed campaignId, CancelGround ground, bytes32 decisionHash, uint256 refundPool, uint256 refundTokens);
     event Refunded(uint256 indexed campaignId, address indexed holder, uint256 tokensBurned, uint256 amount);
     event RaiseTermsSet(uint256 indexed campaignId, uint64 raiseDeadline, uint256 minRaise);
@@ -328,6 +347,7 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         string[] calldata milestoneNames,
         uint16[] calldata milestoneBps,
         Payee[] calldata milestonePayees,
+        MilestoneKind[] calldata milestoneKinds,
         uint64 raiseDeadline,
         uint16 minRaiseBps
     ) external onlyOwnerOrOperator returns (uint256 campaignId) {
@@ -353,7 +373,9 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         require(!catalogueToken.directSaleOf(tokenId), "HumfiverseMilestoneEscrow: token is on direct sale");
         require(catalogueToken.releasedOf(tokenId) == 0, "HumfiverseMilestoneEscrow: tokens already sold outside the escrow");
         require(
-            milestoneNames.length == milestoneBps.length && milestoneNames.length == milestonePayees.length,
+            milestoneNames.length == milestoneBps.length &&
+                milestoneNames.length == milestonePayees.length &&
+                milestoneNames.length == milestoneKinds.length,
             "HumfiverseMilestoneEscrow: length mismatch"
         );
         require(milestoneNames.length > 0, "HumfiverseMilestoneEscrow: no milestones");
@@ -369,6 +391,12 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
             totalBps += milestoneBps[i];
             if (milestonePayees[i] == Payee.STUDIO) {
                 require(studioId != 0, "HumfiverseMilestoneEscrow: studio milestone needs a studio");
+            }
+            // §2.119: an advance is the artist's money up front, so it comes
+            // first — every later milestone waits for it anyway.
+            if (milestoneKinds[i] == MilestoneKind.ADVANCE) {
+                require(i == 0, "HumfiverseMilestoneEscrow: only the first milestone can be an advance");
+                require(milestonePayees[i] == Payee.ARTIST, "HumfiverseMilestoneEscrow: an advance is paid to the artist");
             }
         }
         require(totalBps == 10_000, "HumfiverseMilestoneEscrow: bps must total 10000");
@@ -388,7 +416,14 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         campaignTokenId[campaignId] = tokenId;
         for (uint256 i = 0; i < milestoneNames.length; i++) {
             campaignMilestones[campaignId].push(
-                Milestone({name: milestoneNames[i], bps: milestoneBps[i], payee: milestonePayees[i], released: false})
+                Milestone({
+                    name: milestoneNames[i],
+                    bps: milestoneBps[i],
+                    payee: milestonePayees[i],
+                    released: false,
+                    kind: milestoneKinds[i],
+                    link: ""
+                })
             );
         }
         raiseDeadlineOf[campaignId] = raiseDeadline;
@@ -476,6 +511,10 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         // Tokens for the whole amount sent: the fee is the platform's share of
         // the price, not a smaller purchase.
         catalogueToken.releaseFromPool(msg.sender, tokenId, amount / price);
+
+        // §2.119: only a contribution can cover an advance, so this is the one
+        // place it needs checking; _tryRelease does nothing until it is covered.
+        if (campaignMilestones[campaignId][0].kind == MilestoneKind.ADVANCE) _tryRelease(campaignId, 0);
     }
 
     /// @notice The artist attests a milestone was genuinely met. Combined
@@ -486,14 +525,26 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     ///         artist's confirmation alone is sufficient, since there's no
     ///         second party to attest against.
     function confirmMilestoneAsArtist(uint256 campaignId, uint256 milestoneIndex) external nonReentrant {
-        Campaign storage c = campaigns[campaignId];
-        require(msg.sender == c.artist, "HumfiverseMilestoneEscrow: not this campaign's artist");
-        require(c.status == CampaignStatus.ACTIVE, "HumfiverseMilestoneEscrow: not active");
-        require(!raiseFailed(campaignId), "HumfiverseMilestoneEscrow: raise failed");
-        require(milestoneIndex < campaignMilestones[campaignId].length, "HumfiverseMilestoneEscrow: bad index");
-        require(!campaignMilestones[campaignId][milestoneIndex].released, "HumfiverseMilestoneEscrow: already released");
-        _requirePreviousReleased(campaignId, milestoneIndex);
+        require(msg.sender == campaigns[campaignId].artist, "HumfiverseMilestoneEscrow: not this campaign's artist");
+        Milestone storage m = _confirmable(campaignId, milestoneIndex);
+        require(m.kind != MilestoneKind.RELEASE, "HumfiverseMilestoneEscrow: a release needs the track's link");
         artistConfirmed[campaignId][milestoneIndex] = true;
+        emit MilestoneConfirmedByArtist(campaignId, milestoneIndex);
+        _tryRelease(campaignId, milestoneIndex);
+    }
+
+    /// @notice §2.119: the artist confirms a RELEASE milestone by naming the
+    ///         published track. The link stays on chain with the milestone;
+    ///         confirming again before the release replaces it. The studio
+    ///         still confirms separately, as on every milestone.
+    function confirmReleaseAsArtist(uint256 campaignId, uint256 milestoneIndex, string calldata link) external nonReentrant {
+        require(msg.sender == campaigns[campaignId].artist, "HumfiverseMilestoneEscrow: not this campaign's artist");
+        Milestone storage m = _confirmable(campaignId, milestoneIndex);
+        require(m.kind == MilestoneKind.RELEASE, "HumfiverseMilestoneEscrow: not a release milestone");
+        require(bytes(link).length > 0 && bytes(link).length <= 512, "HumfiverseMilestoneEscrow: link required");
+        m.link = link;
+        artistConfirmed[campaignId][milestoneIndex] = true;
+        emit ReleaseLinkSet(campaignId, milestoneIndex, link);
         emit MilestoneConfirmedByArtist(campaignId, milestoneIndex);
         _tryRelease(campaignId, milestoneIndex);
     }
@@ -507,14 +558,22 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         Campaign storage c = campaigns[campaignId];
         require(c.studioId != 0, "HumfiverseMilestoneEscrow: campaign has no studio");
         require(msg.sender == studios[c.studioId].wallet, "HumfiverseMilestoneEscrow: not this campaign's studio");
-        require(c.status == CampaignStatus.ACTIVE, "HumfiverseMilestoneEscrow: not active");
-        require(!raiseFailed(campaignId), "HumfiverseMilestoneEscrow: raise failed");
-        require(milestoneIndex < campaignMilestones[campaignId].length, "HumfiverseMilestoneEscrow: bad index");
-        require(!campaignMilestones[campaignId][milestoneIndex].released, "HumfiverseMilestoneEscrow: already released");
-        _requirePreviousReleased(campaignId, milestoneIndex);
+        _confirmable(campaignId, milestoneIndex);
         studioConfirmed[campaignId][milestoneIndex] = true;
         emit MilestoneConfirmedByStudio(campaignId, milestoneIndex);
         _tryRelease(campaignId, milestoneIndex);
+    }
+
+    /// @notice The checks both sides' confirmations share. An ADVANCE is not
+    ///         confirmed by anyone: the raise releases it (§2.119).
+    function _confirmable(uint256 campaignId, uint256 milestoneIndex) private view returns (Milestone storage m) {
+        require(campaigns[campaignId].status == CampaignStatus.ACTIVE, "HumfiverseMilestoneEscrow: not active");
+        require(!raiseFailed(campaignId), "HumfiverseMilestoneEscrow: raise failed");
+        require(milestoneIndex < campaignMilestones[campaignId].length, "HumfiverseMilestoneEscrow: bad index");
+        m = campaignMilestones[campaignId][milestoneIndex];
+        require(!m.released, "HumfiverseMilestoneEscrow: already released");
+        require(m.kind != MilestoneKind.ADVANCE, "HumfiverseMilestoneEscrow: an advance releases on funding");
+        _requirePreviousReleased(campaignId, milestoneIndex);
     }
 
     /// @notice Tranches release in the order the artist set them at campaign
@@ -543,7 +602,8 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
     ///         fees accrue in this same balance, from the platform's fees.
     ///         Deliberately private and side-effect-only: there is no public
     ///         function anywhere in this contract that releases a milestone
-    ///         on a single party's say-so, Humfiverse's included. If the two
+    ///         on a single party's say-so, Humfiverse's included. An ADVANCE
+    ///         (§2.119) is released on nobody's say-so: by the raise alone. If the two
     ///         sides never agree, this simply never runs — the funds stay in
     ///         the contract indefinitely (no arbitration/timeout here).
     function _tryRelease(uint256 campaignId, uint256 milestoneIndex) private {
@@ -554,8 +614,10 @@ contract HumfiverseMilestoneEscrow is Ownable, ReentrancyGuard {
         Milestone storage m = milestones[milestoneIndex];
         if (m.released) return;
 
-        bool studioSideDone = c.studioId == 0 || studioConfirmed[campaignId][milestoneIndex];
-        if (!(artistConfirmed[campaignId][milestoneIndex] && studioSideDone)) return;
+        if (m.kind != MilestoneKind.ADVANCE) {
+            bool studioSideDone = c.studioId == 0 || studioConfirmed[campaignId][milestoneIndex];
+            if (!(artistConfirmed[campaignId][milestoneIndex] && studioSideDone)) return;
+        }
 
         // §2.114: nothing leaves before the minimum is in.
         if (!minRaiseReached(campaignId)) return;

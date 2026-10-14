@@ -1,4 +1,5 @@
 import { Component, computed, effect, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { IconComponent } from '../../shared/icon.component';
 import { ApiService } from '../../core/api.service';
@@ -21,7 +22,7 @@ type LoadedCampaignRow = Extract<CampaignRow, { escrow: true }>;
 @Component({
   selector: 'app-artist-milestones',
   standalone: true,
-  imports: [AddressComponent, TranslatePipe, IconComponent],
+  imports: [AddressComponent, TranslatePipe, IconComponent, FormsModule],
   templateUrl: './artist-milestones.component.html'
 })
 export class ArtistMilestonesComponent {
@@ -30,6 +31,8 @@ export class ArtistMilestonesComponent {
   loaded = signal(false);
   error = signal<string | null>(null);
   confirming = signal<string | null>(null); // `${campaignId}-${milestoneIndex}`
+  /** §2.119: the published track's link typed for a release milestone. */
+  links: Record<string, string> = {};
 
   fmt = fmtUSD;
   usdcToUsd = usdcToUsd;
@@ -86,8 +89,15 @@ export class ArtistMilestonesComponent {
     return !m.released && m.index > 0 && !c.milestones[m.index - 1].released;
   }
 
+  /** §2.119: what the contract accepts for a release, kept to a web link. */
+  validLink(value: string | undefined): boolean {
+    const v = (value ?? '').trim();
+    return /^https?:\/\/\S+$/.test(v) && v.length <= 512;
+  }
+
   statusKey(m: LoadedCampaignRow['milestones'][number]): string {
     if (m.released) return 'escrowStatus.released';
+    if (m.kind === 'advance') return 'escrowStatus.advance';
     if (!m.artistConfirmed && !m.studioConfirmed) return 'escrowStatus.artist.waitingOnBoth';
     if (m.studioConfirmed) return 'escrowStatus.artist.waitingOnYou';
     return 'escrowStatus.artist.waitingOnStudio';
@@ -95,12 +105,16 @@ export class ArtistMilestonesComponent {
 
   async confirm(campaign: LoadedCampaignRow, milestoneIndex: number): Promise<void> {
     const key = `${campaign.campaignId}-${milestoneIndex}`;
+    const isRelease = campaign.milestones[milestoneIndex]?.kind === 'release';
+    const link = isRelease ? (this.links[key] ?? '').trim() : undefined;
+    if (isRelease && !this.validLink(link)) return;
     this.confirming.set(key);
     try {
       await this.wallet.confirmMilestoneAsArtist({
         contractAddress: campaign.contractAddress,
         campaignId: campaign.campaignId,
-        milestoneIndex
+        milestoneIndex,
+        link
       });
       this.toast.show(this.translate.instant('artistMilestones.confirmSuccess'), 'checkCircle');
       this.load();

@@ -87,6 +87,11 @@ PRE-PRODUCTION CAMPAIGNS
   confirm the milestone themselves. A campaign with no studio is released on
   the artist's confirmation alone. If they disagree the money stays in the
   escrow — there is no arbitration, on purpose.
+- One exception (§2.119): the artist may make the first tranche an advance,
+  paid to the artist as soon as the raise covers it and the minimum is in,
+  with no confirmation. The campaign page marks it. The last milestone of a
+  pre-production campaign, the release, is confirmed by the artist with the
+  link to the published track, kept on chain, and by the studio.
 - Every campaign has a raise deadline and a minimum, set by the artist and
   fixed on chain (§2.114). No tranche is paid until the minimum is raised. If
   the deadline passes below it, the campaign fails by rule — nobody decides

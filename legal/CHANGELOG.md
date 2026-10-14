@@ -4,6 +4,26 @@ Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
 
+## 2026-10-14 · Anticipo e uscita con link (technical §2.119)
+
+Decisione dell'utente: la conferma dello studio su una tappa come "raccolta
+raggiunta" non attestava nulla. L'artista può ora rendere la **prima tranche un
+anticipo**, pagato appena la raccolta lo copre e la soglia minima è raggiunta,
+senza conferme e **senza tetto** (scelta dell'utente). La tappa di **uscita**
+resta con la doppia conferma e l'artista allega il link al brano pubblicato,
+registrato sulla catena. Contratto escrow da ridistribuire (nono redeploy, solo
+escrow, nessuna campagna da spostare).
+
+- **02**: tabella §1, nota in C-3, nuovo **C-17** (anticipo senza conferme e
+  senza tetto), indirizzo e hash dell'escrow, 149 test.
+- **04 §5.3**, **06 §2.2** (IT/EN, con la percentuale da indicare), **08 A-5**
+  punti 1-bis e 3-bis.
+- **07 B9** (nuova): anticipo senza tetto, ECSPR, consumatori, AIFMD.
+- **03**: **W-23** (whitepaper cap. 2, 3, 6, 8), **non applicata**; §B al
+  template v0.7-draft, che descrive anticipo e link nella clausola `milestones`.
+- La guida (`assistant-knowledge.js` e `assistant.kb.milestones.a` nelle nove
+  lingue) e i testi della pagina della campagna dicono dell'eccezione.
+
 ## 2026-10-13 · Malta confermata, Wyoming escluso (file 10 §5.4)
 
 Chiamata dell'utente con un transfer manager per costituire la società a Malta.

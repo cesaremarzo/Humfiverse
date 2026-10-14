@@ -94,3 +94,30 @@ test("requireMatch compares case-insensitively and refuses a different value", (
   assert.doesNotThrow(() => requireMatch("w", artist.address.toUpperCase().replace("0X", "0x"), artist.address.toLowerCase()));
   assert.throws(() => requireMatch("w", other.address, artist.address), { code: "unauthorized" });
 });
+
+test("milestone kinds (§2.119): standard is the default and adds nothing to the text", () => {
+  const { payload, message } = prepareLaunch(escrowLaunch());
+  assert.equal(payload.milestones[0].kind, "standard");
+  assert.match(message, /^Milestones: Recording \| 10000 bps \| studio$/m);
+});
+
+test("an advance and a release are spelled out in the signed text", async () => {
+  const milestones = [
+    { name: "Advance", bps: 2_000, payee: "artist", kind: "advance" },
+    { name: "Studio", bps: 7_000, payee: "studio" },
+    { name: "Out", bps: 1_000, payee: "artist", kind: "release" }
+  ];
+  const { payload, message, signature } = await signed(escrowLaunch({ milestones }));
+  assert.match(message, /Advance \| 2000 bps \| artist \| advance: paid as soon as the raise covers it, no confirmation;/);
+  assert.match(message, /Out \| 1000 bps \| artist \| release: confirmed by artist and studio, with the published track's link/);
+  verifyLaunch({ payload, signature });
+  const changed = payload.milestones.map((m, i) => (i === 0 ? { ...m, kind: "standard" } : m));
+  assert.throws(() => verifyLaunch({ payload: { ...payload, milestones: changed }, signature }), { code: "unauthorized" });
+});
+
+test("an advance must be the first milestone and paid to the artist", () => {
+  const two = (a, b) => escrowLaunch({ milestones: [a, b] });
+  assert.throws(() => prepareLaunch(two({ name: "a", bps: 5_000, payee: "artist" }, { name: "b", bps: 5_000, payee: "artist", kind: "advance" })), /only the first milestone/);
+  assert.throws(() => prepareLaunch(two({ name: "a", bps: 5_000, payee: "studio", kind: "advance" }, { name: "b", bps: 5_000, payee: "artist" })), /only the first milestone/);
+  assert.throws(() => prepareLaunch(two({ name: "a", bps: 5_000, payee: "artist", kind: "bonus" }, { name: "b", bps: 5_000, payee: "artist" })), /kind must be/);
+});

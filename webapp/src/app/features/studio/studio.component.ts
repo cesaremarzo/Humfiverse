@@ -91,6 +91,7 @@ export class StudioComponent {
 
   statusKey(m: LoadedCampaignRow['milestones'][number]): string {
     if (m.released) return 'escrowStatus.released';
+    if (m.kind === 'advance') return 'escrowStatus.advance';
     if (!m.artistConfirmed && !m.studioConfirmed) return 'escrowStatus.studio.waitingOnBoth';
     if (m.artistConfirmed) return 'escrowStatus.studio.waitingOnYou';
     return 'escrowStatus.studio.waitingOnArtist';

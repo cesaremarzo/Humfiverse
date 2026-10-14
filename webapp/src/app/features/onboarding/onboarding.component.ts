@@ -36,8 +36,7 @@ import {
   draftSupply,
   raiseTerms,
   raiseRuleOnChain,
-  RAISE_MAX_DAYS
-} from './campaign-draft.util';
+  RAISE_MAX_DAYS, escrowMilestonesFor } from './campaign-draft.util';
 
 type MilestoneKind = 'preprod' | 'catalogue';
 
@@ -183,6 +182,19 @@ export class OnboardingComponent {
      its four named stages, which describe making a track. */
   updateMilestoneName(index: number, value: string): void {
     this.data.update((d) => ({ ...d, catalogueMilestones: d.catalogueMilestones.map((m, i) => (i === index ? { ...m, name: value.slice(0, MILESTONE_NAME_MAX) } : m)) }));
+  }
+
+  /** §2.119: whether the first preproduction tranche is an advance — paid to
+   * the artist as soon as the raise covers it, with no confirmation. */
+  preprodAdvance(): boolean {
+    return this.data().preprodMilestones[0]?.kind === 'advance';
+  }
+
+  setPreprodAdvance(enabled: boolean): void {
+    this.data.update((d) => ({
+      ...d,
+      preprodMilestones: d.preprodMilestones.map((m, i) => (i === 0 ? { ...m, kind: enabled ? 'advance' : 'standard' } : m))
+    }));
   }
 
   updateMilestonePayee(index: number, payee: 'artist' | 'studio'): void {
@@ -423,7 +435,7 @@ export class OnboardingComponent {
     // escrow, so its token is never open to a direct purchase.
     const directSale = !(isPre || d.catalogueCampaign.enabled);
     const escrowStudio = isPre ? d.preprod : d.catalogueCampaign.enabled ? d.catalogueCampaign : null;
-    const escrowMilestones = isPre ? d.preprodMilestones : d.catalogueCampaign.enabled ? d.catalogueMilestones : [];
+    const escrowMilestones = escrowMilestonesFor(isPre ? d.preprodMilestones : d.catalogueCampaign.enabled ? d.catalogueMilestones : [], isPre);
     // §2.114: signed with the rest, and only for an escrow campaign.
     const raiseRule = directSale ? null : raiseRuleOnChain(d.raiseRule);
     if (!directSale && !raiseRule) {
@@ -456,7 +468,7 @@ export class OnboardingComponent {
           directSale,
           studioName: escrowStudio?.studioName ?? '',
           studioWallet: escrowStudio?.studioWallet ?? '',
-          milestones: escrowMilestones.map((m) => ({ name: m.name, bps: m.bps, payee: m.payee })),
+          milestones: escrowMilestones,
           ...(raiseRule ?? {})
         });
         launch = { payload: prepared.payload, signature: await this.wallet.signMessage(prepared.message) };

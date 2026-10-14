@@ -107,6 +107,11 @@
             <div class="hint" style="margin:-4px 0 8px;">{{ 'wizMilestones.rowBreakdown' | translate: { fees: fmtExact(m.feesUsd), contribution: fmtExact(m.contributionFeeUsd), milestone: fmtExact(m.milestoneFeeUsd), payee: ((m.payee === 'studio' ? 'wizMilestones.payeeStudio' : 'wizMilestones.payeeArtist') | translate), net: fmtExact(m.payeeUsd) } }}</div>
           }
           <div class="budget-total"><span>{{ 'wizMilestones.totalLabel' | translate }}</span><span class="mono">{{ milestoneTotalPercent('preprod') }}%</span></div>
+          <label style="display:flex; gap:8px; align-items:flex-start; margin-top:10px; font-size:13px;">
+            <input type="checkbox" id="preprod-advance" [checked]="preprodAdvance()" (change)="setPreprodAdvance($any($event.target).checked)">
+            <span><strong>{{ 'wizMilestones.advanceLabel' | translate: { name: data().preprodMilestones[0]?.name } }}</strong><br><span class="hint">{{ 'wizMilestones.advanceHint' | translate }}</span></span>
+          </label>
+          <p class="hint" style="margin-top:6px;">{{ 'wizMilestones.releaseHint' | translate: { name: data().preprodMilestones[data().preprodMilestones.length - 1]?.name } }}</p>
           @if (milestonesValid('preprod')) {
             @let sum = milestoneSummary('preprod');
             <p class="hint" style="margin-top:6px;">{{ 'wizMilestones.summary' | translate: { goal: fmtExact(sum.goalUsd), fees: fmtExact(sum.feesUsd), net: fmtExact(sum.payeeUsd) } }}</p>

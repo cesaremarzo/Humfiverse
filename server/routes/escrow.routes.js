@@ -32,6 +32,7 @@ module.exports = function registerEscrowRoutes(router) {
         requireMatch(`milestones[${i}].name`, m?.name, launch.milestones[i].name);
         requireMatch(`milestones[${i}].bps`, Number(m?.bps), launch.milestones[i].bps);
         requireMatch(`milestones[${i}].payee`, m?.payee === "studio" ? "studio" : "artist", launch.milestones[i].payee);
+        requireMatch(`milestones[${i}].kind`, m?.kind || "standard", launch.milestones[i].kind);
       });
       if (!escrowChain.writeEnabled()) {
         sendJson(res, 503, { error: "escrow admin actions are disabled on this server (no operator key configured)" });

@@ -25,7 +25,7 @@ import {
   RedeemResult,
   RoyaltyMonth,
   SecondaryListing, FeeSummary, RegistrationStatus, MediaKind,
-  AssistantStatus, AssistantAnswer, TakedownCase, TakedownCaseList, TakedownPublic, TakedownSafeTransaction } from './models';
+  AssistantStatus, AssistantAnswer, TakedownCase, TakedownCaseList, TakedownPublic, TakedownSafeTransaction, MilestoneKindName } from './models';
 
 /** A studio registered on the escrow after Humfiverse verified it (§2.110). */
 export interface EscrowStudio {
@@ -272,7 +272,7 @@ export class ApiService {
     artistAddress: string;
     studioName: string;
     studioWallet: string;
-    milestones: { name: string; bps: number; payee: 'artist' | 'studio' }[];
+    milestones: { name: string; bps: number; payee: 'artist' | 'studio'; kind?: MilestoneKindName }[];
     launch: LaunchAuthorization;
   }): Promise<EscrowCampaignCreateResult> {
     return firstValueFrom(this.http.post<EscrowCampaignCreateResult>(`${this.base}/api/escrow/campaign`, payload));

@@ -1,4 +1,4 @@
-import { Asset, Campaign, Milestone } from '../../core/models';
+import { Asset, Campaign, Milestone, MilestoneKindName } from '../../core/models';
 import type { WizardData, WizardStepKey } from './onboarding.model';
 import { isValidWalletAddress } from './onboarding.model';
 import { CONTRIBUTION_FEE_BPS } from '../../core/primary-fee.util';
@@ -21,6 +21,8 @@ export interface MilestoneTemplate {
   name: string;
   bps: number;
   payee: 'artist' | 'studio';
+  /** §2.119: how the escrow releases it; absent means standard. */
+  kind?: MilestoneKindName;
 }
 
 /**
@@ -40,8 +42,21 @@ export const PREPRODUCTION_MILESTONES: MilestoneTemplate[] = [
   { name: 'Funding goal reached', bps: 2000, payee: 'artist' },
   { name: 'Studio & collaborators booked', bps: 4000, payee: 'studio' },
   { name: 'Mix & master delivered', bps: 3000, payee: 'artist' },
-  { name: 'Release confirmed on DSPs', bps: 1000, payee: 'artist' }
+  { name: 'Release confirmed on DSPs', bps: 1000, payee: 'artist', kind: 'release' }
 ];
+
+/** §2.119: the milestones as the escrow receives them. A preproduction
+ * campaign's last stage is the release, confirmed with the published
+ * track's link — a draft saved before kinds existed gets it too. An advance
+ * stays only where the contract accepts one: first, paid to the artist. */
+export function escrowMilestonesFor(milestones: MilestoneTemplate[], preprod: boolean): { name: string; bps: number; payee: 'artist' | 'studio'; kind: MilestoneKindName }[] {
+  return milestones.map((m, i) => {
+    let kind: MilestoneKindName = m.kind ?? 'standard';
+    if (kind === 'advance' && (i !== 0 || m.payee !== 'artist')) kind = 'standard';
+    if (preprod && i === milestones.length - 1 && kind === 'standard') kind = 'release';
+    return { name: m.name, bps: m.bps, payee: m.payee, kind };
+  });
+}
 
 /** The optional follow-on raise a catalogue can run for extras around an
  * already-finished track — only the *starting* point since §2.75: the artist
@@ -138,7 +153,8 @@ export function milestonesForDisplay(templates: MilestoneTemplate[], totalUsd: n
   return templates.map((t) => ({
     name: t.name,
     trancheAmount: trancheUsd(totalUsd, t.bps),
-    status: 'pending' as const
+    status: 'pending' as const,
+    kind: t.kind ?? 'standard'
   }));
 }
 

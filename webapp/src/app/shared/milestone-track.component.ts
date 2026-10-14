@@ -12,10 +12,13 @@ import { fmtUSD } from '../core/format.util';
       @for (m of milestones; track m.name) {
         <div class="milestone" [class]="m.status" [style.--p]="m.status === 'active' ? '55%' : null">
           <div class="bar"><span></span></div>
-          <div class="milestone-label"><span class="name">{{ m.name }}</span></div>
+          <div class="milestone-label"><span class="name">{{ m.name }}</span>@if (m.kind === 'advance') {<span class="hint"> · {{ 'milestone.advance' | translate }}</span>}</div>
           <div class="milestone-label">
             <span class="amt">{{ fmt(m.trancheAmount) }} · {{ (m.status === 'done' ? 'milestone.released' : m.status === 'active' ? 'milestone.inProgress' : 'milestone.pending') | translate }}</span>
           </div>
+          @if (m.link) {
+            <div class="milestone-label"><a [href]="m.link" target="_blank" rel="noopener noreferrer">{{ 'milestone.publishedTrack' | translate }}</a></div>
+          }
         </div>
       }
     </div>
