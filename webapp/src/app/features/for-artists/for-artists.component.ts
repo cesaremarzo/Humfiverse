@@ -5,6 +5,7 @@ import { IconComponent } from '../../shared/icon.component';
 import { CampaignCardComponent } from '../../shared/campaign-card.component';
 import { StoreService } from '../../core/store.service';
 import { WalletService } from '../../core/wallet.service';
+import { contactHref } from '../../core/contact';
 
 @Component({
   selector: 'app-for-artists',
@@ -24,6 +25,8 @@ export class ForArtistsComponent {
   });
 
   constructor(public store: StoreService, public wallet: WalletService) {}
+
+  contactHref = contactHref;
 
   /** Relative heights of the hero waveform, the brand mark's profile. */
   eqBars = [0.28, 0.46, 0.64, 0.82, 1, 0.82, 0.64, 0.46, 0.28];
