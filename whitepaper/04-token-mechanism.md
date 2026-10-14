@@ -26,7 +26,7 @@ Five fees, all enforced by the contracts rather than by anyone's discretion, and
 
 - **6% of a direct catalogue purchase**, once. It is included in the price, not added to it: you pay the listed price, receive every token, and 94% goes to the rights holder.
 - **2% of every contribution to a campaign** released by milestones, included in the price the same way: 98% goes into the campaign's escrow. This 2% is not refunded if the campaign is cancelled or fails to raise its minimum.
-- **3% of each pre-production tranche, as it is released.** When the artist and the studio both confirm a milestone, the contract pays them 97% of that tranche. A tranche that is never released is never charged. Tranches are sized against what a sold-out campaign actually holds — its goal less the 2% — so every milestone can still be paid in full.
+- **3% of each pre-production tranche, as it is released.** When a tranche is released — once the artist and the studio both confirm its milestone, or, for an advance, once the raise covers it — the contract pays 97% of it. A tranche that is never released is never charged. Tranches are sized against what a sold-out campaign actually holds — its goal less the 2% — so every milestone can still be paid in full.
 - **1% of every resale payment**, as above.
 - **1% of every royalty deposit**, kept before the rest is shared among holders (see [Technical Architecture](03-technical-architecture.md)).
 

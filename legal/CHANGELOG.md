@@ -4,6 +4,13 @@ Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
 
+## 2026-10-14 · W-23 applicata al whitepaper
+
+Su richiesta dell'utente: cap. 2 (testo e diagramma), 3, 4 e 6 descrivono
+l'anticipo facoltativo sulla prima tranche e la conferma dell'uscita con il
+link al brano; cap. 8 aggiunge il rischio dell'anticipo (nessuna verifica,
+nessun tetto, non rimborsato in caso di annullamento). 03 W-23 segnata ✅.
+
 ## 2026-10-14 · Anticipo e uscita con link (technical §2.119)
 
 Decisione dell'utente: la conferma dello studio su una tappa come "raccolta
