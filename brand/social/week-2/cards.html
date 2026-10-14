@@ -1,0 +1,202 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#08090C;--surface:#101217;--raised:#13161C;--border:#21252E;--border2:#2E333E;--text:#EDEFF3;--text2:#9AA2B0;--muted:#6B7280;--violet:#A797FF;--accent:#6246EA;--green:#2DD4A0;--red:#F0606E}
+body{background:var(--bg);width:1600px;height:900px;overflow:hidden}
+.c{position:relative;width:1600px;height:900px;background:var(--bg);font-family:Geist,sans-serif;color:var(--text);overflow:hidden}
+.glow{position:absolute;inset:0;background:radial-gradient(900px 420px at 70% 40%,rgba(113,89,255,.18),transparent 70%),radial-gradient(700px 360px at 95% 95%,rgba(45,212,160,.08),transparent 70%)}
+.grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:56px 56px;-webkit-mask-image:radial-gradient(1000px 560px at 60% 50%,#000 25%,transparent 80%)}
+svg.bg{position:absolute;inset:0}
+.stv path{stroke:url(#sg);stroke-width:1.2;opacity:.28;fill:none}
+.head{position:absolute;left:80px;right:80px;top:56px;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:14px}
+.brand svg{width:44px;height:44px}
+.brand span{font-weight:600;font-size:30px;letter-spacing:-0.03em}
+.kick{font-family:"Geist Mono",monospace;font-size:17px;letter-spacing:.14em;text-transform:uppercase;color:var(--text2)}
+.kick b{color:var(--violet);font-weight:500}
+.body{position:absolute;left:80px;right:80px;top:150px;bottom:110px;display:flex;flex-direction:column}
+h1{font-weight:600;font-size:62px;line-height:1.06;letter-spacing:-0.035em;max-width:1300px}
+h1 em{font-style:normal;background:linear-gradient(95deg,#C9BFFF 0%,#A797FF 45%,#2DD4A0 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.sub{margin-top:18px;font-size:27px;line-height:1.35;color:var(--text2);max-width:1200px}
+.stage{flex:1;display:flex;align-items:center;justify-content:center}
+.foot{position:absolute;left:80px;right:80px;bottom:44px;display:flex;justify-content:space-between;align-items:center;font-family:"Geist Mono",monospace;font-size:15px;letter-spacing:.06em;color:var(--muted)}
+.foot .t{display:flex;gap:12px;align-items:center}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green)}
+/* building blocks */
+.box{background:var(--surface);border:1.5px solid var(--border2);border-radius:18px;padding:22px 26px}
+.lbl{font-family:"Geist Mono",monospace;font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:var(--text2)}
+.big{font-size:30px;font-weight:600;letter-spacing:-0.02em;margin-top:6px}
+.mono{font-family:"Geist Mono",monospace}
+.row{display:flex;align-items:center}
+.arrow{flex:none;width:90px;height:2px;background:linear-gradient(90deg,var(--violet),var(--green));position:relative;margin:0 14px}
+.arrow:after{content:"";position:absolute;right:-2px;top:-6px;border:7px solid transparent;border-left:10px solid var(--green);border-right:0}
+.pill{display:inline-flex;align-items:center;gap:10px;padding:10px 18px;border-radius:999px;border:1.5px solid var(--border2);background:var(--raised);font-size:20px}
+.ok{color:var(--green)} .no{color:var(--red)}
+.check{width:34px;height:34px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:20px;font-weight:600;flex:none}
+.check.ok{background:rgba(45,212,160,.14);border:1.5px solid rgba(45,212,160,.5)}
+.check.no{background:rgba(240,96,110,.12);border:1.5px solid rgba(240,96,110,.5)}
+.note{font-size:21px;color:var(--text2);line-height:1.4}
+.hide{display:none}
+</style></head><body><div class="c">
+<div class="glow"></div><div class="grid"></div>
+<svg class="bg" viewBox="0 0 1600 900" width="1600" height="900"><defs>
+<linearGradient id="sg" x1="0" x2="1"><stop offset="0" stop-color="#A797FF" stop-opacity="0"/><stop offset=".3" stop-color="#A797FF"/><stop offset=".8" stop-color="#2DD4A0"/><stop offset="1" stop-color="#2DD4A0" stop-opacity="0"/></linearGradient>
+</defs><g class="stv" id="stv"></g></svg>
+
+<div class="head">
+<div class="brand"><svg viewBox="0 0 120 120"><defs><linearGradient id="mk" gradientUnits="userSpaceOnUse" x1="16" y1="0" x2="104" y2="0"><stop offset="0" stop-color="#A797FF"/><stop offset="1" stop-color="#2DD4A0"/></linearGradient></defs><line x1="16" y1="28" x2="16" y2="92" stroke="url(#mk)" stroke-width="7" stroke-linecap="round"/><line x1="27" y1="30.1" x2="27" y2="89.9" stroke="url(#mk)" stroke-width="7" stroke-linecap="round" opacity=".95"/><line x1="38" y1="35.9" x2="38" y2="84.1" stroke="url(#mk)" stroke-width="7" stroke-linecap="round" opacity=".8"/><line x1="49" y1="44.7" x2="49" y2="75.3" stroke="url(#mk)" stroke-width="7" stroke-linecap="round" opacity=".6"/><line x1="60" y1="55" x2="60" y2="65" stroke="url(#mk)" stroke-width="7" stroke-linecap="round" opacity=".4"/><line x1="71" y1="44.7" x2="71" y2="75.3" stroke="url(#mk)" stroke-width="7" stroke-linecap="round" opacity=".6"/><line x1="82" y1="35.9" x2="82" y2="84.1" stroke="url(#mk)" stroke-width="7" stroke-linecap="round" opacity=".8"/><line x1="93" y1="30.1" x2="93" y2="89.9" stroke="url(#mk)" stroke-width="7" stroke-linecap="round" opacity=".95"/><line x1="104" y1="28" x2="104" y2="92" stroke="url(#mk)" stroke-width="7" stroke-linecap="round"/></svg><span>Humfiverse</span></div>
+<div class="kick" id="kick"></div>
+</div>
+
+<div class="body" id="body"></div>
+
+<div class="foot"><div class="t"><span class="dot"></span><span id="disc">Testnet prototype · No token has value or entitles you to royalties · Not an investment offer or advice</span></div><span>humfiverse.com</span></div>
+</div>
+
+<!-- ===== card contents ===== -->
+<template id="t1">
+<h1>Where does the money sit while <em>a song is being made?</em></h1>
+<div class="sub">Not in our account. Here is the path of one contribution, step by step.</div>
+<div class="stage"><div class="row">
+ <div class="box"><div class="lbl">01</div><div class="big">Supporter</div></div><div class="arrow"></div>
+ <div class="box" style="border-color:#5B4BC4"><div class="lbl">02</div><div class="big">Campaign escrow</div></div><div class="arrow"></div>
+ <div class="box"><div class="lbl">03</div><div class="big">Milestones</div></div><div class="arrow"></div>
+ <div class="box" style="border-color:#1F8F70"><div class="lbl">04</div><div class="big">Released track</div></div>
+</div></div>
+</template>
+
+<template id="t2">
+<h1>Every campaign's money <em>is kept apart.</em></h1>
+<div class="sub">The escrow contract keeps a separate ledger for each campaign. A raise can only pay that campaign's milestones or refund its supporters. It never passes through Humfiverse's account, and every movement is public on Etherscan.</div>
+<div class="stage"><div class="row" style="gap:0">
+ <div style="display:flex;flex-direction:column;gap:14px">
+  <div class="pill">Supporter A</div><div class="pill">Supporter B</div><div class="pill">Supporter C</div>
+ </div>
+ <div class="arrow" style="width:120px"></div>
+ <div class="box" style="width:470px;border-color:#5B4BC4;box-shadow:0 0 60px rgba(98,70,234,.25)">
+  <div class="lbl">Smart contract · Ethereum Sepolia</div>
+  <div class="big">Campaign #12 ledger</div>
+  <div class="mono" style="margin-top:14px;font-size:19px;color:var(--text2)">HumfiverseMilestoneEscrow<br>0xCB57…86e5 · verified</div>
+ </div>
+ <div style="width:70px"></div>
+ <div class="box" style="width:330px;border-style:dashed;opacity:.75">
+  <div class="lbl">Humfiverse</div>
+  <div class="big" style="font-size:24px;color:var(--text2)">Can't take the raise</div>
+  <div class="note" style="margin-top:8px;font-size:18px">No function lets the platform release a tranche or send the raise to itself.</div>
+ </div>
+</div></div>
+</template>
+
+<template id="t3">
+<h1>Paid in tranches, <em>as the work happens.</em></h1>
+<div class="sub">The artist splits the raise into milestones before the campaign opens. Each one releases only its share.</div>
+<div class="stage" style="flex-direction:column;align-items:stretch;justify-content:center;gap:22px">
+ <div style="display:flex;height:96px;border-radius:16px;overflow:hidden;border:1.5px solid var(--border2)">
+  <div style="flex:20;background:linear-gradient(180deg,#7B66F0,#5B47D6);display:flex;align-items:center;padding-left:22px;font-size:34px;font-weight:600">20%</div>
+  <div style="flex:40;background:linear-gradient(180deg,#5C6BD8,#4655BE);display:flex;align-items:center;padding-left:22px;font-size:34px;font-weight:600;border-left:3px solid var(--bg)">40%</div>
+  <div style="flex:30;background:linear-gradient(180deg,#3B8FB8,#2D789E);display:flex;align-items:center;padding-left:22px;font-size:34px;font-weight:600;border-left:3px solid var(--bg)">30%</div>
+  <div style="flex:10;background:linear-gradient(180deg,#2DD4A0,#1FA87F);display:flex;align-items:center;padding-left:16px;font-size:30px;font-weight:600;color:#06231A;border-left:3px solid var(--bg)">10%</div>
+ </div>
+ <div style="display:flex">
+  <div style="flex:20;padding-right:18px"><div class="big" style="font-size:24px">Funding goal</div><div class="note">→ Artist<br><span style="color:var(--violet)">can be an advance</span></div></div>
+  <div style="flex:40;padding-right:18px"><div class="big" style="font-size:24px">Studio booked</div><div class="note">→ Studio</div></div>
+  <div style="flex:30;padding-right:18px"><div class="big" style="font-size:24px">Mix &amp; master</div><div class="note">→ Artist</div></div>
+  <div style="flex:10"><div class="big" style="font-size:24px">Release</div><div class="note">→ Artist</div></div>
+ </div>
+ <div class="mono" style="font-size:16px;color:var(--muted);letter-spacing:.06em">DEFAULT SPLIT · THE ARTIST SETS THEIR OWN · EACH TRANCHE AFTER THE ONE BEFORE</div>
+</div>
+</template>
+
+<template id="t4">
+<h1>Two keys <em>for every tranche.</em></h1>
+<div class="sub">The artist and the studio confirm each milestone, separately, from their own wallets. Only both together release the money.</div>
+<div class="stage" style="flex-direction:column;gap:30px">
+ <div class="row">
+  <div class="box row" style="gap:16px;width:250px"><span class="check ok">✓</span><div><div class="lbl">Artist wallet</div><div class="big" style="font-size:26px">Confirms</div></div></div>
+  <div style="font-size:40px;color:var(--muted);margin:0 22px">+</div>
+  <div class="box row" style="gap:16px;width:250px"><span class="check ok">✓</span><div><div class="lbl">Studio wallet</div><div class="big" style="font-size:26px">Confirms</div></div></div>
+  <div class="arrow"></div>
+  <div class="box" style="width:270px;border-color:#1F8F70;box-shadow:0 0 50px rgba(45,212,160,.18)"><div class="lbl ok">Released</div><div class="big" style="font-size:26px">Tranche paid out</div></div>
+ </div>
+ <div class="row" style="opacity:.9">
+  <div class="box row" style="gap:16px;width:250px"><span class="check ok">✓</span><div><div class="lbl">Artist wallet</div><div class="big" style="font-size:26px">Confirms</div></div></div>
+  <div style="font-size:40px;color:var(--muted);margin:0 22px">+</div>
+  <div class="box row" style="gap:16px;width:250px"><span class="check no">✕</span><div><div class="lbl">Studio wallet</div><div class="big" style="font-size:26px">Doesn't</div></div></div>
+  <div class="arrow"></div>
+  <div class="box" style="width:270px;border-style:dashed"><div class="lbl">Held</div><div class="big" style="font-size:26px">Stays in escrow</div></div>
+ </div>
+ <div class="note" style="text-align:center">No arbitration, no timeout. No studio on the campaign: the artist's confirmation alone.</div>
+</div>
+</template>
+
+<template id="t5">
+<h1>The release is proven <em>with a link.</em></h1>
+<div class="sub">The last milestone pays out only when the artist confirms it with the published track. The link is written into the contract, for good.</div>
+<div class="stage">
+ <div class="box mono" style="width:1180px;padding:30px 36px;font-size:23px;line-height:1.7;background:#0C0E13">
+  <div style="color:var(--muted)">// HumfiverseMilestoneEscrow</div>
+  <div><span style="color:var(--violet)">confirmReleaseAsArtist</span>(</div>
+  <div style="padding-left:36px">campaignId: <span class="ok">12</span>,</div>
+  <div style="padding-left:36px">milestoneIndex: <span class="ok">3</span>,</div>
+  <div style="padding-left:36px">link: <span style="color:#F2C879">"https://open.spotify.com/track/…"</span></div>
+  <div>)</div>
+  <div style="margin-top:10px;color:var(--text2)">→ event <span style="color:var(--violet)">ReleaseLinkSet</span>(12, 3, "https://open.spotify.com/track/…")</div>
+ </div>
+</div>
+<div class="kick" style="text-align:right;margin-top:-6px">plus the studio's confirmation · then the last tranche is paid</div>
+</template>
+
+<template id="t6">
+<h1>"It's out" proves nothing. <em>A link does.</em></h1>
+<div class="sub">Why the release milestone now needs the published track's link.</div>
+<div class="stage"><div class="row" style="gap:40px;align-items:stretch">
+ <div class="box" style="width:600px;border-style:dashed;opacity:.8">
+  <div class="lbl">Before</div>
+  <div class="row" style="gap:16px;margin-top:22px"><span class="check ok">✓</span><span class="big" style="margin:0;font-size:28px">Release confirmed</span></div>
+  <div class="note" style="margin-top:22px">Artist and studio said yes. Nothing anyone could open and listen to.</div>
+ </div>
+ <div class="box" style="width:600px;border-color:#1F8F70;box-shadow:0 0 50px rgba(45,212,160,.15)">
+  <div class="lbl ok">Now</div>
+  <div class="row" style="gap:16px;margin-top:22px"><span class="check ok">✓</span><span class="big" style="margin:0;font-size:28px">Release confirmed</span></div>
+  <div class="mono" style="margin-top:16px;font-size:19px;color:#F2C879;padding:12px 16px;border:1px solid var(--border2);border-radius:10px;background:#0C0E13">open.spotify.com/track/…</div>
+  <div class="note" style="margin-top:16px">Stored on chain with the milestone. Every supporter can press play.</div>
+ </div>
+</div></div>
+</template>
+
+<template id="t7">
+<h1>Studios: you're paid at every <em>milestone you confirm.</em></h1>
+<div class="sub">We're looking for founding studios to shape how campaigns work, on the testnet prototype.</div>
+<div class="stage" style="justify-content:flex-start"><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:26px;width:100%">
+ <div class="box" style="padding:30px"><div class="lbl" style="color:var(--violet)">01</div><div class="big" style="font-size:28px;margin-top:12px">Your share is set up front</div><div class="note" style="margin-top:12px">The milestone and its percentage are fixed before the campaign opens.</div></div>
+ <div class="box" style="padding:30px"><div class="lbl" style="color:var(--violet)">02</div><div class="big" style="font-size:28px;margin-top:12px">Nobody confirms for you</div><div class="note" style="margin-top:12px">A tranche needs your signature, from your wallet. Not ours, not the artist's alone.</div></div>
+ <div class="box" style="padding:30px"><div class="lbl" style="color:var(--violet)">03</div><div class="big" style="font-size:28px;margin-top:12px">Paid by the contract</div><div class="note" style="margin-top:12px">When both sides confirm, the escrow pays the studio's wallet directly.</div></div>
+</div></div>
+<div class="row" style="justify-content:space-between"><span class="pill" style="border-color:#5B4BC4">Founding studios → hello@humfiverse.com</span><span class="kick">Verified studios only</span></div>
+</template>
+
+<template id="t8">
+<h1>Quante tappe ha di solito <em>la vostra produzione?</em></h1>
+<div class="sub">Su Humfiverse l'artista divide la raccolta in tappe, e ogni tappa sblocca solo la sua parte. Diteci come lavorate davvero.</div>
+<div class="stage" style="flex-direction:column;gap:24px;align-items:flex-start">
+ <div class="row" style="gap:14px;flex-wrap:wrap">
+  <span class="pill">Pre-produzione</span><span class="pill">Studio prenotato</span><span class="pill">Registrazione</span><span class="pill">Mix</span><span class="pill">Master</span><span class="pill">Artwork</span><span class="pill">Uscita</span><span class="pill" style="border-style:dashed;color:var(--text2)">+ altro?</span>
+ </div>
+ <div class="note">Rispondete nel gruppo: quali tappe, in che ordine, e chi dovrebbe confermarle.</div>
+</div>
+</template>
+
+<script>
+const q=new URLSearchParams(location.search), n=q.get('card')||'1';
+const kicks={1:'How the money moves · <b>1/5</b>',2:'How the money moves · <b>2/5</b>',3:'How the money moves · <b>3/5</b>',4:'How the money moves · <b>4/5</b>',5:'How the money moves · <b>5/5</b>',6:'Build in public · <b>W-23</b>',7:'<b>For studios</b>',8:'<b>Domanda della settimana</b>'};
+document.getElementById('kick').innerHTML=kicks[n];
+document.getElementById('body').appendChild(document.getElementById('t'+n).content.cloneNode(true));
+if(n==='8')document.getElementById('disc').textContent='Prototipo su rete di test · Nessun token ha valore o dà diritto a royalty · Nessuna offerta di investimento';
+const g=document.getElementById('stv');
+function staff(y0,amp,ph,freq,gap){for(let k=0;k<5;k++){let d='';for(let x=-30;x<=1630;x+=8){const t=x/1600;
+const y=y0+k*gap*(1+0.35*Math.sin(t*3.1+ph))+amp*Math.sin(t*Math.PI*freq+ph)+amp*0.35*Math.sin(t*Math.PI*freq*2.3+ph*1.7);
+d+=(d?' L':'M')+x+' '+y.toFixed(1)}const p=document.createElementNS('http://www.w3.org/2000/svg','path');p.setAttribute('d',d);g.appendChild(p)}}
+const seeds={1:[120,1.2],2:[780,2.4],3:[760,0.4],4:[110,3.1],5:[790,1.8],6:[100,2.7],7:[800,0.9],8:[780,3.6]}[n];
+staff(seeds[0],40,seeds[1],1.5,10);
+</script></body></html>
