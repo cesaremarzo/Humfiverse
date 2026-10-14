@@ -368,7 +368,7 @@
             <thead><tr><th>{{ 'wizMilestones.title' | translate }}</th><th class="cell-num">%</th><th class="cell-num">{{ 'wizMilestones.colShare' | translate }}</th><th class="cell-num">{{ 'wizMilestones.colFees' | translate }}</th><th class="cell-num">{{ 'wizMilestones.colNet' | translate }}</th></tr></thead>
             <tbody>
               @for (m of milestoneRows('preprod'); track $index) {
-                <tr><td>{{ m.name }}</td><td class="cell-num mono">{{ m.percent }}%</td><td class="cell-num mono">{{ fmtExact(m.shareUsd) }}</td><td class="cell-num mono">{{ fmtExact(m.feesUsd) }}</td><td class="cell-num mono">{{ fmtExact(m.payeeUsd) }}</td></tr>
+                <tr><td>{{ m.name }}@if ($index === 0 && preprodAdvance()) {<span class="hint"> · {{ 'milestone.advance' | translate }}</span>}</td><td class="cell-num mono">{{ m.percent }}%</td><td class="cell-num mono">{{ fmtExact(m.shareUsd) }}</td><td class="cell-num mono">{{ fmtExact(m.feesUsd) }}</td><td class="cell-num mono">{{ fmtExact(m.payeeUsd) }}</td></tr>
               }
             </tbody>
           </table>

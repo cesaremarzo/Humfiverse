@@ -4,6 +4,13 @@ Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
 
+
+## 2026-10-14 · Template v0.8-draft: la clausola di annullamento cita l'anticipo
+
+Trovato nella prova dal vivo con i wallet demo: la clausola `cancellation`
+diceva ancora che una tranche si rilascia solo quando artista e studio hanno
+confermato, il che dal §2.119 non vale per l'anticipo. Ora rinvia all'eccezione
+della clausola `milestones`, in tutte e cinque le lingue. 03 §B al v0.8-draft.
 ## 2026-10-14 · Anticipo e uscita con link (technical §2.119)
 
 Decisione dell'utente: la conferma dello studio su una tappa come "raccolta
