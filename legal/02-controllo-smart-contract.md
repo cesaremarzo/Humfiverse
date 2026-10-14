@@ -20,7 +20,7 @@
 |---|---|---|---|
 | HumfiverseCatalogueToken | `contracts/contracts/HumfiverseCatalogueToken.sol` | `fdf39ce48153417e` | `0x471DE935a7538D67F0E231aaf2768f5C4EB42431` |
 | HumfiverseMarketplace | `contracts/contracts/HumfiverseMarketplace.sol` | `e2eb57f242d07868` | `0xC684B23492659b224635A5A7C475F50fcADc2E03` |
-| HumfiverseMilestoneEscrow | `contracts/contracts/HumfiverseMilestoneEscrow.sol` | `192b2b9467d8df14` | **[indirizzo del nono redeploy, §2.119]** (prima `0xcEb91B21020B6e32643dFD9d596e848c303c7553`, senza campagne) |
+| HumfiverseMilestoneEscrow | `contracts/contracts/HumfiverseMilestoneEscrow.sol` | `192b2b9467d8df14` | `0xCB57c80fD7ADBBFAADF9938A23D8DACBEfF186e5` (nono redeploy, 2026-10-14, §2.119; prima `0xcEb91B21020B6e32643dFD9d596e848c303c7553`, senza campagne) |
 
 Solidity 0.8.24, OpenZeppelin v5, non aggiornabili (niente proxy).
 Pagamenti in USDC di test (`0x1c7D…7238`). Test: **149 passati** (2026-10-14, §2.119). I tre contratti sono quelli dell'ottavo redeploy, 2026-10-12 (technical §2.117: marketplace limitato al token Humfiverse con annunci a scadenza, wallet dell'artista modificabile solo dall'artista, annullamento sempre motivato con il nuovo motivo "abbandono"), di proprietà del Safe; gli escrow precedenti restano in sola lettura. Token ed
