@@ -533,9 +533,9 @@
   "footer.studioLink": "Per gli studi",
   "studio.kicker": "Per gli studi",
   "studio.title": "Conferma una milestone di produzione",
-  "studio.intro": "Se un artista ti ha indicato come suo studio su Humfiverse, collega il wallet che ha registrato per te per vedere le campagne collegate e confermare le milestone man mano che vengono davvero raggiunte.",
-  "studio.notRegisteredTitle": "Questo wallet non è registrato come studio",
-  "studio.notRegisteredBody": "Gli studi non si registrano da soli — è l'artista a registrarti inserendo il tuo nome e indirizzo wallet quando crea una campagna di preproduzione. Chiedi all'artista di confermare di aver usato esattamente questo indirizzo.",
+  "studio.intro": "Se sei uno studio verificato indicato in una campagna, collega il wallet dello studio per vedere quelle campagne e confermare le milestone man mano che vengono davvero raggiunte.",
+  "studio.notRegisteredTitle": "Nessuna campagna indica questo wallet come studio",
+  "studio.notRegisteredBody": "Gli studi non si registrano da soli, e nemmeno gli artisti possono registrarli: Humfiverse verifica lo studio, il suo multisig (Safe) registra il wallet dello studio e poi gli artisti lo scelgono dall'elenco degli studi verificati. Se sei già stato verificato, controlla di aver collegato esattamente il wallet che ci hai dato; altrimenti chiedi la verifica qui sopra.",
   "studio.campaignsHeading": "Campagne di cui sei lo studio",
   "studio.noCampaigns": "Nessuna campagna trovata per questo wallet.",
   "studio.confirmBtn": "Conferma milestone",
@@ -820,5 +820,12 @@
   "studio.releaseLinkHint": "L'artista conferma questa tappa con il link al brano pubblicato: controllalo prima di confermare.",
   "wizMilestones.advanceLabel": "Paga «{{name}}» come anticipo",
   "wizMilestones.advanceHint": "Ti arriva appena la raccolta lo copre, senza conferma dello studio. Gli investitori lo vedono indicato come anticipo. Se non lo attivi, anche questa tranche la conferma lo studio.",
-  "wizMilestones.releaseHint": "«{{name}}» la confermate tu e lo studio, e tu aggiungi il link al brano pubblicato, che resta registrato sulla catena."
+  "wizMilestones.releaseHint": "«{{name}}» la confermate tu e lo studio, e tu aggiungi il link al brano pubblicato, che resta registrato sulla catena.",
+  "footer.contact": "Contattaci",
+  "contact.subjectStudio": "Richiesta di verifica studio",
+  "contact.subjectArtist": "Richiesta da un artista",
+  "forArtists.contact": "Parla con noi",
+  "studio.joinTitle": "Vuoi lavorare su Humfiverse come studio?",
+  "studio.joinBody": "Gli studi vengono verificati prima che un artista possa indicarli in una campagna: controlliamo chi gestisce lo studio e i suoi lavori, poi il multisig della piattaforma (Safe) registra il wallet dello studio. Scrivici per iniziare.",
+  "studio.joinBtn": "Chiedi la verifica"
 }

@@ -533,9 +533,9 @@
   "footer.studioLink": "For studios",
   "studio.kicker": "For studios",
   "studio.title": "Confirm a production milestone",
-  "studio.intro": "If an artist named you as their studio on Humfiverse, connect the wallet they registered for you to see the campaigns tied to it and confirm milestones as they're genuinely met.",
-  "studio.notRegisteredTitle": "This wallet isn't registered as a studio",
-  "studio.notRegisteredBody": "Studios aren't self-signed-up — an artist registers you by entering your name and wallet address when they set up a preproduction campaign. Ask the artist you're working with to confirm they used this exact wallet address.",
+  "studio.intro": "If you're a verified studio named on a campaign, connect your studio wallet to see those campaigns and confirm milestones as they're genuinely met.",
+  "studio.notRegisteredTitle": "No campaign names this wallet as its studio",
+  "studio.notRegisteredBody": "Studios don't sign themselves up, and artists can't register them either: Humfiverse verifies a studio, its multisig (Safe) registers the studio's wallet, and artists then pick it from the list of verified studios. If you've been verified, check that you connected the exact wallet you gave us; if not, request verification above.",
   "studio.campaignsHeading": "Campaigns you're the studio for",
   "studio.noCampaigns": "No campaigns found for this wallet yet.",
   "studio.confirmBtn": "Confirm milestone",
@@ -820,5 +820,12 @@
   "studio.releaseLinkHint": "The artist confirms this with the published track's link: check it before you confirm.",
   "wizMilestones.advanceLabel": "Pay “{{name}}” as an advance",
   "wizMilestones.advanceHint": "It reaches you as soon as the raise covers it, with no confirmation from the studio. Investors see it marked as an advance. Leave it off and the studio confirms this tranche too.",
-  "wizMilestones.releaseHint": "“{{name}}” is confirmed by you and the studio, and you add the link to the published track, which stays on chain."
+  "wizMilestones.releaseHint": "“{{name}}” is confirmed by you and the studio, and you add the link to the published track, which stays on chain.",
+  "footer.contact": "Contact us",
+  "contact.subjectStudio": "Studio verification request",
+  "contact.subjectArtist": "Artist enquiry",
+  "forArtists.contact": "Talk to us",
+  "studio.joinTitle": "Want to work on Humfiverse as a studio?",
+  "studio.joinBody": "Studios are verified before an artist can name them on a campaign: we check who runs the studio and its credits, then the platform's multisig (Safe) registers the studio's wallet. Write to us to start.",
+  "studio.joinBtn": "Request verification"
 }

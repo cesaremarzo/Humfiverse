@@ -388,7 +388,7 @@ async function getCampaignInfo(campaignId, address = ESCROW_ADDRESS) {
     })
   );
   // §2.114: the raise terms, and whether the raise has failed by rule.
-  const raise = version === 3
+  const raise = version >= 3
     ? await Promise.all([contract.raiseDeadlineOf(campaignId), contract.minRaiseOf(campaignId), contract.minRaiseReached(campaignId), contract.raiseFailed(campaignId)])
     : null;
   const failed = !!raise && raise[3];

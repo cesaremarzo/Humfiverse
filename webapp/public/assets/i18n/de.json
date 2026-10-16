@@ -533,9 +533,9 @@
   "footer.studioLink": "Für Studios",
   "studio.kicker": "Für Studios",
   "studio.title": "Einen Produktionsmeilenstein bestätigen",
-  "studio.intro": "Wenn ein Künstler Sie auf Humfiverse als sein Studio angegeben hat, verbinden Sie das für Sie registrierte Wallet, um die zugehörigen Kampagnen zu sehen und Meilensteine zu bestätigen, sobald sie tatsächlich erreicht wurden.",
-  "studio.notRegisteredTitle": "Dieses Wallet ist nicht als Studio registriert",
-  "studio.notRegisteredBody": "Studios melden sich nicht selbst an — der Künstler registriert Sie, indem er beim Erstellen einer Vorproduktionskampagne Ihren Namen und Ihre Wallet-Adresse eingibt. Bitten Sie den Künstler zu bestätigen, dass genau diese Adresse verwendet wurde.",
+  "studio.intro": "Wenn du ein verifiziertes Studio bist, das in einer Kampagne genannt wird, verbinde die Wallet deines Studios, um diese Kampagnen zu sehen und Meilensteine zu bestätigen, sobald sie wirklich erreicht sind.",
+  "studio.notRegisteredTitle": "Keine Kampagne nennt diese Wallet als Studio",
+  "studio.notRegisteredBody": "Studios melden sich nicht selbst an, und auch Künstler:innen können sie nicht registrieren: Humfiverse verifiziert das Studio, die Multisig (Safe) registriert seine Wallet, und Künstler:innen wählen es dann aus der Liste der verifizierten Studios. Wenn du verifiziert wurdest, prüfe, ob du genau die Wallet verbunden hast, die du uns genannt hast; sonst frag oben die Verifizierung an.",
   "studio.campaignsHeading": "Kampagnen, für die Sie das Studio sind",
   "studio.noCampaigns": "Für dieses Wallet wurden noch keine Kampagnen gefunden.",
   "studio.confirmBtn": "Meilenstein bestätigen",
@@ -820,5 +820,12 @@
   "studio.releaseLinkHint": "Der Künstler bestätigt diesen Schritt mit dem Link zum veröffentlichten Titel: Prüfe ihn, bevor du bestätigst.",
   "wizMilestones.advanceLabel": "„{{name}}“ als Vorschuss auszahlen",
   "wizMilestones.advanceHint": "Er geht an dich, sobald die Finanzierung ihn deckt, ohne Bestätigung des Studios. Investoren sehen ihn als Vorschuss gekennzeichnet. Ohne diese Option bestätigt auch hier das Studio.",
-  "wizMilestones.releaseHint": "„{{name}}“ bestätigen du und das Studio, und du fügst den Link zum veröffentlichten Titel hinzu, der auf der Chain gespeichert bleibt."
+  "wizMilestones.releaseHint": "„{{name}}“ bestätigen du und das Studio, und du fügst den Link zum veröffentlichten Titel hinzu, der auf der Chain gespeichert bleibt.",
+  "footer.contact": "Kontakt",
+  "contact.subjectStudio": "Anfrage zur Studio-Verifizierung",
+  "contact.subjectArtist": "Anfrage von Künstler:in",
+  "forArtists.contact": "Sprich mit uns",
+  "studio.joinTitle": "Du willst als Studio auf Humfiverse arbeiten?",
+  "studio.joinBody": "Studios werden verifiziert, bevor ein:e Künstler:in sie in einer Kampagne nennen kann: Wir prüfen, wer das Studio betreibt und welche Credits es hat, dann registriert die Multisig der Plattform (Safe) die Wallet des Studios. Schreib uns, um zu starten.",
+  "studio.joinBtn": "Verifizierung anfragen"
 }
