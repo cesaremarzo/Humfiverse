@@ -8,7 +8,7 @@ perché.
 ## 2026-10-16 · Whitepaper: 149 test
 
 Su richiesta dell'utente: il cap. 3 diceva 143 test al 12 ottobre; dal §2.119
-sono 149 (14 ottobre).
+sono 149 (14 ottobre). Corretto anche il cap. 9, che diceva ancora 130.
 ## 2026-10-14 · W-23 applicata al whitepaper
 
 Su richiesta dell'utente: cap. 2 (testo e diagramma), 3, 4 e 6 descrivono
