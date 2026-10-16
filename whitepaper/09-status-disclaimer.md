@@ -7,7 +7,7 @@
 - Buying or contributing through the app today is a **real, signed blockchain transaction** — your wallet genuinely signs it, and it genuinely shows up on Sepolia's public explorer. What makes this a prototype and not a live product is that **test USDC on Sepolia has no monetary value.** No real money has changed hands through this system.
 - **No legal entity holds any real royalty right yet.** No royalty income has been independently verified. The catalogues visible in the app today were created by real people testing the platform, but don't represent verified real royalty income.
 - **No token has been offered, marketed, or sold to any investor**, anywhere, under any exemption. No regulator has reviewed anything in this document.
-- **No contract here has been audited by an independent security firm.** They're covered by an internal test suite (130 passing tests as of 12 October 2026) — not the same thing as an audit.
+- **No contract here has been audited by an independent security firm.** They're covered by an internal test suite (149 passing tests as of 14 October 2026) — not the same thing as an audit.
 
 ## What this document is not
 
