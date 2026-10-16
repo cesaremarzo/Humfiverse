@@ -533,9 +533,9 @@
   "footer.studioLink": "录音室专区",
   "studio.kicker": "录音室专区",
   "studio.title": "确认制作里程碑",
-  "studio.intro": "如果某位艺术家在 Humfiverse 上将你指定为其录音室，请连接他们为你注册的钱包，即可查看相关活动，并在里程碑真正达成时予以确认。",
-  "studio.notRegisteredTitle": "该钱包尚未注册为录音室",
-  "studio.notRegisteredBody": "录音室不能自行注册——是艺术家在创建预制作活动时输入你的名称和钱包地址来完成注册的。请让合作的艺术家确认使用的正是这个钱包地址。",
+  "studio.intro": "如果你是某个众筹活动中指定的已认证工作室，请连接工作室钱包，查看相关活动，并在里程碑真正完成时进行确认。",
+  "studio.notRegisteredTitle": "没有任何众筹活动将此钱包指定为工作室",
+  "studio.notRegisteredBody": "工作室不能自行注册，艺人也不能替其注册：由 Humfiverse 认证工作室，其多签钱包（Safe）登记工作室的钱包，艺人再从已认证工作室列表中选择。如果你已通过认证，请确认连接的正是你提供给我们的钱包；否则请在上方申请认证。",
   "studio.campaignsHeading": "你作为录音室参与的活动",
   "studio.noCampaigns": "暂未找到与该钱包关联的活动。",
   "studio.confirmBtn": "确认里程碑",
@@ -820,5 +820,12 @@
   "studio.releaseLinkHint": "艺人会附上已发布曲目的链接来确认这一阶段：请在确认前检查。",
   "wizMilestones.advanceLabel": "将“{{name}}”作为预付款支付",
   "wizMilestones.advanceHint": "募集金额一旦覆盖即支付给你，无需工作室确认。投资者会看到它被标为预付款。不开启的话，这一笔也需要工作室确认。",
-  "wizMilestones.releaseHint": "“{{name}}”由你和工作室确认，你需添加已发布曲目的链接，该链接会记录在链上。"
+  "wizMilestones.releaseHint": "“{{name}}”由你和工作室确认，你需添加已发布曲目的链接，该链接会记录在链上。",
+  "footer.contact": "联系我们",
+  "contact.subjectStudio": "工作室认证申请",
+  "contact.subjectArtist": "艺人咨询",
+  "forArtists.contact": "联系我们",
+  "studio.joinTitle": "想以工作室身份加入 Humfiverse？",
+  "studio.joinBody": "工作室需先通过认证，艺人才能在众筹活动中指定它：我们会核实工作室的运营者及其作品履历，然后由平台的多签钱包（Safe）登记工作室的钱包。请写信给我们开始。",
+  "studio.joinBtn": "申请认证"
 }

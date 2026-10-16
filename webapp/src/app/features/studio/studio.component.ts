@@ -9,18 +9,17 @@ import { fmtUSD } from '../../core/format.util';
 import { onchainErrorTranslation } from '../../core/onchain-error.util';
 import { usdcToUsd } from '../../core/usdc.util';
 import { AddressComponent } from '../../shared/address.component';
+import { contactHref } from '../../core/contact';
 
 type CampaignRow = EscrowCampaignInfo & { assetId: string };
 type LoadedCampaignRow = Extract<CampaignRow, { escrow: true }>;
 
-/** Wallet-gated page for a real studio: connect the wallet an artist
- * registered for you, see every campaign that names you as its studio, and
- * confirm milestones as they're genuinely met. No separate studio login —
- * there's no account system anywhere in this app, a studio's "identity" is
- * just whichever wallet address an artist entered for them (§2.16). This is
- * also the studio's whole "onboarding": there's nothing to sign up for,
- * since registration itself happens automatically when an artist creates a
- * preproduction campaign that names them (see onboarding.component.ts). */
+/** Wallet-gated page for a real studio: connect the studio's registered
+ * wallet, see every campaign that names it as its studio, and confirm
+ * milestones as they're genuinely met. No separate studio login — a
+ * studio's identity is its wallet. Since §2.110 only the Safe registers a
+ * studio, after verifying it off chain; artists pick from that list. A
+ * studio that isn't verified yet asks for it by email (contactHref). */
 @Component({
   selector: 'app-studio',
   standalone: true,
@@ -35,6 +34,7 @@ export class StudioComponent {
   confirming = signal<string | null>(null); // `${campaignId}-${milestoneIndex}`
 
   fmt = fmtUSD;
+  contactHref = contactHref;
   usdcToUsd = usdcToUsd;
 
   myCampaigns = computed(() => {

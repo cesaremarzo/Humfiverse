@@ -11,6 +11,27 @@ Trovato nella prova dal vivo con i wallet demo: la clausola `cancellation`
 diceva ancora che una tranche si rilascia solo quando artista e studio hanno
 confermato, il che dal §2.119 non vale per l'anticipo. Ora rinvia all'eccezione
 della clausola `milestones`, in tutte e cinque le lingue. 03 §B al v0.8-draft.
+
+## 2026-10-14 · Indirizzo di contatto e studi verificati (technical §2.120)
+
+Decisione dell'utente: un indirizzo generico `hello@humfiverse.com` con pulsanti
+«Contattaci» (footer), «Parla con noi» (pagina per gli artisti) e «Chiedi la
+verifica» (pagina studio). Sono semplici link `mailto:`: nessun modulo, nulla
+arriva al database del servizio.
+
+- **05 §3**: nuova riga per le email che ci scrivi (anche i dati dello studio
+  che chiede la verifica), conservate nella casella dei fondatori; durata da
+  definire **[verificare]**.
+- **05 §5**: Cloudflare ora anche per l'inoltro delle email (Email Routing), già
+  responsabile del trattamento; nuova riga Google (Gmail), con il dubbio
+  **[verificare]** tra account personale e Google Workspace con DPA.
+- **Guida automatica** (`server/assistant-knowledge.js`): diceva che lo studio
+  registra da sé il proprio wallet e che l'operatore registra gli studi, falso
+  dal §2.110. Ora dice che Humfiverse verifica lo studio, il Safe lo registra e
+  l'operatore può solo disattivarlo. Nessuna conclusione legale cambia: 01 e 02
+  descrivevano già il §2.110 correttamente.
+
+
 ## 2026-10-14 · Anticipo e uscita con link (technical §2.119)
 
 Decisione dell'utente: la conferma dello studio su una tappa come "raccolta
