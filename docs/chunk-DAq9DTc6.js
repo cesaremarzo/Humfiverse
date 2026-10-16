@@ -1,1 +1,0 @@
-import{c as d}from"./chunk-ClhUyKtI.js";async function m(e,a){return d(await e({method:`eth_estimateGas`,params:[a]}))}export{m as t};

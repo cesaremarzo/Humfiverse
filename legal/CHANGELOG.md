@@ -4,6 +4,14 @@ Voce più recente in alto. Ogni voce: data, commit rivisto, cosa è cambiato e
 perché.
 
 
+
+## 2026-10-14 · Template v0.8-draft: la clausola di annullamento cita l'anticipo
+
+Trovato nella prova dal vivo con i wallet demo: la clausola `cancellation`
+diceva ancora che una tranche si rilascia solo quando artista e studio hanno
+confermato, il che dal §2.119 non vale per l'anticipo. Ora rinvia all'eccezione
+della clausola `milestones`, in tutte e cinque le lingue. 03 §B al v0.8-draft.
+
 ## 2026-10-14 · Indirizzo di contatto e studi verificati (technical §2.120)
 
 Decisione dell'utente: un indirizzo generico `hello@humfiverse.com` con pulsanti

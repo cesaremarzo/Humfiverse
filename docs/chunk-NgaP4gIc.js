@@ -1,1 +1,0 @@
-import{E as je}from"./chunk-BjMZjMDk.js";function c(t){return je(...t)}export{c as t};
