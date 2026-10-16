@@ -27,6 +27,7 @@ Specific to Humfiverse's actual design and stage — not generic boilerplate. Re
 - **Milestone deadlock is possible by design.** If the artist and studio genuinely disagree about a milestone, the money stays in the escrow with no automatic way to resolve it — a deliberate tradeoff against giving Humfiverse override power (see [Governance](06-governance.md)).
 - **A minimum, not all-or-nothing.** Each campaign must raise the minimum the artist set by its deadline, or it fails and refunds holders (less the 2% fee). Above the minimum, a partly funded campaign can pay out its first tranches and stay open indefinitely.
 - **A campaign without a studio is released by the artist alone.**
+- **An advance is not protected by the double confirmation.** If the artist makes the first tranche an advance, it is paid as soon as the raise covers it, with no check on production and no cap on its share. If the campaign is later cancelled, that part is not refunded; it can only be claimed back from the artist.
 - **Refunds follow tokens.** After a cancellation or a failed raise, whoever holds the tokens hands them back to be burned and receives their share — resale buyers included.
 - **Only the artist can move their payout wallet.** It takes two steps, from the current wallet and the new one, and nobody else — the platform included — can redirect it. An artist who loses the key of their payout wallet cannot have it recovered.
 - **Resale listings expire** after at most 30 days and have to be renewed.
