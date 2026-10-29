@@ -1,15 +1,22 @@
 # Piano editoriale — X (Twitter) e Telegram
 
-Bozza del 14 ottobre 2026. Da approvare (Cesare + Co-founder) prima di
-pubblicare il primo post.
+Bozza del 14 ottobre 2026, aggiornata il 29 ottobre. Da approvare (Cesare +
+Co-founder) prima di pubblicare il primo post: le due settimane previste per il
+19 e il 26 ottobre sono passate senza approvazione, quindi il calendario (§8)
+ora parte da lunedì 2 novembre.
 
 ---
 
 ## 1. Da dove partiamo
 
-- **Stato reale:** prototipo su Sepolia, contratti verificati, Owner su Safe
-  2-di-3, sito in 9 lingue, candidatura all'hackathon Colosseum consegnata
-  il 13 ottobre. La Fase 0 (veicolo legale, primo catalogo reale) **non è
+- **Stato reale (29 ottobre):** prototipo su Ethereum Sepolia, tre contratti
+  verificati (token, escrow, marketplace) di proprietà del Safe 2-di-3, 149
+  test sui contratti, sito in 9 lingue, candidatura all'hackathon Colosseum
+  consegnata il 13 ottobre. Già funzionanti sul testnet: scadenza e soglia
+  minima della raccolta, anticipo opzionale sulla prima tranche, release
+  confermata con il link del brano, rimborsi per token, royalty versate e
+  riscosse dal portafoglio, studi verificati dal Safe, contatto
+  `hello@humfiverse.com` sul sito. Chiave del Founder ruotata il 13 ottobre. La Fase 0 (veicolo legale, primo catalogo reale) **non è
   iniziata** (`whitepaper/07-roadmap.md`).
 - **Conseguenza:** finché non c'è la Fase 0 i social **non vendono niente**.
   Raccontano un prodotto in costruzione e cercano artisti e studi. Non c'è
@@ -119,10 +126,10 @@ Orari: X 15:00–17:00 italiane (mattina USA, pomeriggio Europa); Telegram
 
 ## 8. Calendario delle prime 4 settimane
 
-Le date partono da lunedì 19 ottobre 2026. I testi sono bozze pronte da
+Le date partono da lunedì 2 novembre 2026. I testi sono bozze pronte da
 copiare; `[…]` va riempito con link o immagini.
 
-### Settimana 1 — "Chi siamo" (19–23 ottobre)
+### Settimana 1 — "Chi siamo" (2–6 novembre)
 
 **Lun · X · post fissato (pin)**
 > Humfiverse lets fans back a song before it exists — and the money reaches
@@ -148,12 +155,12 @@ riga fissa, link a sito, whitepaper, X.
 
 **Gio · X** — "We submitted Humfiverse to @colosseum. What we built in [N]
 weeks: […]" con 3 numeri veri (contratti, test, lingue: 3 contratti
-verificati, 143 test, 9 lingue).
+verificati, 149 test, 9 lingue).
 
 **Ven · X · sondaggio** — "Artists: what would you give up to fund your next
 record? Masters / Creative control / A share of future income / Nothing."
 
-### Settimana 2 — "Come girano i soldi" (26–30 ottobre)
+### Settimana 2 — "Come girano i soldi" (9–13 novembre)
 
 **Lun · X · thread** — "Where does the money sit while a song is being
 made?" Il percorso di un contributo: escrow → tappe → doppia conferma →
@@ -173,7 +180,7 @@ can release a tranche on your behalf. Looking for founding studios → hello@hum
 
 **Ven · Telegram canale** — riassunto delle due settimane.
 
-### Settimana 3 — "Perché ora" (2–6 novembre)
+### Settimana 3 — "Perché ora" (16–20 novembre)
 
 **Lun · X · thread** — PledgeMusic: cosa è successo nel 2019 e cosa cambia
 quando i soldi non passano mai dal conto della piattaforma. Tono: fatti, non
@@ -190,7 +197,7 @@ the people who were in the room." Sempre "riduce l'esposizione", mai
 **Gio · Telegram gruppo** — prima sessione di test guidata: creare una
 campagna di prova su Sepolia insieme (30 min, in diretta).
 
-### Settimana 4 — "Cosa abbiamo sbagliato" (9–13 novembre)
+### Settimana 4 — "Cosa abbiamo sbagliato" (23–27 novembre)
 
 **Lun · X · thread** — "We redeployed our contracts nine times. Here's
 why." Una riga per ogni redeploy importante, cosa ha insegnato. È il
@@ -204,7 +211,10 @@ a raccontarlo.
 prototipo, voce nel design, nome tra i fondatori. **Niente** vantaggi
 economici, niente token, niente percentuali.
 
-**Ven · Telegram canale** — riassunto del mese + cosa arriva a dicembre.
+**Ven · Telegram canale** — riassunto del mese + cosa arriva a dicembre
+(prendere le voci da "Coming next" della home: accettazione firmata dei
+termini alla registrazione, firma elettronica qualificata per gli artisti,
+revisione legale, Fase 0).
 
 ## 9. Formati e grafica
 
@@ -250,6 +260,31 @@ Quando esisterà il veicolo legale e un avvocato avrà approvato le
 comunicazioni, si potrà pianificare una campagna di lancio del pilota (primo
 brano reale). Fino ad allora questo piano resta nel perimetro "prodotto in
 costruzione + ricerca artisti".
+
+## 13. Coerenza con il sito
+
+Chi legge un post apre il sito: i due devono dire la stessa cosa. Il 29
+ottobre i testi del sito sono stati riallineati a questo piano:
+
+- in home e nel wizard "investitore" è diventato **"sostenitore"**
+  (*supporter*), e sono spariti "simile a un'obbligazione" e "simile a un
+  investimento venture". Restano "investitore al dettaglio/professionale"
+  solo nella verifica MiFID II, dove sono termini di legge;
+- la sezione "Project status" della home elenca come già fatte le cose
+  fatte (scadenza e soglia, rimborsi per token, royalty, Safe, studi
+  verificati) e come prossime solo quelle vere (termini firmati alla
+  registrazione, firma qualificata, revisione legale, Fase 0);
+- portafoglio e wizard non parlano più di SPV né di "dati fittizi".
+
+**Punti aperti, da decidere prima di pubblicare:**
+- il marketplace mostra una colonna **"Proj. yield"** e la pagina del brano un
+  rendimento storico: sono cifre di rendimento, proprio ciò che il §3 vieta nei
+  post. Non vanno mai in uno screenshot finché restano sul sito;
+- il **calcolatore delle royalty master** in preparazione (branch
+  `dev/cesare-royalty-calc`) mostra "per token, per anno" e "annuale ÷ prezzo
+  del token": stesso problema. Se va sul sito, non va nei post;
+- `whitepaper/07-roadmap.md` (Fase 1) dice ancora che non esiste un contratto
+  di pagamento delle royalty: ora la distribuzione è nel contratto del token.
 
 ## Da decidere
 
