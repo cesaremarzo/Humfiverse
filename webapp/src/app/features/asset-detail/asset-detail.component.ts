@@ -31,11 +31,12 @@ type TabKey = 'overview' | 'royalty' | 'milestones' | 'disclosure' | 'documents'
 
 import { RegistrationGateComponent } from '../../shared/registration-gate.component';
 import { RoyaltyPayoutsComponent } from '../../shared/royalty-payouts.component';
+import { RoyaltyCalculatorComponent } from '../../shared/royalty-calculator.component';
 import { AddressComponent } from '../../shared/address.component';
 @Component({
   selector: 'app-asset-detail',
   standalone: true,
-  imports: [AddressComponent, RegistrationGateComponent, RoyaltyPayoutsComponent, RouterLink, TranslatePipe, IconComponent, CoverComponent, StatusChipComponent, MilestoneTrackComponent, DisclosureChipComponent, LineChartComponent],
+  imports: [AddressComponent, RegistrationGateComponent, RoyaltyPayoutsComponent, RoyaltyCalculatorComponent, RouterLink, TranslatePipe, IconComponent, CoverComponent, StatusChipComponent, MilestoneTrackComponent, DisclosureChipComponent, LineChartComponent],
   templateUrl: './asset-detail.component.html'
 })
 export class AssetDetailComponent {

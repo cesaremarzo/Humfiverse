@@ -5,6 +5,23 @@ perché.
 
 
 
+## 2026-10-29 · Solo royalty master; calcolatore delle royalty (§2.121)
+
+Decisione dell'utente: il token riguarda solo le royalty master (registrazione,
+pagate dal distributore); le royalty di diritto d'autore (SIAE o altre società
+di gestione collettiva) sono un flusso distinto e restano agli autori. Il
+template passa a v0.9-draft: la clausola `assignment` lo dice in tutte e cinque
+le lingue. La guida automatica e i testi del sito (wizard, storico royalty)
+non parlano più di PRO. Nuovo calcolatore pubblico sulla pagina della campagna
+lanciata, con formula e avvertenza.
+
+- 03: T-6 in parte risolto; nuova W-24 (whitepaper cap. 2 e 3), da applicare
+  solo su richiesta.
+- 01 §12: i due flussi e la scelta del solo master.
+- 06: nuovo §2.5 con i testi del calcolatore.
+- 07: I1 riscritta come decisione presa con tre domande residue; nuova A16
+  (calcolatore come informazione previsionale o comunicazione di marketing).
+
 ## 2026-10-16 · Whitepaper: 149 test
 
 Su richiesta dell'utente: il cap. 3 diceva 143 test al 12 ottobre; dal §2.119

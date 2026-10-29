@@ -2976,3 +2976,16 @@ La vecchia chiave: ETH spostati, proprietà del token `0xb456…` e dell'escrow
 eseguire `~/Desktop/safe-remove-old-operator.json` (setOperator(0) sui 4 contratti
 ritirati) e va sostituita la chiave Alchemy. `CLAUDE.md` e `known-wallets.ts`
 aggiornati.
+
+## 2026-10-29 — solo royalty master; calcolatore delle royalty (§2.121)
+
+Decisioni di Cesare: il token riguarda **solo le royalty master** (distributore);
+il diritto d'autore (SIAE/CMO) è un flusso distinto e resta agli autori. Il
+calcolatore va sulla pagina della campagna lanciata, pubblico, con la formula e
+l'avvertenza "i risultati passati non garantiscono i guadagni futuri".
+Branch `dev/cesare-royalty-calc` (worktree `../humfiverse-royalty`): calcolatore,
+template v0.9-draft, wizard solo distributori, testi in 9 lingue, guida, legal/
+(T-6, I1, A16, 06 §2.5, W-24 proposta e **non applicata** al whitepaper). È una
+feature: serve il via libera prima del merge. Punto aperto segnalato dalla
+sessione dei testi: il piano editoriale vieta cifre di rendimento nei post; il
+calcolatore mostra "per token all'anno" e "annuo ÷ prezzo".

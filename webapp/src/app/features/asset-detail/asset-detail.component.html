@@ -196,6 +196,12 @@
                tokens alike. Renders nothing on a token without royalties. -->
           <app-royalty-payouts [assetId]="a.id" [isOwner]="isAssetOwner(a)"></app-royalty-payouts>
 
+          <!-- Public once the campaign is launched (token minted): master
+               royalties per token at a given number of streams. -->
+          @if (onchainInfo()?.onchain) {
+            <app-royalty-calculator [tokensTotal]="a.tokensTotal" [tokenPrice]="a.tokenPrice"></app-royalty-calculator>
+          }
+
           @if (escrowInfo()?.escrow) {
             <div class="card panel">
               <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">

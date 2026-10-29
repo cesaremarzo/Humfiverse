@@ -33,7 +33,7 @@
 */
 
 const CONTRACT_TEMPLATE = {
-  version: "v0.8-draft",
+  version: "v0.9-draft",
   title: {
     it: "Accordo di Cessione Royalty e Escrow a Milestone",
     en: "Royalty Assignment & Milestone Escrow Agreement",
@@ -61,16 +61,16 @@ const CONTRACT_TEMPLATE = {
       id: "assignment",
       vessatoria: false,
       i18n: {
-        it: { title: "Cessione dei proventi royalty alla SPV",
-          body: "L'Artista cede alla SPV titolare del catalogo/brano il diritto di incassare i proventi royalty relativi al brano caricato, per la durata e alle condizioni descritte nella documentazione di offerta. La cessione non trasferisce il copyright, che resta in capo all'Artista." },
-        en: { title: "Assignment of royalty income to the SPV",
-          body: "The Artist assigns to the SPV holding the catalogue/track the right to collect royalty income relating to the uploaded track, for the duration and under the conditions described in the offering documentation. The assignment does not transfer copyright, which remains with the Artist." },
-        es: { title: "Cesión de los ingresos por regalías a la SPV",
-          body: "El Artista cede a la SPV titular del catálogo/tema el derecho a cobrar los ingresos por regalías relativos al tema subido, durante el plazo y en las condiciones descritas en la documentación de la oferta. La cesión no transfiere los derechos de autor, que permanecen en manos del Artista." },
-        fr: { title: "Cession des revenus de redevances à la SPV",
-          body: "L'Artiste cède à la SPV titulaire du catalogue/titre le droit de percevoir les revenus de redevances relatifs au titre déposé, pour la durée et selon les conditions décrites dans la documentation de l'offre. La cession ne transfère pas le droit d'auteur, qui reste détenu par l'Artiste." },
-        de: { title: "Abtretung der Tantiemeneinnahmen an die SPV",
-          body: "Der Künstler tritt der SPV, die den Katalog/Titel hält, das Recht ab, die Tantiemeneinnahmen aus dem hochgeladenen Titel einzuziehen, für die Dauer und zu den Bedingungen, die in den Angebotsunterlagen beschrieben sind. Die Abtretung überträgt nicht das Urheberrecht, das beim Künstler verbleibt." }
+        it: { title: "Cessione delle royalty master alla SPV",
+          body: "L'Artista cede alla SPV titolare del catalogo/brano il diritto di incassare le royalty master del brano caricato, cioè i proventi dello sfruttamento della registrazione che il distributore paga in base al contratto di distribuzione, per la durata e alle condizioni descritte nella documentazione di offerta. Sono escluse le royalty di diritto d'autore sulla composizione e sul testo, incassate da SIAE o da un'altra società di gestione collettiva, anche quando derivano dagli stessi ascolti: restano agli autori e agli editori. La cessione non trasferisce il copyright, che resta in capo all'Artista." },
+        en: { title: "Assignment of master royalties to the SPV",
+          body: "The Artist assigns to the SPV holding the catalogue/track the right to collect the master royalties of the uploaded track, meaning the income from exploiting the recording that the distributor pays under the distribution contract, for the duration and under the conditions described in the offering documentation. Copyright royalties on the composition and lyrics, collected by SIAE or another collective management organisation, are excluded, even when they arise from the same plays: they remain with the authors and publishers. The assignment does not transfer copyright, which remains with the Artist." },
+        es: { title: "Cesión de las regalías máster a la SPV",
+          body: "El Artista cede a la SPV titular del catálogo/tema el derecho a cobrar las regalías máster del tema subido, es decir, los ingresos por la explotación de la grabación que el distribuidor paga según el contrato de distribución, durante el plazo y en las condiciones descritas en la documentación de la oferta. Quedan excluidas las regalías de derechos de autor sobre la composición y la letra, recaudadas por la SIAE u otra entidad de gestión colectiva, aunque deriven de las mismas escuchas: permanecen en manos de los autores y editores. La cesión no transfiere los derechos de autor, que permanecen en manos del Artista." },
+        fr: { title: "Cession des redevances master à la SPV",
+          body: "L'Artiste cède à la SPV titulaire du catalogue/titre le droit de percevoir les redevances master du titre déposé, c'est-à-dire les revenus de l'exploitation de l'enregistrement que le distributeur verse en vertu du contrat de distribution, pour la durée et selon les conditions décrites dans la documentation de l'offre. Sont exclues les redevances de droit d'auteur sur la composition et les paroles, perçues par la SIAE ou un autre organisme de gestion collective, même lorsqu'elles proviennent des mêmes écoutes : elles restent aux auteurs et aux éditeurs. La cession ne transfère pas le droit d'auteur, qui reste détenu par l'Artiste." },
+        de: { title: "Abtretung der Master-Tantiemen an die SPV",
+          body: "Der Künstler tritt der SPV, die den Katalog/Titel hält, das Recht ab, die Master-Tantiemen des hochgeladenen Titels einzuziehen, also die Einnahmen aus der Verwertung der Aufnahme, die der Vertrieb nach dem Vertriebsvertrag zahlt, für die Dauer und zu den Bedingungen, die in den Angebotsunterlagen beschrieben sind. Ausgenommen sind urheberrechtliche Tantiemen auf Komposition und Text, die die SIAE oder eine andere Verwertungsgesellschaft einzieht, auch wenn sie aus denselben Wiedergaben stammen: Sie verbleiben bei den Urhebern und Verlagen. Die Abtretung überträgt nicht das Urheberrecht, das beim Künstler verbleibt." }
       }
     },
     {
