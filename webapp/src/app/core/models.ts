@@ -135,6 +135,9 @@ export interface Asset {
    * come from, and how much of what was claimed has actually been entered.
    * Until this existed the wizard collected both and then discarded them. */
   royaltySource?: string;
+  /** §2.121: the track's YouTube video, given at launch; the royalty
+   * calculator reads its public view count. */
+  youtubeUrl?: string;
   royaltyHistoryMonths?: number;
   targetRaiseUse?: string;
   aiDisclosure: AiDisclosure;
@@ -614,3 +617,14 @@ export interface AssistantAnswer {
   /** "refused" comes back with a 200 and no reply. */
   code?: string;
 }
+
+/** GET /api/assets/:id/youtube (§2.121). `trailing`: views between two reads
+ * ~30 days apart; `since-release`: average since the video was published. */
+export type YoutubeStats =
+  | { available: false; reason: string; videoId?: string }
+  | { available: true; videoId: string; url: string; title: string | null; totalViews: number; publishedAt: string | null; fetchedAt: string; monthlyViews: number; method: 'trailing' | 'since-release'; periodDays: number };
+
+/** GET /api/fx (§2.121): ECB reference rates from USD. */
+export type FxRates =
+  | { available: false }
+  | { available: true; base: 'USD'; date: string; rates: { EUR: number; GBP: number }; source: string };

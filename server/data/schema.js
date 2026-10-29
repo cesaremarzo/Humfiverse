@@ -212,6 +212,16 @@ async function initSchema() {
     );
     CREATE INDEX IF NOT EXISTS assistant_requests_ip ON assistant_requests (ip, created_at);
     CREATE INDEX IF NOT EXISTS assistant_requests_created ON assistant_requests (created_at);
+    -- §2.121: a track video's public YouTube view count, one row per read.
+    -- The royalty calculator derives monthly views from two reads ~30 days
+    -- apart; no personal data, only public counters.
+    CREATE TABLE IF NOT EXISTS youtube_views (
+      video_id TEXT NOT NULL,
+      view_count INTEGER NOT NULL,
+      published_at TEXT,
+      fetched_at TEXT NOT NULL,
+      PRIMARY KEY (video_id, fetched_at)
+    );
     CREATE TABLE IF NOT EXISTS portfolio_snapshots (
       wallet TEXT NOT NULL,
       snapshot_date TEXT NOT NULL,

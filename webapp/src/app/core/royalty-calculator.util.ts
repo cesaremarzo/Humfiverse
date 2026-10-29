@@ -16,6 +16,10 @@ import { ROYALTY_FEE_BPS } from './primary-fee.util';
  *   holders  = net × (1 − ROYALTY_FEE_BPS)   (what the token contract shares out)
  *   perToken = holders ÷ tokensTotal
  *
+ * YouTube video views can be filled in automatically (GET
+ * /api/assets/:id/youtube, §2.121); every other store is entered by hand,
+ * since none publishes plays through an official API.
+ *
  * Every rate is an average of past payouts, not a tariff: stores split a
  * monthly revenue pool by share of streams, so the real figure moves with
  * country, subscription tier and month. The defaults below are only a
@@ -25,24 +29,35 @@ import { ROYALTY_FEE_BPS } from './primary-fee.util';
 export interface StoreRate {
   id: string;
   label: string;
-  /** USD paid to the master rights holder per stream, on average. */
+  /** USD paid to the rights holders per stream, on average. */
   rateUsd: number;
+  /** Where rateUsd comes from, shown under the calculator. */
+  source: string;
   /** Streams a track needs in the trailing 12 months before the store pays
    * anything for it (Spotify, since April 2024). */
   minAnnualStreams?: number;
 }
 
-/** Midpoints of published industry estimates of the per-stream master
- * payout, 2025 (Royalty Exchange, Digital Music News and others). Not
- * official rates: no store publishes one. */
+/** Averages of past per-stream payouts. No store publishes a rate, and
+ * published estimates disagree (YouTube Music runs from $0.0007 to $0.008
+ * depending on the source), so each row names the one it uses. The stores
+ * take streamingcalculator.com's industry averages. YouTube video views,
+ * the one figure read automatically, take the low isrc.com estimate: most
+ * of them are ad-supported plays, and the YouTube Music rate would
+ * overstate them tenfold. */
 export const RATES_AS_OF = '2025';
+const SC = 'streamingcalculator.com';
 export const DEFAULT_STORE_RATES: StoreRate[] = [
-  { id: 'spotify', label: 'Spotify', rateUsd: 0.004, minAnnualStreams: 1000 },
-  { id: 'apple', label: 'Apple Music', rateUsd: 0.008 },
-  { id: 'amazon', label: 'Amazon Music', rateUsd: 0.0045 },
-  { id: 'youtube', label: 'YouTube Music', rateUsd: 0.002 },
-  { id: 'deezer', label: 'Deezer', rateUsd: 0.0064 },
-  { id: 'tidal', label: 'TIDAL', rateUsd: 0.0128 }
+  { id: 'spotify', label: 'Spotify', rateUsd: 0.004, source: SC, minAnnualStreams: 1000 },
+  { id: 'apple', label: 'Apple Music', rateUsd: 0.008, source: SC },
+  { id: 'amazon', label: 'Amazon Music', rateUsd: 0.006, source: SC },
+  { id: 'youtubeMusic', label: 'YouTube Music', rateUsd: 0.007, source: SC },
+  { id: 'youtube', label: 'YouTube (video)', rateUsd: 0.00069, source: 'isrc.com' },
+  { id: 'deezer', label: 'Deezer', rateUsd: 0.006, source: SC },
+  { id: 'tidal', label: 'TIDAL', rateUsd: 0.013, source: SC },
+  { id: 'pandora', label: 'Pandora', rateUsd: 0.0013, source: SC },
+  { id: 'soundcloud', label: 'SoundCloud', rateUsd: 0.003, source: SC },
+  { id: 'qobuz', label: 'Qobuz', rateUsd: 0.0187, source: SC }
 ];
 
 export interface StoreInput {

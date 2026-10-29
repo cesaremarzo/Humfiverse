@@ -199,7 +199,7 @@
           <!-- Public once the campaign is launched (token minted): master
                royalties per token at a given number of streams. -->
           @if (onchainInfo()?.onchain) {
-            <app-royalty-calculator [tokensTotal]="a.tokensTotal" [tokenPrice]="a.tokenPrice"></app-royalty-calculator>
+            <app-royalty-calculator [assetId]="a.id" [tokensTotal]="a.tokensTotal" [tokenPrice]="a.tokenPrice"></app-royalty-calculator>
           }
 
           @if (escrowInfo()?.escrow) {

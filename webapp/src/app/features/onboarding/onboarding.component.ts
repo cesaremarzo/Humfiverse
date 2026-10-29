@@ -43,6 +43,7 @@ type MilestoneKind = 'preprod' | 'catalogue';
 import { RegistrationGateComponent } from '../../shared/registration-gate.component';
 import { MEDIA_LIMITS, checkMediaFile } from '../../core/media.util';
 import { MediaKind } from '../../core/models';
+import { youtubeVideoId } from '../../core/youtube.util';
 @Component({
   selector: 'app-onboarding',
   standalone: true,
@@ -80,6 +81,7 @@ export class OnboardingComponent {
   submitting = signal(false);
 
   stepKey = computed(() => this.steps[this.stepIndex()].key);
+  youtubeInvalid = computed(() => { const v = this.data().catalogue.youtube?.trim(); return !!v && !youtubeVideoId(v); });
 
   preprodTotal = computed(() => {
     const p = this.data().preprod;

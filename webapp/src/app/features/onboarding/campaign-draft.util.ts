@@ -1,3 +1,4 @@
+import { youtubeVideoId } from '../../core/youtube.util';
 import { Asset, Campaign, Milestone, MilestoneKindName } from '../../core/models';
 import type { WizardData, WizardStepKey } from './onboarding.model';
 import { isValidWalletAddress } from './onboarding.model';
@@ -252,6 +253,8 @@ export function buildAssetDraft(d: WizardData, id: string, total: number, artist
     asset.royaltySource = d.catalogue.dsp;
     const months = parseInt(d.catalogue.months, 10);
     if (Number.isFinite(months) && months > 0) asset.royaltyHistoryMonths = months;
+    // §2.121: the video the royalty calculator reads YouTube views from.
+    if (youtubeVideoId(d.catalogue.youtube)) asset.youtubeUrl = d.catalogue.youtube!.trim();
   }
 
   // Catalogue-kind campaigns deliberately get no royaltyHistory — a track
@@ -304,6 +307,7 @@ export function canAdvanceFrom(step: WizardStepKey, d: WizardData): boolean {
   }
   if (step === 'source' && d.model === 'catalogue') {
     if (!raiseTerms(d.catalogue.funding, d.catalogue.supply).valid) return false;
+    if (d.catalogue.youtube?.trim() && !youtubeVideoId(d.catalogue.youtube)) return false;
     if (!d.catalogueCampaign.enabled) return true;
     return !!d.catalogueCampaign.studioName.trim() && isValidWalletAddress(d.catalogueCampaign.studioWallet) && milestonesValid(d.catalogueMilestones) && raiseRuleOnChain(d.raiseRule) !== null;
   }

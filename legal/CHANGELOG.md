@@ -5,6 +5,18 @@ perché.
 
 
 
+## 2026-10-29 · Calcolatore: visualizzazioni YouTube automatiche, cambi BCE (§2.121)
+
+Su richiesta dell'utente il calcolatore legge in automatico le visualizzazioni
+del video YouTube del brano (YouTube Data API, dal server) e mostra il
+risultato anche in EUR o GBP (cambi BCE via frankfurter.app). Nuova tabella
+`youtube_views`, solo contatori pubblici. Tariffe allineate a
+streamingcalculator.com, video YouTube a isrc.com; 10 righe di store.
+
+- 05: nuova riga nel §3 (`youtube_views`) e due fornitori nel §5, senza dati
+  personali; da verificare i Termini delle API di YouTube.
+- 06 §2.5 e 07 A16: lettura automatica, fonti e valuta.
+
 ## 2026-10-29 · Solo royalty master; calcolatore delle royalty (§2.121)
 
 Decisione dell'utente: il token riguarda solo le royalty master (registrazione,

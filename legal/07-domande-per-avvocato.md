@@ -146,6 +146,10 @@ Lussemburgo (CSSF) e Italia (CONSOB).*
   totali, con il risultato per token, per un numero di token scelto e come %
   del prezzo del token. Accanto: la formula con i numeri usati e l'avvertenza
   che i risultati passati non garantiscono i guadagni futuri mostrati (06 §2.5).
+  Le visualizzazioni del video YouTube sono lette in automatico dall'API
+  ufficiale (gli altri store non pubblicano gli stream); le tariffe vengono da
+  streamingcalculator.com e isrc.com, citati sotto il calcolo, e il risultato si
+  può vedere in EUR o GBP al cambio BCE del giorno.
   L'utente ritiene che, trattandosi di formule su dati passati, l'avvertenza
   basti. Chiedere: in una futura offerta reale questo è un'**informazione
   previsionale** o una **comunicazione di marketing** (Prospetto, ECSPR art. 27,

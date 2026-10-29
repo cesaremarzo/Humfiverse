@@ -18,7 +18,7 @@ export interface WizardData {
   description: string;
   /** §2.79: `funding` (USD) and `supply` are the artist's; the token
    * contract derives the price from them at mint. */
-  catalogue: { dsp: string; months: string; history: string; funding: number; supply: number };
+  catalogue: { dsp: string; months: string; history: string; funding: number; supply: number; youtube?: string };
   /** The budget lines sum to the funding requested; `supply` is the token count. */
   preprod: { studio: number; session: number; mix: number; extra: number; supply: number; studioName: string; studioWallet: string };
   /** Catalogue-kind only: whether the funding raised is held in escrow and

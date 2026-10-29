@@ -136,6 +136,12 @@
             <input type="number" min="1" class="mono" [value]="data().catalogue.months" (input)="updateData({ catalogue: { ...data().catalogue, months: $any($event.target).value } })"></div>
         </div>
         <div class="field" style="margin-top:14px;">
+          <label>{{ 'wizSource.youtubeLabel' | translate }}</label>
+          <input type="url" placeholder="https://www.youtube.com/watch?v=…" [value]="data().catalogue.youtube || ''" (input)="updateData({ catalogue: { ...data().catalogue, youtube: $any($event.target).value } })">
+          @if (youtubeInvalid()) { <span class="hint" style="color:var(--warning);">{{ 'wizSource.youtubeInvalid' | translate }}</span> }
+          @else { <span class="hint">{{ 'wizSource.youtubeHint' | translate }}</span> }
+        </div>
+        <div class="field" style="margin-top:14px;">
           <label>{{ 'wizSource.statementLabel' | translate }}</label>
           <div class="doc-row" style="cursor:pointer;" (click)="attachStatement()"><app-icon name="upload"></app-icon><span class="name">{{ data().catalogue.history || ('wizSource.statementPlaceholder' | translate) }}</span></div>
           <span class="hint">{{ 'wizSource.statementHint' | translate }}</span>

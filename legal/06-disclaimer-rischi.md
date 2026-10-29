@@ -166,8 +166,11 @@ prezzo della rivendita lo sceglie il venditore (§2.3), non la piattaforma.
 
 ### 2.5 Calcolatore delle royalty master (pagina della campagna)
 
-Pubblico, sulla pagina di ogni campagna lanciata (§2.121). Sotto il calcolo il
-sito mostra la formula, i numeri usati e questi testi, già in uso nelle 9 lingue.
+Pubblico, sulla pagina di ogni campagna lanciata (§2.121). Le visualizzazioni
+del video YouTube del brano sono lette in automatico, con la data di lettura; gli
+altri store si compilano a mano. Sotto il calcolo il sito mostra la formula, i
+numeri usati, le fonti delle tariffe, il cambio BCE se si sceglie EUR o GBP, e
+questi testi, già in uso nelle 9 lingue.
 
 **IT**
 > Per token al mese = Σ (stream × USD per stream) × (1 − commissione

@@ -2989,3 +2989,9 @@ template v0.9-draft, wizard solo distributori, testi in 9 lingue, guida, legal/
 feature: serve il via libera prima del merge. Punto aperto segnalato dalla
 sessione dei testi: il piano editoriale vieta cifre di rendimento nei post; il
 calcolatore mostra "per token all'anno" e "annuo ÷ prezzo".
+Stesso giorno: il calcolatore legge **in automatico le visualizzazioni YouTube**
+(API ufficiale; Spotify non pubblica gli stream via API), 10 store con tariffe da
+streamingcalculator.com (video YouTube: isrc.com), valuta USD/EUR/GBP al cambio
+BCE. Link YouTube: campo facoltativo nel wizard o link di uscita on-chain.
+**Da fare:** creare la chiave `YOUTUBE_API_KEY` (Google Cloud) e metterla su
+Render e nel `server/.env` locale; senza, la riga YouTube resta manuale.

@@ -57,8 +57,15 @@ const ASSISTANT_DAILY_CAP = Number(process.env.ASSISTANT_DAILY_CAP || 300);
 const TAKEDOWN_NOTICE_DAYS = Number(process.env.TAKEDOWN_NOTICE_DAYS || 5);
 const OWNER_SAFE_ADDRESS = process.env.OWNER_SAFE_ADDRESS || "0xBA2ad0Ca063092E350f1427dd86F7E9C8730245d";
 
+/* §2.121 — YouTube Data API v3 key, used only to read a track video's public
+   view count for the royalty calculator. Unset: the calculator has no
+   automatic figure and every store is entered by hand. Restrict the key to
+   the YouTube Data API in the Google Cloud console. */
+const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY || "";
+
 module.exports = {
   PORT,
+  YOUTUBE_API_KEY,
   TAKEDOWN_NOTICE_DAYS,
   OWNER_SAFE_ADDRESS,
   ADMIN_API_KEY,
