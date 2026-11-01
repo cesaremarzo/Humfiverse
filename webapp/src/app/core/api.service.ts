@@ -25,7 +25,7 @@ import {
   RedeemResult,
   RoyaltyMonth,
   SecondaryListing, FeeSummary, RegistrationStatus, MediaKind,
-  AssistantStatus, AssistantAnswer, TakedownCase, TakedownCaseList, TakedownPublic, TakedownSafeTransaction, MilestoneKindName } from './models';
+  AssistantStatus, AssistantAnswer, TakedownCase, TakedownCaseList, TakedownPublic, TakedownSafeTransaction, MilestoneKindName, YoutubeStats, FxRates } from './models';
 
 /** A studio registered on the escrow after Humfiverse verified it (§2.110). */
 export interface EscrowStudio {
@@ -120,6 +120,16 @@ export class ApiService {
 
   health(): Promise<{ ok: boolean }> {
     return firstValueFrom(this.http.get<{ ok: boolean }>(`${this.base}/api/health`));
+  }
+
+  /** §2.121: the asset's YouTube video views, read by the backend. */
+  getYoutubeStats(assetId: string): Promise<YoutubeStats> {
+    return firstValueFrom(this.http.get<YoutubeStats>(`${this.base}/api/assets/${encodeURIComponent(assetId)}/youtube`));
+  }
+
+  /** §2.121: ECB reference rates from USD, for the calculator's currency. */
+  getFx(): Promise<FxRates> {
+    return firstValueFrom(this.http.get<FxRates>(`${this.base}/api/fx`));
   }
 
   getOnchainInfo(assetId: string): Promise<OnchainInfo> {

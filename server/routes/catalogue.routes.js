@@ -13,6 +13,7 @@ const { verifyAction } = require("../lib/signed-action");
 const registration = require("../services/registration.service");
 
 const takedown = require("../services/takedown.service");
+const { parseVideoId } = require("../services/streams.service");
 
 module.exports = function registerCatalogueRoutes(router) {
   /* The app-boot aggregate: one round trip instead of three, since the
@@ -55,6 +56,11 @@ module.exports = function registerCatalogueRoutes(router) {
       requireMatch("asset.artistWallet", asset.artistWallet, launch.artistWallet);
       requireMatch("asset.tokensTotal", Number(asset.tokensTotal), launch.supply);
       await registration.requireRegistered(launch.artistWallet);
+      // §2.121: the track's YouTube video, read by the royalty calculator.
+      if (asset.youtubeUrl !== undefined && asset.youtubeUrl !== "" && !parseVideoId(asset.youtubeUrl)) {
+        sendJson(res, 400, { error: "asset.youtubeUrl is not a YouTube video link" });
+        return;
+      }
       if (await catalogueRepo.findAssetById(asset.id)) {
         sendJson(res, 409, { error: "an asset with this id already exists" });
         return;

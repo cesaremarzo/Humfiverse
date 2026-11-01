@@ -18,7 +18,7 @@ export interface WizardData {
   description: string;
   /** §2.79: `funding` (USD) and `supply` are the artist's; the token
    * contract derives the price from them at mint. */
-  catalogue: { dsp: string; months: string; history: string; funding: number; supply: number };
+  catalogue: { dsp: string; months: string; history: string; funding: number; supply: number; youtube?: string };
   /** The budget lines sum to the funding requested; `supply` is the token count. */
   preprod: { studio: number; session: number; mix: number; extra: number; supply: number; studioName: string; studioWallet: string };
   /** Catalogue-kind only: whether the funding raised is held in escrow and
@@ -63,7 +63,11 @@ export const GENRES: [string, string][] = [
   ['Other', 'genre.other']
 ];
 
-export const DISTRIBUTORS = ['Spotify for Artists', 'Apple Music for Artists', 'DistroKid', 'Believe', 'SIAE'];
+/** Distributors only: the token is assigned the master royalties the
+ * distributor pays. SIAE and other collecting societies pay copyright
+ * royalties, which stay with the authors, and store dashboards like Spotify
+ * for Artists report streams but pay nothing — neither belongs here. */
+export const DISTRIBUTORS = ['DistroKid', 'TuneCore', 'CD Baby', 'Believe', 'The Orchard', 'AWAL', 'Altafonte'];
 
 export const DISCLOSURE_ROWS: [keyof AiDisclosure, string][] = [
   ['vocals', 'disclosure.vocals'],
@@ -86,7 +90,7 @@ export function freshWizardData(): WizardData {
     artistName: '',
     genre: 'Indie Pop',
     description: '',
-    catalogue: { dsp: 'Spotify for Artists', months: '12', history: '', funding: 30000, supply: 1500 },
+    catalogue: { dsp: 'DistroKid', months: '12', history: '', funding: 30000, supply: 1500 },
     preprod: { studio: 5000, session: 4000, mix: 3000, extra: 1000, supply: 1300, studioName: '', studioWallet: '' },
     catalogueCampaign: { enabled: false, studioName: '', studioWallet: '' },
     preprodMilestones: PREPRODUCTION_MILESTONES.map((m) => ({ ...m })),

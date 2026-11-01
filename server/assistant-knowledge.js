@@ -24,8 +24,8 @@
 const PAGES = `
 - #/marketplace — every listed catalogue and pre-production campaign.
 - #/asset/<id> — one listing: price, supply, funding, milestones, royalty
-  history the artist declares, AI-use disclosure, documents, and the buy or
-  contribute button.
+  history the artist declares, the royalty calculator once launched, AI-use
+  disclosure, documents, and the buy or contribute button.
 - #/portfolio — the connected wallet's tokens, their value chart, royalties
   to claim, and its resale listings.
 - #/kyc — the identity questionnaire and the MiFID II appropriateness test.
@@ -115,6 +115,17 @@ PRE-PRODUCTION CAMPAIGNS
 - Resale listings expire after at most 30 days and must be renewed.
 
 ROYALTIES
+- A token is a share of the track's MASTER royalties only: what the
+  distributor pays for the recording under the distribution contract.
+  Copyright royalties on the composition and lyrics, collected by SIAE or
+  another collecting society, are a separate flow: they stay with the
+  authors and publishers and never go through the token, even though the
+  same streams pay both.
+- A launched campaign's page has a public royalty calculator: monthly
+  streams per store × a past average payout per stream (editable), less the
+  distributor's commission and the 1% fee, divided by the total tokens. It
+  shows its formula and is arithmetic on past averages, not a forecast; past
+  results do not guarantee future earnings.
 - Royalty money does not arrive on chain by itself. Someone has to confirm a
   payment arrived and deposit it, and today that is a single trusted party —
   the artist, or the platform after receiving the money from the artist.

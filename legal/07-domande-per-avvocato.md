@@ -1,6 +1,6 @@
 # Domande per l'avvocato
 
-*B9 nuova il 2026-10-14 (anticipo, §2.119). B3 riscritta il 2026-10-12 (decisione cambiata: scadenza e soglia minima, §2.114). Revisione del 2026-10-11 (B5 decisa, nuova B5-bis: verifica degli studi, §2.110). Prima 2026-09-28 (H5: decisione di annullamento agli investitori). Prima 2026-09-22 (A15, L4-L9: società maltese, file 10). Prima 2026-09-17, commit `fd7f822` + §2.101 (A13: commissione sulla distribuzione delle royalty; A12, I4: versamento delle royalty), prima `94ae18f` (A4: storico prezzi) e `27d8d5f` + §2.100 (A14, F4, H4: guida automatica).*
+*A16 nuova e I1 aggiornata il 2026-10-29 (calcolatore, solo royalty master, §2.121). B9 nuova il 2026-10-14 (anticipo, §2.119). B3 riscritta il 2026-10-12 (decisione cambiata: scadenza e soglia minima, §2.114). Revisione del 2026-10-11 (B5 decisa, nuova B5-bis: verifica degli studi, §2.110). Prima 2026-09-28 (H5: decisione di annullamento agli investitori). Prima 2026-09-22 (A15, L4-L9: società maltese, file 10). Prima 2026-09-17, commit `fd7f822` + §2.101 (A13: commissione sulla distribuzione delle royalty; A12, I4: versamento delle royalty), prima `94ae18f` (A4: storico prezzi) e `27d8d5f` + §2.100 (A14, F4, H4: guida automatica).*
 
 Le domande vengono dai file 01-03 e dalle decisioni già prese (note legali §7,
 §7.10; technical-architecture §2.86). Sostituiscono e ampliano l'elenco del §6
@@ -139,6 +139,22 @@ Lussemburgo (CSSF) e Italia (CONSOB).*
   direzione effettiva richiesta da MiCA (art. 59) è compatibile con l'assetto
   «uno a Malta, uno in Italia» (L5, L5-bis).
   *(10 §3, §5.1, §5.2, §5.4)*
+- **A16** 🟠 *Nuova, 2026-10-29 (§2.121).* **Decisione dell'utente:** la pagina
+  di una campagna lanciata mostra a tutti un **calcolatore delle royalty
+  master**: stream mensili per store × una media passata di USD per stream
+  (modificabile) × (1 − commissione del distributore) × (1 − 1%) ÷ token
+  totali, con il risultato per token, per un numero di token scelto e come %
+  del prezzo del token. Accanto: la formula con i numeri usati e l'avvertenza
+  che i risultati passati non garantiscono i guadagni futuri mostrati (06 §2.5).
+  Le visualizzazioni del video YouTube sono lette in automatico dall'API
+  ufficiale (gli altri store non pubblicano gli stream); le tariffe vengono da
+  streamingcalculator.com e isrc.com, citati sotto il calcolo, e il risultato si
+  può vedere in EUR o GBP al cambio BCE del giorno.
+  L'utente ritiene che, trattandosi di formule su dati passati, l'avvertenza
+  basti. Chiedere: in una futura offerta reale questo è un'**informazione
+  previsionale** o una **comunicazione di marketing** (Prospetto, ECSPR art. 27,
+  MiFID II art. 24(3)) con requisiti propri? La % sul prezzo del token va
+  trattata come un rendimento atteso? **[verificare]** *(06 §2.5)*
 - **A14** 🟠 *Nuova, 2026-09-17.* Dal §2.100 il sito ha una **guida
   automatica**: risposte scritte da noi e, dove è configurata una chiave API,
   risposte generate da Claude a partire da un'istruzione di sistema
@@ -342,10 +358,16 @@ l'azione di recupero. Decisione del 15 settembre 2026, note legali §7.10.*
 ## Gruppo I · Diritto d'autore e musica
 *Avvocato IP o diritto dello spettacolo e della musica.*
 
-- **I1** 🟠 La cessione dei "proventi royalty" deve distinguere **composizione ed
-  edizioni** da **master e diritti connessi**, e i canali di incasso (SIAE o altre
-  CMO, IME come Soundreef, distributori, DSP)? Quali mandati già firmati
-  dall'artista la impediscono? *(03 T-6, note §7.4)*
+- **I1** 🟠 *Decisione dell'utente, 2026-10-29 (§2.121):* il token riguarda
+  **solo le royalty master** pagate dal distributore; le royalty di diritto
+  d'autore (SIAE o altre CMO, IME come Soundreef) sono escluse e la clausola
+  `assignment` (v0.9-draft) lo dice. Resta da chiedere: (a) la formulazione
+  regge, o serve elencare le voci (stream, download, sincronizzazione del
+  master)? (b) i **diritti connessi** del produttore e degli interpreti
+  (Nuovo IMAIE e simili, soprattutto radio e TV) vanno inclusi, esclusi o
+  lasciati a scelta? (c) quali clausole tipiche dei contratti di distribuzione
+  (DistroKid, Believe, etichette) vietano di cedere i proventi a terzi? *(03
+  T-6, note §7.4)*
 - **I2** 🟠 **Garanzie e manleva** dell'artista: bastano quelle del file 08, A-4?
   Come si gestiscono i campioni non autorizzati? *(03 T-8)*
 - **I4** 🟢 *Nuova, 2026-09-17; abbassata lo stesso giorno.* L'artista **può**

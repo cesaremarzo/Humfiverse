@@ -1,6 +1,6 @@
 # Avvertenze e scheda rischi: bozza
 
-*§2.2 aggiornato il 2026-10-14 (anticipo, §2.119). §2.2 e §3 aggiornati il 2026-10-12 (scadenza e soglia minima, §2.114). Bozza del 2026-10-11 per §2.2, §2.3-bis e §3 (studi verificati, royalty in proporzione al tempo di possesso, §2.110: in vigore sulla catena dal redeploy dello stesso giorno, §2.111); prima 2026-09-17, commit `fd7f822` + §2.101 (§2.1 vendita diretta al 6%, §2.3-bis commissione sulle royalty), prima `94ae18f` (§2.4 storico prezzi) e `82a7a1b`. **Da far rivedere a un avvocato.** Non
+*§2.5 nuovo il 2026-10-29 (calcolatore delle royalty master, §2.121). §2.2 aggiornato il 2026-10-14 (anticipo, §2.119). §2.2 e §3 aggiornati il 2026-10-12 (scadenza e soglia minima, §2.114). Bozza del 2026-10-11 per §2.2, §2.3-bis e §3 (studi verificati, royalty in proporzione al tempo di possesso, §2.110: in vigore sulla catena dal redeploy dello stesso giorno, §2.111); prima 2026-09-17, commit `fd7f822` + §2.101 (§2.1 vendita diretta al 6%, §2.3-bis commissione sulle royalty), prima `94ae18f` (§2.4 storico prezzi) e `82a7a1b`. **Da far rivedere a un avvocato.** Non
 è consulenza legale.*
 
 Testi pronti da inserire nel sito, in italiano e in inglese. Sono pensati per il
@@ -163,6 +163,39 @@ Accanto al grafico (§2.94). Il testo nel sito è già questo.
 Da valutare con l'avvocato (07 A4): con pochi scambi un solo acquisto a prezzo
 alto sposta tutto il grafico, e il grafico può sembrare una quotazione. Il
 prezzo della rivendita lo sceglie il venditore (§2.3), non la piattaforma.
+
+### 2.5 Calcolatore delle royalty master (pagina della campagna)
+
+Pubblico, sulla pagina di ogni campagna lanciata (§2.121). Le visualizzazioni
+del video YouTube del brano sono lette in automatico, con la data di lettura; gli
+altri store si compilano a mano. Sotto il calcolo il sito mostra la formula, i
+numeri usati, le fonti delle tariffe, il cambio BCE se si sceglie EUR o GBP, e
+questi testi, già in uso nelle 9 lingue.
+
+**IT**
+> Per token al mese = Σ (stream × USD per stream) × (1 − commissione
+> distributore) × (1 − 1% Humfiverse) ÷ token totali.
+>
+> Gli USD per stream di partenza sono medie di pagamenti passati, tratte da
+> stime di settore pubblicate: nessuno store pubblica una tariffa fissa. Il
+> pagamento reale cambia con paese, tipo di abbonamento e mese.
+>
+> Conta solo le royalty master, pagate dal distributore: sono quelle cedute ai
+> possessori dei token. Le royalty di diritto d'autore (SIAE o altre società di
+> collecting) restano agli autori e non fanno parte del token.
+>
+> **È un calcolo matematico su medie passate, non una previsione. I risultati
+> passati non garantiscono i guadagni futuri che la formula mostra: stream,
+> tariffe e commissioni possono cambiare, anche in peggio.**
+
+**EN**
+> This is arithmetic on past averages, not a forecast. Past results do not
+> guarantee the future earnings the formula shows: streams, rates and
+> commissions can change, including for the worse.
+
+Da valutare con l'avvocato (07 A16): il calcolatore mostra anche il risultato
+annuo come % del prezzo del token, che un lettore può leggere come rendimento
+atteso.
 
 ## 3. Rischi da aggiungere al whitepaper, cap. 8
 

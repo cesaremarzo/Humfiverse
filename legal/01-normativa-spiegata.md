@@ -1,6 +1,6 @@
 # La normativa che riguarda Humfiverse, spiegata
 
-*punto "Obiettivo non raggiunto" aggiornato il 2026-10-12 (scadenza e soglia minima, §2.114). Revisione del 2026-09-15, commit `82a7a1b`; §10 aggiornato il 2026-09-17 (aliquote delle commissioni, §2.101); §7 e §13 aggiornati il 2026-09-17 (guida automatica, §2.100); §1 e §4 aggiornati il 2026-10-11 (correzioni dell'audit dei contratti, §2.110). Non è consulenza legale.*
+*§12 aggiornato il 2026-10-29 (solo royalty master, §2.121). Punto "Obiettivo non raggiunto" aggiornato il 2026-10-12 (scadenza e soglia minima, §2.114). Revisione del 2026-09-15, commit `82a7a1b`; §10 aggiornato il 2026-09-17 (aliquote delle commissioni, §2.101); §7 e §13 aggiornati il 2026-09-17 (guida automatica, §2.100); §1 e §4 aggiornati il 2026-10-11 (correzioni dell'audit dei contratti, §2.110). Non è consulenza legale.*
 
 Questo documento non ripete `planning/legal-regulatory-notes.md`, che resta la
 ricerca di partenza. Lo riorganizza in una mappa unica e aggiunge le aree che
@@ -397,8 +397,14 @@ violazione.
   raggiungibile da qualsiasi gateway IPFS anche se Humfiverse lo "rimuove".
   Serve una procedura di segnalazione e rimozione (DSA, art. 16) e servono
   garanzie dell'artista nel contratto.
-- Il contratto artista (`assignment`) cede i "proventi royalty" senza
-  distinguere tra composizione e master, né tra i canali di incasso. Vedi file 03.
+- Dal 2026-10-29 (§2.121) il contratto artista (`assignment`, v0.9-draft) cede
+  **solo le royalty master**: i proventi della registrazione che il
+  distributore paga secondo il contratto di distribuzione. Le royalty di
+  diritto d'autore su composizione e testo (SIAE o altre società di gestione
+  collettiva) sono escluse e restano ad autori ed editori, anche quando nascono
+  dagli stessi ascolti: sono due flussi di cassa distinti, con pagatori, regole
+  e tempi diversi. Restano aperti i diritti connessi degli interpreti (07 I1).
+  Vedi file 03, T-6.
 
 ## 13. Intelligenza artificiale
 

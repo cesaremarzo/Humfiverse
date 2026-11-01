@@ -2976,3 +2976,22 @@ La vecchia chiave: ETH spostati, proprietà del token `0xb456…` e dell'escrow
 eseguire `~/Desktop/safe-remove-old-operator.json` (setOperator(0) sui 4 contratti
 ritirati) e va sostituita la chiave Alchemy. `CLAUDE.md` e `known-wallets.ts`
 aggiornati.
+
+## 2026-10-29 — solo royalty master; calcolatore delle royalty (§2.121)
+
+Decisioni di Cesare: il token riguarda **solo le royalty master** (distributore);
+il diritto d'autore (SIAE/CMO) è un flusso distinto e resta agli autori. Il
+calcolatore va sulla pagina della campagna lanciata, pubblico, con la formula e
+l'avvertenza "i risultati passati non garantiscono i guadagni futuri".
+Branch `dev/cesare-royalty-calc` (worktree `../humfiverse-royalty`): calcolatore,
+template v0.9-draft, wizard solo distributori, testi in 9 lingue, guida, legal/
+(T-6, I1, A16, 06 §2.5, W-24 proposta e **non applicata** al whitepaper). È una
+feature: serve il via libera prima del merge. Punto aperto segnalato dalla
+sessione dei testi: il piano editoriale vieta cifre di rendimento nei post; il
+calcolatore mostra "per token all'anno" e "annuo ÷ prezzo".
+Stesso giorno: il calcolatore legge **in automatico le visualizzazioni YouTube**
+(API ufficiale; Spotify non pubblica gli stream via API), 10 store con tariffe da
+streamingcalculator.com (video YouTube: isrc.com), valuta USD/EUR/GBP al cambio
+BCE. Link YouTube: campo facoltativo nel wizard o link di uscita on-chain.
+**Da fare:** creare la chiave `YOUTUBE_API_KEY` (Google Cloud) e metterla su
+Render e nel `server/.env` locale; senza, la riga YouTube resta manuale.
